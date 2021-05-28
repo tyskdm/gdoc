@@ -1,0 +1,3 @@
+# gdoc
+
+Ghost documentation
