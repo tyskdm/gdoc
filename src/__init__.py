@@ -1,3 +1,8 @@
-__command__ = 'gdoc'
+__all__ = ['__version__']
+
 __version__ = '0.1.0'
-__apppath__ = 'app'
+
+_command = {
+    'name':     'gdoc',
+    'app_path': 'app'
+}

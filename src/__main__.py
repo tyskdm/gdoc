@@ -2,28 +2,24 @@
 Command line interface module
 """
 import os
-import sys
 import argparse
-from importlib import import_module
+import importlib
+from . import _command, __version__
 
 def main():
     """
     * Command line interface
     """
-    config = import_module('__init__')
-    __command__ = config.__command__
-    __version__ = config.__version__
-    __apppath__ = config.__apppath__
-
-    parser = argparse.ArgumentParser(prog=__command__)
+    parser = argparse.ArgumentParser(prog=_command['name'])
     parser.add_argument("-v", "--version", action="store_true", help="show version")
 
     subparsers = parser.add_subparsers()
 
-    files = os.listdir(os.path.join(sys.argv[0], __apppath__))
+    here = os.path.dirname(__file__)
+    files = os.listdir(os.path.join(here, _command['app_path']))
     for file in files:
-        if os.path.isdir(os.path.join(sys.argv[0], __apppath__, file)):
-            import_module(__apppath__ + '.' + file).setup(subparsers)
+        if os.path.isdir(os.path.join(here, _command['app_path'], file)) and (file != '__pycache__'):
+            importlib.import_module('src.' + _command['app_path'] + '.' + file).setup(subparsers, file)
 
     args = parser.parse_args()
 
