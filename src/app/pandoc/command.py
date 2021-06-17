@@ -15,6 +15,7 @@ def setup(subparsers, name):
     parser = subparsers.add_parser(__subcommand__)
     parser.set_defaults(func=run)
     parser.add_argument('-p', '--pandocfile', help='path to pandoc AST file.')
+    parser.add_argument('--debug', action='store_true', help='enable print debug information.')
 
 
 def run(args):
@@ -42,7 +43,7 @@ def run(args):
     # print(pandoc)
     # print('```')
 
-    gdoc = gast.Gdoc(pandoc)
+    gdoc = gast.Gdoc(pandoc, debug_flag=True)
 
     # print('```gdoc')
     # print(gdoc)

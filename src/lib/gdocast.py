@@ -15,7 +15,7 @@
 
 class Gdoc:
 
-    def __init__(self, pandoc):
+    def __init__(self, pandoc, debug_flag=False):
         """
         与えられた PandocAst オブジェクトに対して、以下を行う。
         ・ 各エレメントを走査して、Gdoc apps/pluginsが解釈しやすいデータ構造を提供する
@@ -27,6 +27,8 @@ class Gdoc:
             ・ ブロックエレメントの種類を減らした、シンプルなデータモデルを提供する
             ・ 元文書の装飾やデータタイプ情報にアクセスできる手段を提供する
         """
+        _DEBUG.enable = debug_flag
+
         self.pandoc = pandoc
 
         # Step 1: Create gdoc elements and set them in each `pandocElement['.gdoc']`
@@ -826,8 +828,9 @@ _PANDOC_TYPES = {
 
 class Debug:
 
-    def __init__(self) -> None:
+    def __init__(self, enable=False) -> None:
         self.i = 0
+        self.enable = enable
 
     def indent(self, n=1) -> None:
         self.i += n
@@ -836,16 +839,23 @@ class Debug:
         self.i -= n
 
     def print(self, message, indent=0) -> None:
-        space = ''
-        for _ in range(self.i + indent):
-            space += '  '
-        space = 'DEBUG: ' + space
-        lines = message.split('\n')
-        for line in lines:
-            print(space + line)
-            pass
+        if self.enable:
+            space = ''
+            for _ in range(self.i + indent):
+                space += '  '
+            space = 'DEBUG: ' + space
+            lines = message.split('\n')
+            for line in lines:
+                print(space + line)
 
     def puts(self, message) -> None:
-        print(message, end='')
+        if self.enable:
+            print(message, end='')
+
+    def On(self) -> None:
+        self.enable = True
+
+    def Off(self) -> None:
+        self.enable = False
 
 _DEBUG = Debug()
