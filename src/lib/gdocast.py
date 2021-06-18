@@ -35,6 +35,25 @@ class Gdoc:
         self.gdoc = _createElements(pandoc, None, None, None, 'Pandoc')
 
 
+    def walk(self, action, gdoc=None, post_action=None):
+        # def action(elem, gdoc):
+        #
+        element = gdoc if gdoc is not None else self.gdoc
+
+        action(element, self.gdoc)
+
+        _DEBUG.indent()
+
+        if element.children is not None:
+            for child in element.children:
+                self.walk(action, child, post_action)
+
+        _DEBUG.undent()
+
+        if post_action is not None:
+            post_action(element, self.gdoc)
+
+
 class Element(object):
 
     def __init__(self, panElem, elemType, parent, next, prev):
@@ -45,6 +64,7 @@ class Element(object):
         self.parent = parent
         self.children = []
         self.data_pos = ''
+        self.source = _SourcePos(self)
 
 
 class BlockList(Element):
@@ -377,6 +397,26 @@ class Inline(Element):
         _DEBUG.undent()
 
 
+class _SourcePos():
+
+    def __init__(self, elem):
+        pos = None
+        panElem = elem.pandocElement
+        if elem.type in _PANDOC_TYPES:
+            if 'types' in _PANDOC_TYPES[elem.type]:
+                if 'Attr' in _PANDOC_TYPES[elem.type]['types']:
+                    if isinstance(panElem, list):
+                        content = panElem
+                    else:
+                        content = panElem['c']
+                    attr = content[_PANDOC_TYPES[elem.type]['types']['Attr']][2]
+                    for item in attr:
+                        if item[0] == 'pos':
+                            pos = item[1]
+
+        self.position = pos
+
+
 def _createElements(panElem, parent, next, prev, elemType=''):
 
     if elemType == '':
@@ -433,12 +473,11 @@ _PANDOC_TYPES = {
         }
     },
     'DefinitionItem':  {
-        # ([Inline], [[Block]]) is not DefinitionList object, just a set of Definition(=Term+Definitions).
+        # ([Inline], [[Block]]) is not List, Item(=Term+Definitions).
         'handler':  DefinitionList,
-        'attr':     [],
         'content':  {
-            'offset':   0,
-            'type':     [ '[Inline]', '[[Block]]' ]
+            'offset':   0
+            # 'type':     [ '[Inline]', '[[Block]]' ]
         }
     },
     #
@@ -486,7 +525,10 @@ _PANDOC_TYPES = {
         # CodeBlock Attr Text
         # - Code block (literal) with attributes
         'handler':  InlineList,
-        'attr':     ['Attr', 'Content'],
+        'types': {
+            'Attr':     0,
+            'Text':     1
+        },
         'content':  {
             'offset':   1,
             'type':     'Text'
@@ -514,7 +556,6 @@ _PANDOC_TYPES = {
         # OrderedList ListAttributes [[Block]]
         # - Ordered list (attributes and a list of items, each a list of blocks)
         'handler':  BlockList,
-        'attr':     ['ListAttributes', 'Content'],
         'content':  {
             'offset':   1,
             'type':     '[[Block]]'
@@ -524,7 +565,6 @@ _PANDOC_TYPES = {
         # BulletList [[Block]]
         # - Bullet list (list of items, each a list of blocks)
         'handler':  BlockList,
-        'attr':     [],
         'content':  {
             'offset':   0,
             'type':     '[[Block]]'
@@ -534,7 +574,6 @@ _PANDOC_TYPES = {
         # DefinitionList [([Inline], [[Block]])]
         # - Definition list. Each list item is a pair consisting of a term (a list of inlines) and one or more definitions (each a list of blocks)
         'handler':  DefinitionList,
-        'attr':     [],
         'content':  {
             'offset':   0,
             'type':     '[([Inline], [[Block]])]'
@@ -544,7 +583,11 @@ _PANDOC_TYPES = {
         # Header Int Attr [Inline]
         # - Header - level (integer) and text (inlines)
         'handler':  InlineList,
-        'attr':     [],
+        'types': {
+            'Level':    0,
+            'Attr':     1,
+            '[Inline]': 2
+        },
         'content':  {
             'offset':   2,
             'type':     '[Inline]'
@@ -560,9 +603,7 @@ _PANDOC_TYPES = {
         # - Table, with attributes, caption, optional short caption, column alignments and widths (required), table head, table bodies, and table foot
         'handler':  Table,
         'types': {
-            'Attr': {
-                'offset':   0
-            },
+            'Attr':     0,
             'Caption': {
                 'offset':   1
             },
@@ -599,7 +640,10 @@ _PANDOC_TYPES = {
         # Div Attr [Block]
         # - Generic block container with attributes
         'handler':  BlockList,
-        'attr':     ['Attr'],
+        'types': {
+            'Attr':     0,
+            '[Block]': 1
+        },
         'content':  {
             'offset':   1,
             'type':     '[Block]'
@@ -688,6 +732,10 @@ _PANDOC_TYPES = {
         # Quoted QuoteType [Inline]
         # Quoted text (list of inlines)
         'handler':  Inline,
+        'types': {
+            'QuotedType':   0,
+            '[Inline]':     1
+        },
         'attr':     ['QuoteType'],
         'content':  {
             'offset':   1,
@@ -698,7 +746,10 @@ _PANDOC_TYPES = {
         # Cite [Citation] [Inline]
         # Citation (list of inlines)
         'handler':  Inline,
-        'attr':     ['[Citation]'],
+        'types': {
+            '[Citation]':   0,
+            '[Inline]':     1
+        },
         'content':  {
             'offset':   1,
             'type':     '[Inline]'
@@ -708,7 +759,10 @@ _PANDOC_TYPES = {
         # Code Attr Text
         # Inline code (literal)
         'handler':  Inline,
-        'attr':     ['Attr'],
+        'types': {
+            'Attr':     0,
+            'Text':     1
+        },
         'content':  {
             'offset':   1,
             'type':     'Text'
@@ -733,7 +787,10 @@ _PANDOC_TYPES = {
         # Math MathType Text
         # TeX math (literal)
         'handler':  Inline,
-        'attr':     ['MathType'],
+        'types': {
+            'MathType': 0,
+            'Text':     1
+        },
         'content':  {
             'offset':   1,
             'type':     'Text'
@@ -743,7 +800,10 @@ _PANDOC_TYPES = {
         # RawInline Format Text
         # Raw inline
         'handler':  Inline,
-        'attr':     ['Format'],
+        'types': {
+            'Format':   0,
+            'Text':     1
+        },
         'content':  {
             'offset':   1,
             'type':     'Text'
@@ -753,7 +813,11 @@ _PANDOC_TYPES = {
         # Link Attr [Inline] Target
         # Hyperlink: alt text (list of inlines), target
         'handler':  Inline,
-        'attr':     ['Attr', '[Inline]', 'Target'],
+        'types': {
+            'Attr':     0,
+            '[Inline]': 1,
+            'Target':   2
+        },
         'content':  {
             'offset':   1,
             'type':     '[Inline]'
@@ -763,7 +827,11 @@ _PANDOC_TYPES = {
         # Image Attr [Inline] Target
         # Image: alt text (list of inlines), target
         'handler':  Inline,
-        'attr':     ['Attr', '[Inline]', 'Target'],
+        'types': {
+            'Attr':     0,
+            '[Inline]': 1,
+            'Taget':    2
+        },
         'content':  {
             'offset':   1,
             'type':     '[Inline]'
@@ -782,7 +850,10 @@ _PANDOC_TYPES = {
         # Span Attr [Inline]
         # Generic inline container with attributes
         'handler':  Inline,
-        'attr':     ['Attr'],
+        'types': {
+            'Attr':     0,
+            '[Inline]': 1
+        },
         'content':  {
             'offset':   1,
             'type':     '[Inline]'
@@ -795,6 +866,10 @@ _PANDOC_TYPES = {
         # Row Attr [Cell]
         # A table row.
         'handler':  TableRow,
+        'types': {
+            # 'Attr':     0,
+            '[Cell]':   1
+        },
         'content':  {
             'offset':   1,
             'type':     '[Cell]'
@@ -805,9 +880,7 @@ _PANDOC_TYPES = {
         # A table cell.
         'handler':  TableCell,
         'types': {
-            'Attr': {
-                'offset':   0
-            },
+            'Attr':         0,
             'Alignment': {
                 'offset':   1
             },

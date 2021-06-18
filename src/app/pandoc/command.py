@@ -39,16 +39,24 @@ def run(args):
         print(__subcommand__ + ': error: Missing pandocfile ( [-d / --pandocfile] is required)')
         sys.exit(1)
 
-    # print('```json')
-    # print(pandoc)
-    # print('```')
+    gdoc = gast.Gdoc(pandoc, debug_flag=args.debug)
 
-    gdoc = gast.Gdoc(pandoc, debug_flag=True)
+    gdoc.walk(_dump_gdoc, post_action=_dump_post_gdoc)
 
-    # print('```gdoc')
-    # print(gdoc)
-    # print('```')
 
-    # print('```json')
-    # print(pandoc)
-    # print('```')
+def _dump_gdoc(elem, gdoc):
+    pos = elem.source.position if elem.source.position is not None else 'None'
+    pos = ' (' + pos + ')'
+    gast._DEBUG.print(elem.type + pos + ' {')
+    pass
+
+
+def _dump_post_gdoc(elem, gdoc):
+    if hasattr(elem, 'text') and (elem.text is not None):
+        if isinstance(elem.text, list):
+            gast._DEBUG.print('>> ' + ('\n' + '>> ').join(elem.text), 1)
+        else:
+            # gast._DEBUG.print(elem.type + ': ' + elem.text)
+            pass
+
+    gast._DEBUG.print('}')
