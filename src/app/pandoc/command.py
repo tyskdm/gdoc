@@ -3,7 +3,7 @@ command.py
 """
 import sys
 import json
-import src.lib.gdocast as gast
+import src.lib.gdast as gdast
 
 __subcommand__ = 'pandoc'
 
@@ -39,7 +39,7 @@ def run(args):
         print(__subcommand__ + ': error: Missing pandocfile ( [-d / --pandocfile] is required)')
         sys.exit(1)
 
-    gdoc = gast.Gdoc(pandoc, debug_flag=args.debug)
+    gdoc = gdast.Gdoc(pandoc, debug_flag=args.debug)
 
     gdoc.walk(_dump_gdoc, post_action=_dump_post_gdoc)
 
@@ -47,16 +47,16 @@ def run(args):
 def _dump_gdoc(elem, gdoc):
     pos = elem.source.position if elem.source.position is not None else 'None'
     pos = ' (' + pos + ')'
-    gast._DEBUG.print(elem.type + pos + ' {')
+    gdast._DEBUG.print(elem.type + pos + ' {')
     pass
 
 
 def _dump_post_gdoc(elem, gdoc):
     if hasattr(elem, 'text') and (elem.text is not None):
         if isinstance(elem.text, list):
-            gast._DEBUG.print('>> ' + ('\n' + '>> ').join(elem.text), 1)
+            gdast._DEBUG.print('>> ' + ('\n' + '>> ').join(elem.text), 1)
         else:
-            # gast._DEBUG.print(elem.type + ': ' + elem.text)
+            # gdast._DEBUG.print(elem.type + ': ' + elem.text)
             pass
 
-    gast._DEBUG.print('}')
+    gdast._DEBUG.print('}')
