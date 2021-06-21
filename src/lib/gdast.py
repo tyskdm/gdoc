@@ -429,7 +429,7 @@ def _createElements(panElem, parent, next, prev, elemType=''):
     else:
         elem = panElem
 
-    gdocElem = _PANDOC_TYPES[elemType]['handler'](elem, elemType, parent, next, prev)
+    gdocElem = _PANDOC_TYPES[elemType]['class'](elem, elemType, parent, next, prev)
 
     if isinstance(panElem, dict):
         panElem['.gdoc'] = gdocElem
@@ -448,7 +448,7 @@ _PANDOC_TYPES = {
     'BlockList':  {
         # [Block]   is not BlockList object, just an Array of Blocks.
         #           It means BlockList doesn't have 't' and 'c' elements.
-        'handler':  BlockList,
+        'class':  BlockList,
         'content':  {
             'offset':   0,
             'type':     '[Block]'
@@ -457,7 +457,7 @@ _PANDOC_TYPES = {
     'InlineList':  {
         # [Inline]  is not InlineList object, just an Array of Inlines.
         #           It means BlockList doesn't have 't' and 'c' elements.
-        'handler':  InlineList,
+        'class':  InlineList,
         'content':  {
             'offset':   0,
             'type':     '[Inline]'
@@ -466,7 +466,7 @@ _PANDOC_TYPES = {
     'ListItem':  {
         # [Block]   is not BlockList object, just an Array of Blocks.
         #           It means BlockList doesn't have 't' and 'c' elements.
-        'handler':  BlockList,
+        'class':  BlockList,
         'content':  {
             'offset':   0,
             'type':     '[Block]'
@@ -474,7 +474,7 @@ _PANDOC_TYPES = {
     },
     'DefinitionItem':  {
         # ([Inline], [[Block]]) is not List, Item(=Term+Definitions).
-        'handler':  DefinitionList,
+        'class':  DefinitionList,
         'content':  {
             'offset':   0
             # 'type':     [ '[Inline]', '[[Block]]' ]
@@ -485,7 +485,7 @@ _PANDOC_TYPES = {
     #
     'Pandoc':  {
         # Pandoc Meta [Block]
-        'handler':  BlockList,
+        'class':  BlockList,
         'content':  {
             'offset':   0,
             'type':     '[Block]'
@@ -497,7 +497,7 @@ _PANDOC_TYPES = {
     'Plain':  {
         # Plain [Inline]
         # - Plain text, not a paragraph
-        'handler':  InlineList,
+        'class':  InlineList,
         'content':  {
             'offset':   0,
             'type':     '[Inline]'
@@ -506,7 +506,7 @@ _PANDOC_TYPES = {
     'Para':  {
         # Para [Inline]
         # - Paragraph
-        'handler':  InlineList,
+        'class':  InlineList,
         'content':  {
             'offset':   0,
             'type':     '[Inline]'
@@ -515,7 +515,7 @@ _PANDOC_TYPES = {
     'LineBlock':  {
         # LineBlock [[Inline]]
         # - Multiple non-breaking lines
-        'handler':  InlineList,
+        'class':  InlineList,
         'content':  {
             'offset':   0,
             'type':     '[[Inline]]'
@@ -524,7 +524,7 @@ _PANDOC_TYPES = {
     'CodeBlock':  {
         # CodeBlock Attr Text
         # - Code block (literal) with attributes
-        'handler':  InlineList,
+        'class':  InlineList,
         'types': {
             'Attr':     0,
             'Text':     1
@@ -537,7 +537,7 @@ _PANDOC_TYPES = {
     'RawBlock':  {
         # RawBlock Format Text
         # - Raw block
-        'handler':  InlineList,
+        'class':  InlineList,
         'content':  {
             'offset':   1,
             'type':     'Text'
@@ -546,7 +546,7 @@ _PANDOC_TYPES = {
     'BlockQuote':  {
         # BlockQuote [Block]
         # - Block quote (list of blocks)
-        'handler':  BlockList,
+        'class':  BlockList,
         'content':  {
             'offset':   0,
             'type':     '[Block]'
@@ -555,7 +555,7 @@ _PANDOC_TYPES = {
     'OrderedList':  {
         # OrderedList ListAttributes [[Block]]
         # - Ordered list (attributes and a list of items, each a list of blocks)
-        'handler':  BlockList,
+        'class':  BlockList,
         'content':  {
             'offset':   1,
             'type':     '[[Block]]'
@@ -564,7 +564,7 @@ _PANDOC_TYPES = {
     'BulletList':  {
         # BulletList [[Block]]
         # - Bullet list (list of items, each a list of blocks)
-        'handler':  BlockList,
+        'class':  BlockList,
         'content':  {
             'offset':   0,
             'type':     '[[Block]]'
@@ -573,7 +573,7 @@ _PANDOC_TYPES = {
     'DefinitionList':  {
         # DefinitionList [([Inline], [[Block]])]
         # - Definition list. Each list item is a pair consisting of a term (a list of inlines) and one or more definitions (each a list of blocks)
-        'handler':  DefinitionList,
+        'class':  DefinitionList,
         'content':  {
             'offset':   0,
             'type':     '[([Inline], [[Block]])]'
@@ -582,7 +582,7 @@ _PANDOC_TYPES = {
     'Header':  {
         # Header Int Attr [Inline]
         # - Header - level (integer) and text (inlines)
-        'handler':  InlineList,
+        'class':  InlineList,
         'types': {
             'Level':    0,
             'Attr':     1,
@@ -596,12 +596,12 @@ _PANDOC_TYPES = {
     'HorizontalRule':  {
         # HorizontalRule
         # - Horizontal rule
-        'handler':  InlineList
+        'class':  InlineList
     },
     'Table':  {
         # Table Attr Caption [ColSpec] TableHead [TableBody] TableFoot
         # - Table, with attributes, caption, optional short caption, column alignments and widths (required), table head, table bodies, and table foot
-        'handler':  Table,
+        'class':  Table,
         'types': {
             'Attr':     0,
             'Caption': {
@@ -639,7 +639,7 @@ _PANDOC_TYPES = {
     'Div':  {
         # Div Attr [Block]
         # - Generic block container with attributes
-        'handler':  BlockList,
+        'class':  BlockList,
         'types': {
             'Attr':     0,
             '[Block]': 1
@@ -659,7 +659,7 @@ _PANDOC_TYPES = {
     'Str':  {
         # Str Text
         # Text (string)
-        'handler':  Inline,
+        'class':  Inline,
         'content':  {
             'offset':   0,
             'type':     'Text'
@@ -668,7 +668,7 @@ _PANDOC_TYPES = {
     'Emph':  {
         # Emph [Inline]
         # Emphasized text (list of inlines)
-        'handler':  Inline,
+        'class':  Inline,
         'content':  {
             'offset':   0,
             'type':     '[Inline]'
@@ -677,7 +677,7 @@ _PANDOC_TYPES = {
     'Underline':  {
         # Underline [Inline]
         # Underlined text (list of inlines)
-        'handler':  Inline,
+        'class':  Inline,
         'content':  {
             'offset':   0,
             'type':     '[Inline]'
@@ -686,7 +686,7 @@ _PANDOC_TYPES = {
     'Strong':  {
         # Strong [Inline]
         # Strongly emphasized text (list of inlines)
-        'handler':  Inline,
+        'class':  Inline,
         'content':  {
             'offset':   0,
             'type':     '[Inline]'
@@ -695,7 +695,7 @@ _PANDOC_TYPES = {
     'Strikeout':  {
         # Strikeout [Inline]
         # Strikeout text (list of inlines)
-        'handler':  Inline,
+        'class':  Inline,
         'content':  {
             'offset':   0,
             'type':     '[Inline]'
@@ -704,7 +704,7 @@ _PANDOC_TYPES = {
     'Superscript':  {
         # Superscript [Inline]
         # Superscripted text (list of inlines)
-        'handler':  Inline,
+        'class':  Inline,
         'content':  {
             'offset':   0,
             'type':     '[Inline]'
@@ -713,7 +713,7 @@ _PANDOC_TYPES = {
     'Subscript':  {
         # Subscript [Inline]
         # Subscripted text (list of inlines)
-        'handler':  Inline,
+        'class':  Inline,
         'content':  {
             'offset':   0,
             'type':     '[Inline]'
@@ -722,7 +722,7 @@ _PANDOC_TYPES = {
     'SmallCaps':  {
         # SmallCaps [Inline]
         # Small caps text (list of inlines)
-        'handler':  Inline,
+        'class':  Inline,
         'content':  {
             'offset':   0,
             'type':     '[Inline]'
@@ -731,7 +731,7 @@ _PANDOC_TYPES = {
     'Quoted':  {
         # Quoted QuoteType [Inline]
         # Quoted text (list of inlines)
-        'handler':  Inline,
+        'class':  Inline,
         'types': {
             'QuotedType':   0,
             '[Inline]':     1
@@ -745,7 +745,7 @@ _PANDOC_TYPES = {
     'Cite':  {
         # Cite [Citation] [Inline]
         # Citation (list of inlines)
-        'handler':  Inline,
+        'class':  Inline,
         'types': {
             '[Citation]':   0,
             '[Inline]':     1
@@ -758,7 +758,7 @@ _PANDOC_TYPES = {
     'Code':  {
         # Code Attr Text
         # Inline code (literal)
-        'handler':  Inline,
+        'class':  Inline,
         'types': {
             'Attr':     0,
             'Text':     1
@@ -771,22 +771,22 @@ _PANDOC_TYPES = {
     'Space':  {
         # Space
         # Inter-word space
-        'handler':  Inline
+        'class':  Inline
     },
     'SoftBreak':  {
         # SoftBreak
         # Soft line break
-        'handler':  Inline
+        'class':  Inline
     },
     'LineBreak':  {
         # LineBreak
         # Hard line break
-        'handler':  Inline
+        'class':  Inline
     },
     'Math':  {
         # Math MathType Text
         # TeX math (literal)
-        'handler':  Inline,
+        'class':  Inline,
         'types': {
             'MathType': 0,
             'Text':     1
@@ -799,7 +799,7 @@ _PANDOC_TYPES = {
     'RawInline':  {
         # RawInline Format Text
         # Raw inline
-        'handler':  Inline,
+        'class':  Inline,
         'types': {
             'Format':   0,
             'Text':     1
@@ -812,7 +812,7 @@ _PANDOC_TYPES = {
     'Link':  {
         # Link Attr [Inline] Target
         # Hyperlink: alt text (list of inlines), target
-        'handler':  Inline,
+        'class':  Inline,
         'types': {
             'Attr':     0,
             '[Inline]': 1,
@@ -826,7 +826,7 @@ _PANDOC_TYPES = {
     'Image':  {
         # Image Attr [Inline] Target
         # Image: alt text (list of inlines), target
-        'handler':  Inline,
+        'class':  Inline,
         'types': {
             'Attr':     0,
             '[Inline]': 1,
@@ -840,7 +840,7 @@ _PANDOC_TYPES = {
     'Note':  {
         # Note [Block]
         # Footnote or endnote
-        'handler':  Inline,
+        'class':  Inline,
         'content':  {
             'offset':   0,
             'type':     '[Block]'
@@ -849,7 +849,7 @@ _PANDOC_TYPES = {
     'Span':  {
         # Span Attr [Inline]
         # Generic inline container with attributes
-        'handler':  Inline,
+        'class':  Inline,
         'types': {
             'Attr':     0,
             '[Inline]': 1
@@ -865,7 +865,7 @@ _PANDOC_TYPES = {
     'Row':  {
         # Row Attr [Cell]
         # A table row.
-        'handler':  TableRow,
+        'class':  TableRow,
         'types': {
             # 'Attr':     0,
             '[Cell]':   1
@@ -878,7 +878,7 @@ _PANDOC_TYPES = {
     'Cell':  {
         # Cell Attr Alignment RowSpan ColSpan [Block]
         # A table cell.
-        'handler':  TableCell,
+        'class':  TableCell,
         'types': {
             'Attr':         0,
             'Alignment': {
