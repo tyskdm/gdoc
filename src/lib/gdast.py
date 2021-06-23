@@ -21,7 +21,7 @@ class Gdoc:
         ・ 各エレメントを走査して、Gdoc apps/pluginsが解釈しやすいデータ構造を提供する
         ・ Source positionのためだけの、付加情報をもたない Div/Span 要素による階層を省く
         ・ Header blockにより文書全体をセクション分割・階層化する
-        ・ 各エレメントに、next/prev/parent へのリンクを付与する
+        ・ 各エレメントに、parent へのリンクを付与する
         ・ 文書の装飾情報を省き、apps/plugins が必要な情報をシンプルに提供する
             ・ 連結したテキストデータを提供する
             ・ ブロックエレメントの種類を減らした、シンプルなデータモデルを提供する
@@ -32,7 +32,10 @@ class Gdoc:
         self.pandoc = pandoc
 
         # Step 1: Create gdoc elements and set them in each `pandocElement['.gdoc']`
-        self.gdoc = _createElements(pandoc, None, None, None, 'Pandoc')
+        self.gdoc = _createElements(pandoc, None, 'Pandoc')
+
+        # Step 2: Remove wrapper 'div'/'span' which contains only one block or is an only child.
+        self.walk(self._remove_wrapper)
 
 
     def walk(self, action, gdoc=None, post_action=None):
@@ -45,7 +48,7 @@ class Gdoc:
         _DEBUG.indent()
 
         if element.children is not None:
-            for child in element.children:
+            for child in element.children[:]:
                 self.walk(action, child, post_action)
 
         _DEBUG.undent()
@@ -54,23 +57,93 @@ class Gdoc:
             post_action(element, self.gdoc)
 
 
+    def _remove_wrapper(self, elem, gdoc):
+        if elem.type in ['Div', 'Span']:
+
+            if len(elem.children) == 0:
+                self._remove_elem(elem)
+
+            elif len(elem.children) == 1:
+                if elem.source.position is not None:
+
+                    if elem.children[0].source.position is None:
+                        elem.children[0].source.position = elem.source.position
+
+                    elif (len(elem.parent.children) == 1) and (elem.parent.source.position is None):
+                        elem.parent.source.position = elem.source.position
+
+                self._remove_elem(elem)
+
+            else:
+                if len(elem.parent.children) == 1:
+                    if elem.parent.source.position is None:
+                        elem.parent.source.position = elem.source.position
+                    self._remove_elem(elem)
+
+
+    def _remove_elem(self, elem):
+        index = elem.parent.children.index(elem)
+
+        if len(elem.children) == 0:
+            del elem.parent.children[index]
+
+        else:
+            if len(elem.children) == 1:
+                elem.parent.children[index] = elem.children[0]
+                elem.children[0].parent = elem.parent
+
+            elif len(elem.parent.children) == 1:
+                elem.parent.children = elem.children[:]
+                for e in elem.parent.children:
+                    e.parent = elem.parent
+
+
 class Element(object):
 
-    def __init__(self, panElem, elemType, parent, next, prev):
+    def __init__(self, panElem, elemType, parent):
         self.pandocElement = panElem
         self.type = elemType
-        self.next = next
-        self.prev = prev
         self.parent = parent
         self.children = []
-        self.data_pos = ''
         self.source = _SourcePos(self)
+
+
+    def next(self):
+        next = None
+
+        if self.parent is not None:
+            index = self.parent.children.index(self) + 1
+            if index < len(self.parent.children):
+                next = self.parent[index]
+
+        return next
+
+
+    def prev(self):
+        prev = None
+
+        if self.parent is not None:
+            index = self.parent.children.index(self) - 1
+            if index >= 0:
+                prev = self.parent[index]
+
+        return prev
+
+
+    def getFirstChild(self):
+        child = None
+
+        if self.children is not None:
+            if len(self.children) > 0:
+                child = self.children[0]
+
+        return child
 
 
 class BlockList(Element):
 
-    def __init__(self, panElem, elemType, parent, next, prev):
-        super().__init__(panElem, elemType, parent, next, prev)
+    def __init__(self, panElem, elemType, parent):
+        super().__init__(panElem, elemType, parent)
 
         _DEBUG.print(elemType + '（BlockList）')
         _DEBUG.indent()
@@ -84,25 +157,20 @@ class BlockList(Element):
                 panContent = panElem['c'][_PANDOC_TYPES[elemType]['content']['offset']]
 
         for index in range(len(panContent)):
-            prev = self.children[index-1] if index > 0 else None
-            next = None
 
             if _PANDOC_TYPES[elemType]['content']['type'] == '[Block]':
-                self.children.append(_createElements(panContent[index], self, next, prev))
+                self.children.append(_createElements(panContent[index], self))
 
             elif _PANDOC_TYPES[elemType]['content']['type'] == '[[Block]]':
-                self.children.append(_createElements(panContent[index], self, next, prev, 'ListItem'))
-
-            if index > 0:
-                self.children[index-1].next = self.children[index]
+                self.children.append(_createElements(panContent[index], self, 'ListItem'))
 
         _DEBUG.undent()
 
 
 class InlineList(Element):
 
-    def __init__(self, panElem, elemType, parent, next, prev):
-        super().__init__(panElem, elemType, parent, next, prev)
+    def __init__(self, panElem, elemType, parent):
+        super().__init__(panElem, elemType, parent)
         self.text = []
 
         _DEBUG.print(elemType + '（InlineList）')
@@ -138,17 +206,12 @@ class InlineList(Element):
                     panContent = panElem['c'][_PANDOC_TYPES[elemType]['content']['offset']]
 
             for index in range(len(panContent)):
-                prev = self.children[index-1] if index > 0 else None
-                next = None
 
                 if _PANDOC_TYPES[elemType]['content']['type'] == '[Inline]':
-                    self.children.append(_createElements(panContent[index], self, next, prev))
+                    self.children.append(_createElements(panContent[index], self))
 
                 elif _PANDOC_TYPES[elemType]['content']['type'] == '[[Inline]]':
-                    self.children.append(_createElements(panContent[index], self, next, prev, 'InlineList'))
-
-                if index > 0:
-                    self.children[index-1].next = self.children[index]
+                    self.children.append(_createElements(panContent[index], self, 'InlineList'))
 
             lines = ''
             for element in self.children:
@@ -169,8 +232,8 @@ class InlineList(Element):
 class Table(Element):
     # Table Attr Caption [ColSpec] TableHead [TableBody] TableFoot
     # 'c': ['Attr', 'Caption', '[ColSpec]', 'TableHead', '[TableBody]', 'TableFoot'],
-    def __init__(self, panElem, elemType, parent, next, prev):
-        super().__init__(panElem, elemType, parent, next, prev)
+    def __init__(self, panElem, elemType, parent):
+        super().__init__(panElem, elemType, parent)
 
         _DEBUG.print(elemType + '（Table）')
         _DEBUG.indent()
@@ -190,12 +253,8 @@ class Table(Element):
         self.numHeaderRows = len(headerRows)
 
         for row in headerRows:
-            prev = self.children[-1] if len(self.children) > 0 else None
-            next = None
             cells = row[_PANDOC_TYPES['Row']['content']['offset']]
-            self.children.append(_createElements(cells, self, next, prev, 'Row'))
-            if prev is not None:
-                prev.next = self.children[-1]
+            self.children.append(_createElements(cells, self, 'Row'))
 
         # Step.3: Body - append([Row] + [Row])
         tableBodys = table[table_types['[TableBody]']['offset']]    # A list of body(s)
@@ -213,17 +272,13 @@ class Table(Element):
             bodyRows.append([])
 
             for r in range(self.numBodyRows[index]):
-                prev = self.children[-1] if len(self.children) > 0 else None
-                next = None
 
                 cells = []
                 if self.numRowHeaderColumns[index] > 0:
                     cells.extend(body[tableBody_types['[RowHeadColumn]']][r][_PANDOC_TYPES['Row']['content']['offset']]) 
                 cells.extend(body[tableBody_types['[Row]']][r][_PANDOC_TYPES['Row']['content']['offset']])
 
-                self.children.append(_createElements(cells, self, next, prev, 'Row'))
-                if prev is not None:
-                    prev.next = self.children[-1]
+                self.children.append(_createElements(cells, self, 'Row'))
 
         # Step.4: Footer
         tableFoot = table[table_types['TableFoot']['offset']]
@@ -233,19 +288,15 @@ class Table(Element):
         self.numFooterRows = len(footerRows)
 
         for row in footerRows:
-            prev = self.children[-1] if len(self.children) > 0 else None
-            next = None
             cells = row[_PANDOC_TYPES['Row']['content']['offset']]
-            self.children.append(_createElements(cells, self, next, prev, 'Row'))
-            if prev is not None:
-                prev.next = self.children[-1]
+            self.children.append(_createElements(cells, self, 'Row'))
 
         _DEBUG.undent()
 
 class TableRow(Element):
 
-    def __init__(self, panElem, elemType, parent, next, prev):
-        super().__init__(panElem, elemType, parent, next, prev)
+    def __init__(self, panElem, elemType, parent):
+        super().__init__(panElem, elemType, parent)
 
         _DEBUG.print(elemType + '（TableRow）')
         _DEBUG.indent()
@@ -256,20 +307,14 @@ class TableRow(Element):
         # print(panElem)
 
         for index in range(len(panContent)):
-            prev = self.children[index-1] if index > 0 else None
-            next = None
-
-            self.children.append(_createElements(panContent[index], self, next, prev, 'Cell'))
-
-            if index > 0:
-                self.children[index-1].next = self.children[index]
+            self.children.append(_createElements(panContent[index], self, 'Cell'))
 
         _DEBUG.undent()
 
 class TableCell(Element):
 
-    def __init__(self, panElem, elemType, parent, next, prev):
-        super().__init__(panElem, elemType, parent, next, prev)
+    def __init__(self, panElem, elemType, parent):
+        super().__init__(panElem, elemType, parent)
 
         _DEBUG.print(elemType + '（TableCell）')
         _DEBUG.indent()
@@ -280,13 +325,7 @@ class TableCell(Element):
         panContent = panElem[_PANDOC_TYPES['Cell']['types']['[Block]']['offset']]
 
         for index in range(len(panContent)):
-            prev = self.children[index-1] if index > 0 else None
-            next = None
-
-            self.children.append(_createElements(panContent[index], self, next, prev))
-
-            if index > 0:
-                self.children[index-1].next = self.children[index]
+            self.children.append(_createElements(panContent[index], self))
 
         _DEBUG.undent()
 
@@ -294,8 +333,8 @@ class DefinitionList(Element):
     # DefinitionList [([Inline], [[Block]])]
     # - Definition list. Each list item is a pair consisting of a term (a list of inlines) and one or more definitions (each a list of blocks)
 
-    def __init__(self, panElem, elemType, parent, next, prev):
-        super().__init__(panElem, elemType, parent, next, prev)
+    def __init__(self, panElem, elemType, parent):
+        super().__init__(panElem, elemType, parent)
 
         _DEBUG.print(elemType + '（DefinitionList）')
         _DEBUG.indent()
@@ -309,13 +348,7 @@ class DefinitionList(Element):
                 panContent = panElem['c'][_PANDOC_TYPES[elemType]['content']['offset']]
 
             for index in range(len(panContent)):
-                prev = self.children[index-1] if index > 0 else None
-                next = None
-
-                self.children.append(_createElements(panContent[index], self, next, prev, 'DefinitionItem'))
-
-                if index > 0:
-                    self.children[index-1].next = self.children[index]
+                self.children.append(_createElements(panContent[index], self, 'DefinitionItem'))
 
         else:
             # 再入、DLの各項目。
@@ -323,26 +356,20 @@ class DefinitionList(Element):
             panContent = panElem
 
             # [Inline]
-            self.children.append(_createElements(panContent[0], self, None, None, 'InlineList'))
+            self.children.append(_createElements(panContent[0], self, 'InlineList'))
 
             # [[Block]]
             for index in range(len(panContent[1])):
-                prev = self.children[index]     # index=0 のとき、[Inline]（children[0]）をポイントする
-                next = None
-
                 # [Block]
-                self.children.append(_createElements(panContent[1][index], self, next, prev, 'BlockList'))
-
-                self.children[index].next = self.children[index+1]
-                # index=0 のとき、[Inline]（children[0]）のnextは、自分自身children[1]
+                self.children.append(_createElements(panContent[1][index], self, 'BlockList'))
 
         _DEBUG.undent()
 
 
 class Inline(Element):
 
-    def __init__(self, panElem, elemType, parent, next, prev):
-        super().__init__(panElem, elemType, parent, next, prev)
+    def __init__(self, panElem, elemType, parent):
+        super().__init__(panElem, elemType, parent)
         self.text = ''
 
         _DEBUG.print(elemType + '（Inline）')
@@ -382,14 +409,8 @@ class Inline(Element):
                 panContent = panElem['c'][_PANDOC_TYPES[elemType]['content']['offset']]
 
             for index in range(len(panContent)):
-                prev = self.children[index-1] if index > 0 else None
-                next = None
+                self.children.append(_createElements(panContent[index], self))
 
-                self.children.append(_createElements(panContent[index], self, next, prev))
-
-                if index > 0:
-                    self.children[index-1].next = self.children[index]
-            
             for element in self.children:
                 if hasattr(element, 'text') and (element.text is not None):
                     self.text += element.text
@@ -411,13 +432,13 @@ class _SourcePos():
                         content = panElem['c']
                     attr = content[_PANDOC_TYPES[elem.type]['types']['Attr']][2]
                     for item in attr:
-                        if item[0] == 'pos':
+                        if item[0] in ['pos', 'data-pos']:
                             pos = item[1]
 
         self.position = pos
 
 
-def _createElements(panElem, parent, next, prev, elemType=''):
+def _createElements(panElem, parent, elemType=''):
 
     if elemType == '':
         elemType = panElem['t']
@@ -429,7 +450,7 @@ def _createElements(panElem, parent, next, prev, elemType=''):
     else:
         elem = panElem
 
-    gdocElem = _PANDOC_TYPES[elemType]['class'](elem, elemType, parent, next, prev)
+    gdocElem = _PANDOC_TYPES[elemType]['class'](elem, elemType, parent)
 
     if isinstance(panElem, dict):
         panElem['.gdoc'] = gdocElem
