@@ -140,7 +140,20 @@ class Element(object):
         return child
 
 
-class BlockList(Element):
+class Block(Element):
+    def __init__(self, panElem, elemType, parent):
+        super().__init__(panElem, elemType, parent)
+
+
+    def getFirstLine(self):
+        return None
+
+
+    def getFirstChild(self):
+        return None
+
+
+class BlockList(Block):
 
     def __init__(self, panElem, elemType, parent):
         super().__init__(panElem, elemType, parent)
@@ -167,7 +180,7 @@ class BlockList(Element):
         _DEBUG.undent()
 
 
-class InlineList(Element):
+class InlineList(Block):
 
     def __init__(self, panElem, elemType, parent):
         super().__init__(panElem, elemType, parent)
@@ -229,7 +242,7 @@ class InlineList(Element):
         _DEBUG.undent()
 
 
-class Table(Element):
+class Table(Block):
     # Table Attr Caption [ColSpec] TableHead [TableBody] TableFoot
     # 'c': ['Attr', 'Caption', '[ColSpec]', 'TableHead', '[TableBody]', 'TableFoot'],
     def __init__(self, panElem, elemType, parent):
@@ -293,7 +306,7 @@ class Table(Element):
 
         _DEBUG.undent()
 
-class TableRow(Element):
+class TableRow(Block):
 
     def __init__(self, panElem, elemType, parent):
         super().__init__(panElem, elemType, parent)
@@ -311,7 +324,7 @@ class TableRow(Element):
 
         _DEBUG.undent()
 
-class TableCell(Element):
+class TableCell(Block):
 
     def __init__(self, panElem, elemType, parent):
         super().__init__(panElem, elemType, parent)
@@ -329,7 +342,7 @@ class TableCell(Element):
 
         _DEBUG.undent()
 
-class DefinitionList(Element):
+class DefinitionList(Block):
     # DefinitionList [([Inline], [[Block]])]
     # - Definition list. Each list item is a pair consisting of a term (a list of inlines) and one or more definitions (each a list of blocks)
 
@@ -418,7 +431,7 @@ class Inline(Element):
         _DEBUG.undent()
 
 
-class _SourcePos():
+class _SourcePos:
 
     def __init__(self, elem):
         pos = None
@@ -477,7 +490,7 @@ _PANDOC_TYPES = {
     },
     'InlineList':  {
         # [Inline]  is not InlineList object, just an Array of Inlines.
-        #           It means BlockList doesn't have 't' and 'c' elements.
+        #           It means InlineList doesn't have 't' and 'c' elements.
         'class':  InlineList,
         'content':  {
             'offset':   0,
@@ -485,8 +498,8 @@ _PANDOC_TYPES = {
         }
     },
     'ListItem':  {
-        # [Block]   is not BlockList object, just an Array of Blocks.
-        #           It means BlockList doesn't have 't' and 'c' elements.
+        # [Block]   is not ListItem object, just an Array of Blocks.
+        #           It means ListItem doesn't have 't' and 'c' elements.
         'class':  BlockList,
         'content':  {
             'offset':   0,
