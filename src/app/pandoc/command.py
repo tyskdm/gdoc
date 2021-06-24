@@ -46,6 +46,9 @@ def run(args):
 
 def _dump_gdoc(elem, gdoc):
     pos = elem.source.position if elem.source.position is not None else 'None'
+    if elem.type == 'Cell':
+        pos = pos + ' C' + str(elem.colSpan)
+        pos = pos + ' R' + str(elem.rowSpan)
     pos = ' (' + pos + ')'
     gdast._DEBUG.print(elem.type + pos + ' {')
     pass
