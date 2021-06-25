@@ -4,6 +4,7 @@ command.py
 import sys
 import json
 import src.lib.gdast as gdast
+import src.lib.gom as gom
 
 __subcommand__ = 'pandoc'
 
@@ -42,6 +43,10 @@ def run(args):
     gdoc = gdast.Gdoc(pandoc, debug_flag=args.debug)
 
     gdoc.walk(_dump_gdoc, post_action=_dump_post_gdoc)
+
+    ghost = gom.GhostObjectModel(gdoc.gdoc)
+
+    print(ghost.dump())
 
 
 def _dump_gdoc(elem, gdoc):
