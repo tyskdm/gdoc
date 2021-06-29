@@ -3,8 +3,9 @@ command.py
 """
 import sys
 import json
-import src.lib.gdast as gdast
-import src.lib.gom as gom
+from ...lib import gdast
+from ...lib import plugin
+from ...lib import gdom
 
 __subcommand__ = 'pandoc'
 
@@ -40,13 +41,14 @@ def run(args):
         print(__subcommand__ + ': error: Missing pandocfile ( [-d / --pandocfile] is required)')
         sys.exit(1)
 
-    gdoc = gdast.Gdoc(pandoc, debug_flag=args.debug)
-
+    gdoc = gdast.GdocAST(pandoc, debug_flag=args.debug)
     gdoc.walk(_dump_gdoc, post_action=_dump_post_gdoc)
 
-    ghost = gom.GhostObjectModel(gdoc.gdoc)
+    types = plugin.Plugins()
 
-    print(ghost.dump())
+    ghost = gdom.GdocObjectModel(gdoc.gdoc, types)
+
+    ghost.dump()
 
 
 def _dump_gdoc(elem, gdoc):
