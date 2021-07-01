@@ -15,7 +15,7 @@ class HierarchicalDict(gdom.Object):
         super().__init__(table, tag)
 
         self.table = table
-        self.content = [{}, {'':[{}, {}]}]     # Set of Properties dict and Children dict.
+        self.content = [ { }, { } ]     # Set of Properties dict and Children dict.
 
         # Step.1: header から、列：要素名の対応リストを作成する
         #         1列名はとりあえず衝突回避のために "" 固定（Keyに採用されるので出力されない）
@@ -38,84 +38,195 @@ class HierarchicalDict(gdom.Object):
         gdast._DEBUG.print('dataStartRow = ' + str(dataStartRow))
         gdast._DEBUG.print('dataEndRow = ' + str(dataEndRow))
 
-        current = self.content
-        level = 1
+        next = dataStartRow
 
-        self._parser(dataStartRow, dataEndRow, headerKey, level, current[1][''])
-        # while Row is not None:
-        # r = self._parser(dataStartRow, dataEndRow, headerKey, level, current[1][''])
-        # while r < dataEndRow:
-            
+        while next <= dataEndRow:
+            data = [{}, {}]
+            next = self._parser(next, dataEndRow, headerKey, 0, data)
+            self.content[1][data[0]['']] = data
 
         gdast._DEBUG.undent()
         gdast._DEBUG.print('}')
 
 
-    def _parser(self, start, end, headerKey, level, current):
-        for r in range(start, end+1):
-            row = self.table.getRow(r)
-            if row.hasContent(1, level-1):
-                return r-1
+    def _parser(self, next, end, headerKey, top, data):
+        isFirstRow = True
 
-            cell = row.getCell(level)
+        r = next
+        while r <= end:
+
+            # Skip empty row
+            row = self._getRowData(r)
+            if row is None:
+                r += 1
+                continue
+
+            # return if parent top data exists.
+            for c in range(0, top-1):
+                if row[c] != '':
+                    return r
 
             # switch(row type)
-            # case keyword行
-            if cell.isEmpty():
-                cell = cell.next()
+            # case keyword-line
+            if row[top] == '':
                 key = None
                 val = None
-                while cell is not None:
-                    if not cell.isEmpty():
-                        if key is None:
-                            key = cell.getFirstLine()
-                        elif val is None:
-                            val = []
-                            val.append(cell.getFirstLine())
+                obj = None
+
+                col = top+1
+                while col < len(row):
+                    if row[col] != '':
+                        key = row[col]
+                        break
+                    col += 1
+
+                if key == '@':
+                    obj = [{}, {}]
+                    r = self._parseSubItem(self, r, end, headerKey, c, obj)
+                    continue
+
+                elif key is not None:
+                    for c in range(col+1, len(row)):
+                        if val is None:
+                            val = [row[c]]
                         else:
-                            val.append(cell.getFirstLine())
-
-                    cell = cell.next()
-
-                if (key is not None) and (val is None):
-                    return "ERROR: Syntax error. unexpected end of row."
+                            val.append(row[c])
 
                 if key is not None:
-                    current[0][key] = val
+                    if val is not None:
+                        data[0][key] = val
+                        isFirstRow = False
+
+                    elif obj is not None:
+                        data[1][key] = obj
+                        isFirstRow = False
+
+                    else:
+                        return "ERROR: Syntax error. unexpected end of row."
 
             # case subid行
-            elif cell.getFirstLine() == '@':
-                cell = cell.next()
-                if (cell is None) or cell.isEmpty():
+            elif row[top] == '@':
+                cell = row[top+1]
+                if cell == '':
                     return "ERROR: Syntax error. Key string is missing after '@'."
 
-                key = cell.getFirstLine()
-                current[1][key] = [ { }, { } ]
-                l = level+1
+                data[1][cell] = [ { }, { } ]
 
-                while cell is not None:
-                    current[1][key][0][headerKey[l-1]] = cell.getFirstLine()
-                    cell = cell.next()
-                    l += 1
-
-                if r < end:
-                    r = self._parser(r+1, end, headerKey, level, current[1][key])
+                r = self._parseSubItem(r, end, headerKey, top, data[1][cell])
+                continue
 
             # case id行
             else:
-                key = cell.getFirstLine()
-                current[1][key] = [ { }, { } ]
-                l = level-1
+                if not isFirstRow:
+                    break
 
-                while cell is not None:
-                    current[1][key][0][headerKey[l]] = cell.getFirstLine()
-                    cell = cell.next()
-                    l += 1
+                else:
+                    for c in range(top, len(row)):
+                        data[0][headerKey[c]] = row[c]
+                    isFirstRow = False
 
-                if r < end:
-                    r = self._parser(r+1, end, headerKey, level, current[1][key])
+            r += 1
 
         return r
+
+
+    def _parseSubItem(self, next, end, headerKey, top, data):
+        isFirstRow = True
+
+        for r in range(next, end+1):
+
+            # Skip empty row
+            row = self._getRowData(r)
+            if row is None:
+                r += 1
+                continue
+
+            # return if parent top data exists.
+            for c in range(0, top-1):
+                if row[c] != '':
+                    return r
+
+            # switch(row type)
+            # case keyword-line
+            if row[top] == '':
+                key = None
+                val = None
+                obj = None
+
+                col = top+1
+                while col < len(row):
+                    if row[col] != '':
+                        key = row[col]
+                        break
+                    col += 1
+
+                if key == '@':
+                    obj = [{}, {}]
+                    r = self._parseSubItem(r, end, headerKey, c, obj)
+                    continue
+
+                elif key is not None:
+                    for c in range(col+1, len(row)):
+                        if val is None:
+                            val = [row[c]]
+                        else:
+                            val.append(row[c])
+
+                if key is not None:
+                    if val is not None:
+                        data[0][key] = val
+                        isFirstRow = False
+
+                    elif obj is not None:
+                        data[1][key] = obj
+                        isFirstRow = False
+
+                    else:
+                        return "ERROR: Syntax error. unexpected end of row."
+
+            # case '@'tagged row
+            elif (row[top] == '@') and isFirstRow:
+                cell = row[top+1]
+                if cell == '':
+                    return "ERROR: Syntax error. Key string is missing after '@'."
+
+                for c in range(top+1, len(row)):
+                    data[0][headerKey[c]] = row[c]
+
+                isFirstRow = False
+
+            # case id or next'@'
+            else:
+                break
+
+        return r
+
+
+    def _isId(self, cell):
+        isid = (not cell.isEmpty()) and (not (cell.getFirstLine() in ['@', '#']))
+        return isid
+
+
+    def _getRowData(self, row):
+        rowdata = []
+        isComment = False
+        row = self.table.getRow(row)
+
+        for c in range(1, self.table.numTableColumns+1):
+            line = row.getCell(c).getFirstLine()
+            if line == '#':
+                isComment = True
+            line = '' if isComment else line
+            rowdata.append(line)
+
+        isEmpty = True
+        for c in range(0, self.table.numTableColumns):
+            if rowdata[c] != '':
+                isEmpty = False
+
+        rowdata = None if isEmpty else rowdata
+
+        return rowdata
 
 
 exports = {
