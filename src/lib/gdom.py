@@ -40,120 +40,6 @@ class Element:
             self.option = tag.option.copy()
 
 
-class Package(Element):
-    def __init__(self, parent, level=0, tag=None) -> None:
-        super().__init__(parent, tag)
-
-        self._level = level
-        self._current = self
-        self._contextStack = [self]
-        self.children = []
-
-        gdast._DEBUG.print('package.id     : ' + self.id)
-        gdast._DEBUG.print('package.name   : ' + self.name)
-        gdast._DEBUG.print('package.plugin : ' + (self.plugin if self.plugin is not None else ''))
-        gdast._DEBUG.print('package.types  : ' + '.'.join(self.types))
-
-        c = 0
-        p = self
-        while p.parent is not None:
-            c += 1
-            p = p.parent
-        gdast._DEBUG.print('parent count = ' + str(c))
-        gdast._DEBUG.print('----------------')
-
-
-    def addSection(self, level, tag):
-        while (level <= self._current._level) and (self._contextStack[-1] != self._current):
-            self._current = self._current.parent
-            gdast._DEBUG.undent()
-
-        # open next package
-        gdast._DEBUG.indent()
-        package = Package(self._current, level, tag)
-        self._current.children.append(package)
-        self._current = package
-
-
-    def delSection(self, element):
-        pass
-
-
-    def addObject(self, element):
-        self._current.children.append(element)
-        pass
-
-
-    def delObject(self, element):
-        pass
-
-
-    def pushContext(self):
-        gdast._DEBUG.print('pushContext()')
-        gdast._DEBUG.print('-------------')
-        self._contextStack.append(self._current)
-        pass
-
-
-    def popContext(self):
-        gdast._DEBUG.print('popContext()')
-        gdast._DEBUG.print('------------')
-        while self._contextStack[-1] != self._current:
-            self._current = self._current.parent
-            gdast._DEBUG.undent()
-        del self._contextStack[-1]
-
-
-    def resolve(self, name) -> Element:
-        pass
-
-
-    def dump(self):
-        return self._dump(self)
-
-
-    def _dump(self, element):
-        if isinstance(element, Package):
-            gdast._DEBUG.print('Package[' + element.name + '(' + element.id + ')] {')
-            gdast._DEBUG.indent()
-
-            data = [{}, []]
-            data[0]['type'] = 'package'
-            data[0]['id'] = element.id
-            data[0]['name'] = element.name
-            data[0]['plugin'] = element.plugin
-#            data[0]['types'] = element.types
-            data[0]['option'] = element.option
-
-            for child in element.children:
-                data[1].append(self._dump(child))
-
-            gdast._DEBUG.undent()
-            gdast._DEBUG.print('}')
-
-        elif isinstance(element, Object):
-            gdast._DEBUG.print('Object[' + element.name + '(' + element.id + ')] {')
-            gdast._DEBUG.indent()
-
-            content = str(element.content)
-            gdast._DEBUG.print(content)
-
-            data = element.content
-
-            gdast._DEBUG.undent()
-            gdast._DEBUG.print('}')
-
-        else:
-            data = 'UNKNOWN ELEMENT TYPE'
-            gdast._DEBUG.print('UNKNOWN ELEMENT TYPE')
-
-        return data
-
-
-    def importPackage(self):
-        pass
-
-
 class Object(Element):
     def __init__(self, parent=None, tag=None) -> None:
         super().__init__(parent, tag)
@@ -161,12 +47,74 @@ class Object(Element):
         self.content = None
 
 
-    # def get_definition():
-    #     pass
+    def dump(self):
+        return self.content
 
 
-    # def stringify(self) -> str:
-    #     return ''
+class Package(Element):
+    def __init__(self, parent, level=0, tag=None) -> None:
+        super().__init__(parent, tag)
+
+        self._level = level
+        self.children = []
+
+
+    def dump(self):
+        data = [{}, []]
+        data[0]['type'] = 'package'
+        data[0]['id'] = self.id
+        data[0]['name'] = self.name
+        data[0]['plugin'] = self.plugin
+        data[0]['types'] = self.types
+        data[0]['option'] = self.option
+
+        for child in self.children:
+            data[1].append(child.dump())
+
+        return data
+
+
+class PackageManager(Package):
+    def __init__(self, parent, level=0, tag=None) -> None:
+        super().__init__(parent, level, tag)
+
+        self._current = self
+        self._contextStack = [self]
+        self.children = []
+
+
+    def _addSection(self, level, tag):
+        while (level <= self._current._level) and (self._contextStack[-1] != self._current):
+            self._current = self._current.parent
+
+        # open next package
+        package = Package(self._current, level, tag)
+        self._current.children.append(package)
+        self._current = package
+
+
+    def _addObject(self, element):
+        self._current.children.append(element)
+        pass
+
+
+    def _pushContext(self):
+        self._contextStack.append(self._current)
+        pass
+
+
+    def _popContext(self):
+        while self._contextStack[-1] != self._current:
+            self._current = self._current.parent
+        del self._contextStack[-1]
+
+
+    def resolve(self, name) -> Element:
+        pass
+
+
+    def importPackage(self):
+        pass
 
 
 class BlockTag:
@@ -228,7 +176,7 @@ class BlockTag:
         return False
 
 
-class GdocObjectModel(Package):
+class GdocObjectModel(PackageManager):
 
     def __init__(self, gdoc, types) -> None:
 
@@ -236,7 +184,7 @@ class GdocObjectModel(Package):
         # - ROOT package should contain source.filename etc. for import/access.
         super().__init__(None)
 
-        self.types = types
+        self.objectTypes = types
 
         # Step.1: Syntax analysis
         # Call parser with arg, package and gdoc element.
@@ -264,23 +212,23 @@ class GdocObjectModel(Package):
             # Header:
             if block.type == 'Header':
                 if tag.istagged():
-                    self.addSection(block.getProp('Level'), tag)
+                    self._addSection(block.getProp('Level'), tag)
 
             # List:
             elif (block.type in ['OrderedList', 'BulletList']) and \
                 not ((block.getFirstChild().getFirstChild().type in ['Plain', 'Para']) and tag.istagged()):
                 listitem = block.getFirstChild()
                 while listitem is not None:
-                    self.pushContext()
+                    self._pushContext()
                     self.parseBlocks(listitem.getFirstChild())
-                    self.popContext()
+                    self._popContext()
                     listitem = listitem.next()
 
             # Object:
             elif tag.istagged():
-                constructor = self.types.getConstructor(self._current, block.type, tag.plugin, tag.types)
+                constructor = self.objectTypes.getConstructor(self._current, block.type, tag.plugin, tag.types)
                 obj = constructor(block, tag)
-                self.addObject(obj)
+                self._addObject(obj)
 
             else:
                 # blocks without tag
