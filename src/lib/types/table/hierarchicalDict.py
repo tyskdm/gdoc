@@ -43,28 +43,28 @@ class HierarchicalDict(gdom.Object):
         while next <= dataEndRow:
             data = [{}, {}]
             next = self._parser(next, dataEndRow, headerKey, 0, data)
-            self.content[1][data[0]['']] = data
+            self.content[1][data[0]['__key__']] = data
 
         gdast._DEBUG.undent()
         gdast._DEBUG.print('}')
 
 
-    def _parser(self, next, end, headerKey, top, data):
+    def _parser(self, start, end, headerKey, top, data):
         isFirstRow = True
 
-        r = next
-        while r <= end:
+        next = start
+        while next <= end:
 
             # Skip empty row
-            row = self._getRowData(r)
+            row = self._getRowData(next)
             if row is None:
-                r += 1
+                next += 1
                 continue
 
             # return if parent top data exists.
             for c in range(0, top-1):
                 if row[c] != '':
-                    return r
+                    return next
 
             # switch(row type)
             # case keyword-line
@@ -82,8 +82,8 @@ class HierarchicalDict(gdom.Object):
 
                 if key == '@':
                     obj = [{}, {}]
-                    r = self._parseSubItem(self, r, end, headerKey, c, obj)
-                    continue
+                    next = self._parseSubItem(self, next, end, headerKey, col, obj)
+                    key = obj[0]['__key__']
 
                 elif key is not None:
                     for c in range(col+1, len(row)):
@@ -112,39 +112,42 @@ class HierarchicalDict(gdom.Object):
 
                 data[1][cell] = [ { }, { } ]
 
-                r = self._parseSubItem(r, end, headerKey, top, data[1][cell])
+                next = self._parseSubItem(next, end, headerKey, top, data[1][cell])
                 continue
 
-            # case id行
+            # case id
+            elif isFirstRow:
+                for c in range(top+1, len(row)):
+                    data[0][headerKey[c]] = row[c]
+
+                data[0]['__key__'] = row[top]
+                isFirstRow = False
+
+            # case next id
             else:
-                if not isFirstRow:
-                    break
+                break
 
-                else:
-                    for c in range(top, len(row)):
-                        data[0][headerKey[c]] = row[c]
-                    isFirstRow = False
+            next += 1
 
-            r += 1
-
-        return r
+        return next
 
 
-    def _parseSubItem(self, next, end, headerKey, top, data):
+    def _parseSubItem(self, start, end, headerKey, top, data):
         isFirstRow = True
 
-        for r in range(next, end+1):
+        next = start
+        while next <= end:
 
             # Skip empty row
-            row = self._getRowData(r)
+            row = self._getRowData(next)
             if row is None:
-                r += 1
+                next += 1
                 continue
 
             # return if parent top data exists.
             for c in range(0, top-1):
                 if row[c] != '':
-                    return r
+                    return next
 
             # switch(row type)
             # case keyword-line
@@ -162,8 +165,8 @@ class HierarchicalDict(gdom.Object):
 
                 if key == '@':
                     obj = [{}, {}]
-                    r = self._parseSubItem(r, end, headerKey, c, obj)
-                    continue
+                    next = self._parseSubItem(next, end, headerKey, col, obj)
+                    key = obj[0]['__key__']
 
                 elif key is not None:
                     for c in range(col+1, len(row)):
@@ -190,16 +193,19 @@ class HierarchicalDict(gdom.Object):
                 if cell == '':
                     return "ERROR: Syntax error. Key string is missing after '@'."
 
-                for c in range(top+1, len(row)):
+                for c in range(top+2, len(row)):
                     data[0][headerKey[c]] = row[c]
 
+                data[0]['__key__'] = row[top+1]
                 isFirstRow = False
 
             # case id or next'@'
             else:
                 break
 
-        return r
+            next += 1
+
+        return next
 
 
     def _isId(self, cell):
