@@ -1,4 +1,5 @@
 from . import requirement
+from . import block
 
 exports = {
     "Table": {
@@ -7,6 +8,12 @@ exports = {
         },
         "reqt": {
             "constructor": requirement.Requirement
+        },
+        "block": {
+            "constructor": block.Block
+        },
+        "blk": {
+            "constructor": block.Block
         }
     }
 }

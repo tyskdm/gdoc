@@ -109,7 +109,7 @@ class Package(Element):
 
 
     def dump(self):
-        self._dump(self)
+        return self._dump(self)
 
 
     def _dump(self, element):
@@ -117,8 +117,16 @@ class Package(Element):
             gdast._DEBUG.print('Package[' + element.name + '(' + element.id + ')] {')
             gdast._DEBUG.indent()
 
+            data = [{}, []]
+            data[0]['type'] = 'package'
+            data[0]['id'] = element.id
+            data[0]['name'] = element.name
+            data[0]['plugin'] = element.plugin
+#            data[0]['types'] = element.types
+            data[0]['option'] = element.option
+
             for child in element.children:
-                self._dump(child)
+                data[1].append(self._dump(child))
 
             gdast._DEBUG.undent()
             gdast._DEBUG.print('}')
@@ -130,10 +138,17 @@ class Package(Element):
             content = str(element.content)
             gdast._DEBUG.print(content)
 
+            data = element.content
+
             gdast._DEBUG.undent()
             gdast._DEBUG.print('}')
+
         else:
+            data = 'UNKNOWN ELEMENT TYPE'
             gdast._DEBUG.print('UNKNOWN ELEMENT TYPE')
+
+        return data
+
 
     def importPackage(self):
         pass

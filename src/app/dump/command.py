@@ -49,7 +49,8 @@ def run(args):
 
     ghost = gdom.GdocObjectModel(gdoc.gdoc, types)
 
-    ghost.dump()
+    data = ghost.dump()
+    print(json.dumps(data, indent=4))
 
 
 def _dump_gdoc(elem, gdoc):
