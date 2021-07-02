@@ -51,7 +51,7 @@ class Package(Element):
 
         gdast._DEBUG.print('package.id     : ' + self.id)
         gdast._DEBUG.print('package.name   : ' + self.name)
-        gdast._DEBUG.print('package.plugin : ' + self.plugin)
+        gdast._DEBUG.print('package.plugin : ' + (self.plugin if self.plugin is not None else ''))
         gdast._DEBUG.print('package.types  : ' + '.'.join(self.types))
 
         c = 0
