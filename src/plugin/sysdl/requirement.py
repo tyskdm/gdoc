@@ -1,10 +1,10 @@
-# SysML plugin
+# SysDL: System Description Language plugin
 #
 # 1. Requirement diagram 相当の情報を取り扱う
 #
 
-from ..lib.types.table.hierarchicalDict import HierarchicalDict
-from ..lib import gdast
+from ...lib.types.table.hierarchicalDict import HierarchicalDict
+from ...lib import gdast
 
 class Requirement(HierarchicalDict):
     def __init__(self, table, tag=None, parent=None) -> None:
@@ -15,16 +15,4 @@ class Requirement(HierarchicalDict):
 
         gdast._DEBUG.undent()
         gdast._DEBUG.print('}')
-
-
-exports = {
-    "Table": {
-        "requirement": {
-            "constructor": Requirement
-        },
-        "reqt": {
-            "constructor": Requirement
-        }
-    }
-}
 
