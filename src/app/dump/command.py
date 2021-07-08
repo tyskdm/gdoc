@@ -49,7 +49,10 @@ def run(args):
 
     ghost = gdom.GdocObjectModel(gdoc.gdoc, types)
 
-    data = ghost.dump()
+    data = {}
+    data['Gdoc object'] = ghost.dump()
+
+    data['Namespaces and Items'] = ghost.symbolTable.dump()
     print(json.dumps(data, indent=4))
 
 

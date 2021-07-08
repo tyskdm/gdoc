@@ -49,6 +49,46 @@ class HierarchicalDict(gdom.Object):
         gdast._DEBUG.print('}')
 
 
+    # 暫定：このクラスは持つべきでないメソッド。あとで削除する。
+    def getItems(self, symboltable):
+        return []
+
+
+    def getProp(self, ids, key, element=None):
+        content = self.content if element is None else element
+
+        if ids is not None:
+            for id in ids:
+                content = content[1][id]
+
+        return content[0].get(key)
+
+
+    def setProp(self, ids, key, val, element=None):
+        content = self.content if element is None else element
+
+        if ids is not None:
+            for id in ids:
+                content = content[1][id]
+
+        content[0][key] = val
+
+
+    def getChildren(self, element=None):
+        content = self.content if element is None else element
+        return content[1]
+
+
+    def getElement(self, ids=None, element=None):
+        content = self.content if element is None else element
+
+        if ids is not None:
+            for id in ids:
+                content = content[1][id]
+
+        return content
+
+
     def _parser(self, start, end, headerKey, top, data):
         isFirstRow = True
 

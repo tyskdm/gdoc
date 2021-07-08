@@ -16,6 +16,8 @@
 # 以上から、Gdoc Objectを出力する。
 
 from . import gdast
+from .symboltable import SymbolTable, Scope, Symbol
+
 
 #
 # Primitive types
@@ -47,6 +49,11 @@ class Object(Element):
         self.content = None
 
 
+    def getItems():
+        # should raise
+        return "NOT YET IMPLIMENTED"
+
+
     def dump(self):
         return self.content
 
@@ -57,6 +64,11 @@ class Package(Element):
 
         self._level = level
         self.children = []
+
+        parentTable = None if parent is None else parent.symbolTable
+        self.symbolTable = SymbolTable(self, parentTable)
+        if parentTable is not None:
+            parentTable.addItem(tag.id, tag.name, Package, self.symbolTable)
 
 
     def dump(self):
@@ -72,6 +84,10 @@ class Package(Element):
             data[1].append(child.dump())
 
         return data
+
+
+    def resolve(self, name):
+        return self.symbolTable.resolve(name)
 
 
 class PackageManager(Package):
@@ -95,7 +111,9 @@ class PackageManager(Package):
 
     def _addObject(self, element):
         self._current.children.append(element)
-        pass
+        items = element.getItems(self.symbolTable)
+        for item in items:
+            self._current.symbolTable.addItem(**item)
 
 
     def _pushContext(self):
@@ -107,14 +125,6 @@ class PackageManager(Package):
         while self._contextStack[-1] != self._current:
             self._current = self._current.parent
         del self._contextStack[-1]
-
-
-    def resolve(self, name) -> Element:
-        pass
-
-
-    def importPackage(self):
-        pass
 
 
 class BlockTag:
@@ -227,8 +237,9 @@ class GdocObjectModel(PackageManager):
             # Object:
             elif tag.istagged():
                 constructor = self.objectTypes.getConstructor(self._current, block.type, tag.plugin, tag.types)
-                obj = constructor(block, tag)
-                self._addObject(obj)
+                if callable(constructor):
+                    obj = constructor(block, tag)
+                    self._addObject(obj)
 
             else:
                 # blocks without tag
