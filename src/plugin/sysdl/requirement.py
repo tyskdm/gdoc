@@ -70,8 +70,9 @@ class RequirementItem:
 
 
     # addItem(self, symbol, name, objectClass, item, scope=Scope.PUBLIC):
-    def getItem(self, symboltable):
-        self.symboltabel = symboltable
+    def getItem(self, symboltable=None):
+        if symboltable is not None:
+            self.symboltabel = symboltable
 
         item = {}
         item['symbol'] = self.id

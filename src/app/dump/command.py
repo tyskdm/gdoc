@@ -18,6 +18,7 @@ def setup(subparsers, name):
     parser = subparsers.add_parser(__subcommand__)
     parser.set_defaults(func=run)
     parser.add_argument('-p', '--pandocfile', help='path to pandoc AST file.')
+    parser.add_argument('-i', '--id', help='id to find and dump.')
     parser.add_argument('--debug', action='store_true', help='enable print debug information.')
 
 
@@ -49,11 +50,20 @@ def run(args):
 
     ghost = gdom.GdocObjectModel(gdoc.gdoc, types)
 
-    data = {}
-    data['Gdoc object'] = ghost.dump()
+    if args.id is None:
+        data = {}
+        data['Gdoc object'] = ghost.dump()
+        data['Namespaces and Items'] = ghost.symbolTable.dump()
+        print(json.dumps(data, indent=4))
 
-    data['Namespaces and Items'] = ghost.symbolTable.dump()
-    print(json.dumps(data, indent=4))
+    else:
+        items = ghost.symbolTable.search(args.id)
+        for item in items:
+            data = item.getItem()
+            del data['objectClass']
+            del data['item']
+            del data['scope']
+            print(json.dumps(data, indent=4))
 
 
 def _dump_gdoc(elem, gdoc):

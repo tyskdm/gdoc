@@ -65,6 +65,26 @@ class SymbolTable:
         return item
 
 
+    def search(self, id):
+        return self._search(id, id.split('.'))
+
+
+    def _search(self, id, ids):
+        foundItems = []
+
+        foundItem = self._resolve(id, ids)
+        if foundItem is not None:
+            foundItems.append(foundItem)
+
+        for key in self.table:
+            item = self.table[key]
+
+            if isinstance(item['item'], SymbolTable):
+                foundItems = foundItems + item['item']._search(id, ids)
+
+        return foundItems
+
+
     def dump(self):
         data = self.table.copy()
         for key in data:
