@@ -3,17 +3,21 @@
 # 1. Requirement diagram 相当の情報を取り扱う
 #
 
-from ...lib.types.table.hierarchicalDict import HierarchicalDict
-from ...lib import gdast
+import logging
+from ...lib import debug
 from ...lib.gdsymbol import Symbol
 from ...lib.symboltable import Scope
+from ...lib.types.table.hierarchicalDict import HierarchicalDict
+
+_LOGGER = logging.getLogger(__name__)
+_DEBUG = debug.Debug(_LOGGER)
 
 _version = '0.3.0'
 
 class Requirement(HierarchicalDict):
     def __init__(self, table, tag=None, parent=None) -> None:
-        gdast._DEBUG.print('class Requirement(HierarchicalDict) {')
-        gdast._DEBUG.indent()
+        _DEBUG.print('class Requirement(HierarchicalDict) {')
+        _DEBUG.indent()
 
         super().__init__(table, tag)
 
@@ -23,8 +27,8 @@ class Requirement(HierarchicalDict):
 
         self.itemTable = self._createItems()
 
-        gdast._DEBUG.undent()
-        gdast._DEBUG.print('}')
+        _DEBUG.undent()
+        _DEBUG.print('}')
 
 
     def getItems(self, symboltable):
@@ -52,7 +56,7 @@ class Requirement(HierarchicalDict):
             items.append(RequirementItem(self, id, elements[key]))
             items += self._createItems(elements[key], id)       # 現在、tagを無視している
 
-        gdast._DEBUG.print('createItems: len(items) = ' + str(len(items)))
+        _DEBUG.print('createItems: len(items) = ' + str(len(items)))
         return items
 
 

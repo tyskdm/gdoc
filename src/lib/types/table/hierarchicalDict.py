@@ -3,14 +3,18 @@
 # 1. Requirement diagram 相当の情報を取り扱う
 #
 
+import logging
 from ... import gdom
-from ... import gdast
+from ... import debug
+
+_LOGGER = logging.getLogger(__name__)
+_DEBUG = debug.Debug(_LOGGER)
 
 
 class HierarchicalDict(gdom.Object):
     def __init__(self, table, tag=None, parent=None) -> None:
-        gdast._DEBUG.print('class HierarchicalDict(gdom.Object) {')
-        gdast._DEBUG.indent()
+        _DEBUG.print('class HierarchicalDict(gdom.Object) {')
+        _DEBUG.indent()
 
         super().__init__(table, tag)
 
@@ -25,7 +29,7 @@ class HierarchicalDict(gdom.Object):
             line = cell.getFirstLine()
             headerKey.append(line)
             cell = cell.next()
-        gdast._DEBUG.print('headerKey = [' + ', '.join(headerKey) + ']')
+        _DEBUG.print('headerKey = [' + ', '.join(headerKey) + ']')
         headerKey[0] = ''
 
         # ASTのヘッダ行数を確認し、データ先頭行を取得
@@ -35,8 +39,8 @@ class HierarchicalDict(gdom.Object):
         dataStartRow += 1
 
         dataEndRow = table.numTableRows - table.numFooterRows
-        gdast._DEBUG.print('dataStartRow = ' + str(dataStartRow))
-        gdast._DEBUG.print('dataEndRow = ' + str(dataEndRow))
+        _DEBUG.print('dataStartRow = ' + str(dataStartRow))
+        _DEBUG.print('dataEndRow = ' + str(dataEndRow))
 
         next = dataStartRow
 
@@ -45,8 +49,8 @@ class HierarchicalDict(gdom.Object):
             next = self._parser(next, dataEndRow, headerKey, 0, data)
             self.content[1][data[0]['__key__']] = data
 
-        gdast._DEBUG.undent()
-        gdast._DEBUG.print('}')
+        _DEBUG.undent()
+        _DEBUG.print('}')
 
 
     # 暫定：このクラスは持つべきでないメソッド。あとで削除する。

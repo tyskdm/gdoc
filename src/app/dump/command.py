@@ -3,23 +3,26 @@ command.py
 """
 import sys
 import json
+import logging
 from ...lib import gdast
 from ...lib import plugin
 from ...lib import gdom
+from ...lib import debug
 
+_LOGGER = logging.getLogger(__name__)
+_DEBUG = debug.Debug(_LOGGER)
 
-def setup(subparsers, name):
+def setup(subparsers, name, commonOptions):
     """
     Setup subcommand
     """
     global __subcommand__
     __subcommand__ = name
 
-    parser = subparsers.add_parser(__subcommand__)
+    parser = subparsers.add_parser(__subcommand__, parents=[commonOptions], help='dump Gdoc object')
     parser.set_defaults(func=run)
     parser.add_argument('-p', '--pandocfile', help='path to pandoc AST file.')
     parser.add_argument('-i', '--id', help='id to find and dump.')
-    parser.add_argument('--debug', action='store_true', help='enable print debug information.')
 
 
 def run(args):
@@ -43,11 +46,10 @@ def run(args):
         print(__subcommand__ + ': error: Missing pandocfile ( [-d / --pandocfile] is required)')
         sys.exit(1)
 
-    gdoc = gdast.GdocAST(pandoc, debug_flag=args.debug)
+    gdoc = gdast.GdocAST(pandoc)
     gdoc.walk(_dump_gdoc, post_action=_dump_post_gdoc)
 
     types = plugin.Plugins()
-
     ghost = gdom.GdocObjectModel(gdoc.gdoc, types)
 
     if args.id is None:
@@ -72,16 +74,16 @@ def _dump_gdoc(elem, gdoc):
         pos = pos + ' C' + str(elem.colSpan)
         pos = pos + ' R' + str(elem.rowSpan)
     pos = ' (' + pos + ')'
-    gdast._DEBUG.print(elem.type + pos + ' {')
+    _DEBUG.print(elem.type + pos + ' {')
     pass
 
 
 def _dump_post_gdoc(elem, gdoc):
     if hasattr(elem, 'text') and (elem.text is not None):
         if isinstance(elem.text, list):
-            gdast._DEBUG.print('>> ' + ('\n' + '>> ').join(elem.text), 1)
+            _DEBUG.print('>> ' + ('\n' + '>> ').join(elem.text), 1)
         else:
-            # gdast._DEBUG.print(elem.type + ': ' + elem.text)
+            # _DEBUG.print(elem.type + ': ' + elem.text)
             pass
 
-    gdast._DEBUG.print('}')
+    _DEBUG.print('}')
