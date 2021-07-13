@@ -2,21 +2,28 @@
 command.py
 """
 import sys
-# import panflute as pf
+import json
+import logging
+from ...lib import gdast
+from ...lib import plugin
+from ...lib import gdom
+from ...lib import debug
+from ...lib.pandoc import Pandoc
 
-__subcommand__ = 'dump'
+_LOGGER = logging.getLogger(__name__)
+_DEBUG = debug.Debug(_LOGGER)
 
-
-def setup(subparsers, name):
+def setup(subparsers, name, commonOptions):
     """
     Setup subcommand
     """
-    parser = subparsers.add_parser(__subcommand__)
-    parser.set_defaults(func=run)
+    global __subcommand__
+    __subcommand__ = name
 
-    parser.add_argument('-d', '--dumpfile', help='path to pandoc AST file.')
-    parser.add_argument('-s', '--sourcefile', help='path to source file to parse with pandoc.')
-    parser.add_argument('-f', '--from', default='gfm+sourcepos', help='Specify input format(pandoc format types).')
+    parser = subparsers.add_parser(__subcommand__, parents=[commonOptions], help='dump Gdoc object')
+    parser.set_defaults(func=run)
+    parser.add_argument('-p', '--pandocfile', help='path to pandoc AST file.')
+    parser.add_argument('-i', '--id', help='id to find and dump.')
 
 
 def run(args):
@@ -26,102 +33,64 @@ def run(args):
     #
     # dumpdata を取得
     #
-    if args.dumpfile is not None:
-        format = getattr(args, 'from')
+    if args.pandocfile is not None:
+        if args.pandocfile.endswith('.json'):
+            with open(args.pandocfile, 'r', encoding='UTF-8') as f:
+                pandoc = json.load(f)
 
-        with open(args.dumpfile, 'r', encoding='UTF-8') as f:
-            dumpfile = f.read(-1)
-    #         dumpfile = pf.convert_text(dumpfile, input_format=format, output_format='html')
-    #         doc = pf.convert_text(dumpfile, input_format='html', standalone=True)
+        else:
+            p = Pandoc()
+            panAST = p.run(args.pandocfile)
+            pandoc = json.loads(panAST)
 
-    # elif not sys.stdin.isatty():
-    #     # file名の指定がない場合は、パイプから読み込みます。
-    #     # 標準入力が tty ではないことを確認して、標準入力をパイプと判定しています。
-    #     # pandoc -f gfm+sourcepos -t html ../ghost/process/README.md | pandoc -f html -t json | gdoc dump
-    #     doc = pf.load()
+    elif not sys.stdin.isatty():
+        # file名の指定がない場合は、パイプから読み込みます。
+        # 標準入力が tty ではないことを確認して、標準入力をパイプと判定しています。
+        # $ pandoc -f gfm+sourcepos -t html ../ghost/process/README.md | pandoc -f html -t json | gdoc pandoc
+        pandoc = json.load(sys.stdin)
 
     else:
-        print(__subcommand__ + ': error: Missing dumpfile ( [-d / --dumpfile] is required)')
+        print(__subcommand__ + ': error: Missing pandocfile ( [-d / --pandocfile] is required)')
         sys.exit(1)
 
-    text = ''
-    text = my_walk(doc, '')
+    gdoc = gdast.GdocAST(pandoc)
+    gdoc.walk(_dump_gdoc, post_action=_dump_post_gdoc)
 
-    print('\n===== result =====\n' + text)
+    types = plugin.Plugins()
+    ghost = gdom.GdocObjectModel(gdoc.gdoc, types)
 
-
-def my_walk(elem, prestr):
-
-    id = prestr + str(elem.index)
-
-    print_element(elem, prestr)
-
-    text = ''
-
-    if hasattr(elem, 'content'):
-        for e in elem.content:
-            text += my_walk(e, id + '.')
+    if args.id is None:
+        data = {}
+        data['Gdoc object'] = ghost.dump()
+        data['Namespaces and Items'] = ghost.symbolTable.dump()
+        print(json.dumps(data, indent=4, ensure_ascii=False))
 
     else:
-        text = stringify(elem)
+        items = ghost.symbolTable.search(args.id)
+        for item in items:
+            data = item.getItem()
+            del data['objectClass']
+            del data['item']
+            del data['scope']
+            print(json.dumps(data, indent=4, ensure_ascii=False))
 
-    return text
+
+def _dump_gdoc(elem, gdoc):
+    pos = elem.source.position if elem.source.position is not None else 'None'
+    if elem.type == 'Cell':
+        pos = pos + ' C' + str(elem.colSpan)
+        pos = pos + ' R' + str(elem.rowSpan)
+    pos = ' (' + pos + ')'
+    _DEBUG.print(elem.type + pos + ' {')
+    pass
 
 
-def stringify(elem):
+def _dump_post_gdoc(elem, gdoc):
+    if hasattr(elem, 'text') and (elem.text is not None):
+        if isinstance(elem.text, list):
+            _DEBUG.print('>> ' + ('\n' + '>> ').join(elem.text), 1)
+        else:
+            # _DEBUG.print(elem.type + ': ' + elem.text)
+            pass
 
-    text = ''
-
-    # if hasattr(elem, 'content'):
-    #     text = ''
-    # elif isinstance(elem, pf.Space):
-    #     text = '<space>'
-    # elif isinstance(elem, pf.SoftBreak):
-    #     text = '<sb>\n'
-    # elif isinstance(elem, pf.LineBreak):
-    #     text = '<lb>\n'
-    # elif isinstance(elem, pf.HorizontalRule):
-    #     text = '\n--- HorizontalRule ---\n'
-    # else:
-    #     text = pf.stringify(elem)
-
-    return text
-
-def print_element(elem, prestr):
-    if hasattr(elem, 'index'):
-        id = prestr + str(elem.index)
-    else:
-        id = prestr
-
-    # print('\n>> ' + elem.__class__.__name__ + ' [' + id + ']')
-
-    # if isinstance(elem, pf.Str):
-    #     print('(Str element) --> ' + pf.stringify(elem))
-    # elif isinstance(elem, pf.Block):
-    #     print('(Block element)')
-    # elif isinstance(elem, pf.Inline):
-    #     print('(Inline element)')
-    # elif isinstance(elem, pf.MetaValue):
-    #     print('(MetaValue element)')
-    # else:
-    #     print('(unknown category element)')
-
-    # if elem.location is not None:
-    #     print('location = ' + elem.location)
-
-    # if hasattr(elem, 'attributes'):
-    #     print('attributes length = ', len(elem.attributes))
-    #     print('attributes = ', elem.attributes)
-    #     if 'pos' in elem.attributes:
-    #         print('source pos = ', elem.attributes['pos'])
-
-    # if hasattr(elem, 'content'):
-    #     print('content length = ', len(elem.content))
-
-    # if elem.index is not None:
-    #     print('index = ', elem.index)
-
-    # if hasattr(elem, 'container'):
-    #     print('container type = ', elem.container.__class__.__name__)
-
-    # print('Element Stringify >> ' + pf.stringify(elem))
+    _DEBUG.print('}')
