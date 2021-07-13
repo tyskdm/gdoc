@@ -8,6 +8,7 @@ from ...lib import gdast
 from ...lib import plugin
 from ...lib import gdom
 from ...lib import debug
+from ...lib.pandoc import Pandoc
 
 _LOGGER = logging.getLogger(__name__)
 _DEBUG = debug.Debug(_LOGGER)
@@ -33,8 +34,14 @@ def run(args):
     # dumpdata を取得
     #
     if args.pandocfile is not None:
-        with open(args.pandocfile, 'r', encoding='UTF-8') as f:
-            pandoc = json.load(f)
+        if args.pandocfile.endswith('.json'):
+            with open(args.pandocfile, 'r', encoding='UTF-8') as f:
+                pandoc = json.load(f)
+
+        else:
+            p = Pandoc()
+            panAST = p.run(args.pandocfile)
+            pandoc = json.loads(panAST)
 
     elif not sys.stdin.isatty():
         # file名の指定がない場合は、パイプから読み込みます。
@@ -56,7 +63,7 @@ def run(args):
         data = {}
         data['Gdoc object'] = ghost.dump()
         data['Namespaces and Items'] = ghost.symbolTable.dump()
-        print(json.dumps(data, indent=4))
+        print(json.dumps(data, indent=4, ensure_ascii=False))
 
     else:
         items = ghost.symbolTable.search(args.id)
@@ -65,7 +72,7 @@ def run(args):
             del data['objectClass']
             del data['item']
             del data['scope']
-            print(json.dumps(data, indent=4))
+            print(json.dumps(data, indent=4, ensure_ascii=False))
 
 
 def _dump_gdoc(elem, gdoc):
