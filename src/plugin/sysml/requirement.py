@@ -1,4 +1,4 @@
-# SysDL: System Description Language plugin
+# SysML: System Description Language plugin
 #
 # 1. Requirement diagram 相当の情報を取り扱う
 #
@@ -21,7 +21,7 @@ class Requirement(HierarchicalDict):
 
         super().__init__(table, tag)
 
-        self.setProp(None, 'plugin', 'sysdl')
+        self.setProp(None, 'plugin', 'sysml')
         self.setProp(None, 'type', 'requirement')
         self.setProp(None, 'version', _version)
 

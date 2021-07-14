@@ -1,4 +1,4 @@
-# SysDL: System Description Language plugin
+# SysML: System Description Language plugin
 #
 # 1. Block definition diagram の、参照関係をのぞくブロック単体定義相当の情報を取り扱う
 #
@@ -19,7 +19,7 @@ class Block(HierarchicalDict):
 
         super().__init__(table, tag)
 
-        self.content[0]['plugin'] = 'sysdl'
+        self.content[0]['plugin'] = 'sysml'
         self.content[0]['type'] = 'block'
         self.content[0]['version'] = _version
 
