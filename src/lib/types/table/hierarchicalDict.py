@@ -95,6 +95,7 @@ class HierarchicalDict(gdom.Object):
 
     def _parser(self, start, end, headerKey, top, data):
         isFirstRow = True
+        data[0]['__key__'] = ''
 
         next = start
         while next <= end:
