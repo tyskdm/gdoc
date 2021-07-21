@@ -137,7 +137,7 @@ def _format(branches, dir, leadString):
                 childString = nextString + '│  '
             else:
                 line = nextString + ANGLE + '  '
-                childString = nextString + '    '
+                childString = nextString + '   '
 
             line += item['info']
             lines.append(line)
