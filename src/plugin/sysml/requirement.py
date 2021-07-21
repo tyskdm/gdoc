@@ -53,30 +53,55 @@ class Requirement(HierarchicalDict):
             id = '' if parentId == '' else parentId + '.'
             id += ids[-1]
             # 事前準備
-            items.append(RequirementItem(self, id, elements[key]))
+            items.append(RequirementItem(self, id, elements[key], parentId))
             items += self._createItems(elements[key], id)       # 現在、tagを無視している
 
         _DEBUG.print('createItems: len(items) = ' + str(len(items)))
         return items
 
 
+    def link(self):
+
+        for item in self.itemTable:
+            for linktype in item.trace:
+                for linkto in item.trace[linktype]:
+                    linkitem = item.symboltable.resolve(linkto)
+                    if linkitem is not None:
+                        if not linktype in item.link['to']:
+                            item.link['to'][linktype] = []
+                        item.link['to'][linktype].append(linkitem)
+
+                        if not linktype in linkitem.link['from']:
+                            linkitem.link['from'][linktype] = []
+                        linkitem.link['from'][linktype].append(item)
+
+                    else:
+                        if not linktype in item.link['to']:
+                            item.link['to'][linktype] = []
+                        item.link['to'][linktype].append(linkto)
+
+
 class RequirementItem:
-    def __init__(self, reqt, id, element) -> None:
-        self.symboltabel = None
+    def __init__(self, reqt, id, element, parentId='') -> None:
+        self.symboltable = None
 
         self.id = Symbol.getId(id)
         self.tags = Symbol.getTags(id)
         self.name = reqt.getProp(None, 'Name', element)
         self.stereotype = reqt.getProp(None, 'Name', element)
         self.text = reqt.getProp(None, 'Description', element)
-        self.trace = reqt.getProp(None, 'Trace', element)
+        self.trace = Trace(reqt.getProp(None, 'Trace', element)).content
         self.assosiation = {}
+        self.link = {'to': {}, 'from': {}}
+
+        if parentId != '':
+            self.addTrace('deriveReqt', parentId)
 
 
     # addItem(self, symbol, name, objectClass, item, scope=Scope.PUBLIC):
     def getItem(self, symboltable=None):
         if symboltable is not None:
-            self.symboltabel = symboltable
+            self.symboltable = symboltable
 
         item = {}
         item['symbol'] = self.id
@@ -86,3 +111,61 @@ class RequirementItem:
         item['scope'] = Scope.PUBLIC
 
         return item
+
+
+    def addTrace(self, type, id):
+        if self.trace.get(type) is None:
+            self.trace[type] = []
+        self.trace[type].append(id)
+
+
+class Trace:
+    def __init__(self, table) -> None:
+        self.content = {}
+        if isinstance(table, list):
+            if isinstance(table[0], list):
+                data = []
+                for row in table:
+                    data = data + row
+            else:
+                data = table
+        elif isinstance(table, str):
+            data = [table]
+        else:
+            # should raise
+            return None
+
+        for cell in data:
+            self._parseTrace(self.content, cell)
+
+
+    def _parseTrace(self, content, cell):
+        result = {}
+        key = 'trace'
+        _VALID_TRACE_TYPES = {
+            'trace':        'trace',
+            'copy':         'copy',
+            'refine':       'refine',
+            'derive':       'deriveReqt',
+            'derivereqt':   'deriveReqt'
+        }
+
+        cell = cell.replace(',', ' ')
+        for word in cell.split():
+            if word.startswith('@'):
+                word = word[1:].lower()
+                if _VALID_TRACE_TYPES.get(word) is None:
+                    # should raise
+                    _LOGGER.warning('trace type \'%s\' is invalid.', word)
+                    key = '_INVALID_'
+                else:
+                    key = _VALID_TRACE_TYPES.get(word)
+            else:
+                if Symbol.isValid(word):
+                    if not key in content:
+                        content[key] = []
+
+                    content[key].append(word)
+                else:
+                    # should raise
+                    _LOGGER.warning('trace id \'%s\' is invalid.', word)
