@@ -36,7 +36,11 @@ A Ghost documentation support tool.
 $ gdoc -v
 ```
 
+### Sample
 
+```sh
+$ gdoc trace --lower 3 OC3 docs/sample_ProjectManagement.md
+```
 
 ---
 should be rst?
