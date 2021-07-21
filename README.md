@@ -6,7 +6,7 @@ A Ghost documentation support tool.
 
 | Version | Stability |
 | ------- | --------- |
-| 0.1.0 - Scribble R1 | [Stability: 1 - Experimental](https://nodejs.org/api/documentation.html#documentation_stability_index)<br>No tests, No documents. Only scribble codes.
+| 0.1.1 - Scribble R2 | [Stability: 1 - Experimental](https://nodejs.org/api/documentation.html#documentation_stability_index)<br>No tests, No documents. Scribble codes only.
 
 ## 2. Motivation
 
