@@ -1,11 +1,11 @@
 # Gdoc object types
 
-from ..plugin import sysdl
+from ..plugin import sysml
 
 class Plugins:
     def __init__(self, pluginpath=None) -> None:
         self.typetable = _TypeTable
-        self.typetable['sysdl'] = sysdl.exports
+        self.typetable['sysml'] = sysml.exports
         pass
 
 

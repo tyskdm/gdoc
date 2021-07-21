@@ -14,6 +14,10 @@ class SymbolTable:
         self.parent = parent        # SymbolTable
         self.table = {}             # ObjectItem or SymbolTable
 
+        self.fullId = owner.id
+        if (parent is not None) and (parent.fullId != ''):
+            self.fullId = parent.fullId + '.' + self.fullId
+
 
     def addItem(self, symbol, name, objectClass, item, scope=Scope.PUBLIC):
 
@@ -43,7 +47,7 @@ class SymbolTable:
 
         item = self._resolve(id, ids)
 
-        if item is None:
+        if (item is None) and (self.parent is not None):
             item = self.parent._resolve(id, ids)
 
         return item

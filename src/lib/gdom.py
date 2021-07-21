@@ -111,7 +111,7 @@ class PackageManager(Package):
 
     def _addObject(self, element):
         self._current.children.append(element)
-        items = element.getItems(self.symbolTable)
+        items = element.getItems(self._current.symbolTable)
         for item in items:
             self._current.symbolTable.addItem(**item)
 
@@ -246,4 +246,21 @@ class GdocObjectModel(PackageManager):
                 pass
 
             block = block.next()
+
+
+    def walk(self, action, post_action=None):
+        self._walk(action, post_action, self)
+
+
+    def _walk(self, action, post_action, element):
+
+        action(element)
+
+        if hasattr(element, 'children'):
+            for child in element.children[:]:
+                self._walk(action, post_action, child)
+
+        if post_action is not None:
+            post_action(element)
+
 
