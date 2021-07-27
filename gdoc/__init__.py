@@ -1,7 +1,5 @@
-__all__ = ['__version__']
 
-__version__ = '0.1.0'
-
-_command = {
+_CONFIG = {
+    'version': '0.1.1',
     'app_path': 'app'
 }

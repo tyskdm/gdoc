@@ -5,7 +5,7 @@ import os
 import logging
 import argparse
 import importlib
-from . import _command, __version__
+from . import _CONFIG
 
 
 def main():
@@ -21,10 +21,10 @@ def main():
     subparsers = parser.add_subparsers(title='commands')
 
     here = os.path.dirname(__file__)
-    files = os.listdir(os.path.join(here, _command['app_path']))
+    files = os.listdir(os.path.join(here, _CONFIG['app_path']))
     for file in files:
-        if os.path.isdir(os.path.join(here, _command['app_path'], file)) and (file != '__pycache__'):
-            importlib.import_module(__package__ + '.' + _command['app_path'] + '.' + file).setup(subparsers, file, common)
+        if os.path.isdir(os.path.join(here, _CONFIG['app_path'], file)) and (file != '__pycache__'):
+            importlib.import_module(__package__ + '.' + _CONFIG['app_path'] + '.' + file).setup(subparsers, file, common)
 
     args = parser.parse_args()
 
@@ -41,7 +41,7 @@ def main():
         args.func(args)
 
     elif args.version:
-        print(__version__)
+        print(_CONFIG['version'])
 
     else:
         parser.print_help()
