@@ -1,4 +1,4 @@
-from src import __version__
+from gdoc import _CONFIG
 
 def test_version():
-    assert __version__ == '0.1.0'
+    assert _CONFIG['version'] == '0.1.1'
