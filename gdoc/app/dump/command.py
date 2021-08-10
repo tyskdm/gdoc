@@ -4,7 +4,8 @@ command.py
 import sys
 import json
 import logging
-from ...lib import gdast
+# from ...lib import gdast
+from gdoc.lib.pandocast import pandocast as gdast
 from ...lib import plugin
 from ...lib import gdom
 from ...lib import debug

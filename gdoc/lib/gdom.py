@@ -15,7 +15,8 @@
 #
 # 以上から、Gdoc Objectを出力する。
 
-from . import gdast
+# from . import gdast
+from gdoc.lib.pandocast import pandocast as gdast
 from .symboltable import SymbolTable, Scope, Symbol
 
 
