@@ -105,6 +105,8 @@ For implementation, The following policies should be followed.
 | @  | r1.6    | get_type() returns element type.
 | @  | r1.7    | get_prop() returns a property of the element.
 | @  | r1.8    | get_attr() returns a attrbute of the element.
+| @  | r1.9    | hascontent() returns True if self has content(s) or False if self is typed but has no content.
+| @  | r1.10   | get_content() returns content data in the element.
 
 ### [@ c2] Block
 

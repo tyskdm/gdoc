@@ -213,6 +213,29 @@ class Element:
         return attr
 
 
+    def hascontent(self, *, types=None):
+        TYPES = types or _PANDOC_TYPES
+        TYPE = TYPES[self.type]
+
+        hascontent = (('content' in TYPE) and (TYPE['content'] is not None))
+
+        return hascontent
+
+
+    def get_content(self, *, types=None):
+        TYPES = types or _PANDOC_TYPES
+        TYPE = TYPES[self.type]
+        content = None
+
+        if self.hascontent(types=types):
+            if ('key' in TYPE['content']) and (TYPE['content']['key'] is not None):
+                content = self.pan_element[TYPE['content']['key']]
+            else:
+                content = self.pan_element
+
+        return content
+
+
 class Inline(Element):
 
     def __init__(self, panElem, elemType, parent):

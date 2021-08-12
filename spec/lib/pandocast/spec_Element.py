@@ -27,7 +27,6 @@ r"""! Software detailed design of 'Element' class written in pytest.
 - [ ] TODO: remove getFirstChild() after replacing it to get_first_child() in all modules.
 
 """
-from attr.setters import NO_OP
 import pytest
 import inspect
 from gdoc.lib.pandocast.pandocast import Element
@@ -332,6 +331,142 @@ def spec_Element_r1_8_1(element, type, TYPES, test):
 
     for item in test:
         assert target.get_attr(item[0], types=TYPES) == item[1]
+
+
+## @}
+## @{ @name ER[Element].r1.9 | hascontent() returns True if self has content(s) or False if self is typed but has no content.
+## --------------------------------------------------------------------------------------------------------------------------
+
+data_Element_r1_9 = {
+    "Case: No Content dict":  (
+        { 't': 'Space' },
+        'Space',
+        {
+            'Space': {
+                'content': None
+            }
+        },
+        False
+    ),
+    "Case: Content is None(Dict)": (
+        { 't': 'Str', 'c': 'String' },
+        'Str',
+        {
+            'Str': {
+                'content':  None
+            }
+        },
+        False
+    ),
+    "Case: Content is None(Array)": (
+        [],
+        'BlockList',
+        {
+            'BlockList':  {
+                'content':  None
+            },
+        },
+        False
+    ),
+    "Case: has Content(Dict)": (
+        { 't': 'Str', 'c': 'String' },
+        'Str',
+        {
+            'Str': {
+                'content':  {
+                    'key':  'c',
+                    'type': 'Text'
+                }
+            }
+        },
+        True
+    ),
+    "Case: has Content(Array)": (
+        [],
+        'BlockList',
+        {
+            'BlockList':  {
+                'content':  {
+                    'type': '[Block]'
+                }
+            },
+        },
+        True
+    )
+}
+
+@pytest.mark.parametrize("element, type, TYPES, expect", list(data_Element_r1_9.values()), ids=list(data_Element_r1_9.keys()))
+## [\@Spec Element_r1_9_1] hascontent() returns True if self has content(s) or False if self is typed but has no content.
+def spec_Element_r1_9_1(element, type, TYPES, expect):
+
+    target = Element(element, type)
+
+    assert target.hascontent(types=TYPES) is expect
+
+
+## @}
+## @{ @name ER[Element].r1.10 | get_content() returns content data in the element.
+## -------------------------------------------------------------------------------
+
+
+data_Element_r1_10 = {
+    "Case: No Content dict":  (
+        { 't': 'Space' },
+        'Space',
+        {
+            'Space': {
+                'content': None
+            }
+        },
+        None
+    ),
+    "Case: has Content(Dict)": (
+        { 't': 'Str', 'c': 'String' },
+        'Str',
+        {
+            'Str': {
+                'content':  {
+                    'key':  'c',
+                    'type': 'Text'
+                }
+            }
+        },
+        'String'
+    ),
+    "Case: has Content(Array)": (
+        [],
+        'BlockList',
+        {
+            'BlockList':  {
+                'content':  {
+                    'type': '[Block]'
+                }
+            },
+        },
+        []
+    ),
+    "Case: has Content(Array) with key": (
+        [],
+        'BlockList',
+        {
+            'BlockList':  {
+                'content':  {
+                    'key':  None,
+                    'type': '[Block]'
+                }
+            },
+        },
+        []
+    )
+}
+
+@pytest.mark.parametrize("element, type, TYPES, expect", list(data_Element_r1_10.values()), ids=list(data_Element_r1_10.keys()))
+## [\@Spec Element_r1_10_1] get_content() returns content data in the element.
+def spec_Element_r1_10_1(element, type, TYPES, expect):
+
+    target = Element(element, type)
+
+    assert target.get_content(types=TYPES) == expect
 
 
 ## @}
