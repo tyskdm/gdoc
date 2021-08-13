@@ -1,6 +1,6 @@
-r"""! Software detailed design of 'Inline' class written in pytest.
+r"""! Software detailed design of 'Block' class written in pytest.
 
-[@import IS[Inline] from=PandocAst.md as=THIS]
+[@import IS[Block] from=PandocAst.md as=THIS]
 
 ### [\@ RQ] REQUIREMENTS
 
@@ -24,7 +24,7 @@ r"""! Software detailed design of 'Inline' class written in pytest.
 """
 import pytest
 import inspect
-from gdoc.lib.pandocast.pandocast import Element, Inline
+from gdoc.lib.pandocast.pandocast import Element, Block
 
 
 ##
@@ -33,7 +33,7 @@ from gdoc.lib.pandocast.pandocast import Element, Inline
 
 ## [\@spec __init___r1_1] | def __init__(self, pan_elem, elem_type, parent=None):
 def spec___init___r1_1():
-    assert inspect.isclass(Inline) == True
+    assert inspect.isclass(Block) == True
 
 
 data___init___r1_2 = {
@@ -51,39 +51,10 @@ data___init___r1_2 = {
 ## [\@spec __init___r1_2] | def __init__(self, pan_elem, elem_type, parent=None):
 def spec___init___r1_2(element, type):
 
-    target = Inline(element, type)
+    target = Block(element, type)
 
-    assert isinstance(target, Inline) 
+    assert isinstance(target, Block)
     assert isinstance(target, Element)
-
-
-
-data___init___r1_3 = {
-    "Case: No Content":  (
-        { 't': 'Space' },
-        'Space',
-        ' '
-    ),
-    "Case: No Structure": (
-        { 't': 'Str', 'c': 'String' },
-        'Str',
-        'String'
-    ),
-    "Case: With Structure(Nested)": (
-        {'t': 'Strong', 'c': [{'t': 'Str', 'c': 'Strong'}, {'t': 'Str', 'c': 'String'}]},
-        'Strong',
-        'StrongString'
-    ),
-}
-
-
-@pytest.mark.parametrize("element, type, expect", list(data___init___r1_3.values()), ids=list(data___init___r1_3.keys()))
-## [\@spec __init___r1_3] | def __init__(self, pan_elem, elem_type, parent=None):
-def spec___init___r1_3(element, type, expect):
-
-    target = Inline(element, type)
-
-    assert target.text == expect
 
 
 ## @}

@@ -1,0 +1,36 @@
+docs/sample_ProjectManagement.md:      ┌  SysML.Reqt AS.RA.PM.MAN3 - Project Management
+docs/sample_ProjectManagement.md:  ┌  @refine
+docs/sample_ProjectManagement.md:  │   ┌  SysML.Reqt ASPICE.3.1.MAN3.OC3 - [NOT FOUND]
+docs/sample_ProjectManagement.md:  ├  @copy
+docs/sample_ProjectManagement.md:  SysML.Reqt AS.RA.PM.OC3 - Outcome3
+docs/sample_ProjectManagement.md:  └  @deriveReqt
+docs/sample_ProjectManagement.md:      ├  SysML.Reqt AS.RA.PM.BP4 - プロジェクト活動の定義、監視、および調整
+docs/sample_ProjectManagement.md:      │  └  @deriveReqt
+docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP4.1
+docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP4.2
+docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP4.3
+docs/sample_ProjectManagement.md:      │      └  SysML.Reqt AS.RA.PM.BP4.4
+docs/sample_ProjectManagement.md:      ├  SysML.Reqt AS.RA.PM.BP5 - プロジェクトの見積りおよびリソースの定義、監視、および調整
+docs/sample_ProjectManagement.md:      │  └  @deriveReqt
+docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP5.1
+docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP5.2
+docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP5.3
+docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP5.4
+docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP5.5
+docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP5.6
+docs/sample_ProjectManagement.md:      │      └  SysML.Reqt AS.RA.PM.BP5.7
+docs/sample_ProjectManagement.md:      ├  SysML.Reqt AS.RA.PM.BP6 - 必要となるスキル、知識、および経験の確保
+docs/sample_ProjectManagement.md:      │  └  @deriveReqt
+docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP6.1
+docs/sample_ProjectManagement.md:      │      └  SysML.Reqt AS.RA.PM.BP6.2
+docs/sample_ProjectManagement.md:      ├  SysML.Reqt AS.RA.PM.BP8 - プロジェクトスケジュールの定義、監視、および調整
+docs/sample_ProjectManagement.md:      │  └  @deriveReqt
+docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP8.1
+docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP8.2
+docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP8.3
+docs/sample_ProjectManagement.md:      │      └  SysML.Reqt AS.RA.PM.BP8.4
+docs/sample_ProjectManagement.md:      └  SysML.Reqt AS.RA.PM.BP9 - 一貫性の確保
+docs/sample_ProjectManagement.md:         └  @deriveReqt
+docs/sample_ProjectManagement.md:             ├  SysML.Reqt AS.RA.PM.BP9.1
+docs/sample_ProjectManagement.md:             ├  SysML.Reqt AS.RA.PM.BP9.2
+docs/sample_ProjectManagement.md:             └  SysML.Reqt AS.RA.PM.BP9.3

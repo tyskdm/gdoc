@@ -274,8 +274,8 @@ class Inline(Element):
             #
             panContent = self.get_content()
 
-            for index in range(len(panContent)):
-                self._append_child(_createElements(panContent[index], self))
+            for element in panContent:
+                self._append_child(_createElements(element, self))
 
             element = self.get_first_child()
             while element is not None:
@@ -287,47 +287,33 @@ class Inline(Element):
 
 
 class Block(Element):
-    def __init__(self, panElem, elemType, parent):
+    def __init__(self, panElem, elemType, parent=None):
         super().__init__(panElem, elemType, parent)
-
-
-    def getFirstLine(self):
-        return ('ERROR: Not yet implemented.')
 
 
 class BlockList(Block):
 
-    def __init__(self, panElem, elemType, parent):
+    def __init__(self, panElem, elemType, parent=None):
         super().__init__(panElem, elemType, parent)
 
         _DEBUG.print(elemType + '（BlockList）')
         _DEBUG.indent()
 
-        if isinstance(panElem, list):
-            panContent = panElem
-        else:
-            if (_PANDOC_TYPES[elemType]['content']['offset'] == 0):
-                panContent = panElem['c'] 
-            else:
-                panContent = panElem['c'][_PANDOC_TYPES[elemType]['content']['offset']]
+        contents = self.get_content()
+        type = 'ListItem' if _PANDOC_TYPES[elemType]['content']['type'] == '[[Block]]' else ''
 
-        for index in range(len(panContent)):
-
-            if _PANDOC_TYPES[elemType]['content']['type'] == '[Block]':
-                self.children.append(_createElements(panContent[index], self))
-
-            elif _PANDOC_TYPES[elemType]['content']['type'] == '[[Block]]':
-                self.children.append(_createElements(panContent[index], self, 'ListItem'))
+        for item in contents:
+            self._append_child(_createElements(item, None, type))
 
         _DEBUG.undent()
 
 
     def getFirstLine(self):
         line = ''
-        child = self.getFirstChild()
+        child = self.get_first_child()
 
         if child.type == 'ListItem':
-            child = child.getFirstChild()
+            child = child.get_first_child()
 
         if isinstance(child, InlineList):
             line = child.getFirstLine()
@@ -337,14 +323,15 @@ class BlockList(Block):
 
 class InlineList(Block):
 
-    def __init__(self, panElem, elemType, parent):
+    def __init__(self, panElem, elemType, parent=None):
         super().__init__(panElem, elemType, parent)
         self.text = []
 
         _DEBUG.print(elemType + '（InlineList）')
         _DEBUG.indent()
 
-        if 'content' not in _PANDOC_TYPES[elemType]:
+        # if 'content' not in _PANDOC_TYPES[elemType]:
+        if not self.hascontent():
             # HorizontalRule
             self.children = None
             self.text = None
@@ -355,41 +342,22 @@ class InlineList(Block):
             #
             self.children = None
 
-            if (_PANDOC_TYPES[elemType]['content']['offset'] == 0):
-                panContent = panElem['c']
-            else:
-                panContent = panElem['c'][_PANDOC_TYPES[elemType]['content']['offset']]
-
-            lines = panContent.split('\n')
-            for line in lines:
-                self.text.append(line)
+            panContent = self.get_content()
+            self.text = panContent.split('\n')
 
         else:
-            if isinstance(panElem, list):
-                panContent = panElem
-            else:
-                if (_PANDOC_TYPES[elemType]['content']['offset'] == 0):
-                    panContent = panElem['c'] 
-                else:
-                    panContent = panElem['c'][_PANDOC_TYPES[elemType]['content']['offset']]
+            contents = self.get_content()
+            type = 'InlineList' if _PANDOC_TYPES[elemType]['content']['type'] == '[[Inline]]' else ''
 
-            for index in range(len(panContent)):
-
-                if _PANDOC_TYPES[elemType]['content']['type'] == '[Inline]':
-                    self.children.append(_createElements(panContent[index], self))
-
-                elif _PANDOC_TYPES[elemType]['content']['type'] == '[[Inline]]':
-                    self.children.append(_createElements(panContent[index], self, 'InlineList'))
+            for item in contents:
+                self._append_child(_createElements(item, None, type))
 
             lines = ''
             for element in self.children:
                 if hasattr(element, 'text') and (element.text is not None):
                     lines += element.text
 
-            lines = lines.split('\n')
-            for line in lines:
-                self.text.append(line)
-
+            self.text = lines.split('\n')
 
         if self.text is not None:
             _DEBUG.puts('-----\n' + '\n'.join(self.text) + '\n-----\n')
