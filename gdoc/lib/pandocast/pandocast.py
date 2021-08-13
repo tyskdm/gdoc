@@ -233,6 +233,9 @@ class Element:
             else:
                 content = self.pan_element
 
+            if ('main' in TYPE['content']) and (TYPE['content']['main'] is not None):
+                content = content[TYPE['content']['main']]
+
         return content
 
 

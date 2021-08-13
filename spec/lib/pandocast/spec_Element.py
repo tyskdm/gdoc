@@ -457,8 +457,49 @@ data_Element_r1_10 = {
             },
         },
         []
+    ),
+    "Case: has Main Content(Dict)": (
+        { 't': 'Code', 'c': [['', [], []], 'CodeString'] },
+        'Code',
+        {
+            'Code':  {
+                # CodeBlock Attr Text
+                # - Code block (literal) with attributes
+                'content':  {
+                    'key':      'c',
+                    'main':     1,
+                    'type':     'Text'
+                },
+                'struct': {
+                    'Attr':     0,
+                    'Text':     1
+                }
+            }
+        },
+        'CodeString'
+    ),
+    "Case: has Main Content(Array)": (
+        [['', [], []], '[RowData]'],
+        'Row',
+        {
+            'Row':  {
+                # Row Attr [Cell]
+                # A table row.
+                'content':  {
+                    'key':      None,
+                    'main':     1,
+                    'type':     '[Cell]'
+                },
+                'struct': {
+                    'Attr':     0,
+                    'Cells':    1
+                }
+            }
+        },
+        '[RowData]'
     )
 }
+
 
 @pytest.mark.parametrize("element, type, TYPES, expect", list(data_Element_r1_10.values()), ids=list(data_Element_r1_10.keys()))
 ## [\@Spec Element_r1_10_1] get_content() returns content data in the element.
