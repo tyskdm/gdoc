@@ -241,14 +241,14 @@ class Element:
 
 class Inline(Element):
 
-    def __init__(self, panElem, elemType, parent):
+    def __init__(self, panElem, elemType, parent=None):
         super().__init__(panElem, elemType, parent)
         self.text = ''
 
         _DEBUG.print(elemType + '（Inline）')
         _DEBUG.indent()
 
-        if 'content' not in _PANDOC_TYPES[elemType]:
+        if not self.hascontent():
             #
             # 'Space', 'SoftBrak' or 'LineBreak'
             #
@@ -266,27 +266,22 @@ class Inline(Element):
             # In Inline context, 'Text' is a text string
             #
             self.children = None
-
-            if (_PANDOC_TYPES[elemType]['content']['offset'] == 0):
-                self.text = panElem['c']
-            else:
-                self.text = panElem['c'][_PANDOC_TYPES[elemType]['content']['offset']]
+            self.text = self.get_content()
 
         else:
             #
             # '[Inline]' or '[Block]'
             #
-            if (_PANDOC_TYPES[elemType]['content']['offset'] == 0):
-                panContent = panElem['c'] 
-            else:
-                panContent = panElem['c'][_PANDOC_TYPES[elemType]['content']['offset']]
+            panContent = self.get_content()
 
             for index in range(len(panContent)):
-                self.children.append(_createElements(panContent[index], self))
+                self._append_child(_createElements(panContent[index], self))
 
-            for element in self.children:
+            element = self.get_first_child()
+            while element is not None:
                 if hasattr(element, 'text') and (element.text is not None):
                     self.text += element.text
+                element = element.next()
 
         _DEBUG.undent()
 
@@ -779,6 +774,7 @@ _PANDOC_TYPES = {
         'content':  {
             'key':      'c',
             'offset':   1,
+            'main':     1,
             'type':     'Text'
         },
         'struct': {
@@ -804,6 +800,7 @@ _PANDOC_TYPES = {
         'content':  {
             'key':      'c',
             'offset':   1,
+            'main':     1,
             'type':     '[[Block]]'
         },
         'struct': {
@@ -840,6 +837,7 @@ _PANDOC_TYPES = {
         'content':  {
             'key':      'c',
             'offset':   2,
+            'main':     2,
             'type':     '[Inline]'
         },
         'struct': {
@@ -901,6 +899,7 @@ _PANDOC_TYPES = {
         'content':  {
             'key':      'c',
             'offset':   1,
+            'main':     1,
             'type':     '[Block]'
         },
         'struct': {
@@ -1010,6 +1009,7 @@ _PANDOC_TYPES = {
         'content':  {
             'key':      'c',
             'offset':   1,
+            'main':     1,
             'type':     '[Inline]'
         },
         'struct': {
@@ -1024,6 +1024,7 @@ _PANDOC_TYPES = {
         'content':  {
             'key':      'c',
             'offset':   1,
+            'main':     1,
             'type':     '[Inline]'
         },
         'struct': {
@@ -1038,6 +1039,7 @@ _PANDOC_TYPES = {
         'content':  {
             'key':      'c',
             'offset':   1,
+            'main':     1,
             'type':     'Text'
         },
         'struct': {
@@ -1067,6 +1069,7 @@ _PANDOC_TYPES = {
         'content':  {
             'key':      'c',
             'offset':   1,
+            'main':     1,
             'type':     'Text'
         },
         'struct': {
@@ -1081,6 +1084,7 @@ _PANDOC_TYPES = {
         'content':  {
             'key':      'c',
             'offset':   1,
+            'main':     1,
             'type':     'Text'
         },
         'struct': {
@@ -1095,6 +1099,7 @@ _PANDOC_TYPES = {
         'content':  {
             'key':      'c',
             'offset':   1,
+            'main':     1,
             'type':     '[Inline]'
         },
         'struct': {
@@ -1110,6 +1115,7 @@ _PANDOC_TYPES = {
         'content':  {
             'key':      'c',
             'offset':   1,
+            'main':     1,
             'type':     '[Inline]'
         },
         'struct': {
@@ -1136,6 +1142,7 @@ _PANDOC_TYPES = {
         'content':  {
             'key':      'c',
             'offset':   1,
+            'main':     1,
             'type':     '[Inline]'
         },
         'struct': {
@@ -1153,6 +1160,7 @@ _PANDOC_TYPES = {
         'content':  {
             'key':      None,
             'offset':   1,
+            'main':     1,
             'type':     '[Cell]'
         },
         'struct': {
@@ -1167,6 +1175,7 @@ _PANDOC_TYPES = {
         'content':  {
             'key':      None,
             'offset':   4,
+            'main':     4,
             'type':     '[Block]'
         },
         'struct': {
