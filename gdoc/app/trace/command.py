@@ -62,7 +62,7 @@ def run(args):
     gdoc = gdast.GdocAST(pandoc)
 
     types = plugin.Plugins()
-    ghost = gdom.GdocObjectModel(gdoc.gdoc, types)
+    ghost = gdom.GdocObjectModel(gdoc, types)
     ghost.walk(_link)
 
     filename = args.filePath[0] if len(args.filePath) > 0 else ''

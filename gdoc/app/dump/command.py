@@ -58,7 +58,7 @@ def run(args):
     gdoc.walk(_dump_gdoc, post_action=_dump_post_gdoc)
 
     types = plugin.Plugins()
-    ghost = gdom.GdocObjectModel(gdoc.gdoc, types)
+    ghost = gdom.GdocObjectModel(gdoc, types)
 
     if args.id is None:
         data = {}

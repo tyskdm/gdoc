@@ -219,7 +219,7 @@ data_Element_r1_7 = {
                 'struct': {
                     'Format': 0,
                     'Text': {
-                        'offset': 1
+                        'index': 1
                     }
                 }
             },
@@ -239,7 +239,7 @@ data_Element_r1_7 = {
                 'struct': {
                     'Term': 0,
                     'Description':  {
-                        'offset': 1
+                        'index': 1
                     }
                 }
             },

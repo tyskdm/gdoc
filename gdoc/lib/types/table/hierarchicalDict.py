@@ -261,10 +261,11 @@ class HierarchicalDict(gdom.Object):
     def _getRowData(self, row):
         rowdata = []
         isComment = False
-        row = self.table.getRow(row)
+        # row = self.table.getRow(row)
 
         for c in range(1, self.table.numTableColumns+1):
-            line = row.getCell(c).getFirstLine()
+            # line = row.getCell(c).getFirstLine()
+            line = self.table.getCell(row, c).getFirstLine()
             if line == '#':
                 isComment = True
             line = '' if isComment else line

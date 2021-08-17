@@ -20,89 +20,6 @@ _LOGGER = logging.getLogger(__name__)
 _DEBUG = debug.Debug(_LOGGER)
 
 
-class GdocAST:
-
-    def __init__(self, pandoc):
-        """
-        与えられた PandocAst オブジェクトに対して、以下を行う。
-        ・ 各エレメントを走査して、Gdoc apps/pluginsが解釈しやすいデータ構造を提供する
-        ・ Source positionのためだけの、付加情報をもたない Div/Span 要素による階層を省く
-        ・ Header blockにより文書全体をセクション分割・階層化する
-        ・ 各エレメントに、parent へのリンクを付与する
-        ・ 文書の装飾情報を省き、apps/plugins が必要な情報をシンプルに提供する
-            ・ 連結したテキストデータを提供する
-            ・ ブロックエレメントの種類を減らした、シンプルなデータモデルを提供する
-            ・ 元文書の装飾やデータタイプ情報にアクセスできる手段を提供する
-        """
-        self.pandoc = pandoc
-
-        # Step 1: Create gdoc elements and set them in each `pan_element['.gdoc']`
-        self.gdoc = _createElements(pandoc, None, 'Pandoc')
-
-        # Step 2: Remove wrapper 'div'/'span' which contains only one block or is an only child.
-        self.walk(self._remove_wrapper)
-
-
-    def walk(self, action, gdoc=None, post_action=None):
-        # def action(elem, gdoc):
-        #
-        element = gdoc if gdoc is not None else self.gdoc
-
-        action(element, self.gdoc)
-
-        _DEBUG.indent()
-
-        if element.children is not None:
-            for child in element.children[:]:
-                self.walk(action, child, post_action)
-
-        _DEBUG.undent()
-
-        if post_action is not None:
-            post_action(element, self.gdoc)
-
-
-    def _remove_wrapper(self, elem, gdoc):
-        if elem.type in ['Div', 'Span']:
-
-            if len(elem.children) == 0:
-                self._remove_elem(elem)
-
-            elif len(elem.children) == 1:
-                if elem.source.position is not None:
-
-                    if elem.children[0].source.position is None:
-                        elem.children[0].source.position = elem.source.position
-
-                    elif (len(elem.parent.children) == 1) and (elem.parent.source.position is None):
-                        elem.parent.source.position = elem.source.position
-
-                self._remove_elem(elem)
-
-            else:
-                if len(elem.parent.children) == 1:
-                    if elem.parent.source.position is None:
-                        elem.parent.source.position = elem.source.position
-                    self._remove_elem(elem)
-
-
-    def _remove_elem(self, elem):
-        index = elem.parent.children.index(elem)
-
-        if len(elem.children) == 0:
-            del elem.parent.children[index]
-
-        else:
-            if len(elem.children) == 1:
-                elem.parent.children[index] = elem.children[0]
-                elem.children[0].parent = elem.parent
-
-            elif len(elem.parent.children) == 1:
-                elem.parent.children = elem.children[:]
-                for e in elem.parent.children:
-                    e.parent = elem.parent
-
-
 class Element:
 
     def __init__(self, pan_elem, elem_type, parent=None):
@@ -177,13 +94,13 @@ class Element:
             if ('key' in TYPE['content']) and (TYPE['content']['key'] is not None):
                 element = element[TYPE['content']['key']]
 
-            if ('struct' in TYPE) and (TYPE['struct'].get(name) is not None):
-                offset = TYPE['struct'].get(name)
+            if ('struct' in TYPE) and (TYPE['struct'] is not None) and (name in TYPE['struct']):
+                index = TYPE['struct'][name]
 
-                if isinstance(offset, dict) and (offset['offset'] is not None):
-                    offset = offset['offset']
+                if isinstance(index, dict):
+                    index = index['index']
 
-                property = element[offset]
+                property = element[index]
 
         return property
 
@@ -198,17 +115,11 @@ class Element:
         attr_obj = self.get_prop('Attr', types=types)
 
         if attr_obj is not None:
-            if isinstance(name, str):
-                for item in attr_obj[2]:
-                    if item[0] == name:
-                        attr = item[1]
-                        break
-
-            elif isinstance(name, tuple):
-                for item in attr_obj[2]:
-                    if item[0] in name:
-                        attr = item[1]
-                        break
+            for item in attr_obj[2]:
+                if ((isinstance(name, str) and (item[0] == name)) or
+                    (isinstance(name, tuple) and (item[0] in name))):
+                    attr = item[1]
+                    break
 
         return attr
 
@@ -237,6 +148,22 @@ class Element:
                 content = content[TYPE['content']['main']]
 
         return content
+
+
+    def walk(self, action, post_action=None, target=None):
+        #
+        # def action(elem, root):
+        #
+        element = target or self
+
+        action(element, self)
+
+        if element.children is not None:
+            for child in element.children[:]:
+                self.walk(action, post_action, child)
+
+        if post_action is not None:
+            post_action(element, self)
 
 
 class Inline(Element):
@@ -275,13 +202,11 @@ class Inline(Element):
             panContent = self.get_content()
 
             for element in panContent:
-                self._append_child(_createElements(element, self))
+                self._append_child(_create_elements(element, self))
 
-            element = self.get_first_child()
-            while element is not None:
+            for element in self.children:
                 if hasattr(element, 'text') and (element.text is not None):
                     self.text += element.text
-                element = element.next()
 
         _DEBUG.undent()
 
@@ -303,7 +228,7 @@ class BlockList(Block):
         type = 'ListItem' if _PANDOC_TYPES[elemType]['content']['type'] == '[[Block]]' else ''
 
         for item in contents:
-            self._append_child(_createElements(item, None, type))
+            self._append_child(_create_elements(item, None, type))
 
         _DEBUG.undent()
 
@@ -350,7 +275,7 @@ class InlineList(Block):
             type = 'InlineList' if _PANDOC_TYPES[elemType]['content']['type'] == '[[Inline]]' else ''
 
             for item in contents:
-                self._append_child(_createElements(item, None, type))
+                self._append_child(_create_elements(item, None, type))
 
             lines = ''
             for element in self.children:
@@ -387,13 +312,13 @@ class DefinitionList(Block):
         if not isinstance(panElem, list):
             # 初入、DL全体。
             # DefinitionList [([Inline], [[Block]])]
-            if (_PANDOC_TYPES[elemType]['content']['offset'] == 0):
+            if (_PANDOC_TYPES[elemType]['content']['index'] == 0):
                 panContent = panElem['c'] 
             else:
-                panContent = panElem['c'][_PANDOC_TYPES[elemType]['content']['offset']]
+                panContent = panElem['c'][_PANDOC_TYPES[elemType]['content']['index']]
 
             for index in range(len(panContent)):
-                self.children.append(_createElements(panContent[index], self, 'DefinitionItem'))
+                self.children.append(_create_elements(panContent[index], self, 'DefinitionItem'))
 
         else:
             # 再入、DLの各項目。
@@ -401,19 +326,19 @@ class DefinitionList(Block):
             panContent = panElem
 
             # [Inline]
-            self.children.append(_createElements(panContent[0], self, 'InlineList'))
+            self.children.append(_create_elements(panContent[0], self, 'InlineList'))
 
             # [[Block]]
             for index in range(len(panContent[1])):
                 # [Block]
-                self.children.append(_createElements(panContent[1][index], self, 'BlockList'))
+                self.children.append(_create_elements(panContent[1][index], self, 'BlockList'))
 
         _DEBUG.undent()
 
 
 class Table(Block):
     # Table Attr Caption [ColSpec] TableHead [TableBody] TableFoot
-    # 'c': ['Attr', 'Caption', '[ColSpec]', 'TableHead', '[TableBody]', 'TableFoot'],
+    # 'c': ['Attr', 'Caption', '[ColSpec]', 'TableHead', '[TableBody]', 'TableFoot']
     def __init__(self, panElem, elemType, parent):
         super().__init__(panElem, elemType, parent)
 
@@ -421,106 +346,139 @@ class Table(Block):
         _DEBUG.indent()
 
         self.numTableColumns = 0            # Num of Columns of Table
-
         self.numHeaderRows = 0              # Num of Rows of Header
         self.numBodys = 0                   # Num of Bodys of Table (NOT Rows. Each Body includes Rows)
         self.numBodyRows = []               # Num of Rows of each Body
         self.numRowHeaderColumns = []       # Num of Columns of RowHeader of each Body
         self.numFooterRows = 0              # Num of Rows of Footer
-
         self.numTableRows = 0               # Num of Rows of Table
                                             #   = numHeaderRows + sum(numBodyRows) + numFooterRows
-
-        # Table.children = [[[Block]]]      // Table [ Row [ Cell [ Block ] ] ]
-        table = panElem['c']
-        table_types = _PANDOC_TYPES[elemType]['struct']
+        self.cells = []                     # Cell index table
 
         # Step.1: get num of table columns from len([ColSpec])
-        self.numTableColumns = len(table[table_types['[ColSpec]']['offset']])
+        self.numTableColumns = len(self.get_prop('[ColSpec]'))
 
         # Step.2: Header
-        tableHead = table[table_types['TableHead']['offset']]
-        tableHead_types = table_types['TableHead']['struct']
+        table_head = TableRowList(self.get_prop('TableHead'), 'TableHead')
+        self._append_child(table_head)
+        self.numHeaderRows = table_head.num_rows
 
-        headerRows = tableHead[tableHead_types['[Row]']]
-        self.numHeaderRows = len(headerRows)
+        # Step.3: Bodys = [ ( RowHeads, Rows ) ]
+        table_bodys = self.get_prop('[TableBody]')
+        self.numBodys = len(table_bodys)
 
-        for row in headerRows:
-            cells = row[_PANDOC_TYPES['Row']['content']['offset']]
-            self.children.append(_createElements(cells, self, 'Row'))
-
-        # Step.3: Body - append([Row] + [Row])
-        tableBodys = table[table_types['[TableBody]']['offset']]    # A list of body(s)
-        tableBody_types = table_types['[TableBody]']['struct']       # type of body
-
-        self.numBodys = len(tableBodys)
-        self.numBodyRows = []
-        self.numRowHeaderColumns = []
-        bodyRows = []
-
-        for index in range(self.numBodys):
-            body = tableBodys[index]
-            self.numBodyRows.append(len(body[tableBody_types['[Row]']]))
-            self.numRowHeaderColumns.append(body[tableBody_types['RowHeadColumns']])
-            bodyRows.append([])
-
-            for r in range(self.numBodyRows[index]):
-
-                cells = []
-                if self.numRowHeaderColumns[index] > 0:
-                    cells.extend(body[tableBody_types['[RowHeadColumn]']][r][_PANDOC_TYPES['Row']['content']['offset']]) 
-                cells.extend(body[tableBody_types['[Row]']][r][_PANDOC_TYPES['Row']['content']['offset']])
-
-                self.children.append(_createElements(cells, self, 'Row'))
+        for table_body in table_bodys:
+            body = TableBody(table_body, 'TableBody')
+            self._append_child(body)
+            self.numBodyRows.append(body.num_rows)
+            self.numRowHeaderColumns.append(body.get_prop('RowHeadColumns'))
 
         # Step.4: Footer
-        tableFoot = table[table_types['TableFoot']['offset']]
-        tableFoot_types = table_types['TableFoot']['struct']
+        table_foot = TableRowList(self.get_prop('TableFoot'), 'TableFoot')
+        self._append_child(table_foot)
+        self.numFooterRows = table_foot.num_rows
 
-        footerRows = tableFoot[tableFoot_types['[Row]']]
-        self.numFooterRows = len(footerRows)
-
-        for row in footerRows:
-            cells = row[_PANDOC_TYPES['Row']['content']['offset']]
-            self.children.append(_createElements(cells, self, 'Row'))
-
+        # set up props
         self.numTableRows = self.numHeaderRows + sum(self.numBodyRows) + self.numFooterRows
+        self._create_cell_index()
 
         _DEBUG.undent()
 
 
-    def getFirstLine(self):
-        firstRow = self.getFirstChild()
-        line = firstRow.getFirstLine()
+    def _create_cell_index(self):
+        # Step.1: Header
+        child = self.get_first_child()
+        rows = child.children
+        for row in rows:
+            self.cells.append(row.children[:])
 
+        # Step.2: Bodys = [ ( RowHeads, Rows ) ]
+        child = child.next()
+
+        while child.type == 'TableBody':
+            # Body = ( RowHeads, Rows )
+            row_heads = child.get_first_child()
+            rows = row_heads.next()
+            hashead = (child.get_prop('RowHeadColumns') > 0)
+
+            # cells of a row = concatenate rowhead and row.
+            for index in range(rows.num_rows):
+                cells = []
+                if hashead:
+                    cells.extend(row_heads.children[index].children)  # row_heads -> row -> cells
+                cells.extend(rows.children[index].children)  # rows -> row -> cells
+                self.cells.append(cells)
+
+            child = child.next()
+
+        # Step.3: Footer
+        rows = child.children
+        for row in rows:
+            self.cells.append(row.children[:])
+
+
+    def getFirstLine(self):
+        line = self.cells[0][0].getFirstLine()
         return line
 
 
     def getRow(self, r):
-        return self.children[r-1]
+        return self.cells[r-1]
 
 
     def getCell(self, r, c):
-        row = self.children[r-1]
-        cell = row.getCell(c)
+        cell = self.cells[r-1][c-1]
         return cell
 
 
-class TableRow(Block):
+class TableRowList(Element):
 
-    def __init__(self, panElem, elemType, parent):
+    def __init__(self, pan_elem, elem_type, parent=None):
+        super().__init__(pan_elem, elem_type)
+
+        _DEBUG.print(elem_type + '（TableRowList）')
+        _DEBUG.indent()
+
+        rows = self.get_content()
+        self.num_rows = len(rows)
+
+        for row in rows:
+            self._append_child(TableRow(row, 'Row'))
+
+        _DEBUG.undent()
+
+
+class TableBody(Element):
+
+    def __init__(self, pan_elem, elem_type, parent=None):
+        super().__init__(pan_elem, elem_type)
+
+        _DEBUG.print(elem_type + '（TableBody）')
+        _DEBUG.indent()
+
+        rows = self.get_prop('RowHeads')
+        self._append_child(TableRowList(rows, 'Rows'))
+
+        rows = self.get_prop('Rows')
+        self._append_child(TableRowList(rows, 'Rows'))
+
+        self.num_rows = len(rows)
+
+        _DEBUG.undent()
+
+
+class TableRow(Element):
+
+    def __init__(self, panElem, elemType='Row', parent=None):
         super().__init__(panElem, elemType, parent)
 
         _DEBUG.print(elemType + '（TableRow）')
         _DEBUG.indent()
 
-        panContent = panElem
+        contents = self.get_content()
 
-        # print('===== Row =====')
-        # print(panElem)
-
-        for index in range(len(panContent)):
-            self.children.append(_createElements(panContent[index], self, 'Cell'))
+        for content in contents:
+            self._append_child(TableCell(content, 'Cell'))
 
         _DEBUG.undent()
 
@@ -547,28 +505,27 @@ class TableRow(Block):
         return False
 
 
-class TableCell(Block):
+class TableCell(Element):
 
-    def __init__(self, panElem, elemType, parent):
+    def __init__(self, panElem, elemType, parent=None):
         super().__init__(panElem, elemType, parent)
 
         _DEBUG.print(elemType + '（TableCell）')
         _DEBUG.indent()
 
-        self.rowSpan = panElem[_PANDOC_TYPES['Cell']['struct']['RowSpan']['offset']]
-        self.colSpan = panElem[_PANDOC_TYPES['Cell']['struct']['ColSpan']['offset']]
+        self.rowSpan = self.get_prop('RowSpan')
+        self.colSpan = self.get_prop('ColSpan')
 
-        panContent = panElem[_PANDOC_TYPES['Cell']['struct']['[Block]']['offset']]
-
-        for index in range(len(panContent)):
-            self.children.append(_createElements(panContent[index], self))
+        blocks = self.get_content()
+        for block in blocks:
+            self._append_child(_create_elements(block))
 
         _DEBUG.undent()
 
 
     def getFirstLine(self):
         line = ''
-        block = self.getFirstChild()
+        block = self.get_first_child()
 
         if isinstance(block, InlineList):
             line = block.getFirstLine()
@@ -585,40 +542,86 @@ class _SourcePos:
 
     def __init__(self, elem):
         pos = None
-        panElem = elem.pan_element
+
         if elem.type in _PANDOC_TYPES:
-            if ('struct' in _PANDOC_TYPES[elem.type]) and (_PANDOC_TYPES[elem.type]['struct'] is not None):
-                if 'Attr' in _PANDOC_TYPES[elem.type]['struct']:
-                    if isinstance(panElem, list):
-                        content = panElem
-                    else:
-                        content = panElem['c']
-                    attr = content[_PANDOC_TYPES[elem.type]['struct']['Attr']][2]
-                    for item in attr:
-                        if item[0] in ['pos', 'data-pos']:
-                            pos = item[1]
+            pos = elem.get_attr(('pos', 'data-pos'))
 
         self.position = pos
 
 
-def _createElements(panElem, parent, elemType=''):
+class GdocAST(Element):
 
-    if elemType == '':
-        elemType = panElem['t']
-        elem = panElem
+    def __init__(self, pandoc_ast):
+        """
+        与えられた PandocAst オブジェクトに対して、以下を行う。
+        ・ 各エレメントを走査して、Gdoc apps/pluginsが解釈しやすいデータ構造を提供する
+        ・ Source positionのためだけの、付加情報をもたない Div/Span 要素による階層を省く
+        ・ Header blockにより文書全体をセクション分割・階層化する
+        ・ 各エレメントに、parent へのリンクを付与する
+        ・ 文書の装飾情報を省き、apps/plugins が必要な情報をシンプルに提供する
+            ・ 連結したテキストデータを提供する
+            ・ ブロックエレメントの種類を減らした、シンプルなデータモデルを提供する
+            ・ 元文書の装飾やデータタイプ情報にアクセスできる手段を提供する
+        """
+        super().__init__(pandoc_ast, 'Pandoc')
 
-    elif elemType == 'Pandoc':
-        elem = panElem['blocks']
+        contents = self.get_content()
 
-    else:
-        elem = panElem
+        for block in contents:
+            self._append_child(_create_elements(block))
 
-    gdocElem = _PANDOC_TYPES[elemType]['class'](elem, elemType, parent)
+        # Step 2: Remove wrapper 'div'/'span' which contains only one block or is an only child.
+        self.walk(self._remove_wrapper)
 
-    if isinstance(panElem, dict):
-        panElem['.gdoc'] = gdocElem
 
-    return gdocElem
+    def _remove_wrapper(self, elem, root):
+        if elem.type in ['Div', 'Span']:
+
+            if len(elem.children) == 0:
+                self._remove_elem(elem)
+
+            elif len(elem.children) == 1:
+                if elem.source.position is not None:
+
+                    if elem.children[0].source.position is None:
+                        elem.children[0].source.position = elem.source.position
+
+                    elif (len(elem.parent.children) == 1) and (elem.parent.source.position is None):
+                        elem.parent.source.position = elem.source.position
+
+                self._remove_elem(elem)
+
+            else:
+                if len(elem.parent.children) == 1:
+                    if elem.parent.source.position is None:
+                        elem.parent.source.position = elem.source.position
+                    self._remove_elem(elem)
+
+
+    def _remove_elem(self, elem):
+        index = elem.parent.children.index(elem)
+
+        if len(elem.children) == 0:
+            del elem.parent.children[index]
+
+        else:
+            if len(elem.children) == 1:
+                elem.parent.children[index] = elem.children[0]
+                elem.children[0].parent = elem.parent
+
+            elif len(elem.parent.children) == 1:
+                elem.parent.children = elem.children[:]
+                for e in elem.parent.children:
+                    e.parent = elem.parent
+
+
+def _create_elements(elem, parent=None, elem_type=''):
+
+    elem_type = elem_type or elem['t']
+
+    gdoc_elem = _PANDOC_TYPES[elem_type]['class'](elem, elem_type, parent)
+
+    return gdoc_elem
 
 
 # Text.Pandoc.Definition
@@ -635,7 +638,6 @@ _PANDOC_TYPES = {
         'class':  BlockList,
         'content':  {
             'key':      None,
-            'offset':   0,
             'type':     '[Block]'
         },
         'struct': None
@@ -646,7 +648,6 @@ _PANDOC_TYPES = {
         'class':  InlineList,
         'content':  {
             'key':      None,
-            'offset':   0,
             'type':     '[Inline]'
         },
         'struct': None
@@ -657,7 +658,6 @@ _PANDOC_TYPES = {
         'class':  BlockList,
         'content':  {
             'key':      None,
-            'offset':   0,
             'type':     '[Block]'
         },
         'struct': None
@@ -666,8 +666,7 @@ _PANDOC_TYPES = {
         # ([Inline], [[Block]]) is not List, Item(=Term+Definitions).
         'class':  DefinitionList,
         'content':  {
-            'key':      None,
-            'offset':   0
+            'key':      None
             # 'type':     [ '[Inline]', '[[Block]]' ]
         },
         'struct': None
@@ -679,11 +678,15 @@ _PANDOC_TYPES = {
         # Pandoc Meta [Block]
         'class':  BlockList,
         'content':  {
-            # 'key':      'blocks',
-            'offset':   0,
+            'key':      None,
+            'main':     'blocks',
             'type':     '[Block]'
         },
-        'struct': None
+        'struct': {
+            'Version':  'pandoc-api-version',
+            'Meta':     'meta',
+            'Blocks':   'blocks'
+        }
     },
     #
     # Blocks
@@ -694,7 +697,6 @@ _PANDOC_TYPES = {
         'class':  InlineList,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     '[Inline]'
         },
         'struct': None
@@ -705,7 +707,6 @@ _PANDOC_TYPES = {
         'class':  InlineList,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     '[Inline]'
         },
         'struct': None
@@ -716,7 +717,6 @@ _PANDOC_TYPES = {
         'class':  InlineList,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     '[[Inline]]'
         },
         'struct': None
@@ -727,7 +727,6 @@ _PANDOC_TYPES = {
         'class':  InlineList,
         'content':  {
             'key':      'c',
-            'offset':   1,
             'type':     'Text'
         },
         'struct': {
@@ -741,7 +740,6 @@ _PANDOC_TYPES = {
         'class':  InlineList,
         'content':  {
             'key':      'c',
-            'offset':   1,
             'main':     1,
             'type':     'Text'
         },
@@ -756,7 +754,6 @@ _PANDOC_TYPES = {
         'class':  BlockList,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     '[Block]'
         },
         'struct': None
@@ -767,7 +764,6 @@ _PANDOC_TYPES = {
         'class':  BlockList,
         'content':  {
             'key':      'c',
-            'offset':   1,
             'main':     1,
             'type':     '[[Block]]'
         },
@@ -782,7 +778,6 @@ _PANDOC_TYPES = {
         'class':  BlockList,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     '[[Block]]'
         },
         'struct': None
@@ -793,7 +788,6 @@ _PANDOC_TYPES = {
         'class':  DefinitionList,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     '[([Inline], [[Block]])]'
         },
         'struct': None
@@ -804,7 +798,6 @@ _PANDOC_TYPES = {
         'class':  InlineList,
         'content':  {
             'key':      'c',
-            'offset':   2,
             'main':     2,
             'type':     '[Inline]'
         },
@@ -824,40 +817,16 @@ _PANDOC_TYPES = {
         # - Table, with attributes, caption, optional short caption, column alignments and widths (required), table head, table bodies, and table foot
         'class':  Table,
         'content':  {
-            'key':      'c'
+            'key':      'c',
+            'main':     None
         },
         'struct': {
-            'Attr':     0,
-            'Caption': {
-                'offset':   1
-            },
-            '[ColSpec]': {
-                'offset':   2
-            },
-            'TableHead': {
-                'offset':   3,
-                'struct': {
-                    'Attr':     0,
-                    '[Row]':    1
-                }
-            },
-            '[TableBody]': {    # TableBody*s*
-                'offset':   4,
-                # TableBody: Attr RowHeadColumns [Row] [Row]
-                'struct': {
-                    'Attr':             0,
-                    'RowHeadColumns':   1,
-                    '[RowHeadColumn]':  2,
-                    '[Row]':            3
-                }
-            },
-            'TableFoot': {
-                'offset':   5,
-                'struct': {
-                    'Attr':     0,
-                    '[Row]':    1
-                }
-            }
+            'Attr':         0,
+            'Caption':      1,
+            '[ColSpec]':    2,
+            'TableHead':    3,
+            '[TableBody]':  4,      # TableBody*s*
+            'TableFoot':    5
         }
     },
     'Div':  {
@@ -866,7 +835,6 @@ _PANDOC_TYPES = {
         'class':  BlockList,
         'content':  {
             'key':      'c',
-            'offset':   1,
             'main':     1,
             'type':     '[Block]'
         },
@@ -888,7 +856,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     'Text'
         },
         'struct': None
@@ -899,7 +866,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     '[Inline]'
         },
         'struct': None
@@ -910,7 +876,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     '[Inline]'
         },
         'struct': None
@@ -921,7 +886,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     '[Inline]'
         },
         'struct': None
@@ -932,7 +896,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     '[Inline]'
         },
         'struct': None
@@ -943,7 +906,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     '[Inline]'
         },
         'struct': None
@@ -954,7 +916,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     '[Inline]'
         },
         'struct': None
@@ -965,7 +926,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     '[Inline]'
         },
         'struct': None
@@ -976,7 +936,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   1,
             'main':     1,
             'type':     '[Inline]'
         },
@@ -991,7 +950,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   1,
             'main':     1,
             'type':     '[Inline]'
         },
@@ -1006,7 +964,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   1,
             'main':     1,
             'type':     'Text'
         },
@@ -1036,7 +993,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   1,
             'main':     1,
             'type':     'Text'
         },
@@ -1051,7 +1007,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   1,
             'main':     1,
             'type':     'Text'
         },
@@ -1066,7 +1021,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   1,
             'main':     1,
             'type':     '[Inline]'
         },
@@ -1082,7 +1036,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   1,
             'main':     1,
             'type':     '[Inline]'
         },
@@ -1098,7 +1051,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   0,
             'type':     '[Block]'
         },
         'struct': None
@@ -1109,7 +1061,6 @@ _PANDOC_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'offset':   1,
             'main':     1,
             'type':     '[Inline]'
         },
@@ -1121,13 +1072,71 @@ _PANDOC_TYPES = {
     #
     # OtherTypes
     #
+    'TableHead':  {
+        # TableHead Attr [Row]
+        # The head of a table.
+        'class':  TableRowList,
+        'content':  {
+            'key':      None,
+            'main':     1,
+            'type':     '[Row]'
+        },
+        'struct': {
+            'Attr':     0,
+            'Rows':     1
+        }
+    },
+    'TableBody':  {
+        # TableBody Attr RowHeadColumns [Row] [Row]
+        # A body of a table, with an intermediate head, intermediate body,
+        # and the specified number of row header columns in the intermediate body.
+        'class':  TableBody,
+        'content':  {
+            'key':      None
+        },
+        'struct': {
+            'Attr':             0,
+            'RowHeadColumns':   1,
+            'RowHeads': {
+                'index':       2,
+                'type':         '[Row]'
+            },
+            'Rows': {
+                'index':       3,
+                'type':         '[Row]'
+            },
+        }
+    },
+    'TableFoot':  {
+        # TableFoot Attr [Row]
+        # The foot of a table.
+        'class':  TableRowList,
+        'content':  {
+            'key':      None,
+            'main':     1,
+            'type':     '[Row]'
+        },
+        'struct': {
+            'Attr':     0,
+            'Rows':     1
+        }
+    },
+    'Rows':  {
+        # Row Attr [Cell]
+        # A table row.
+        'class':  TableRowList,
+        'content':  {
+            'key':      None,
+            'type':     '[Row]'
+        },
+        'struct':       None
+    },
     'Row':  {
         # Row Attr [Cell]
         # A table row.
         'class':  TableRow,
         'content':  {
             'key':      None,
-            'offset':   1,
             'main':     1,
             'type':     '[Cell]'
         },
@@ -1142,23 +1151,16 @@ _PANDOC_TYPES = {
         'class':  TableCell,
         'content':  {
             'key':      None,
-            'offset':   4,
             'main':     4,
             'type':     '[Block]'
         },
         'struct': {
             'Attr':         0,
-            'Alignment': {
-                'offset':   1
-            },
-            'RowSpan': {
-                'offset':   2
-            },
-            'ColSpan': {
-                'offset':   3,
-            },
+            'Alignment':    1,
+            'RowSpan':      2,
+            'ColSpan':      3,
             '[Block]':  {
-                'offset':   4,
+                'index':   4,
                 'type':     '[Block]'
             }
         }
