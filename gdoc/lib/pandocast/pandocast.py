@@ -559,7 +559,7 @@ class TableCell(Element):
         return empty
 
 
-class GdocAST(Element):
+class PandocAst(Element):
 
     def __init__(self, pandoc_ast):
         """

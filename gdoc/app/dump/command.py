@@ -4,8 +4,7 @@ command.py
 import sys
 import json
 import logging
-# from ...lib import gdast
-from gdoc.lib.pandocast import pandocast as gdast
+from gdoc.lib.pandocast import pandocast
 from ...lib import plugin
 from ...lib import gdom
 from ...lib import debug
@@ -54,7 +53,7 @@ def run(args):
         print(__subcommand__ + ': error: Missing pandocfile ( [-d / --pandocfile] is required)')
         sys.exit(1)
 
-    gdoc = gdast.GdocAST(pandoc)
+    gdoc = pandocast.PandocAst(pandoc)
     gdoc.walk(_dump_gdoc, post_action=_dump_post_gdoc)
 
     types = plugin.Plugins()
