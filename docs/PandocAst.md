@@ -107,6 +107,7 @@ For implementation, The following policies should be followed.
 | @  | r1.8    | get_attr() returns a attrbute of the element.
 | @  | r1.9    | hascontent() returns True if self has content(s) or False if self is typed but has no content.
 | @  | r1.10   | get_content() returns main content data in the element.
+| @  | r1.11   | get_content_type() returns type of main content in the element.
 
 ### [@ c2] Block
 

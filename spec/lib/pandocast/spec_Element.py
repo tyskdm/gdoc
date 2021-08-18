@@ -45,7 +45,7 @@ def spec___init___r1_1():
 def spec___init___r1_2():
     element = {}
 
-    target = Element(element, 'TYPE')
+    target = Element(element, 'TYPE', type_def={})
 
     assert target.pan_element is element
     assert target.type == 'TYPE'
@@ -67,8 +67,8 @@ def spec___init___r1_3():
 
 ## [\@spec _append_child_r1_1] | append a Element object as a child.
 def spec__append_child_r1_1():
-    target = Element({}, 'PARENT', None)
-    child = Element({}, 'CHILD', None)
+    target = Element({}, 'PARENT', type_def={})
+    child = Element({}, 'CHILD', type_def={})
     target._append_child(child)
 
     assert target.children[0] is child
@@ -79,10 +79,10 @@ def spec__append_child_r1_1():
 
 @pytest.fixture
 def fixture_Element():
-    parent = Element({}, "PARENT", None)
-    parent._append_child(Element({}, "FIRST", parent))
-    parent._append_child(Element({}, "SECOND", parent))
-    parent._append_child(Element({}, "LAST", parent))
+    parent = Element({}, "PARENT", type_def={})
+    parent._append_child(Element({}, "FIRST", type_def={}))
+    parent._append_child(Element({}, "SECOND", type_def={}))
+    parent._append_child(Element({}, "LAST", type_def={}))
     return parent
 
 ##
@@ -151,7 +151,7 @@ def spec_Element_r1_5_1(fixture_Element):
 ## [\@Spec Element_r1_5_2] get_first_child() returns None if child is not exist.
 def spec_Element_r1_5_2():
 
-    target = Element({}, 'TYPE')
+    target = Element({}, 'TYPE', type_def={})
 
     assert target.get_first_child() is None
 
@@ -163,7 +163,7 @@ def spec_Element_r1_5_2():
 ## [\@Spec Element_r1_6_1] get_type() returns element type.
 def spec_Element_r1_6_1():
 
-    target = Element({}, 'TYPE')
+    target = Element({}, 'TYPE', type_def={})
 
     assert target.get_type() is 'TYPE'
 
@@ -257,10 +257,10 @@ data_Element_r1_7 = {
 ## [\@Spec Element_r1_7_1] get_prop() returns a property of the element.
 def spec_Element_r1_7_1(element, type, TYPES, test):
 
-    target = Element(element, type)
+    target = Element(element, type, type_def=TYPES[type])
 
     for item in test:
-        assert target.get_prop(item[0], types=TYPES) == item[1]
+        assert target.get_prop(item[0]) == item[1]
 
 
 ## @}
@@ -327,10 +327,10 @@ data_Element_r1_8 = {
 ## [\@Spec Element_r1_8_1] get_attr() returns a attrbute of the element.
 def spec_Element_r1_8_1(element, type, TYPES, test):
 
-    target = Element(element, type)
+    target = Element(element, type, type_def=TYPES[type])
 
     for item in test:
-        assert target.get_attr(item[0], types=TYPES) == item[1]
+        assert target.get_attr(item[0]) == item[1]
 
 
 ## @}
@@ -399,9 +399,9 @@ data_Element_r1_9 = {
 ## [\@Spec Element_r1_9_1] hascontent() returns True if self has content(s) or False if self is typed but has no content.
 def spec_Element_r1_9_1(element, type, TYPES, expect):
 
-    target = Element(element, type)
+    target = Element(element, type, type_def=TYPES[type])
 
-    assert target.hascontent(types=TYPES) is expect
+    assert target.hascontent() is expect
 
 
 ## @}
@@ -505,9 +505,114 @@ data_Element_r1_10 = {
 ## [\@Spec Element_r1_10_1] get_content() returns content data in the element.
 def spec_Element_r1_10_1(element, type, TYPES, expect):
 
-    target = Element(element, type)
+    target = Element(element, type, type_def=TYPES[type])
 
-    assert target.get_content(types=TYPES) == expect
+    assert target.get_content() == expect
+
+
+## @}
+## @{ @name ER[Element].r1.11 | get_content_type() returns type of main content in the element.
+## --------------------------------------------------------------------------------------------
+
+
+data_Element_r1_10 = {
+    "Case: No Content dict":  (
+        { 't': 'Space' },
+        'Space',
+        {
+            'Space': {
+                'content': None
+            }
+        },
+        None
+    ),
+    "Case: has Content(Dict)": (
+        { 't': 'Str', 'c': 'String' },
+        'Str',
+        {
+            'Str': {
+                'content':  {
+                    'key':  'c',
+                    'type': 'Text'
+                }
+            }
+        },
+        'Text'
+    ),
+    "Case: has Content(Array)": (
+        [],
+        'BlockList',
+        {
+            'BlockList':  {
+                'content':  {
+                    'type': '[Block]'
+                }
+            },
+        },
+        '[Block]'
+    ),
+    "Case: has Content(Array) with key": (
+        [],
+        'BlockList',
+        {
+            'BlockList':  {
+                'content':  {
+                    'key':  None,
+                    'type': '[Block]'
+                }
+            },
+        },
+        '[Block]'
+    ),
+    "Case: has Main Content(Dict)": (
+        { 't': 'Code', 'c': [['', [], []], 'CodeString'] },
+        'Code',
+        {
+            'Code':  {
+                # CodeBlock Attr Text
+                # - Code block (literal) with attributes
+                'content':  {
+                    'key':      'c',
+                    'main':     1,
+                    'type':     'Text'
+                },
+                'struct': {
+                    'Attr':     0,
+                    'Text':     1
+                }
+            }
+        },
+        'Text'
+    ),
+    "Case: has Main Content(Array)": (
+        [['', [], []], '[RowData]'],
+        'Row',
+        {
+            'Row':  {
+                # Row Attr [Cell]
+                # A table row.
+                'content':  {
+                    'key':      None,
+                    'main':     1,
+                    'type':     '[Cell]'
+                },
+                'struct': {
+                    'Attr':     0,
+                    'Cells':    1
+                }
+            }
+        },
+        '[Cell]'
+    )
+}
+
+@pytest.mark.parametrize("element, type, TYPES, expect", list(data_Element_r1_10.values()), ids=list(data_Element_r1_10.keys()))
+## [\@Spec Element_r1_11_1] get_content_type() returns type of main content in the element.
+def spec_Element_r1_11_1(element, type, TYPES, expect):
+
+    target = Element(element, type, type_def=TYPES[type])
+
+    assert target.get_content_type() == expect
 
 
 ## @}

@@ -22,10 +22,11 @@ _DEBUG = debug.Debug(_LOGGER)
 
 class Element:
 
-    def __init__(self, pan_elem, elem_type, parent=None):
+    def __init__(self, pan_elem, elem_type, *, type_def=None):
         self.pan_element = pan_elem
         self.type = elem_type
-        self.parent = parent
+        self.type_def = type_def if type_def is not None else _PANDOC_TYPES[self.type]
+        self.parent = None
         self.children = []
         self.source = _SourcePos(self)
 
@@ -83,19 +84,18 @@ class Element:
         return self.type
 
 
-    def get_prop(self, name, *, types=None):
-        TYPES = types or _PANDOC_TYPES
-        TYPE = TYPES[self.type]
+    def get_prop(self, name):
+        TYPEDEF = self.type_def
         property = None
 
-        if ('content' in TYPE) and (TYPE['content'] is not None):
+        if ('content' in TYPEDEF) and (TYPEDEF['content'] is not None):
             element = self.pan_element
 
-            if ('key' in TYPE['content']) and (TYPE['content']['key'] is not None):
-                element = element[TYPE['content']['key']]
+            if ('key' in TYPEDEF['content']) and (TYPEDEF['content']['key'] is not None):
+                element = element[TYPEDEF['content']['key']]
 
-            if ('struct' in TYPE) and (TYPE['struct'] is not None) and (name in TYPE['struct']):
-                index = TYPE['struct'][name]
+            if ('struct' in TYPEDEF) and (TYPEDEF['struct'] is not None) and (name in TYPEDEF['struct']):
+                index = TYPEDEF['struct'][name]
 
                 if isinstance(index, dict):
                     index = index['index']
@@ -109,10 +109,10 @@ class Element:
         return self.get_prop(name)
 
 
-    def get_attr(self, name, *, types=None):
+    def get_attr(self, name):
         attr = None
 
-        attr_obj = self.get_prop('Attr', types=types)
+        attr_obj = self.get_prop('Attr')
 
         if attr_obj is not None:
             for item in attr_obj[2]:
@@ -124,30 +124,39 @@ class Element:
         return attr
 
 
-    def hascontent(self, *, types=None):
-        TYPES = types or _PANDOC_TYPES
-        TYPE = TYPES[self.type]
+    def hascontent(self):
+        TYPEDEF = self.type_def
 
-        hascontent = (('content' in TYPE) and (TYPE['content'] is not None))
+        hascontent = (('content' in TYPEDEF) and (TYPEDEF['content'] is not None))
 
         return hascontent
 
 
-    def get_content(self, *, types=None):
-        TYPES = types or _PANDOC_TYPES
-        TYPE = TYPES[self.type]
+    def get_content(self):
+        TYPEDEF = self.type_def
         content = None
 
-        if self.hascontent(types=types):
-            if ('key' in TYPE['content']) and (TYPE['content']['key'] is not None):
-                content = self.pan_element[TYPE['content']['key']]
+        if self.hascontent():
+            if ('key' in TYPEDEF['content']) and (TYPEDEF['content']['key'] is not None):
+                content = self.pan_element[TYPEDEF['content']['key']]
             else:
                 content = self.pan_element
 
-            if ('main' in TYPE['content']) and (TYPE['content']['main'] is not None):
-                content = content[TYPE['content']['main']]
+            if ('main' in TYPEDEF['content']) and (TYPEDEF['content']['main'] is not None):
+                content = content[TYPEDEF['content']['main']]
 
         return content
+
+
+    def get_content_type(self):
+        TYPEDEF = self.type_def
+        content_type = None
+
+        if self.hascontent():
+            if ('type' in TYPEDEF['content']):
+                content_type = TYPEDEF['content']['type']
+
+        return content_type
 
 
     def walk(self, action, post_action=None, target=None):
@@ -166,13 +175,29 @@ class Element:
             post_action(element, self)
 
 
+    @classmethod
+    def create_element(cls, elem, elem_type=''):
+
+        elem_type = elem_type or elem['t']
+
+        gdoc_elem = _PANDOC_TYPES[elem_type]['class'](elem, elem_type)
+
+        return gdoc_elem
+
+
+class _SourcePos:
+
+    def __init__(self, elem):
+        self.position = elem.get_attr(('pos', 'data-pos'))
+
+
 class Inline(Element):
 
-    def __init__(self, panElem, elemType, parent=None):
-        super().__init__(panElem, elemType, parent)
+    def __init__(self, pan_elem, elem_type, parent=None):
+        super().__init__(pan_elem, elem_type)
         self.text = ''
 
-        _DEBUG.print(elemType + '（Inline）')
+        _DEBUG.print(elem_type + '（Inline）')
         _DEBUG.indent()
 
         if not self.hascontent():
@@ -186,9 +211,9 @@ class Inline(Element):
                 'Space': ' ',
                 'SoftBreak': ' ',
                 'LineBreak': '\n'
-            }[elemType]
+            }[elem_type]
 
-        elif _PANDOC_TYPES[elemType]['content']['type'] == 'Text':
+        elif self.get_content_type() == 'Text':
             #
             # In Inline context, 'Text' is a text string
             #
@@ -202,7 +227,7 @@ class Inline(Element):
             panContent = self.get_content()
 
             for element in panContent:
-                self._append_child(_create_elements(element, self))
+                self._append_child(Element.create_element(element))
 
             for element in self.children:
                 if hasattr(element, 'text') and (element.text is not None):
@@ -212,23 +237,23 @@ class Inline(Element):
 
 
 class Block(Element):
-    def __init__(self, panElem, elemType, parent=None):
-        super().__init__(panElem, elemType, parent)
+    def __init__(self, pan_elem, elem_type, parent=None):
+        super().__init__(pan_elem, elem_type)
 
 
 class BlockList(Block):
 
-    def __init__(self, panElem, elemType, parent=None):
-        super().__init__(panElem, elemType, parent)
+    def __init__(self, pan_elem, elem_type, parent=None):
+        super().__init__(pan_elem, elem_type)
 
-        _DEBUG.print(elemType + '（BlockList）')
+        _DEBUG.print(elem_type + '（BlockList）')
         _DEBUG.indent()
 
         contents = self.get_content()
-        type = 'ListItem' if _PANDOC_TYPES[elemType]['content']['type'] == '[[Block]]' else ''
+        type = 'ListItem' if self.get_content_type() == '[[Block]]' else ''
 
         for item in contents:
-            self._append_child(_create_elements(item, None, type))
+            self._append_child(Element.create_element(item, type))
 
         _DEBUG.undent()
 
@@ -248,20 +273,19 @@ class BlockList(Block):
 
 class InlineList(Block):
 
-    def __init__(self, panElem, elemType, parent=None):
-        super().__init__(panElem, elemType, parent)
+    def __init__(self, pan_elem, elem_type, parent=None):
+        super().__init__(pan_elem, elem_type)
         self.text = []
 
-        _DEBUG.print(elemType + '（InlineList）')
+        _DEBUG.print(elem_type + '（InlineList）')
         _DEBUG.indent()
 
-        # if 'content' not in _PANDOC_TYPES[elemType]:
         if not self.hascontent():
             # HorizontalRule
             self.children = None
             self.text = None
 
-        elif _PANDOC_TYPES[elemType]['content']['type'] == 'Text':
+        elif self.get_content_type() == 'Text':
             #
             # In LineBlock context, 'Text' is a list of lines.
             #
@@ -272,10 +296,10 @@ class InlineList(Block):
 
         else:
             contents = self.get_content()
-            type = 'InlineList' if _PANDOC_TYPES[elemType]['content']['type'] == '[[Inline]]' else ''
+            type = 'InlineList' if self.get_content_type() == '[[Inline]]' else ''
 
             for item in contents:
-                self._append_child(_create_elements(item, None, type))
+                self._append_child(Element.create_element(item, type))
 
             lines = ''
             for element in self.children:
@@ -303,35 +327,32 @@ class DefinitionList(Block):
     # DefinitionList [([Inline], [[Block]])]
     # - Definition list. Each list item is a pair consisting of a term (a list of inlines) and one or more definitions (each a list of blocks)
 
-    def __init__(self, panElem, elemType, parent):
-        super().__init__(panElem, elemType, parent)
+    def __init__(self, pan_elem, elem_type):
+        super().__init__(pan_elem, elem_type)
 
-        _DEBUG.print(elemType + '（DefinitionList）')
+        _DEBUG.print(elem_type + '（DefinitionList）')
         _DEBUG.indent()
 
-        if not isinstance(panElem, list):
+        if self.get_type() == 'DefinitionList':
             # 初入、DL全体。
             # DefinitionList [([Inline], [[Block]])]
-            if (_PANDOC_TYPES[elemType]['content']['index'] == 0):
-                panContent = panElem['c'] 
-            else:
-                panContent = panElem['c'][_PANDOC_TYPES[elemType]['content']['index']]
+            contents = self.get_content()
 
-            for index in range(len(panContent)):
-                self.children.append(_create_elements(panContent[index], self, 'DefinitionItem'))
+            for content in contents:
+                self._append_child(Element.create_element(content, 'DefinitionItem'))
 
         else:
             # 再入、DLの各項目。
             # DefinitionListItem ([Inline], [[Block]])
-            panContent = panElem
+            contents = pan_elem
 
             # [Inline]
-            self.children.append(_create_elements(panContent[0], self, 'InlineList'))
+            self._append_child(Element.create_element(contents[0], 'InlineList'))
 
             # [[Block]]
-            for index in range(len(panContent[1])):
+            for content in contents[1]:
                 # [Block]
-                self.children.append(_create_elements(panContent[1][index], self, 'BlockList'))
+                self._append_child(Element.create_element(content, 'BlockList'))
 
         _DEBUG.undent()
 
@@ -339,10 +360,10 @@ class DefinitionList(Block):
 class Table(Block):
     # Table Attr Caption [ColSpec] TableHead [TableBody] TableFoot
     # 'c': ['Attr', 'Caption', '[ColSpec]', 'TableHead', '[TableBody]', 'TableFoot']
-    def __init__(self, panElem, elemType, parent):
-        super().__init__(panElem, elemType, parent)
+    def __init__(self, pan_elem, elem_type):
+        super().__init__(pan_elem, elem_type)
 
-        _DEBUG.print(elemType + '（Table）')
+        _DEBUG.print(elem_type + '（Table）')
         _DEBUG.indent()
 
         self.numTableColumns = 0            # Num of Columns of Table
@@ -469,10 +490,10 @@ class TableBody(Element):
 
 class TableRow(Element):
 
-    def __init__(self, panElem, elemType='Row', parent=None):
-        super().__init__(panElem, elemType, parent)
+    def __init__(self, pan_elem, elem_type='Row', parent=None):
+        super().__init__(pan_elem, elem_type)
 
-        _DEBUG.print(elemType + '（TableRow）')
+        _DEBUG.print(elem_type + '（TableRow）')
         _DEBUG.indent()
 
         contents = self.get_content()
@@ -507,10 +528,10 @@ class TableRow(Element):
 
 class TableCell(Element):
 
-    def __init__(self, panElem, elemType, parent=None):
-        super().__init__(panElem, elemType, parent)
+    def __init__(self, pan_elem, elem_type, parent=None):
+        super().__init__(pan_elem, elem_type)
 
-        _DEBUG.print(elemType + '（TableCell）')
+        _DEBUG.print(elem_type + '（TableCell）')
         _DEBUG.indent()
 
         self.rowSpan = self.get_prop('RowSpan')
@@ -518,7 +539,7 @@ class TableCell(Element):
 
         blocks = self.get_content()
         for block in blocks:
-            self._append_child(_create_elements(block))
+            self._append_child(Element.create_element(block))
 
         _DEBUG.undent()
 
@@ -536,17 +557,6 @@ class TableCell(Element):
     def isEmpty(self):
         empty = len(self.children) == 0
         return empty
-
-
-class _SourcePos:
-
-    def __init__(self, elem):
-        pos = None
-
-        if elem.type in _PANDOC_TYPES:
-            pos = elem.get_attr(('pos', 'data-pos'))
-
-        self.position = pos
 
 
 class GdocAST(Element):
@@ -568,7 +578,7 @@ class GdocAST(Element):
         contents = self.get_content()
 
         for block in contents:
-            self._append_child(_create_elements(block))
+            self._append_child(Element.create_element(block))
 
         # Step 2: Remove wrapper 'div'/'span' which contains only one block or is an only child.
         self.walk(self._remove_wrapper)
@@ -613,15 +623,6 @@ class GdocAST(Element):
                 elem.parent.children = elem.children[:]
                 for e in elem.parent.children:
                     e.parent = elem.parent
-
-
-def _create_elements(elem, parent=None, elem_type=''):
-
-    elem_type = elem_type or elem['t']
-
-    gdoc_elem = _PANDOC_TYPES[elem_type]['class'](elem, elem_type, parent)
-
-    return gdoc_elem
 
 
 # Text.Pandoc.Definition
