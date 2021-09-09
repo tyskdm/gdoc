@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# After creating container, run this to set up environment inside container.
+#
+poetry install
+ln -s /workspaces/gdoc/bin/gdoc /usr/local/bin/
