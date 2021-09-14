@@ -1,6 +1,7 @@
 FROM python:3.8
 
-RUN apt update && apt upgrade -y
+RUN apt-get update && apt-get upgrade -y
+ENV DEBCONF_NOWARNINGS=yes
 
 RUN /usr/local/bin/python -m pip install --upgrade pip
 
@@ -17,7 +18,7 @@ RUN curl -sSLO https://github.com/jgm/pandoc/releases/download/2.14.2/pandoc-2.1
     rm pandoc-2.14.2-1-amd64.deb
 
 # doxygen
-RUN apt install -y doxygen graphviz
+RUN apt-get install -y doxygen graphviz
 
 # Copy your own .bashrc to home dir of root.
 # Comment it out if you don't need it.
