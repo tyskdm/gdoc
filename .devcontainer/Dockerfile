@@ -20,6 +20,16 @@ RUN curl -sSLO https://github.com/jgm/pandoc/releases/download/2.14.2/pandoc-2.1
 # doxygen
 RUN apt-get install -y doxygen graphviz
 
+# PlantUML
+RUN apt-get install -y default-jre graphviz fonts-migmix
+# In addtion,
+# 1. download plantuml.jar into here from `https://plantuml.com/download`.
+# 2. add execution path to `./plantuml`.
+#    For this, run `./postCreateCommand` inside container.
+#
+# Some other japanese-fonts are:
+# fonts-ipafont fonts-takao-mincho fonts-takao-gothic fonts-migmix fonts-noto-cjk
+
 # Copy your own .bashrc to home dir of root.
 # Comment it out if you don't need it.
 COPY .devcontainer/.bashrc /root/

@@ -4,3 +4,6 @@
 #
 poetry install
 ln -s /workspaces/gdoc/bin/gdoc /usr/local/bin/
+
+# PlantUML
+ln -s /workspaces/gdoc/.devcontainer/plantuml /usr/local/bin/
