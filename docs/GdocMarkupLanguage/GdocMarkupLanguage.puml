@@ -1,0 +1,26 @@
+' # [@ gdon] Gdoc GdObject Notation
+'
+' ## [@] Gdoc Object Classes
+'
+@startuml GdocObjectClass
+
+' !include style.iuml
+
+class GdObject {
+    id : str
+    class : {category, type, version}
+    __
+    parent : GdObject
+    children : { id: GdObject }
+    properties : { key: value }
+}
+
+GdObject <|-- "Example.SysML:Requirement"
+
+GdObject <|-- "Example.Gdoc:Section"
+
+"Example.Gdoc:Section" -right- "0..*" "Example.SysML:Requirement"
+
+"Example.GSN:Goal" -right-|> "Example.Gdoc:Section"
+
+@enduml
