@@ -77,7 +77,7 @@ gdocサブコマンドはその構造化オブジェクトを参照してユー�
     - [4.4.1. Classes](#441-classes)
     - [4.4.2. Parameters](#442-parameters)
 - [5. CREATING OBJECTS](#5-creating-objects)
-  - [5.1. Identify The Class](#51-identify-the-class)
+  - [5.1. Specify The Class](#51-specify-the-class)
     - [5.1.1. Fully Qualified Class Name](#511-fully-qualified-class-name)
     - [5.1.2. Omitted Class Name](#512-omitted-class-name)
       - [5.1.2.1. Omitted Category](#5121-omitted-category)
@@ -94,9 +94,30 @@ gdocサブコマンドはその構造化オブジェクトを参照してユー�
 - [7. BASIC CLASSES](#7-basic-classes)
   - [7.1. Gdoc](#71-gdoc)
     - [7.1.1. Types](#711-types)
+      - [7.1.1.1. Document](#7111-document)
+      - [7.1.1.2. Section](#7112-section)
+      - [7.1.1.3. TextBlock → SimpleObject](#7113-textblock--simpleobject)
+      - [7.1.1.4. Property(Inline tag)](#7114-propertyinline-tag)
+      - [7.1.1.5. Table → \[SimpleObject\]](#7115-table--simpleobject)
+      - [7.1.1.6. SimpleObject](#7116-simpleobject)
+      - [7.1.1.7. Import / Access → Shortcut](#7117-import--access--shortcut)
+      - [7.1.1.8. Ln / Link → Shortcut](#7118-ln--link--shortcut)
+      - [7.1.1.9. ^ → Parent](#7119---parent)
+      - [7.1.1.10. Caption / List / Table](#71110-caption--list--table)
+      - [7.1.1.11. Fig](#71111-fig)
+      - [7.1.1.12. Ignore / `#`](#71112-ignore--)
+      - [7.1.1.13. (Common Properties)](#71113-common-properties)
     - [7.1.2. Example](#712-example)
   - [7.2. Sys](#72-sys)
+    - [7.2.1. Types](#721-types)
+      - [7.2.1.1. Requirement](#7211-requirement)
+      - [7.2.1.2. Block](#7212-block)
   - [7.3. GSN](#73-gsn)
+    - [7.3.1. Types](#731-types)
+      - [7.3.1.1. Goal / G](#7311-goal--g)
+      - [7.3.1.2. Strategy / St](#7312-strategy--st)
+      - [7.3.1.3. Context / C](#7313-context--c)
+      - [7.3.1.4. Solution / Sn](#7314-solution--sn)
 
 <br>
 
@@ -745,7 +766,7 @@ The basic concept of parameters comes from Python's positional args and keyword 
 
 Constructor provided by Category creates Objects as a child of current section object.
 
-### 5.1. Identify The Class
+### 5.1. Specify The Class
 
 クラスはカテゴリとタイプで特定されるが、tagの記述に際してはカテゴリやタイプあるいは両方を省略することもできる。
 
@@ -885,62 +906,91 @@ ex.2: Omitted type and category at a Child object
 
 #### 7.1.1. Types
 
-- Document  \
-  File単位の文書。ファイル・文書の情報を保持する
-  - Properties
-    - Author
-    - Version
-  - Objects
-    - All types except Document
+##### 7.1.1.1. Document
 
-- Section  \
-  Headerで区切られたセクションを構成する。
-  - Properties
-    - Summary
-    - Stability
-  - Objects
-    - All types except Document
+File単位の文書。ファイル・文書の情報を保持する
 
-- TextBlock → SimpleObject  \
-  SimpleObjectを構成する。
+- Properties
+  - Author
+  - Version
+- Objects
+  - All types except Document
 
-- Inline → Property  \
-  プロパティをセットする。
+##### 7.1.1.2. Section
 
-  > @(propname): value
+Headerで区切られたセクションを構成する。
 
-- Table → \[SimpleObject]  \
-  SimpleList（SimpleObjectの配列）を構成する。
+- Properties
+  - Summary
+  - Stability
+- Objects
+  - All types except Document
 
-- SimpleObject(short name=Obj, Object) base class, No constructor
+##### 7.1.1.3. TextBlock → SimpleObject
 
-- Import / Access → Shortcut
-  Shortcut を構成する。  \
-  Import = Public, Access = Private
+SimpleObjectを構成する。
 
-- ^ → Parent  \
-  親タグにパラメータを追加するための疑似タイプ。
+##### 7.1.1.4. Property(Inline tag)
 
-  - コンストラクタがオブジェクトを生成せずに、親オブジェクトへパラメータの付与処理を行う。
-  - コンストラクタ呼び出し前に、先読みされることが必要。
+プロパティをセットする。
 
-- Caption  \
-  次のブロックにパラメータを追加するためのタイプ。  \
-  Parent typeと異なり、自身もオブジェクトを生成する。
-  - 図表番号リストの自動生成に使うことを想定したもの。
-  - List, Table などを導出する基本クラス。
+> @(propname): value
 
-- Fig  \
-  文書中に挿入されたイメージに対し、プロパティとキャプションを付与するためのタイプ。
+##### 7.1.1.5. Table → \[SimpleObject\]
 
-- (Common Properties)
-  - Note
-  - Trace
-    - '' (No Name)
-    - copy
-    - derive
-    - refine
-  - todo
+SimpleList（SimpleObjectの配列）を構成する。
+
+##### 7.1.1.6. SimpleObject
+
+SimpleObject(short name=Obj, Object) base class, No constructor
+
+##### 7.1.1.7. Import / Access → Shortcut
+
+Shortcut を構成する。  \
+Import = Public, Access = Private
+
+##### 7.1.1.8. Ln / Link → Shortcut
+
+Shortcut Header を構成する。
+フォルダーへのショートカットと同様に振る舞う。
+
+
+##### 7.1.1.9. ^ → Parent
+
+親タグにパラメータを追加するための疑似タイプ。
+
+- コンストラクタがオブジェクトを生成せずに、親オブジェクトへパラメータの付与処理を行う。
+- コンストラクタ呼び出し前に、先読みされることが必要。
+
+##### 7.1.1.10. Caption / List / Table
+
+次のブロックにパラメータを追加するためのタイプ。  \
+Parent typeと異なり、自身もオブジェクトを生成する。
+- 図表番号リストの自動生成に使うことを想定したもの。
+- List, Table などを導出する基本クラス。
+
+##### 7.1.1.11. Fig
+
+文書中に挿入されたイメージに対し、プロパティとキャプションを付与するためのタイプ。
+
+##### 7.1.1.12. Ignore / `#`
+
+Section と Caption で使用できる。
+対象にタグが含まれていてもこれを無視する。
+
+自動生成された目次に、タグ文字列が含まれるなどのケースに使用する。
+
+Inlineタグでも使用可能にする？ @#: ← このタグ以降の文字列はコメントアウトされる
+
+##### 7.1.1.13. (Common Properties)
+
+- Note
+- Trace
+  - '' (No Name)
+  - copy
+  - derive
+  - refine
+- todo
 
 #### 7.1.2. Example
 
@@ -1008,16 +1058,27 @@ ex.2: Omitted type and category at a Child object
 
 ### 7.2. Sys
 
-- Requirement
+#### 7.2.1. Types
 
-- Block
+##### 7.2.1.1. Requirement
 
-- USDM
+要件
+
+- USDM をエイリアスとして使える。（初期設定値）
+
+##### 7.2.1.2. Block
+
+ブロック定義
 
 ### 7.3. GSN
 
-- Goal
-- Strategy
-- Context
-- Solution
+#### 7.3.1. Types
+
+##### 7.3.1.1. Goal / G
+
+##### 7.3.1.2. Strategy / St
+
+##### 7.3.1.3. Context / C
+
+##### 7.3.1.4. Solution / Sn
 
