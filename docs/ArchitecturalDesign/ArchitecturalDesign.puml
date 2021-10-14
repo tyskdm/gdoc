@@ -1,0 +1,48 @@
+' # [@ ad] Gdoc architectural design
+'
+' ## [@ gdoc] GdocArchitecturalDesign
+'
+@startuml GdocArchitecturalDesign
+
+!include style.iuml
+!include SysML/bdd.iuml
+
+class gdoc <<TheTargetSoftware>>
+
+package "gdoc main components" <<Rectangle>> {
+  class GdocCli
+  class Plugins
+  class ApplicationSubcommand
+  class GdocCoreLibrary
+}
+
+gdoc *-- GdocCli
+gdoc *-- ApplicationSubcommand
+gdoc *-- Plugins
+gdoc *-- GdocCoreLibrary
+
+GdocCoreLibrary +-- PluginManager
+GdocCoreLibrary +-- GdocObjectModel
+GdocCoreLibrary +-- GdocCompiler
+GdocCoreLibrary +-- PandocAstObject
+
+Plugins +-- Plugin
+PluginManager --> Plugin : use
+ApplicationSubcommand --> "0..*  " Plugin : use
+
+@enduml
+
+' ## [@ pa] PandocAstObjectArchitecturalDesign
+'
+@startuml PandocAstObjectArchitecturalDesign
+
+!include style.iuml
+!include SysML/bdd.iuml
+
+PandocAstObject *-- Pandoc
+PandocAstObject *-- PandocAst
+PandocAstObject *-- PandocStr
+
+Pandoc --> " pnadoc external command " : " use"
+
+@enduml
