@@ -2,7 +2,7 @@
 [@^ doctype="gdoc 0.3" class="systemdesign:"]
 </small></div>*
 
-# [@ swad] Gdoc Software Architectural Design
+# [@ swad] Gdoc Architectural Design
 
 *@Summary:*  \
 This document describes the software architecture design of gdoc.
@@ -13,17 +13,25 @@ This document describes the software architecture design of gdoc.
 
 - [1. REFERENCES](#1-references)
 - [2. THE TARGET SOFTWARE](#2-the-target-software)
-- [3. SOFTWARE ARCHITECTURE](#3-software-architecture)
-  - [3.1. Architecture](#31-architecture)
-  - [3.2. Block definitions](#32-block-definitions)
-  - [3.3. Requirements allocation](#33-requirements-allocation)
-- [4. SOFTWARE ELEMENTS](#4-software-elements)
-  - [4.1. \[@ln go\] `gdObjectModel`](#41-ln-go-gdobjectmodel)
-  - [4.2. \[@ln gc\] `gdCompiler`](#42-ln-gc-gdcompiler)
-    - [4.2.1. \[@ln pa\] `PandocAstObject`](#421-ln-pa-pandocastobject)
-    - [4.2.2. Architecture](#422-architecture)
-    - [4.2.3. Requirements allocation](#423-requirements-allocation)
-  - [4.3. \[@ln pi\] `Plugins`](#43-ln-pi-plugins)
+- [4. [@ SA] SOFTWARE ARCHITECTURE](#4--sa-software-architecture)
+  - [4.1. Architectural Model](#41-architectural-model)
+    - [4.1.1. Internal Blocks](#411-internal-blocks)
+    - [4.1.2. Behavior](#412-behavior)
+    - [4.1.3. Structure](#413-structure)
+  - [4.2. Block Definitions](#42-block-definitions)
+    - [4.2.1. \[@& GDOC\] gdoc [Definitions of internal blocks]](#421--gdoc-gdoc-definitions-of-internal-blocks)
+    - [4.2.2. \[@& gcl=GDOC.gcl\] Gdoc Core Library [Definitions of internal blocks]](#422--gclgdocgcl-gdoc-core-library-definitions-of-internal-blocks)
+  - [4.3. \[@ ra\] Requirements Allocation](#43--ra-requirements-allocation)
+    - [4.3.1. [@ core] SWRS.Core](#431--core-swrscore)
+    - [4.3.2. [@ apps] SWRS.Apps](#432--apps-swrsapps)
+    - [4.3.3. [@ constraint] SWRS.Constraint](#433--constraint-swrsconstraint)
+- [5. [@ SE] SOFTWARE ELEMENTS](#5--se-software-elements)
+  - [5.1. \[@ gdp\] gdPackage](#51--gdp-gdpackage)
+  - [5.2. \[@ gdc\] gdCompiler](#52--gdc-gdcompiler)
+  - [5.3. \[@ pao\] PandocAstObject](#53--pao-pandocastobject)
+    - [5.3.1. Architecture](#531-architecture)
+    - [5.3.2. [@ ra] Requirements allocation](#532--ra-requirements-allocation)
+  - [5.4. \[@ln pis\] Plugins](#54-ln-pis-plugins)
 
 <br>
 
@@ -32,12 +40,12 @@ This document describes the software architecture design of gdoc.
 This document refers to the following documents.
 
 1. Software Requirements Specification  \
-   [@access SWRS from="[../Requirements/SoftwareRequirementsSpecification](../Requirements/SoftwareRequirementsSpecification.md#3--swrs-software-requirements-specification)"]
+   [@import SWRS from="[../Requirements/SoftwareRequirementsSpecification](../Requirements/SoftwareRequirementsSpecification.md#3--swrs-software-requirements-specification)"]
 
    Top level requirements specification for gdoc.
 
 2. Gdoc Markup Language  \
-   [@access GDML from="[../GdocMarkupLanguage/GdocMarkupLanguage](../GdocMarkupLanguage/GdocMarkupLanguage.md)"]
+   [@import GDML from="[../GdocMarkupLanguage/GdocMarkupLanguage](../GdocMarkupLanguage/GdocMarkupLanguage.md)"]
 
    Grammar definition of Gdoc markup language.
 
@@ -46,112 +54,175 @@ This document refers to the following documents.
 ## 2. THE TARGET SOFTWARE
 
 - [@Block GDOC] gdoc  \
-  Block representing the target software in software architectural design.
+  Block representing the target software in this software architectural design.
 
-  @trace(satisfy): SWRS.name SWRS.core SWRS.apps SWRS.constraint
+  GDOC shall satisfy each of the following requirements.  \
+  @Trace(Satisfy): SWRS.name SWRS.core SWRS.apps SWRS.constraint
 
 <br>
 
-## 3. SOFTWARE ARCHITECTURE
+## 4. [@ SA] SOFTWARE ARCHITECTURE
 
-### 3.1. Architecture
+### 4.1. Architectural Model
 
-The figure below shows the internal blocks of gdoc.
+#### 4.1.1. Internal Blocks
+
+The figure below shows the internal blocks of GDOC.
 
 <div align=center>
 
 ![@source: "" @type: pptx](./ArchitecturalDesign.png)  \
   \
-[@fig 1.1\] gdoc Internal Blocks [rough sketch]
-
-<br>
-
-[![@source: ./ArchitecturalDesign.puml#GdocArchitecturalDesign  \
-   @type: puml](./ArchitecturalDesign/GdocArchitecturalDesign.png)](./ArchitecturalDesign.puml)  \
-  \
-[@fig 1.2\] gdoc Internal Blocks Definition [rough sketch]
+[@fig 3.1\] gdoc Internal Block Diagram [rough sketch]
 
 </div>
-<br>
 
-### 3.2. Block definitions
+#### 4.1.2. Behavior
+
+This part shows the typical behavior of the GDOC command from start to finish.
+
+#### 4.1.3. Structure
+
+<div align=center>
+
+[![@source: ./ArchitecturalDesign.puml#GdocArchitecturalDesign  \
+@type: puml](./ArchitecturalDesign/GdocArchitecturalDesign.png)](./ArchitecturalDesign.puml)  \
+  \
+[@fig 3.2\] gdoc Internal Blocks
+
+</div>
+
+### 4.2. Block Definitions
 
 The blocks in the figure are defined as follows.
 
-- [@Table 1.1] Gdoc Internal Block definitions
+#### 4.2.1. \[@& GDOC\] gdoc [Definitions of internal blocks]
+
+- [@Table 3.1] Gdoc Internal Block definitions
 
   | @Blk | Name | Description |
   | :--: | ---- | ----------- |
-  |      | association | @partof: gdoc
-  |      | trace | @derived: fig[gdoc Internal Blocks]
-  | cli  | CommandLineIF |
-  | go   | gdObjectModel | takes source files and a configuration object and creates a gdObjectModel containing one or more packages linked to each other.
-  | gc   | gdCompiler | takes a source file one by one and parses it to convert a gdObject.
-  | pa   | PandocAst | takes a source file and returns a PandocAst object. Currently, the PandocAST file will be generated by external pandoc command.
-  | pi   | Plugins | includes gdObject constructors of specific types and applicational subcommands of gdoc using gdObjects generated by the constructors.
+  |      | Trace | @refine: _fig[gdoc Internal Blocks]
+  | cli  | GdocCli |
+  | asc  | Application Subcommand |
+  | pis  | Plugins | includes gdObject constructors of specific types and applicational subcommands of gdoc using gdObjects generated by the constructors.
+  | gcl  | Gdoc Core Library |
+  | gdml | Ghost Document Markup Language | Specification of Ghost Document Markup Language.
 
 <br>
 
-### 3.3. Requirements allocation
+#### 4.2.2. \[@& gcl=GDOC.gcl\] Gdoc Core Library [Definitions of internal blocks]
 
-1. [@Reqt 1]
+- [@Table 3.2] Gdoc Core Library Internal Block definitions
 
-2. [@Reqt 1] Generating gdObjectModel  \
-   Takes command-line options and configuration file, and generates gdObjectModel to provide to application subcommands.
+  | @Blk | Name | Description |
+  | :--: | ---- | ----------- |
+  |      | Trace | @refine: _fig[gdoc Internal Blocks]
+  | gdp  | gdPackage | takes source files and a configuration object and creates a gdPackage containing one or more objects or packages linked to each other.
+  | gdc  | gdCompiler | takes a source file one by one and parses it to convert a gdObject.
+  | pao  | PandocAstObject | takes a source file and returns a PandocAst object. Currently, the PandocAST file will be generated by external pandoc command.
+  | pim  | PluginManager | Handles plugin settings, resolves plugin and type names, calls out plugins.
 
-3. [@Reqt 2] Providing Source Mapping Info  \
-   When outputting results or information with the application, supplement the source mapping information.
+<br>
 
+### 4.3. \[@ ra\] Requirements Allocation
+
+#### 4.3.1. [@ core] SWRS.Core
+
+Requirements from SWRS.Core are broken down to "@Spec" and allocated to each blocks as follows.
 
 | @Reqt | Name | Text | Trace |
 | :---: | ---- | ---- | :---: |
-| 1 | Generating gdObjectModel | Takes commandline options and configuration file, and generate gdObjectModel to provide to appication subcommands. | @copy: gd.er.fr1
-| @spec | 1.1 |  | @allocate: cli
-| @spec | 1.2 |  | @allocate: pa
-| @spec | 1.3 |  | @allocate: pa
-| 2 | Providing Source Mapping Info | When outputting results or information with application, supplement the source mapping information. | @copy: gd.er.fr1
-| @spec | 2.1 |  | @allocate: cli
-| @spec | 2.2 | PandocAst object provide source mapping information with text strings. | @allocate: pa
-| @spec | 2.3 |  | @allocate: pa
+| 1     | Retrieving information from documents | 文書をパースし、含まれる情報をオブジェクトとして収集する。 | @copy: SWRS.Core.1
+| @Spec | 1.1  | １つのファイルをパースし、gdObjectを生成する。 | @AllocateTo: GDOC.gcl.gdc
+| @Spec | 1.2  | 生成された1つ以上の gdObject を相互リンクする。 | @AllocateTo: GDOC.gcl.gdp
+| 1a    |      | オブジェクトは型を持ち、固有の情報を保持することができる。 | @copy: SWRS.Core.1.1
+| @Spec | 1a.1 | Gdoc Markup Languag のタグによる、生成オブジェクトの型指定を行える。 | @AllocateTo: GDML
+| @Spec | 1a.2 | gdObjectは、タグ指定により型と固有のプロパティを持つことができる。 | @AllocateTo: GDOC.gcl.gdc
+| 1b    |      | 型は追加可能である。 | @copy: SWRS.Core.1.2
+| @Spec | 1b.1 | 型固有の情報操作をPluginとしてパッケージ化し、外部化した設計とする。 | @AllocateTo: GDOC.pis
+| @Spec | 1b.2 | 外部化したPluginを、追加登録・検索・利用可能にする。 | @AllocateTo: GDOC.gcl.pim
+| 2     | Pluggable application | アプリは対象となる型をもつ情報を参照し、型固有のニーズに基づいた機能を提供する。 | @copy: SWRS.Core.2
+| 2a    |      | アプリは追加可能である。
+| 3     | Gdoc markup language | 簡易で、可視で、汎用性のあるタグ付与形式の文法を提供する。 | @copy: SWRS.Core.3
+| 4     | Source file format | 読み込み文書は gfm を対象とする。 | @copy: SWRQ.Core.4
+| 4a    |      | pandocが対応する他の文書や専用Readerを要する他フォーマット文書への対応可能な拡張性を持つ。 | @copy: SWRQ.Core.4.1
+| 5     | Exporting data objects | オブジェクト情報をエクスポートし、インポートすることができる。 | @copy: SWRQ.Core.5
 
 <br>
 
-## 4. SOFTWARE ELEMENTS
+#### 4.3.2. [@ apps] SWRS.Apps
 
-### 4.1. \[@ln go\] `gdObjectModel`
+ここではブレークダウンせず、すべてそのまま GDOC[Application Subcommand] へ割り当てる。
 
-### 4.2. \[@ln gc\] `gdCompiler`
+- Gdoc application subcommand satisfys software requirements SWRQ[Application Subcommand].
 
-#### 4.2.1. \[@ln pa\] `PandocAstObject`
+  [@Block& asc=GDOC.asc] @Trace(Satisfy): SWRS.Apps
 
-#### 4.2.2. Architecture
+<br>
+
+#### 4.3.3. [@ constraint] SWRS.Constraint
+
+| @Reqt | Name | Text | Trace |
+| :---: | ---- | ---- | :---: |
+| 1     |       | Python 3.x で動作する。 | @copy: SWRQ.Constraint.1
+| @Spec | 1.1   | Python 対象バージョンを 3.x の後半から特定する。 | @AllocateTo: GDOC
+| @Spec | 1.2   | 対象として複数のバージョンの全てでテストを実施する。 | @AllocateTo: GDOC
+| 2     |       | 標準外の外部ライブラリを使用しない。 | @copy: SWRQ.Constraint.2
+| @Spec | 2.1   | ユーザーによるコマンド実行時に、標準外のライブラリが不要であること。 | @AllocateTo: GDOC
+| 3     |       | PandocASTを入力ファイル形式とし、pandoc外部コマンドを使用する。 | @copy: SWRQ.Constraint.3
+| @Spec | 3.1   | 指定されたソースファイルを、PandocAstObjectに変換する。 | @AllocatTo: GDOC.gcl.pao
+| @Spec | 3.2   | 変換されたPandocAstObjectを入力として、パース処理を行う。 | @AllocatTo: GDOC.gcl.gdc
+| @Spec | 3.3   | pandoc外部コマンドを使用して、ソースファイルをPandocAST Jsonファイルへ変換する。 | @AllocatTo: GDOC.gcl.pao
+| 4     |       | Ubuntu上で動作する。 | @copy: SWRQ.Constraint.4
+| @Spec | 4.1   | テスト環境をUbuntuとする。 | @AllocateTo: GDOC
+| 5     |       | Command Line Interfaceを持つ。 | @copy: SWRQ.Constraint.5
+| 　　　 | Trace | @AllocatTo: GDOC.cli
+
+<br>
+
+## 5. [@ SE] SOFTWARE ELEMENTS
+
+### 5.1. \[@ gdp\] gdPackage
+
+### 5.2. \[@ gdc\] gdCompiler
+
+### 5.3. \[@ pao\] PandocAstObject
+
+[@access GDOC.gcl.pao as=THIS]
+
+#### 5.3.1. Architecture
 
 <div align=center>
 
 [![](./ArchitecturalDesign/PandocAstObjectArchitecturalDesign.png)](./ArchitecturalDesign.puml)  \
   \
-[@fig 5.1\] PandocAstObject Internal Blocks Definition [rough sketch]
+[@fig 4.1\] PandocAstObject Internal Blocks
 
 </div>
 <br>
 
-- [@Table 2.2] PandocAstObject Internal Blocks definition
+- [@Table 2.2] PandocAstObject Internal Block definitions
 
   | @Blk | Name | Description |
   | :--: | ---- | ----------- |
-  |      | trace | @derived: fig[PandocAstObject Internal Blocks Definition]
-  |      | association | @partof: pa
-  | pan  | pandoc | Execute pandoc as a subprocess to parse a source md file to generate PandocAST json object.
+  |      | Trace | @refine: _fig[PandocAstObject Internal Blocks]
+  |      | Association | @partof: THIS
+  | pan  | pandoc | Execute external pandoc command as a subprocess to parse a source md file to generate PandocAST json object.
   | ast  | PandocAst | Convert a raw PandocAST json object to a PandocAst gdoc object.
   | pst  | PandocStr | A class storing text strings with PandocAST's 'Str' inline elements to keep source mapping data.
 
-#### 4.2.3. Requirements allocation
+#### 5.3.2. [@ ra] Requirements allocation
 
 | @Reqt | Name | Text | Trace |
 | :---: | ---- | ---- | :---: |
-| 1 | - | PandocAst object provide source mapping information with text strings. | @copy: gd.1.2
-| @spec | 1.1 |  | @allocate: cli
-| @spec | 1.2 |  | @allocate: pa
-| @spec | 1.3 |  | @allocate: pa
+| 3a    |       | 指定されたソースファイルを、PandocAstObjectに変換する。 | @copy: SA.ra.Constraint.3.1
+| @Spec | 3a.1  | panを使用して、指定されたソースファイルをPandocAST Jsonファイルへ変換する。 | @AllocateTo: THIS.ast
+| @Spec | 3a.2  | 変換したPandocAST Jsonファイルを使用してPandocAstObjectを生成する。 | @AllocateTo: THIS.ast
+| @Spec | 3a.3  | PandocAstObjectの文字列操作手段を提供する。 | @AllocateTo: THIS.pst
+|       | Rationale | PandocASTのテキスト情報は、装飾・リンクなどの情報が付加されたInline要素のツリーとして構成されており検索・分割・ソース行取得が容易でない。それら取扱のための手段をクラスとして提供する。
+| 3c    |       | pandoc外部コマンドを使用して、ソースファイルをPandocAST Jsonファイルへ変換する。 | @copy: SA.ra.Constraint.3.3
+| @Spec | 3c.1  | pandoc外部コマンドをサブコマンドとして実行する。 | @AllocateTo: THIS.pan
+| @Spec | 3c.2  | 指定されたソースファイルを、PandocAST Jsonファイルへ変換する。 | @AllocateTo: THIS.pan
 
-### 4.3. \[@ln pi\] `Plugins`
+### 5.4. \[@ln pis\] Plugins

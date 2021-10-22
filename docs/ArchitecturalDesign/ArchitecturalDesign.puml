@@ -16,17 +16,17 @@ package "gdoc main components" <<Rectangle>> {
   class GdocCoreLibrary
 }
 
-gdoc *-- GdocCli
-gdoc *-- ApplicationSubcommand
-gdoc *-- Plugins
-gdoc *-- GdocCoreLibrary
+gdoc *--> GdocCli
+gdoc *--> ApplicationSubcommand
+gdoc *--> Plugins
+gdoc *--> GdocCoreLibrary
 
-GdocCoreLibrary +-- PluginManager
-GdocCoreLibrary +-- GdocObjectModel
-GdocCoreLibrary +-- GdocCompiler
-GdocCoreLibrary +-- PandocAstObject
+GdocCoreLibrary *--> PluginManager
+GdocCoreLibrary *--> GdocObjectModel
+GdocCoreLibrary *--> GdocCompiler
+GdocCoreLibrary *--> PandocAstObject
 
-Plugins +-- Plugin
+Plugins *--> Plugin
 PluginManager --> Plugin : use
 ApplicationSubcommand --> "0..*  " Plugin : use
 
@@ -39,10 +39,13 @@ ApplicationSubcommand --> "0..*  " Plugin : use
 !include style.iuml
 !include SysML/bdd.iuml
 
-PandocAstObject *-- Pandoc
-PandocAstObject *-- PandocAst
-PandocAstObject *-- PandocStr
+PandocAstObject *--> Pandoc
+PandocAstObject *--> PandocAst
+PandocAstObject *--> PandocStr
 
-Pandoc --> " pnadoc external command " : " use"
+PandocAst .left.> Pandoc : " use"
+PandocAst .right.> PandocStr : "use "
+
+Pandoc ..> " pnadoc external command " : " use"
 
 @enduml

@@ -1,27 +1,22 @@
 r"""! Software detailed design of 'Element' class written in pytest.
 
-[@import IS[Element] from=PandocAst.md as=THIS]
+### TARGET
 
-### [\@ RQ] REQUIREMENTS
+[@import SWAD.AR.CD[Element] as=THIS from=docs/ArchitecturalDesign/PandocAst.md]
 
-1. **[\@import AD.SR from=docs/PandocAst.md as=ER]** - Import SubRequirement from docs as External Requirement.
-2. **[\@import AD.ST from=docs/PandocAst.md as=ST]** - Import Strategical requirement from docs.
-3. **[\@import AD.IS from=docs/PandocAst.md as=IS]** - Import InternalStructural requirement from docs.
+### REQUIREMENTS
 
-### [\@ ST] STRATEGY
+1. **[\@import SWAD.SR[Element] as=RQ from=docs/ArchitecturalDesign/PandocAst.md]**
+   - Import SubRequirement from doc as requirements.
 
-### [\@ AS] ADDITIONAL STRUCTURE
+### ADDITIONAL STRUCTURE
 
-| \@block | Name | Description |
-| :-----: | ---- | ----------- |
-| s1    | __init__      | constructor
-| @reqt | r1            | creates a new instance.
-| s2    | _append_child | |
-| @reqt | r1            | append a Element object as a child.
+| \@block& THIS | Name | Description |
+| :-----------: | ---- | ----------- |
+| s1    | __init__      | creates a new instance.
+| s2    | _append_child | append a Element object as a child.
 
-### [\@ SR] SUBREQUIREMENTS
-
-### Things to do
+### THINGS TO DO
 
 - [ ] TODO: remove third param of __init__() after subclasses refact to use _append_child().
 - [ ] TODO: remove getFirstChild() after replacing it to get_first_child() in all modules.
@@ -33,16 +28,16 @@ from gdoc.lib.pandocast.pandocast import Element
 
 
 ##
-## @{ @name AS[__init__].r1 | creates a new instance.
+## @{ @name THIS[__init__] | creates a new instance.
 ## --------------------------------------------------
 
-## [\@spec __init___r1_1] | def __init__(self, pan_elem, elem_type, parent=None):
-def spec___init___r1_1():
+## [\@spec __init___1] | def __init__(self, pan_elem, elem_type, parent=None):
+def spec___init___1():
     assert inspect.isclass(Element) == True
 
 
-## [\@spec __init___r1_2] | def __init__(self, pan_elem, elem_type, parent=None):
-def spec___init___r1_2():
+## [\@spec __init___2] | def __init__(self, pan_elem, elem_type, parent=None):
+def spec___init___2():
     element = {}
 
     target = Element(element, 'TYPE', type_def={})
@@ -53,8 +48,8 @@ def spec___init___r1_2():
     assert target.children == []
 
 
-## [\@spec __init___r1_3] | def __init__(self, pan_elem, elem_type, parent=None):
-def spec___init___r1_3():
+## [\@spec __init___3] | def __init__(self, pan_elem, elem_type, parent=None):
+def spec___init___3():
 
     with pytest.raises(Exception):
         Element({})
@@ -62,11 +57,11 @@ def spec___init___r1_3():
 
 ## @}
 ##
-## @{ @name AS[_append_child].r1 | append a Element object as a child.
+## @{ @name THIS[_append_child] | append a Element object as a child.
 ## -------------------------------------------------------------------
 
-## [\@spec _append_child_r1_1] | append a Element object as a child.
-def spec__append_child_r1_1():
+## [\@spec _append_child_1] | append a Element object as a child.
+def spec__append_child_1():
     target = Element({}, 'PARENT', type_def={})
     child = Element({}, 'CHILD', type_def={})
     target._append_child(child)
@@ -86,7 +81,7 @@ def fixture_Element():
     return parent
 
 ##
-## @{ @name ER[Element].r1.1 | next() returns an element ordered at next to self.
+## @{ @name RQ.r1.1 | next() returns an element ordered at next to self.
 ## ------------------------------------------------------------------------------
 
 ## [\@spec Element_r1_1_1] | returns next element ordered at next to self.
@@ -100,7 +95,7 @@ def spec_Element_r1_1_2(fixture_Element):
 
 
 ## @}
-## @{ @name ER[Element].r1.2 | prev() returns an element ordered at previous to self.
+## @{ @name RQ.r1.2 | prev() returns an element ordered at previous to self.
 ## ----------------------------------------------------------------------------------
 
 
@@ -115,7 +110,7 @@ def spec_Element_r1_2_2(fixture_Element):
 
 
 ## @}
-## @{ @name ER[Element].r1.3 | get_parent() returns parent element.
+## @{ @name RQ.r1.3 | get_parent() returns parent element.
 ## ------------------------------------------------------------
 
 
@@ -130,7 +125,7 @@ def spec_Element_r1_3_2(fixture_Element):
 
 
 ## @}
-## @{ @name ER[Element].r1.4 | get_children() returns new copied list of child elements.
+## @{ @name RQ.r1.4 | get_children() returns new copied list of child elements.
 ## -------------------------------------------------------------------------------------
 
 ## [\@Spec Element_r1_4_1] get_children() returns new copied list of child elements.
@@ -140,7 +135,7 @@ def spec_Element_r1_4_1(fixture_Element):
 
 
 ## @}
-## @{ @name ER[Element].r1.5 | get_first_child() returns the first child elements.
+## @{ @name RQ.r1.5 | get_first_child() returns the first child elements.
 ## -------------------------------------------------------------------------------
 
 ## [\@Spec Element_r1_5_1] get_first_child() returns the first child elements.
@@ -157,7 +152,7 @@ def spec_Element_r1_5_2():
 
 
 ## @}
-## @{ @name ER[Element].r1.6 | get_type() returns element type.
+## @{ @name RQ.r1.6 | get_type() returns element type.
 ## ------------------------------------------------------------
 
 ## [\@Spec Element_r1_6_1] get_type() returns element type.
@@ -169,7 +164,7 @@ def spec_Element_r1_6_1():
 
 
 ## @}
-## @{ @name ER[Element].r1.7 | get_prop() returns a property of the element.
+## @{ @name RQ.r1.7 | get_prop() returns a property of the element.
 ## -------------------------------------------------------------------------
 
 data_Element_r1_7 = {
@@ -264,7 +259,7 @@ def spec_Element_r1_7_1(element, type, TYPES, test):
 
 
 ## @}
-## @{ @name ER[Element].r1.8 | get_attr() returns a attrbute of the element.
+## @{ @name RQ.r1.8 | get_attr() returns a attrbute of the element.
 ## -------------------------------------------------------------------------
 
 data_Element_r1_8 = {
@@ -334,7 +329,7 @@ def spec_Element_r1_8_1(element, type, TYPES, test):
 
 
 ## @}
-## @{ @name ER[Element].r1.9 | hascontent() returns True if self has content(s) or False if self is typed but has no content.
+## @{ @name RQ.r1.9 | hascontent() returns True if self has content(s) or False if self is typed but has no content.
 ## --------------------------------------------------------------------------------------------------------------------------
 
 data_Element_r1_9 = {
@@ -405,7 +400,7 @@ def spec_Element_r1_9_1(element, type, TYPES, expect):
 
 
 ## @}
-## @{ @name ER[Element].r1.10 | get_content() returns content data in the element.
+## @{ @name RQ.r1.10 | get_content() returns content data in the element.
 ## -------------------------------------------------------------------------------
 
 
@@ -511,7 +506,7 @@ def spec_Element_r1_10_1(element, type, TYPES, expect):
 
 
 ## @}
-## @{ @name ER[Element].r1.11 | get_content_type() returns type of main content in the element.
+## @{ @name RQ.r1.11 | get_content_type() returns type of main content in the element.
 ## --------------------------------------------------------------------------------------------
 
 

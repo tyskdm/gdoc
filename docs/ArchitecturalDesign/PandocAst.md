@@ -1,101 +1,157 @@
-# [@SysML: AD] Pandoc AST Accesser Architectual Design
+*<div align=right><small>
+[@^ doctype="gdoc 0.3" class="systemdesign:"]
+</small></div>*
 
-Provide access methods to a pandoc ast object loaded from json file.
+# [@ swad] PandocAST Architectural Design
 
-## INTRODUCTION
+Provide access methods to a pandoc AST object loaded from json file.
 
-[@import IS[Pandoc AST Accesser] from=./xxxxx.md as=THIS]
+## \[@#\] CONTENTS<!-- omit in toc -->
 
-- THIS is Pandoc AST Accesser in the InternalStructure of xxxxx.md.
+- [1. REFERENCES](#1-references)
+- [2. THE TARGET SOFTWARE ELEMENT](#2-the-target-software-element)
+- [3. [@ rq] REQUIREMENTS](#3--rq-requirements)
+  - [3.1. Functional Requirements](#31-functional-requirements)
+  - [3.2. Non-functional Requirements](#32-non-functional-requirements)
+- [4. [@ ar] ARCHITECTURE](#4--ar-architecture)
+  - [4.1. Internal Blocks](#41-internal-blocks)
+  - [4.2. Behavior](#42-behavior)
+  - [4.3. [@ cd] Class Definitions](#43--cd-class-definitions)
+    - [4.3.1. Class Hierarchy](#431-class-hierarchy)
+    - [4.3.2. Class Definitions](#432-class-definitions)
+    - [4.3.3. Data Types](#433-data-types)
+- [5. [@ sr] SUBREQUIREMENTS](#5--sr-subrequirements)
+  - [5.1. [@ c0] PandocAst](#51--c0-pandocast)
+  - [5.2. [@ c1] Element](#52--c1-element)
+  - [5.3. [@ c2] Block](#53--c2-block)
+  - [5.4. [@ c3] Inline](#54--c3-inline)
+  - [5.5. [@ c4] BlockList](#55--c4-blocklist)
+  - [5.6. [@ c5] InlineList](#56--c5-inlinelist)
 
-## [@ RQ] REQUIREMENTS
+<br>
 
-1. **[@import xxx from=./PandocAst_reqt.md as=ER]** - Import xxx from docs as External Requirement.
-   - PandocAst external requirements from upper layer.
+## 1. REFERENCES
 
-## [@ ST] STRATEGY
+This document refers to the following documents.
+
+1. Gdoc Architectural Design  \
+   [@import SWAD as=ULAD from="[./ArchitecturalDesign](./ArchitecturalDesign.md"]
+
+   Upper Layer Architectural Design of this document.
+
+2. Text.Pandoc.Definition  \
+   pandoc-types-1.22: Types for representing a structured document  \
+   https://hackage.haskell.org/package/pandoc-types-1.22/docs/Text-Pandoc-Definition.html
+
+   Definition of Pandoc data structure for format-neutral representation of documents.
+
+<br>
+
+## 2. THE TARGET SOFTWARE ELEMENT
+
+- [@Block& -THIS=ULAD.SE.PAO.ast] PandocAst
+
+  Block representing the target software in this architectural design.
+
+<br>
+
+## 3. [@ rq] REQUIREMENTS
+
+### 3.1. Functional Requirements
+
+- [@Access ULAD.SE.PAO.RA]
+
+  Requirements_Allocated to this Software_Element, PandocAstObject from Upper_Layer_Architectural_Design.
+
+| @Reqt | Name | Text | Trace |
+| :---: | ---- | ---- | :---: |
+| F1    |      | panを使用して、指定されたソースファイルをPandocAST Jsonファイルへ変換する。 | @copy: RA.3a.1
+| F2    |      | 変換したPandocAST Jsonファイルを使用してPandocAstObjectを生成する。 | @copy: RA.3a.2
+
+### 3.2. Non-functional Requirements
 
 1. Realize THIS as a Python module.
-2. As public interfaces of THIS, define two blocks as below.
 
-| @block | Name | Description |
-| :----: | :--: | ----------- |
-| i1    | pandocast   | A python module to provide access methods to a pandoc ast object.
-|       | Association | @realize THIS
-| @reqt | r1          | contains interface classes and other data types.
-|       | Trace       | @derive
-| i2    | PandocAst   | A python class to provide access methods to a pandoc ast object implemented in pandocast module.
-|       | Association | @partof [pandocast]
-| @reqt | r1          | provide access to all of original AST object.
-|       | Trace       | @derive
-| @reqt | r2          | has basic methods hiding details of AST format.
-|       | Trace       | @derive
-| @reqt | r3          | provide source-pos data of contained text.
-|       | Trace       | @derive
+2. For implementation, The following policies should be followed.
 
-For implementation, The following policies should be followed.
+   | @Reqt | Name | Text | Trace |
+   | :---: | ---- | ---- | :---: |
+   | p1 | Handler classes  | provide handler classes for each pandoc AST element types.
+   | p2 | Ease of changing | be prepared for changes in pandoc AST format. Do not fix on details.
+   |    | Rationale        | Pandoc is being actively maintained.
 
-| @policy | Name | Description |
-| :-----: | ---- | ----------- |
-| p1 | Handler classes  | provide handler classes for pandoc AST element types.
-| p2 | Ease of changing | be prepared for changes in pandoc AST format. Do not fix on details.
-|    | Rationale        | Pandoc is being actively maintained.
+   - Policies are similar to requirements, but they cannot be tested directly.
 
-- Policies are similar to requirements, but they cannot be tested directly.
+<br>
 
-## [@ IS] INTERNAL STRUCTURE
+## 4. [@ ar] ARCHITECTURE
 
-### Handler Classes
+### 4.1. Internal Blocks
+
+<div align=center>
+
+[![@source: ./PandocAst.pml#PandocAstInternalBlocks  \
+@type: puml](./PandocAst/PandocAstInternalBlocks.png)](./PandocAst.puml)  \
+  \
+[@fig 4.1\] PandocAstObject Internal Blocks
+u
+</div>
+
+This figure shows inter block associations but it's not strict.
+
+### 4.2. Behavior
+
+### 4.3. [@ cd] Class Definitions
+
+#### 4.3.1. Class Hierarchy
+
+<div align=center>
+
+[![@source: ./PandocAst.puml#PandocAstObjectClassHierarchy  \
+@type: puml](./PandocAst/PandocAstObjectClassHierarchy.png)](./PandocAst.puml)  \
+  \
+[@fig 4.2\] PandocAstObject Class Hierarchy
+
+</div>
+
+#### 4.3.2. Class Definitions
 
 | @block | Name | Description |
 | :----: | ---- | ----------- |
-| c1 | Element    | primitive element of pandoc AST with fundamental properties and methods.
-|    | trace      | ST.p1 ST.p2 |
-| c2 | Block      | Block element contains structured data and doesn't have text string in itself.
-|    | trace      | ST.p1 ST.p2 @derive c1 |
-| c3 | Inline     | Inline element contains text string, text-decoration data or Inlines.
-|    | trace      | ST.p1 ST.p2 @derive c1 |
-| c4 | BlockList  | BlockList is a Block containing Blocks as a list.
-|    | trace      | ST.p1 ST.p2 @derive c2 |
-| c5 | InlineList | InlineList is a Block containing Inlines as a list.
-|    | trace      | ST.p1 ST.p2 @derive c2 |
+|        | Association | @partof: THIS
+| c0     | PandocAst   | A python class to provide access methods to a pandoc ast object implemented in pandocast module.
+| c1     | Element     | primitive element of pandoc AST with fundamental properties and methods.
+| c2     | Block       | Block element contains structured data and doesn't have text string in itself.
+| c3     | Inline      | Inline element contains text string, text-decoration data or Inlines.
+| c4     | BlockList   | BlockList is a Block containing Blocks as a list.
+| c5     | InlineList  | InlineList is a Block containing Inlines as a list.
 
-### Data Types
+#### 4.3.3. Data Types
 
 | @block | Name | Text |
 | :----: | ---- | ---- |
-| d1 | ELEMENT_TYPES | data dict of each element types containing handler class and element format.
-| d2 | PanString     |
-|    | trace         | ST.p1 ST.p2 ST.i2.r3 |
+|        | Association   | @partof: THIS
+| d1     | ELEMENT_TYPES | data dict of each element types containing handler class and element format.
 
-## [@ BH] BEHAVIOR
+## 5. [@ sr] SUBREQUIREMENTS
 
-## [@ SR] SUBREQUIREMENTS
+### 5.1. [@ c0] PandocAst
 
-### [@ i1] pandocast Module
+- [ ] todo: Update this table.
 
-| @reqt | Name | Description |
-| :---: | ---- | ----------- |
-|    | Trace   | @allocate ST[pandocast]
-| r1 | Members | contains interface classes and other data types.
-|    | Trace   | @copy ST[pandocast].r1
-| @  | r1.1    | contains Pandoc AST object accecer class.
-
-### [@ i2] PandocAst Class
-
-| @reqt | Name | Description |
-| :---: | ---- | ----------- |
-|    | Trace   | @allocate ST[PandocAst]
+| @reqt | Name | Text |
+| :---: | ---- | ---- |
+|    | Trace   | @AllocateTo: AR.CD[PandocAst]
 | r1 |         | provide access to all of original AST object.
 | @  | r1.1    | next() returns an element ordered at next to self.
 | r2 |         | has basic methods hiding details of AST format.
 | r3 |         | provide source-pos data of contained text.
 
-### [@ c1] Element
+### 5.2. [@ c1] Element
 
-| @reqt | Name | Description |
-| :---: | ---- | ----------- |
-|    | Trace   | @allocate IS[Element]
+| @reqt | Name | Text |
+| :---: | ---- | ---- |
+|    | Trace   | @AllocateTo: AR.CD[Element]
 | r1 | Methods
 | @  | r1.1    | next() returns an element ordered at next to self.
 | @  | r1.2    | prev() returns an element ordered at previous to self.
@@ -109,41 +165,32 @@ For implementation, The following policies should be followed.
 | @  | r1.10   | get_content() returns main content data in the element.
 | @  | r1.11   | get_content_type() returns type of main content in the element.
 
-### [@ c2] Block
+### 5.3. [@ c2] Block
 
-| @reqt | Name | Description |
-| :---: | ---- | ----------- |
-|    | Trace | @allocate IS[Block]
+| @reqt | Name | Text |
+| :---: | ---- | ---- |
+|    | Trace | @AllocateTo: AR.CD[Block]
 | r1 | Methods
 
-### [@ c3] Inline
+### 5.4. [@ c3] Inline
 
-| @reqt | Name | Description |
-| :---: | ---- | ----------- |
-|    | Trace | @allocate IS[Inline]
+| @reqt | Name | Text |
+| :---: | ---- | ---- |
+|    | Trace | @AllocateTo: AR.CD[Inline]
 | r1 | Methods
 
-### [@ c4] BlockList
+### 5.5. [@ c4] BlockList
 
-| @reqt | Name | Description |
-| :---: | ---- | ----------- |
-|    | Trace | @allocate IS[BlockList]
+| @reqt | Name | Text |
+| :---: | ---- | ---- |
+|    | Trace | @AllocateTo: AR.CD[BlockList]
 | r1 | Methods
 
-### [@ c5] InlineList
+### 5.6. [@ c5] InlineList
 
-| @reqt | Name | Description |
-| :---: | ---- | ----------- |
-|    | Trace | @allocate IS[InlineList]
+| @reqt | Name | Text |
+| :---: | ---- | ---- |
+|    | Trace | @AllocateTo: AR.CD[InlineList]
 | r1 | Methods
-| @  | r1.1    | get_pan_string() returns PanString object containing all Inline contents.
-|    | Trace   | @deriveReqt ST.i2.r3
-
-### [@ d2] PanString
-
-| @reqt | Name | Description |
-| :---: | ---- | ----------- |
-|    | Trace | @allocate IS[PanString]
-| r1 | Data
 | @  | r1.1    | get_pan_string() returns PanString object containing all Inline contents.
 |    | Trace   | @deriveReqt ST.i2.r3
