@@ -7,13 +7,15 @@
   - [1.2. \[@ r\] Required Feature And Functional Characteristics](#12--r-required-feature-and-functional-characteristics)
     - [1.2.1. \[@ g\] What's gdoc?](#121--g-whats-gdoc)
     - [1.2.2. \[@ a\] What gdoc application can do?](#122--a-what-gdoc-application-can-do)
-      - [[@ gd] gdoc Category](#-gd-gdoc-category)
-      - [Systemカテゴリ（クラス・サブコマンド）](#systemカテゴリクラスサブコマンド)
-      - [GSNカテゴリ（クラス・サブコマンド）](#gsnカテゴリクラスサブコマンド)
-      - [XDDPカテゴリ（サブコマンド）](#xddpカテゴリサブコマンド)
+      - [1.2.2.1. [@ gd] gdoc Category](#1221--gd-gdoc-category)
+      - [1.2.2.2. System Category](#1222-system-category)
+      - [1.2.2.3. GSN Category](#1223-gsn-category)
+      - [1.2.2.4. XDDP Category](#1224-xddp-category)
   - [1.3. \[@ c\] Required System Characteristics/Constraints](#13--c-required-system-characteristicsconstraints)
 - [2. [@ SYRS] SYSTEM REQUIREMENTS SPECIFICATION](#2--syrs-system-requirements-specification)
 - [3. [@ SWRS] SOFTWARE REQUIREMENTS SPECIFICATION](#3--swrs-software-requirements-specification)
+  - [3.1. Requirements](#31-requirements)
+  - [3.2. Command Name](#32-command-name)
 
 <br>
 
@@ -114,12 +116,12 @@ gdocは、Markdownなどのテキスト文書を読み込み、gdoc markup langu
 
   - @rationale: 追加アプリなどのデバッグ時に利用するためと、他プログラムでの流用のため。
 
-#### 1.2.2. \[@ a\] What gdoc application can do?
+#### 1.2.2. \[@ a\] What can gdoc application do?
 
 ##### 1.2.2.1. [@ gd] gdoc Category
 
 - ***[@Reqt 1] Classes***  \
-  document, section, property, importなど情報構成のための基本要素を提供する。
+  document, section, object, property, importなど情報構成のための基本要素を提供する。
 
 - ***[@Reqt 2] dump subcommand***  \
   gdObject情報をjson形式で出力する。
@@ -141,7 +143,7 @@ gdocは、Markdownなどのテキスト文書を読み込み、gdoc markup langu
 - ***[@Reqt 5] diff subcommand***  \
   gdPackageの、あるいはフィルターされた一部gdObjectの差分を検査・報告する。
 
-##### 1.2.2.2. Systemカテゴリ（クラス・サブコマンド）
+##### 1.2.2.2. System Category
 
 後日要件化する。
 
@@ -149,7 +151,7 @@ gdocは、Markdownなどのテキスト文書を読み込み、gdoc markup langu
 - トレーサビリティ情報の保持と追跡
 - 変更影響範囲の抽出 --> gdoc::trace サブコマンドで実現
 
-##### 1.2.2.3. GSNカテゴリ（クラス・サブコマンド）
+##### 1.2.2.3. GSN Category
 
 後日要件化する。
 
@@ -157,7 +159,7 @@ gdocは、Markdownなどのテキスト文書を読み込み、gdoc markup langu
 - あるノードに対する、サポートノード、コンテクストノードの出力
 - 品質保証（戦略・計画・記録）のサポート
 
-##### 1.2.2.4. XDDPカテゴリ（サブコマンド）
+##### 1.2.2.4. XDDP Category
 
 後日要件化する。
 

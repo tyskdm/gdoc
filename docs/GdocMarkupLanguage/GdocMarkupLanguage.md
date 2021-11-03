@@ -2,7 +2,7 @@
 [@^ doctype="gdoc 0.3" class="specification:"]
 </small></div>*
 
-# [@ gdml] Gdoc Markup Language
+# \[@ gdml\] Gdoc Markup Language
 
 ***@Summary:***  \
 gdocは、gdoc markup Languageでタグ付けされた文書から情報を収集し、構造化オブジェクトを生成する。
@@ -96,24 +96,26 @@ gdocサブコマンドはその構造化オブジェクトを参照してユー�
 - [7. BASIC CLASSES](#7-basic-classes)
   - [7.1. Gdoc](#71-gdoc)
     - [7.1.1. Types](#711-types)
-      - [7.1.1.1. Document](#7111-document)
-      - [7.1.1.2. Section](#7112-section)
-      - [7.1.1.3. TextBlock → SimpleObject](#7113-textblock--simpleobject)
-      - [7.1.1.4. Property(Inline tag)](#7114-propertyinline-tag)
-      - [7.1.1.5. Table → \[SimpleObject\]](#7115-table--simpleobject)
-      - [7.1.1.6. SimpleObject](#7116-simpleobject)
-      - [7.1.1.7. Import / Access → Shortcut](#7117-import--access--shortcut)
-      - [7.1.1.8. Link / Ln / `&` → Shortcut](#7118-link--ln----shortcut)
-      - [7.1.1.9. ^ → Parent](#7119---parent)
-      - [7.1.1.10. Caption / List / Table](#71110-caption--list--table)
-      - [7.1.1.11. Fig](#71111-fig)
-      - [7.1.1.12. Ignore / `#`](#71112-ignore--)
-      - [7.1.1.13. (Common Properties)](#71113-common-properties)
+      - [7.1.1.1. Package](#7111-package)
+      - [7.1.1.2. Document](#7112-document)
+      - [7.1.1.3. Section](#7113-section)
+      - [7.1.1.4. TextBlock → SimpleObject](#7114-textblock--simpleobject)
+      - [7.1.1.5. Property(Inline tag)](#7115-propertyinline-tag)
+      - [7.1.1.6. Table → \[SimpleObject\]](#7116-table--simpleobject)
+      - [7.1.1.7. SimpleObject](#7117-simpleobject)
+      - [7.1.1.8. Import / Access → Shortcut](#7118-import--access--shortcut)
+      - [7.1.1.9. Link / Ln / `&` → Shortcut](#7119-link--ln----shortcut)
+      - [7.1.1.10. ^ → Parent](#71110---parent)
+      - [7.1.1.11. Caption / List / Table](#71111-caption--list--table)
+      - [7.1.1.12. Fig](#71112-fig)
+      - [7.1.1.13. Ignore / `#`](#71113-ignore--)
+      - [7.1.1.14. (Common Properties)](#71114-common-properties)
     - [7.1.2. Example](#712-example)
   - [7.2. Sys](#72-sys)
     - [7.2.1. Types](#721-types)
       - [7.2.1.1. Requirement](#7211-requirement)
-      - [7.2.1.2. Block](#7212-block)
+      - [7.2.1.2. Test](#7212-test)
+      - [7.2.1.3. Block](#7213-block)
   - [7.3. GSN](#73-gsn)
     - [7.3.1. Types](#731-types)
       - [7.3.1.1. Goal / G](#7311-goal--g)
@@ -134,7 +136,7 @@ Gdoc Objectの基本コンセプトは、この親子関係とidによる名前�
 またアプリケーションのニーズに基づいてGdObjectを継承した個別のクラスが導出される。
 Classは、カテゴリとそのカテゴリに属するオブジェクトタイプにより特定される。
 
-本パートでは、Gdoc Object Notationを定義する前提となる、この３つのコンセプトとクラスについて定義する。
+本パートでは、gdoc markup Languageを定義する前提となる、この３つのコンセプトとクラスについて定義する。
 Gdoc OBjectの詳細や実装については言及しない。
 
 ### 2.1. GdObject Classes
@@ -153,7 +155,7 @@ GdObjectの概念説明用クラス図を以下に示す。
 <br>
 
 Gdoc Objectの全てのオブジェクトはGdObject Classから派生する。
-要件定義書のそれぞれの要件はGdObjectであり、文書階層構造の要素であるセクションもGdObjectである。
+たとえば要件定義書のそれぞれの要件はGdObjectであり、文書階層構造の要素であるセクションもGdObjectである。
 そしてセクションもまたGSNのGoalやStrategyなどのように、その役割・位置づけによる特性・Propertyを持つクラスとして派生される。
 
 #### 2.1.1. Parent-Child Relationship
@@ -323,7 +325,7 @@ gdocはHeaderブロックをセクションの開始とみなして、階層化�
 BulletListとOrderedListとがある。
 リストの項目は、それぞれブロックのリストで構成される。
 
-gdocは、リスト全体に対するタグが付与されていない限り単に階層化したブロックとみなし、解析中にはこの階層を再帰的に解析対象とみなす。
+gdocは、リスト全体に対するタグ（リストへのキャプションタグ）が付与されていない限り単に階層化したブロックとみなし、解析中にはこの階層を再帰的に解析対象とみなす。
 
 つまり、Document Sections も List Items も、Gdoc にとっては階層化したブロックリストである。
 
@@ -332,7 +334,7 @@ In other words, "document sections" and "list items" are both hierarchical block
 
 ##### 3.2.2.3. Object Section
 
-Document Sectionあるいはリストアイテムのうち、タグを付与されたものは GdObject が生成され、名前空間を提供するなどオブジェクトのコンテクストとして機能する。
+Document Sectionあるいはリストアイテムのうち、先頭ブロックにタグを付与されたものは GdObject が生成され、名前空間を提供するなどオブジェクトのコンテクストとして機能する。
 
 Gdoc では、このコンテクスト空間を Object Section とよび、空間を構成する GdObject を Section Object と呼ぶ。
 
@@ -375,22 +377,25 @@ ex.
 
 ##### 3.3.1.1. Object Tag
 
-   オブジェクトを生成する。
+オブジェクトを生成する。
 
 ##### 3.3.1.2. Caption Tag
 
-   対象ブロックに対して、タグを付与する。
-   ほとんどの場合で後続の１つのブロックだが、一部例外として（`[@fig]`）当該ブロック自身に影響を与える。
+対象ブロックに対して、タグを付与する。
+ほとんどの場合で後続の１つのブロックだが、一部例外として（`[@fig]`）当該ブロック自身に影響を与える。
+
+キャプションタグは、オプションで対象ブロック用のパーサーを指定することができる。
+（初期バージョンでは実装なし）
 
 ##### 3.3.1.3. Section Tag
 
-   オブジェクトセクションを構成する。
-   実際には Object を生成するのでその意味では Object Tag と同じだが、同時に Object Section を構成する。
+オブジェクトセクションを構成する。
+実際には Object を生成するのでその意味では Object Tag と同じだが、同時に Object Section を構成する。
 
 ##### 3.3.1.4. Shortcut Tag
 
-   別の名前空間にあるオブジェクトへのショートカットを生成する。
-   import/accessに使用する。
+別の名前空間にあるオブジェクトへのショートカットを生成する。
+import/accessに使用する。
 
 #### 3.3.2. Table tag
 
@@ -464,7 +469,7 @@ gdml.p.i ***(S, #123)***
 
 - 想定用途例：
   - 安全要求に、識別用のフラグ（上記では "S"）を付与する
-  - 要件などの要素の個別バージョン管理用に、チケットリンク（上記では "#123"）を付与する
+  - 要件項目などの個別バージョン管理用に、チケットリンク（上記では "#123"）を付与する
 
 #### 3.4.5. 仮： Reference
 
@@ -669,7 +674,7 @@ Opt Strings 使用には一般ルールがある。
 
 #### 4.2.4. Creating Objects
 
-See 4. Creating Objects
+See 5. Creating Objects
 
 <br>
 
@@ -823,8 +828,15 @@ When a tag is found in a object Section, the type will be searched in the class 
 If it's not found, the class information will be retrieved from parent object.
 
 - 使用可能なオブジェクトタイプは、セクションオブジェクトのクラスが提供するタイプであり、見つからなけれな親を探す。
-- 使用可能なプロパティは、セクションオブジェクトのためのプロパティと、`@note:`
-  などの汎用プロパティ。
+- 使用可能なプロパティは、セクションオブジェクトのためのプロパティと、`@note:`などの汎用プロパティ。
+
+Type Search Path
+
+ 1. 親オブジェクトのカテゴリを使って、検索パスから探す。
+ 2. 見つからない場合は、その親・祖先のカテゴリを使う
+ 3. 文書（ファイル）の最上位オブジェクトは、`gdoc`カテゴリが自動的に割り付けられている。
+ 4. 最上位までたどって見つからない場合は、エラーとなる。
+    - 文書に情報のないカテゴリを、検索パスから探すことはしない（最上位の`gdoc`を除く）。
 
 ##### 5.1.2.2. Omitted Type
 
@@ -930,7 +942,11 @@ ex.2: Omitted type and category at a Child object
 
 #### 7.1.1. Types
 
-##### 7.1.1.1. Document
+##### 7.1.1.1. Package
+
+意味的に一まとまりの１つ以上の文書。
+
+##### 7.1.1.2. Document
 
 File単位の文書。ファイル・文書の情報を保持する
 
@@ -940,7 +956,7 @@ File単位の文書。ファイル・文書の情報を保持する
 - Objects
   - All types except Document
 
-##### 7.1.1.2. Section
+##### 7.1.1.3. Section
 
 Headerで区切られたセクションを構成する。
 
@@ -950,31 +966,31 @@ Headerで区切られたセクションを構成する。
 - Objects
   - All types except Document
 
-##### 7.1.1.3. TextBlock → SimpleObject
+##### 7.1.1.4. TextBlock → SimpleObject
 
 SimpleObjectを構成する。
 
-##### 7.1.1.4. Property(Inline tag)
+##### 7.1.1.5. Property(Inline tag)
 
 プロパティをセットする。
 
 > @(propname): value
 
-##### 7.1.1.5. Table → \[SimpleObject\]
+##### 7.1.1.6. Table → \[SimpleObject\]
 
 SimpleList（SimpleObjectの配列）を構成する。
 
-##### 7.1.1.6. SimpleObject
+##### 7.1.1.7. SimpleObject
 
 SimpleObject(short name=Obj, Object) base class, No constructor
 
-##### 7.1.1.7. Import / Access → Shortcut
+##### 7.1.1.8. Import / Access → Shortcut
 
 Shortcut を構成する。  \
 Import = Public, Access = Private
 オブジェクトへのショートカット。
 
-##### 7.1.1.8. Link / Ln / `&` → Shortcut
+##### 7.1.1.9. Link / Ln / `&` → Shortcut
 
 Shortcut Header を構成する。
 フォルダーへのショートカットと同様に振る舞う。
@@ -1017,25 +1033,25 @@ Shortcut Header を構成する。
 【仮】同一名前空間内にリンクを生成する記述があった場合多重定義エラーにはならず、またショートカットオブジェクトの生成も行われない。  \
 --> 定義表の直後に各定義オブジェクトのセクションが並ぶ場合が、これに該当する。
 
-##### 7.1.1.9. ^ → Parent
+##### 7.1.1.10. ^ → Parent
 
 親タグにパラメータを追加するための疑似タイプ。
 
 - コンストラクタがオブジェクトを生成せずに、親オブジェクトへパラメータの付与処理を行う。
 - コンストラクタ呼び出し前に、先読みされることが必要。
 
-##### 7.1.1.10. Caption / List / Table
+##### 7.1.1.11. Caption / List / Table
 
 次のブロックにパラメータを追加するためのタイプ。  \
 Parent typeと異なり、自身もオブジェクトを生成する。
 - 図表番号リストの自動生成に使うことを想定したもの。
 - List, Table などを導出する基本クラス。
 
-##### 7.1.1.11. Fig
+##### 7.1.1.12. Fig
 
 文書中に挿入されたイメージに対し、プロパティとキャプションを付与するためのタイプ。
 
-##### 7.1.1.12. Ignore / `#`
+##### 7.1.1.13. Ignore / `#`
 
 Section と Caption で使用できる。
 対象にタグが含まれていてもこれを無視する。
@@ -1044,7 +1060,7 @@ Section と Caption で使用できる。
 
 Inlineタグでも使用可能にする？ @#: ← このタグ以降の文字列はコメントアウトされる
 
-##### 7.1.1.13. (Common Properties)
+##### 7.1.1.14. (Common Properties)
 
 - Note
 - Trace
@@ -1128,7 +1144,32 @@ Inlineタグでも使用可能にする？ @#: ← このタグ以降の文字�
 
 - USDM をエイリアスとして使える。（初期設定値）
 
-##### 7.2.1.2. Block
+##### 7.2.1.2. Test
+
+Test Items and Test Cases.
+
+https://github.com/byrnison-llc/adx_process/blob/master/SoftwareArchitectureLayer/document/SITS-SWI0005-0001_FAIL_OP_sample_portrait_sample.md
+
+* 参照表
+
+| 参照ID | 要件 |
+| ------ | ---- |
+| XSDS-SWA0203-00001 | 各アプリケーションは、異常発生時、またはログを残したい場合に異常レベルの定義に合わせてログをRAM上に残すこと
+
+
+* テスト項目
+
+| Test ID | SITS-SWI0005-0001 |
+| ------- | ----------------- |
+| テスト概要 | 異常発生時、発生した異常レベルに応じたログが残ることを確認
+| 開始前条件 | ADX-ECU SoCソフトウェアが起動している
+| 開始方法 | 「SCALEXIO(HILS用GUI)」から「パネル版ADX-ECU」の xxxコネクタへ異常情報を投入する
+| 合否判定基準 | 異常レベルに応じたログ出力が行われること
+| テストケース展開方法 | 以下条件の総組合せテストを行う{br}・発生させる異常 (5種) ：　当該SRS「table1.2 異常レベル」で取り上げられている全レベル{br}・車速 (2種) ：　停止時、走行時{br}
+| Note |  ・異常レべルごとに「table2.1 異常レベル」で示された出力になるかを確認する{br}・ログ出力内容は「table3.2 ADX-ECUへの出力」を基に確認する
+| 変更履歴 | -
+
+##### 7.2.1.3. Block
 
 ブロック定義
 

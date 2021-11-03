@@ -141,7 +141,7 @@ This figure shows inter block associations but it's not strict.
 
 | @reqt | Name | Text |
 | :---: | ---- | ---- |
-|    | Trace   | @AllocateTo: AR.CD[PandocAst]
+|    | Trace   | @Allocate: AR.CD[PandocAst]
 | r1 |         | provide access to all of original AST object.
 | @  | r1.1    | next() returns an element ordered at next to self.
 | r2 |         | has basic methods hiding details of AST format.
@@ -151,7 +151,7 @@ This figure shows inter block associations but it's not strict.
 
 | @reqt | Name | Text |
 | :---: | ---- | ---- |
-|    | Trace   | @AllocateTo: AR.CD[Element]
+|    | Trace   | @Allocate: AR.CD[Element]
 | r1 | Methods
 | @  | r1.1    | next() returns an element ordered at next to self.
 | @  | r1.2    | prev() returns an element ordered at previous to self.
@@ -169,28 +169,28 @@ This figure shows inter block associations but it's not strict.
 
 | @reqt | Name | Text |
 | :---: | ---- | ---- |
-|    | Trace | @AllocateTo: AR.CD[Block]
+|    | Trace | @Allocate: AR.CD[Block]
 | r1 | Methods
 
 ### 5.4. [@ c3] Inline
 
 | @reqt | Name | Text |
 | :---: | ---- | ---- |
-|    | Trace | @AllocateTo: AR.CD[Inline]
+|    | Trace | @Allocate: AR.CD[Inline]
 | r1 | Methods
 
 ### 5.5. [@ c4] BlockList
 
 | @reqt | Name | Text |
 | :---: | ---- | ---- |
-|    | Trace | @AllocateTo: AR.CD[BlockList]
+|    | Trace | @Allocate: AR.CD[BlockList]
 | r1 | Methods
 
 ### 5.6. [@ c5] InlineList
 
 | @reqt | Name | Text |
 | :---: | ---- | ---- |
-|    | Trace | @AllocateTo: AR.CD[InlineList]
+|    | Trace | @Allocate: AR.CD[InlineList]
 | r1 | Methods
 | @  | r1.1    | get_pan_string() returns PanString object containing all Inline contents.
 |    | Trace   | @deriveReqt ST.i2.r3
