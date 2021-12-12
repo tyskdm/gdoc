@@ -5,6 +5,6 @@
 
 hide circle
 hide empty members
-hide method
+hide empty method
 
 @enduml

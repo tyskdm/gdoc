@@ -2,8 +2,17 @@
 #
 # After creating container, run this to set up environment inside container.
 #
-poetry install
-ln -s /workspaces/gdoc/bin/gdoc /usr/local/bin/
+
+# Copy your own .bashrc to home dir in the container.
+if [ -f .devcontainer/.bashrc ]; then
+    cp .devcontainer/.bashrc ~/
+fi
 
 # PlantUML
-ln -s /workspaces/gdoc/.devcontainer/plantuml /usr/local/bin/
+sudo ln -s $(pwd)/.devcontainer/plantuml /usr/local/bin/
+
+# gdoc
+sudo ln -s $(pwd)/bin/gdoc /usr/local/bin/
+
+# poetry
+poetry install
