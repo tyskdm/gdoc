@@ -2,7 +2,7 @@
 [@^ doctype="gdoc 0.3" class="systemdesign:"]
 </small></div>*
 
-# [@ swad] PandocAST Architectural Design
+# [@ swdd] PandocAST Detailed Design
 
 Provide access methods to a pandoc AST object loaded from json file.
 
@@ -11,22 +11,32 @@ Provide access methods to a pandoc AST object loaded from json file.
 - [1. REFERENCES](#1-references)
 - [2. THE TARGET SOFTWARE ELEMENT](#2-the-target-software-element)
 - [3. [@ rq] REQUIREMENTS](#3--rq-requirements)
-  - [3.1. Functional Requirements](#31-functional-requirements)
-  - [3.2. Non-functional Requirements](#32-non-functional-requirements)
-- [4. [@ ar] ARCHITECTURE](#4--ar-architecture)
-  - [4.1. Internal Blocks](#41-internal-blocks)
-  - [4.2. Behavior](#42-behavior)
-  - [4.3. [@ cd] Class Definitions](#43--cd-class-definitions)
-    - [4.3.1. Class Hierarchy](#431-class-hierarchy)
-    - [4.3.2. Class Definitions](#432-class-definitions)
-    - [4.3.3. Data Types](#433-data-types)
-- [5. [@ sr] SUBREQUIREMENTS](#5--sr-subrequirements)
-  - [5.1. [@ c0] PandocAst](#51--c0-pandocast)
-  - [5.2. [@ c1] Element](#52--c1-element)
-  - [5.3. [@ c2] Block](#53--c2-block)
-  - [5.4. [@ c3] Inline](#54--c3-inline)
-  - [5.5. [@ c4] BlockList](#55--c4-blocklist)
-  - [5.6. [@ c5] InlineList](#56--c5-inlinelist)
+- [4. [@ sg] STRATEGY](#4--sg-strategy)
+  - [4.1. Element Handler](#41-element-handler)
+  - [4.2. Element Types](#42-element-types)
+- [5. [@ sc] STRUCTURE](#5--sc-structure)
+  - [5.1. Class Hierarchy](#51-class-hierarchy)
+  - [5.2. Element-Handler Mapping](#52-element-handler-mapping)
+    - [5.2.1. data Pandoc](#521-data-pandoc)
+    - [5.2.2. data Block](#522-data-block)
+    - [5.2.3. data Inline](#523-data-inline)
+    - [5.2.4. Table related data](#524-table-related-data)
+    - [5.2.5. Gdoc additional types](#525-gdoc-additional-types)
+  - [5.3. Class Definitions](#53-class-definitions)
+  - [5.4. Data Types](#54-data-types)
+- [6. [@ bh] BEHAVIOR](#6--bh-behavior)
+- [7. [@ su] SOFTWARE UNITS](#7--su-software-units)
+  - [7.1. Element](#71-element)
+  - [7.2. Block](#72-block)
+  - [7.3. Inline](#73-inline)
+  - [7.4. BlockList](#74-blocklist)
+  - [7.5. InlineList](#75-inlinelist)
+  - [7.6. Table](#76-table)
+  - [7.7. TableRowList](#77-tablerowlist)
+  - [7.8. TableBody](#78-tablebody)
+  - [7.9. TableRow](#79-tablerow)
+  - [7.10. TableCell](#710-tablecell)
+  - [7.11. PandocAst](#711-pandocast)
 
 <br>
 
@@ -35,7 +45,7 @@ Provide access methods to a pandoc AST object loaded from json file.
 This document refers to the following documents.
 
 1. Gdoc Architectural Design  \
-   [@import SWAD as=ULAD from="[./ArchitecturalDesign](./ArchitecturalDesign.md"]
+   [@access SWAD from="[../ArchitecturalDesign](../ArchitecturalDesign.md)"]
 
    Upper Layer Architectural Design of this document.
 
@@ -49,148 +59,282 @@ This document refers to the following documents.
 
 ## 2. THE TARGET SOFTWARE ELEMENT
 
-- [@Block& -THIS=ULAD.SE.PAO.ast] PandocAst
+- [@Block& -THIS=SWAD.GDOC[gdocCoreLibrary][pandocAstObject][PandocAst]]
 
-  Block representing the target software in this architectural design.
+  The block representing the target software in this document.
 
 <br>
 
 ## 3. [@ rq] REQUIREMENTS
 
-### 3.1. Functional Requirements
+- [@access SWAD.SE.PAO.RA]
 
-- [@Access ULAD.SE.PAO.RA]
-
-  Requirements_Allocated to this Software_Element, PandocAstObject from Upper_Layer_Architectural_Design.
+  Requirements_Allocated to this Software_Element, PandocAstObject from SoftWare_Architectural_Design.
 
 | @Reqt | Name | Text | Trace |
 | :---: | ---- | ---- | :---: |
-| F1    |      | panを使用して、指定されたソースファイルをPandocAST Jsonファイルへ変換する。 | @copy: RA.3a.1
-| F2    |      | 変換したPandocAST Jsonファイルを使用してPandocAstObjectを生成する。 | @copy: RA.3a.2
-
-### 3.2. Non-functional Requirements
-
-1. Realize THIS as a Python module.
-
-2. For implementation, The following policies should be followed.
-
-   | @Reqt | Name | Text | Trace |
-   | :---: | ---- | ---- | :---: |
-   | p1 | Handler classes  | provide handler classes for each pandoc AST element types.
-   | p2 | Ease of changing | be prepared for changes in pandoc AST format. Do not fix on details.
-   |    | Rationale        | Pandoc is being actively maintained.
-
-   - Policies are similar to requirements, but they cannot be tested directly.
+| FR    | Functional Requirement |
+| @     | FR.1 | panを使用して、指定されたソースファイルをPandocAST Jsonファイルへ変換する。 | @copy: RA.3a.1
+| @     | FR.2 | 変換したPandocAST Jsonファイルを使用してPandocAstObjectを生成する。 | @copy: RA.3a.2
 
 <br>
 
-## 4. [@ ar] ARCHITECTURE
+## 4. [@ sg] STRATEGY
 
-### 4.1. Internal Blocks
+| @Strategy | Name | Text | Trace |
+| :-------: | ---- | ---- | :---: |
+| sg1 | Handler classes  | provide handler classes for each pandoc AST element types.
+| sg2 | Ease of changing | be prepared for changes in pandoc AST format. Do not fix on details.
+|     | Rationale        | Pandoc is being actively maintained.
+
+### 4.1. Element Handler
+
+To access a pandocAst object, apply the Element Handler for each of its individual elements.
+The basic element types are as follows.
 
 <div align=center>
 
 [![@source: ./PandocAst.pml#PandocAstInternalBlocks  \
 @type: puml](./PandocAst/PandocAstInternalBlocks.png)](./PandocAst.puml)  \
-  \
-[@fig 4.1\] PandocAstObject Internal Blocks
-u
+\
+[@fig 4.1\] PandocAst ElementHandlers
+
 </div>
 
-This figure shows inter block associations but it's not strict.
+### 4.2. Element Types
 
-### 4.2. Behavior
+There are many more actual pandocAst element types than the ones shown above.
+Two means to cover them are as follows.
 
-### 4.3. [@ cd] Class Definitions
+1. Element Types Data
+   - Separates the element handlers from the structural information for each element type.
+   - The structure information of all elements and their handler information is held as ElementTypes data.
+   - Element handlers refer to the ElementTypes data.
 
-#### 4.3.1. Class Hierarchy
+2. Special Types
+   - For special types (e.g., tables, cells, etc.) that the above handlers cannot handle, special handlers handle them.
+   - The special handlers inherit from one of the existing handlers.
+
+<br>
+
+## 5. [@ sc] STRUCTURE
+
+### 5.1. Class Hierarchy
 
 <div align=center>
 
 [![@source: ./PandocAst.puml#PandocAstObjectClassHierarchy  \
 @type: puml](./PandocAst/PandocAstObjectClassHierarchy.png)](./PandocAst.puml)  \
   \
-[@fig 4.2\] PandocAstObject Class Hierarchy
+[@fig 5.1\] PandocAst ElementHandler class hierarchy
 
 </div>
 
-#### 4.3.2. Class Definitions
+### 5.2. Element-Handler Mapping
 
-| @block | Name | Description |
+#### 5.2.1. data Pandoc
+
+| Pandoc Type | Constructor | Gfm | Element Handler |
+| ----------- | ----------- | :-: | --------------- |
+| data Pandoc | Pandoc Meta [Block] | x | PandocAst? BlockList?
+
+#### 5.2.2. data Block
+
+| Pandoc Type | Constructor | Gfm | Element Handler |
+| ----------- | ----------- | :-: | --------------- |
+| data Block | Plain [Inline]       | x | InlineList
+| data Block | Para [Inline]        | x | InlineList
+| data Block | LineBlock [[Inline]] | - | InlineList
+| data Block | CodeBlock Attr Text  | x | InlineList
+| data Block | RawBlock
+| data Block | BlockQuote
+| data Block | OrderedList
+| data Block | BulletList
+| data Block | DefinitionList
+| data Block | Header
+| data Block | HorizontalRule
+| data Block | Table
+| data Block | Div
+| data Block | Null
+
+#### 5.2.3. data Inline
+
+| Pandoc Type | Constructor | Gfm | Element Handler |
+| ----------- | ----------- | :-: | --------------- |
+| data Inline | Str
+| data Inline | Emph
+| data Inline | UnderLine
+| data Inline | Strong
+| data Inline | Strikeout
+| data Inline | Superscript
+| data Inline | Subscript
+| data Inline | SmallCaps
+| data Inline | Quoted
+| data Inline | Cite
+| data Inline | Code
+| data Inline | Space
+| data Inline | SoftBreak
+| data Inline | LineBreak
+| data Inline | Math
+| data Inline | RawInline
+| data Inline | Link
+| data Inline | Image
+| data Inline | Note
+| data Inline | Span
+
+#### 5.2.4. Table related data
+
+| Pandoc Type | Constructor | Gfm | Element Handler |
+| ----------- | ----------- | :-: | --------------- |
+| TableHead
+| TableBody
+| TableFoot
+| Row
+| Cell
+
+#### 5.2.5. Gdoc additional types
+
+The data structure of pandocAst may use two or more dimensional arrays to manage child elements (for example, a table).
+Since gdoc uses one-dimensional arrays to manage children, data types that use arrays of two or more dimensions are regarded as hierarchical multiple data types.
+Intermediate data types for this purpose are as follows.
+
+| Pandoc Type | Constructor | Gfm | Element Handler |
+| ----------- | ----------- | :-: | --------------- |
+| BlockList | | | BlockList
+| InlineList | | | InlineList
+| ListItem | | | BlockList
+| DefinitionItem | | | --
+| Rows
+
+<br>
+
+### 5.3. Class Definitions
+
+| @class | Name | Description |
 | :----: | ---- | ----------- |
 |        | Association | @partof: THIS
-| c0     | PandocAst   | A python class to provide access methods to a pandoc ast object implemented in pandocast module.
 | c1     | Element     | primitive element of pandoc AST with fundamental properties and methods.
-| c2     | Block       | Block element contains structured data and doesn't have text string in itself.
+| c2     | Block       | Block element contains structured data without text string data.
 | c3     | Inline      | Inline element contains text string, text-decoration data or Inlines.
 | c4     | BlockList   | BlockList is a Block containing Blocks as a list.
 | c5     | InlineList  | InlineList is a Block containing Inlines as a list.
+| c6     | Table
+| c7     | TableRowList
+| c8     | TableBody
+| c9     | TableRow
+| c10    | TableCell
+| c11    | PandocAst   | A python class to provide access methods to a pandoc ast object implemented in pandocast module.
 
-#### 4.3.3. Data Types
+### 5.4. Data Types
 
 | @block | Name | Text |
 | :----: | ---- | ---- |
 |        | Association   | @partof: THIS
-| d1     | ELEMENT_TYPES | data dict of each element types containing handler class and element format.
+| d1     | _PANDOC_TYPES | data dict of each element types containing handler class and element format.
 
-## 5. [@ sr] SUBREQUIREMENTS
+<br>
 
-### 5.1. [@ c0] PandocAst
+## 6. [@ bh] BEHAVIOR
 
-- [ ] todo: Update this table.
+Nothing worth mentioning.
 
-| @reqt | Name | Text |
-| :---: | ---- | ---- |
-|    | Trace   | @Allocate: AR.CD[PandocAst]
-| r1 |         | provide access to all of original AST object.
-| @  | r1.1    | next() returns an element ordered at next to self.
-| r2 |         | has basic methods hiding details of AST format.
-| r3 |         | provide source-pos data of contained text.
+<br>
 
-### 5.2. [@ c1] Element
+## 7. [@ su] SOFTWARE UNITS
 
-| @reqt | Name | Text |
-| :---: | ---- | ---- |
-|    | Trace   | @Allocate: AR.CD[Element]
-| r1 | Methods
-| @  | r1.1    | next() returns an element ordered at next to self.
-| @  | r1.2    | prev() returns an element ordered at previous to self.
-| @  | r1.3    | get_parent() returns parent element.
-| @  | r1.4    | get_children() returns list of child elements.
-| @  | r1.5    | get_first_child() returns the first child elements.
-| @  | r1.6    | get_type() returns element type.
-| @  | r1.7    | get_prop() returns a property of the element.
-| @  | r1.8    | get_attr() returns a attrbute of the element.
-| @  | r1.9    | hascontent() returns True if self has content(s) or False if self is typed but has no content.
-| @  | r1.10   | get_content() returns main content data in the element.
-| @  | r1.11   | get_content_type() returns type of main content in the element.
+### 7.1. Element
 
-### 5.3. [@ c2] Block
+| @Class& | Name | Description |
+| ------- | ---- | ----------- |
+| sc.c1   | Element | primitive element of pandoc AST with fundamental properties and methods.
+| @Method | next | returns an element ordered at next to self.
+| @Method | prev | returns an element ordered at previous to self.
+| @Method | get_parent | returns parent element.
+| @Method | get_children | returns list of child elements.
+| @Method | get_first_child | returns the first child elements.
+| @Method | get_type | returns element type.
+| @Method | get_prop | returns a property of the element specified by key string.
+| @Method | get_attr | returns a attrbute of the element specified by key string.
+| @Method | hascontent | returns True if self has content(s) or False if self is typed but has no content.
+| @Method | get_content | returns main content data in the element.
+| @Method | get_content_type | returns type of main content in the element.
 
-| @reqt | Name | Text |
-| :---: | ---- | ---- |
-|    | Trace | @Allocate: AR.CD[Block]
-| r1 | Methods
+### 7.2. Block
 
-### 5.4. [@ c3] Inline
+| @Class& | Name | Description |
+| ------- | ---- | ----------- |
+| sc.c2   | Block | | Block element contains structured data without text string data.
+|         | Association | @Inherit: su[Element]
+| @Method |  |
 
-| @reqt | Name | Text |
-| :---: | ---- | ---- |
-|    | Trace | @Allocate: AR.CD[Inline]
-| r1 | Methods
+### 7.3. Inline
 
-### 5.5. [@ c4] BlockList
+| @Class& | Name | Description |
+| ------- | ---- | ----------- |
+| sc.c3   | Inline | | Inline element contains text string, text-decoration data or Inlines.
+|         | Association | @Inherit: su[Element]
+| @Method |  |
 
-| @reqt | Name | Text |
-| :---: | ---- | ---- |
-|    | Trace | @Allocate: AR.CD[BlockList]
-| r1 | Methods
+### 7.4. BlockList
 
-### 5.6. [@ c5] InlineList
+| @Class& | Name | Description |
+| ------- | ---- | ----------- |
+| sc.c4   | BlockList | | BlockList is a Block containing Blocks as a list.
+|         | Association | @Inherit: su[Element]
+| @Method |  |
 
-| @reqt | Name | Text |
-| :---: | ---- | ---- |
-|    | Trace | @Allocate: AR.CD[InlineList]
-| r1 | Methods
-| @  | r1.1    | get_pan_string() returns PanString object containing all Inline contents.
-|    | Trace   | @deriveReqt ST.i2.r3
+### 7.5. InlineList
+
+| @Class& | Name | Description |
+| ------- | ---- | ----------- |
+| sc.c5   | InlineList | | InlineList is a Block containing Inlines as a list.
+|         | Association | @Inherit: su[Element]
+| @Method |  |
+
+### 7.6. Table
+
+| @Class& | Name | Description |
+| ------- | ---- | ----------- |
+| sc.c6   | Table
+|         | Association | @Inherit: su[Element]
+| @Method |  |
+
+### 7.7. TableRowList
+
+| @Class& | Name | Description |
+| ------- | ---- | ----------- |
+| sc.c7   | TableRowList
+|         | Association | @Inherit: su[Element]
+| @Method |  |
+
+### 7.8. TableBody
+
+| @Class& | Name | Description |
+| ------- | ---- | ----------- |
+| sc.c8   | TableBody
+|         | Association | @Inherit: su[Element]
+| @Method |  |
+
+### 7.9. TableRow
+
+| @Class& | Name | Description |
+| ------- | ---- | ----------- |
+| sc.c9   | TableRow
+|         | Association | @Inherit: su[Element]
+| @Method |  |
+
+### 7.10. TableCell
+
+| @Class& | Name | Description |
+| ------- | ---- | ----------- |
+| sc.c10  | TableCell
+|         | Association | @Inherit: su[Element]
+| @Method |  |
+
+### 7.11. PandocAst
+
+| @Class& | Name | Description |
+| ------- | ---- | ----------- |
+| sc.c11  | PandocAst | provide access to all of original AST object.
+|         | Association | @Inherit: su[Element]
+| @Method |
