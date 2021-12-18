@@ -1,0 +1,57 @@
+' # [@ ad] PandocAst architectural design
+'
+' ## [@ ast] PandocAstInternalBlocks
+'
+@startuml PandocAstInternalBlocks
+
+!include style.iuml
+!include SysML/bdd.iuml
+
+package "       PandocAst       " <<rectangle>> {
+  class "  PandocAst  " as PandocAst
+  class Block
+  class Inline
+  class BlockList
+  class InlineList
+}
+
+PandocAst *-- BlockList
+
+BlockList *-- "0..*" Block
+BlockList *-- "0..*" BlockList
+
+Block <|-- InlineList
+Block <|-- BlockList
+
+InlineList *-- "0..*" Inline
+InlineList *-- "0..*" InlineList
+
+PandocAst .right.> PandocStr : "    use"
+PandocAst .left.> pandoc : "use  "
+
+@enduml
+
+' ## [@ ee] PandocAstObjectClassHierarchy
+'
+@startuml PandocAstObjectClassHierarchy
+
+!include style.iuml
+
+Class PandocAst
+Entity ElementTypes <<static data>>
+
+Element <|-- PandocAst
+Element <|-- Block
+Element <|-- Inline
+Block <|-- InlineList
+Block <|-- BlockList
+Block <|-- Table
+
+PandocAst ..> ElementTypes : use
+Block ..> ElementTypes : use
+Inline ..> ElementTypes : use
+InlineList ..> ElementTypes : use
+BlockList ..> ElementTypes : use
+Table ..> ElementTypes : use
+
+@enduml
