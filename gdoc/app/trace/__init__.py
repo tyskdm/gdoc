@@ -1,4 +1,6 @@
-"""
-import .command module as default
+r"""!
+
+subcommand **trace**\n
+
 """
 from .command import *
