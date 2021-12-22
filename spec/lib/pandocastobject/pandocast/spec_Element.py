@@ -694,3 +694,80 @@ def spec_get_content_type_1(pan_elem, elem_type, TYPE_DEFS, expect):
 
 
 ## @}
+## @{ @name walk(self, action, post_action=None, opt=None)
+## [\@spec walk] Walk through all elements of the tree and call out given functions.
+_walk = "dummy for doxygen styling"
+
+@pytest.fixture
+def _fixt_walk():
+    r"""
+    """
+    parent = Element({}, "PARENT", {})
+    parent._add_child(Element({}, "FIRST", {}))
+    parent._add_child(
+        Element({}, "SECOND", {})._add_child(Element({}, "LAST", {}))
+    )
+
+    return parent
+
+def spec_walk_1(_fixt_walk, mocker):
+    r"""
+    [\@Spec walk.1] walk() call action for each elements.
+    """
+    target = _fixt_walk
+    action_mock = mocker.Mock()
+
+    assert target.walk(action_mock) is target
+
+    args = action_mock.call_args_list
+
+    assert action_mock.call_count == 4
+    assert args[0] == [(target, None), {}]
+    assert args[1] == [(target.children[0], None), {}]
+    assert args[2] == [(target.children[1], None), {}]
+    assert args[3] == [(target.children[1].children[0], None), {}]
+
+def spec_walk_2(_fixt_walk, mocker):
+    r"""
+    [\@Spec walk.2] walk() call action and post_action for each elements.
+    """
+    target = _fixt_walk
+    action_mock = mocker.Mock()
+
+    assert target.walk(action_mock, post_action=action_mock) is target
+
+    args = action_mock.call_args_list
+
+    assert action_mock.call_count == 8
+    assert args[0] == [(target, None), {}]
+    assert args[1] == [(target.children[0], None), {}]
+    assert args[2] == [(target.children[0], None), {}]
+    assert args[3] == [(target.children[1], None), {}]
+    assert args[4] == [(target.children[1].children[0], None), {}]
+    assert args[5] == [(target.children[1].children[0], None), {}]
+    assert args[6] == [(target.children[1], None), {}]
+    assert args[7] == [(target, None), {}]
+
+def spec_walk_3(_fixt_walk, mocker):
+    r"""
+    [\@Spec walk.3] walk() call action with opt.
+    """
+    target = _fixt_walk
+    action_mock = mocker.Mock()
+    opt = {}
+
+    assert target.walk(action_mock, action_mock, opt) is target
+
+    args = action_mock.call_args_list
+
+    assert action_mock.call_count == 8
+    assert args[0] == [(target, opt), {}]
+    assert args[1] == [(target.children[0], opt), {}]
+    assert args[2] == [(target.children[0], opt), {}]
+    assert args[3] == [(target.children[1], opt), {}]
+    assert args[4] == [(target.children[1].children[0], opt), {}]
+    assert args[5] == [(target.children[1].children[0], opt), {}]
+    assert args[6] == [(target.children[1], opt), {}]
+    assert args[7] == [(target, opt), {}]
+
+## @}

@@ -258,6 +258,7 @@ Nothing worth mentioning.
 | @Method | hascontent | returns True if self has content(s) or False if self is typed but has no content.
 | @Method | get_content | returns main content data in the element.
 | @Method | get_content_type | returns type of main content in the element.
+| @Method | walk | Walk through all elements of the tree and call out given functions.
 
 ### 7.2. Block
 

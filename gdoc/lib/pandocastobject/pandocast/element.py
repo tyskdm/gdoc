@@ -179,3 +179,21 @@ class Element:
                 content_type = TYPEDEF['content']['type']
 
         return content_type
+
+    def walk(self, action, post_action=None, opt=None):
+        """ Walk through all elements of the tree and call out given functions.
+        @param action(function) : def action(element, opt)
+        @param post_action(function) : def post_action(element, opt)
+        @return Element :
+            self, for chaining.
+        """
+        action(self, opt)
+
+        if self.children is not None:
+            for child in self.children[:]:
+                child.walk(action, post_action, opt)
+
+        if post_action is not None:
+            post_action(self, opt)
+
+        return self
