@@ -36,7 +36,7 @@ Provide access methods to a pandoc AST object loaded from json file.
   - [7.8. TableBody](#78-tablebody)
   - [7.9. TableRow](#79-tablerow)
   - [7.10. TableCell](#710-tablecell)
-  - [7.11. PandocAst](#711-pandocast)
+  - [7.11. Pandoc](#711-pandoc)
 
 <br>
 
@@ -136,7 +136,7 @@ Two means to cover them are as follows.
 
 | Pandoc Type | Constructor | Gfm | Element Handler |
 | ----------- | ----------- | :-: | --------------- |
-| data Pandoc | Pandoc Meta [Block] | x | PandocAst? BlockList?
+| data Pandoc | Pandoc Meta [Block] | x | Pandoc
 
 #### 5.2.2. data Block
 
@@ -223,7 +223,7 @@ Intermediate data types for this purpose are as follows.
 | c8     | TableBody
 | c9     | TableRow
 | c10    | TableCell
-| c11    | PandocAst   | A python class to provide access methods to a pandoc ast object implemented in pandocast module.
+| c11    | Pandoc      | Root element representing whole pandocAst object.
 
 ### 5.4. Data Types
 
@@ -332,10 +332,10 @@ Nothing worth mentioning.
 |         | Association | @Inherit: su[Element]
 | @Method |  |
 
-### 7.11. PandocAst
+### 7.11. Pandoc
 
 | @Class& | Name | Description |
 | ------- | ---- | ----------- |
-| sc.c11  | PandocAst | provide access to all of original AST object.
+| sc.c11  | Pandoc | Root element representing whole pandocAst object.
 |         | Association | @Inherit: su[Element]
 | @Method |

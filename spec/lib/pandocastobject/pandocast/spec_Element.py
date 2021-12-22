@@ -321,6 +321,29 @@ _data_get_prop = {
             ['Term', 'TERM'],
             ['Description', 'DESCRIPTION']
         ]
+    ),
+    'Case With Structure(Pandoc)': (
+        {"pandoc-api-version":[1,22],"meta":{},"blocks":[]},
+        'Pandoc',
+        {
+            'Pandoc':  {
+                # 'class':  BlockList,
+                'content':  {
+                    'key':      None,
+                    'main':     'blocks',
+                    'type':     '[Block]'
+                },
+                'struct': {
+                    'Version':  'pandoc-api-version',
+                    'Meta':     'meta',
+                    'Blocks':   'blocks'
+                }
+            },
+        },
+        [
+            ['Version', [1,22]],
+            ['Meta', {}]
+        ]
     )
 }
 
@@ -342,7 +365,6 @@ def spec_get_prop_1(pan_elem, elem_type, TYPE_DEFS, TESTS):
 ## [\@spec get_attr] returns a attrbute of the element specified by key string.
 
 _data_get_attr = {
-
     'Case with Attr(Dict)': (
         { 't': 'CodeBlock', 'c': [['', ['c'], [['ATTR', 'OK']]], 'main()'] },
         'CodeBlock',
@@ -468,6 +490,26 @@ _data_hascontent = {
             },
         },
         True
+    ),
+    'Case has Content(Pandoc)': (
+        {"pandoc-api-version":[1,22],"meta":{},"blocks":[]},
+        'Pandoc',
+        {
+            'Pandoc':  {
+                # 'class':  BlockList,
+                'content':  {
+                    'key':      None,
+                    'main':     'blocks',
+                    'type':     '[Block]'
+                },
+                'struct': {
+                    'Version':  'pandoc-api-version',
+                    'Meta':     'meta',
+                    'Blocks':   'blocks'
+                }
+            },
+        },
+        True
     )
 }
 
@@ -573,6 +615,26 @@ _data_get_content = {
             }
         },
         '[RowData]'
+    ),
+    'Case has Main Content(Pandoc)': (
+        {"pandoc-api-version":[1,22],"meta":{},"blocks":"[BLOCK]"},
+        'Pandoc',
+        {
+            'Pandoc':  {
+                # 'class':  BlockList,
+                'content':  {
+                    'key':      None,
+                    'main':     'blocks',
+                    'type':     '[Block]'
+                },
+                'struct': {
+                    'Version':  'pandoc-api-version',
+                    'Meta':     'meta',
+                    'Blocks':   'blocks'
+                }
+            },
+        },
+        "[BLOCK]"
     )
 }
 
@@ -679,6 +741,26 @@ _data_get_content_type = {
             }
         },
         '[Cell]'
+    ),
+    'Case has Main Content(Pandoc)': (
+        {"pandoc-api-version":[1,22],"meta":{},"blocks":"[BLOCK]"},
+        'Pandoc',
+        {
+            'Pandoc':  {
+                # 'class':  BlockList,
+                'content':  {
+                    'key':      None,
+                    'main':     'blocks',
+                    'type':     '[Block]'
+                },
+                'struct': {
+                    'Version':  'pandoc-api-version',
+                    'Meta':     'meta',
+                    'Blocks':   'blocks'
+                }
+            },
+        },
+        '[Block]'
     )
 }
 
