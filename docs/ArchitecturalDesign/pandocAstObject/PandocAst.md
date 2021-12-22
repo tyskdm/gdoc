@@ -266,7 +266,7 @@ Nothing worth mentioning.
 | ------- | ---- | ----------- |
 | sc.c2   | Block | | Block element contains structured data without text string data.
 |         | Association | @Inherit: su[Element]
-| @Method |  |
+| @Method |  | No additional method
 
 ### 7.3. Inline
 
