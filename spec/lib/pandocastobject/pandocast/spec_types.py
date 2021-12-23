@@ -18,16 +18,16 @@ The specification of Element class.
 
 """
 import pytest
-import inspect
 from gdoc.lib.pandocastobject.pandocast import types
+from gdoc.lib.pandocastobject import pandocast
 
-## @{ @name walk(self, action, post_action=None, opt=None)
-## [\@spec walk] Walk through all elements of the tree and call out given functions.
-_types = "dummy for doxygen styling"
+## @{ @name create_element(pan_elem, elem_type=None)
+## [\@spec create_element] Find the element type and call constructor specified by it.
+_create_element = "dummy for doxygen styling"
 
-def spec_types_1(mocker):
+def spec_create_element_1(mocker):
     r"""
-    [\@Spec types.1] 't'
+    [\@Spec create_element.1] 't'
     """
     Class_mock = mocker.Mock(return_value='INSTANCE')
     elem_types = {'TARGET':  {'class':  Class_mock}}
@@ -45,9 +45,9 @@ def spec_types_1(mocker):
     assert Class_mock.call_count == 1
     assert args[0] == [(pan_elem, 'TARGET', elem_types['TARGET']), {}]
 
-def spec_types_2(mocker):
+def spec_create_element_2(mocker):
     r"""
-    [\@Spec types.2] Pandoc
+    [\@Spec create_element.2] Pandoc
     """
     Class_mock = mocker.Mock(return_value='INSTANCE')
     elem_types = {'Pandoc':  {'class':  Class_mock}}
@@ -65,9 +65,9 @@ def spec_types_2(mocker):
     assert Class_mock.call_count == 1
     assert args[0] == [(pan_elem, 'Pandoc', elem_types['Pandoc']), {}]
 
-def spec_types_3(mocker):
+def spec_create_element_3(mocker):
     r"""
-    [\@Spec types.3] elem_type
+    [\@Spec create_element.3] elem_type
     """
     Class_mock = mocker.Mock(return_value='INSTANCE')
     elem_types = {'TARGET':  {'class':  Class_mock}}
@@ -83,9 +83,9 @@ def spec_types_3(mocker):
     assert Class_mock.call_count == 1
     assert args[0] == [(pan_elem, 'TARGET', elem_types['TARGET']), {}]
 
-def spec_types_4(mocker):
+def spec_create_element_4(mocker):
     r"""
-    [\@Spec types.4] Missing element type -> should raise
+    [\@Spec create_element.4] Missing element type -> should raise
     """
     Class_mock = mocker.Mock(return_value='INSTANCE')
     elem_types = {'TARGET':  {'class':  Class_mock}}
@@ -98,9 +98,9 @@ def spec_types_4(mocker):
 
     assert str(e.value) == "'ELEMENT TYPE MISSING'"
 
-def spec_types_5(mocker):
+def spec_create_element_5(mocker):
     r"""
-    [\@Spec types.4] Invalid element type -> should raise
+    [\@Spec create_element.4] Invalid element type -> should raise
     """
     Class_mock = mocker.Mock(return_value='INSTANCE')
     elem_types = {'TARGET':  {'class':  Class_mock}}
@@ -112,6 +112,19 @@ def spec_types_5(mocker):
         element = types.create_element(pan_elem, 'TEST_INVALID_ELEMENT_TYPE')
 
     assert str(e.value) == "'TEST_INVALID_ELEMENT_TYPE'"
+
+
+## @}
+## @{ @name PandocAst(pan_elem, elem_type=None)
+## [\@spec create_element] `pandocast.PandocAst` is an alias of `create_element`
+##                         as external interface.
+_PandocAst = "dummy for doxygen styling"
+
+def spec_PandocAst_1():
+    r"""
+    [\@Spec PandocAst.1] alias
+    """
+    assert pandocast.PandocAst is types.create_element
 
 
 ## @}
