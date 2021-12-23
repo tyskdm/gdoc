@@ -1,0 +1,117 @@
+r"""
+The specification of Element class.
+
+### REFERENCES
+
+[@import SWDD from=gdoc/docs/ArchitecturalDesign/PandocAstObject/PandocAst]
+
+### THE TARGET
+
+[@import SWDD.SC[ELEMENT_TYPES] as=THIS]
+
+### ADDITIONAL STRUCTURE
+
+| @Module& | Name | Description |
+| -------- | ---- | ----------- |
+| THIS     | ELEMENT_TYPES  | data dict of each element types containing handler class and element format.
+| @Method  | create_element | Find the element type and call constructor specified by it.
+
+"""
+import pytest
+import inspect
+from gdoc.lib.pandocastobject.pandocast import types
+
+## @{ @name walk(self, action, post_action=None, opt=None)
+## [\@spec walk] Walk through all elements of the tree and call out given functions.
+_types = "dummy for doxygen styling"
+
+def spec_types_1(mocker):
+    r"""
+    [\@Spec types.1] 't'
+    """
+    Class_mock = mocker.Mock(return_value='INSTANCE')
+    elem_types = {'TARGET':  {'class':  Class_mock}}
+    mocker.patch('gdoc.lib.pandocastobject.pandocast.types._ELEMENT_TYPES', elem_types)
+
+    pan_elem = {
+        't': 'TARGET'
+    }
+    element = types.create_element(pan_elem)
+
+    assert element == 'INSTANCE'
+
+    args = Class_mock.call_args_list
+
+    assert Class_mock.call_count == 1
+    assert args[0] == [(pan_elem, 'TARGET', elem_types['TARGET']), {}]
+
+def spec_types_2(mocker):
+    r"""
+    [\@Spec types.2] Pandoc
+    """
+    Class_mock = mocker.Mock(return_value='INSTANCE')
+    elem_types = {'Pandoc':  {'class':  Class_mock}}
+    mocker.patch('gdoc.lib.pandocastobject.pandocast.types._ELEMENT_TYPES', elem_types)
+
+    pan_elem = {
+        'pandoc-api-version': [1,22]
+    }
+    element = types.create_element(pan_elem)
+
+    assert element == 'INSTANCE'
+
+    args = Class_mock.call_args_list
+
+    assert Class_mock.call_count == 1
+    assert args[0] == [(pan_elem, 'Pandoc', elem_types['Pandoc']), {}]
+
+def spec_types_3(mocker):
+    r"""
+    [\@Spec types.3] elem_type
+    """
+    Class_mock = mocker.Mock(return_value='INSTANCE')
+    elem_types = {'TARGET':  {'class':  Class_mock}}
+    mocker.patch('gdoc.lib.pandocastobject.pandocast.types._ELEMENT_TYPES', elem_types)
+
+    pan_elem = []
+    element = types.create_element(pan_elem, 'TARGET')
+
+    assert element == 'INSTANCE'
+
+    args = Class_mock.call_args_list
+
+    assert Class_mock.call_count == 1
+    assert args[0] == [(pan_elem, 'TARGET', elem_types['TARGET']), {}]
+
+def spec_types_4(mocker):
+    r"""
+    [\@Spec types.4] Missing element type -> should raise
+    """
+    Class_mock = mocker.Mock(return_value='INSTANCE')
+    elem_types = {'TARGET':  {'class':  Class_mock}}
+    mocker.patch('gdoc.lib.pandocastobject.pandocast.types._ELEMENT_TYPES', elem_types)
+
+    pan_elem = []
+
+    with pytest.raises(Exception) as e:
+        element = types.create_element(pan_elem)
+
+    assert str(e.value) == "'ELEMENT TYPE MISSING'"
+
+def spec_types_5(mocker):
+    r"""
+    [\@Spec types.4] Invalid element type -> should raise
+    """
+    Class_mock = mocker.Mock(return_value='INSTANCE')
+    elem_types = {'TARGET':  {'class':  Class_mock}}
+    mocker.patch('gdoc.lib.pandocastobject.pandocast.types._ELEMENT_TYPES', elem_types)
+
+    pan_elem = []
+
+    with pytest.raises(Exception) as e:
+        element = types.create_element(pan_elem, 'TEST_INVALID_ELEMENT_TYPE')
+
+    assert str(e.value) == "'TEST_INVALID_ELEMENT_TYPE'"
+
+
+## @}

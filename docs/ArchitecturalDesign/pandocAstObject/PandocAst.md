@@ -230,7 +230,7 @@ Intermediate data types for this purpose are as follows.
 | @block | Name | Text |
 | :----: | ---- | ---- |
 |        | Association   | @partof: THIS
-| d1     | _PANDOC_TYPES | data dict of each element types containing handler class and element format.
+| d1     | ELEMENT_TYPES | data dict of each element types containing handler class and element format.
 
 <br>
 
