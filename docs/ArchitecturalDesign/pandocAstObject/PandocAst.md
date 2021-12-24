@@ -216,7 +216,7 @@ Intermediate data types for this purpose are as follows.
 | c1     | Element     | primitive element of pandoc AST with fundamental properties and methods.
 | c2     | Block       | Block element contains structured data without text string data.
 | c3     | Inline      | Inline element contains text string, text-decoration data or Inlines.
-| c4     | BlockList   | BlockList is a Block containing Blocks as a list.
+| c4     | BlockList   | BlockList is a Block containing Blocks or BlockLists as a list.
 | c5     | InlineList  | InlineList is a Block containing Inlines as a list.
 | c6     | Table
 | c7     | TableRowList
