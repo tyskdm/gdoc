@@ -91,7 +91,7 @@ def spec___init___4(mocker):
             'class':  Inline,
             'content':  {
                 'key':      'c',
-                'type':     '[Inline]'
+                'type':     'CHILD_TYPE'
             },
             'struct': None
         }
@@ -100,13 +100,13 @@ def spec___init___4(mocker):
     elem_type = 'Strong'
 
     class mock_create_element():
-        def __init__(self, pan_elem, elem_type=None):
+        def __init__(self, pan_elem, elem_type):
             self.parent = None
             self.pan_elem = pan_elem
+            self.elem_type = elem_type
             self.children = []
 
     mock = mocker.Mock(
-        # 'gdoc.lib.pandocastobject.pandocast.inline.create_element',
         side_effect=mock_create_element
     )
 
@@ -115,9 +115,11 @@ def spec___init___4(mocker):
     args = mock.call_args_list
 
     assert mock.call_count == 2
-    assert args[0] == [('FIRST',), {}]
-    assert args[1] == [('SECOND',), {}]
+    assert args[0] == [('FIRST', 'CHILD_TYPE'), {}]
+    assert args[1] == [('SECOND', 'CHILD_TYPE'), {}]
     assert target.children[0].pan_elem == 'FIRST'
+    assert target.children[0].elem_type == 'CHILD_TYPE'
     assert target.children[1].pan_elem == 'SECOND'
+    assert target.children[0].elem_type == 'CHILD_TYPE'
 
 ## @}

@@ -43,7 +43,7 @@ def spec___init___2():
             'class':  BlockList,
             'content':  {
                 'key':      None,
-                'type':     '[Block]'
+                'type':     ''
             }
         }
     }
@@ -66,8 +66,7 @@ def spec___init___3(mocker):
         'BlockList':  {
             'class':  BlockList,
             'content':  {
-                'key':      None,
-                'type':     '[Block]'
+                'key':      None
             }
         }
     }
@@ -76,12 +75,7 @@ def spec___init___3(mocker):
             self.parent = None
             self.pan_elem = pan_elem
 
-    # mock = mocker.patch(
-    #     'gdoc.lib.pandocastobject.pandocast.blocklist.create_element',
-    #     side_effect=mock_create_element
-    # )
     mock = mocker.Mock(
-        # 'gdoc.lib.pandocastobject.pandocast.blocklist.create_element',
         side_effect=mock_create_element
     )
 
@@ -97,23 +91,22 @@ def spec___init___3(mocker):
 
 def spec___init___4(mocker):
     r"""
-    [@spec \_\_init\_\_.4] create self and its children. type='[[BlockList]]'
+    [@spec \_\_init\_\_.4] create self and its children. type='BlockList'
     """
-    # gdoc.lib.pandocastobject.pandocast.
     _ELEMENT = [['1-1', '1-2'], ['2-1', '2-2']]
     _TYPE_DEF = {
-        'BlockList':  {
-            'class':  BlockList,
-            'content':  {
-                'key':      None,
-                'type':     '[Block]'
-            }
-        },
+        # 'BlockList':  {
+        #     'class':  BlockList,
+        #     'content':  {
+        #         'key':      None,
+        #         'type':     '[Block]'
+        #     }
+        # },
         'BlockMatrix':  {
             'class':  BlockList,
             'content':  {
                 'key':      None,
-                'type':     '[[Block]]'
+                'type':     'BlockList'
             }
         }
     }
@@ -123,12 +116,7 @@ def spec___init___4(mocker):
             self.pan_elem = pan_elem
             self.children = []
 
-    # mock = mocker.patch(
-    #     'gdoc.lib.pandocastobject.pandocast.blocklist.create_element',
-    #     side_effect=mock_create_element
-    # )
     mock = mocker.Mock(
-        # 'gdoc.lib.pandocastobject.pandocast.blocklist.create_element',
         side_effect=mock_create_element
     )
 

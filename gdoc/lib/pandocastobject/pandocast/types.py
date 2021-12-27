@@ -36,16 +36,16 @@ def create_element(pan_elem, elem_type=None):
 # https://hackage.haskell.org/package/pandoc-types-1.22/docs/Text-Pandoc-Definition.html
 #
 _ELEMENT_TYPES = {
-    # #
-    # # Gdoc additional types
-    # #
+    #
+    # Gdoc additional types
+    #
     # 'BlockList':  {
     #     # [Block]   is not BlockList object, just an Array of Blocks.
     #     #           It means BlockList doesn't have 't' and 'c' elements.
     #     'class':  BlockList,
     #     'content':  {
     #         'key':      None,
-    #         'type':     '[Block]'
+    #         'type':     None
     #     },
     #     'struct': None
     # },
@@ -65,7 +65,7 @@ _ELEMENT_TYPES = {
         'class':  BlockList,
         'content':  {
             'key':      None,
-            'type':     '[Block]'
+            'type':     None
         },
         'struct': None
     },
@@ -87,7 +87,7 @@ _ELEMENT_TYPES = {
         'content':  {
             'key':      None,
             'main':     'blocks',
-            'type':     '[Block]'
+            'type':     None
         },
         'struct': {
             'Version':  'pandoc-api-version',
@@ -161,7 +161,7 @@ _ELEMENT_TYPES = {
         'class':  BlockList,
         'content':  {
             'key':      'c',
-            'type':     '[Block]'
+            'type':     None
         },
         'struct': None
     },
@@ -172,7 +172,7 @@ _ELEMENT_TYPES = {
         'content':  {
             'key':      'c',
             'main':     1,
-            'type':     '[[Block]]'
+            'type':     'ListItem'
         },
         'struct': {
             'ListAttributes':   0,
@@ -185,7 +185,7 @@ _ELEMENT_TYPES = {
         'class':  BlockList,
         'content':  {
             'key':      'c',
-            'type':     '[[Block]]'
+            'type':     'ListItem'
         },
         'struct': None
     },
@@ -243,7 +243,7 @@ _ELEMENT_TYPES = {
         'content':  {
             'key':      'c',
             'main':     1,
-            'type':     '[Block]'
+            'type':     None
         },
         'struct': {
             'Attr':     0,
@@ -273,7 +273,7 @@ _ELEMENT_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'type':     '[Inline]'
+            'type':     None
         },
         'struct': None
     },
@@ -283,7 +283,7 @@ _ELEMENT_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'type':     '[Inline]'
+            'type':     None
         },
         'struct': None
     },
@@ -293,7 +293,7 @@ _ELEMENT_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'type':     '[Inline]'
+            'type':     None
         },
         'struct': None
     },
@@ -303,7 +303,7 @@ _ELEMENT_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'type':     '[Inline]'
+            'type':     None
         },
         'struct': None
     },
@@ -313,7 +313,7 @@ _ELEMENT_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'type':     '[Inline]'
+            'type':     None
         },
         'struct': None
     },
@@ -323,7 +323,7 @@ _ELEMENT_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'type':     '[Inline]'
+            'type':     None
         },
         'struct': None
     },
@@ -333,7 +333,7 @@ _ELEMENT_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'type':     '[Inline]'
+            'type':     None
         },
         'struct': None
     },
@@ -344,7 +344,7 @@ _ELEMENT_TYPES = {
         'content':  {
             'key':      'c',
             'main':     1,
-            'type':     '[Inline]'
+            'type':     None
         },
         'struct': {
             'QuotedType':   0,
@@ -358,7 +358,7 @@ _ELEMENT_TYPES = {
         'content':  {
             'key':      'c',
             'main':     1,
-            'type':     '[Inline]'
+            'type':     None
         },
         'struct': {
             'Citation': 0,
@@ -432,7 +432,7 @@ _ELEMENT_TYPES = {
         'content':  {
             'key':      'c',
             'main':     1,
-            'type':     '[Inline]'
+            'type':     None
         },
         'struct': {
             'Attr':     0,
@@ -447,7 +447,7 @@ _ELEMENT_TYPES = {
         'content':  {
             'key':      'c',
             'main':     1,
-            'type':     '[Inline]'
+            'type':     None
         },
         'struct': {
             'Attr':     0,
@@ -461,7 +461,7 @@ _ELEMENT_TYPES = {
         'class':  Inline,
         'content':  {
             'key':      'c',
-            'type':     '[Block]'
+            'type':     None
         },
         'struct': None
     },
@@ -472,7 +472,7 @@ _ELEMENT_TYPES = {
         'content':  {
             'key':      'c',
             'main':     1,
-            'type':     '[Inline]'
+            'type':     None
         },
         'struct': {
             'Attr':     0,

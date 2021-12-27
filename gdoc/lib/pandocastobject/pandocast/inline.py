@@ -42,9 +42,10 @@ class Inline(Element):
             # '[Inline]' or '[Block]'
             #
             panContent = self.get_content()
+            panContentType = self.get_content_type()
 
             for element in panContent:
-                self._add_child(create_element(element))
+                self._add_child(create_element(element, panContentType))
 
             for element in self.children:
                 if hasattr(element, 'text') and (element.text is not None):

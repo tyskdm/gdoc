@@ -25,7 +25,7 @@ class BlockList(Block):
         super().__init__(pan_elem, elem_type, type_def)
 
         contents = self.get_content()
-        type = 'BlockList' if self.get_content_type() == '[[Block]]' else None
+        type = self.get_content_type()
 
         for item in contents:
             self._add_child(create_element(item, type))
