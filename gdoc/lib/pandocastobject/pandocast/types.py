@@ -2,6 +2,7 @@ r"""
 PandocAst Type definitions and Utilities.
 """
 
+# from .inline import Inline
 from .pandoc import Pandoc
 
 def create_element(pan_elem, elem_type=None):
@@ -252,9 +253,9 @@ _ELEMENT_TYPES = {
     #     # Null
     #     # - Nothing
     # },
-    # #
-    # # Inlines
-    # #
+    #
+    # Inlines
+    #
     # 'Str':  {
     #     # Str Text
     #     # Text (string)
@@ -380,17 +381,20 @@ _ELEMENT_TYPES = {
     # 'Space':  {
     #     # Space
     #     # Inter-word space
-    #     'class':  Inline
+    #     'class':  Inline,
+    #     'alt': ' '
     # },
     # 'SoftBreak':  {
     #     # SoftBreak
     #     # Soft line break
-    #     'class':  Inline
+    #     'class':  Inline,
+    #     'alt': ' '
     # },
     # 'LineBreak':  {
     #     # LineBreak
     #     # Hard line break
-    #     'class':  Inline
+    #     'class':  Inline,
+    #     'alt': '\n'
     # },
     # 'Math':  {
     #     # Math MathType Text
