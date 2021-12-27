@@ -2,7 +2,8 @@ r"""
 PandocAst Type definitions and Utilities.
 """
 
-# from .inline import Inline
+from .blocklist import BlockList
+from .inline import Inline
 from .pandoc import Pandoc
 
 def create_element(pan_elem, elem_type=None):
@@ -25,7 +26,7 @@ def create_element(pan_elem, elem_type=None):
         raise KeyError(etype)
 
     element = _ELEMENT_TYPES[etype]['class'](
-                  pan_elem, etype, _ELEMENT_TYPES[etype])
+                  pan_elem, etype, _ELEMENT_TYPES[etype], create_element)
 
     return element
 
@@ -58,16 +59,16 @@ _ELEMENT_TYPES = {
     #     },
     #     'struct': None
     # },
-    # 'ListItem':  {
-    #     # [Block]   is not ListItem object, just an Array of Blocks.
-    #     #           It means ListItem doesn't have 't' and 'c' elements.
-    #     'class':  BlockList,
-    #     'content':  {
-    #         'key':      None,
-    #         'type':     '[Block]'
-    #     },
-    #     'struct': None
-    # },
+    'ListItem':  {
+        # [Block]   is not ListItem object, just an Array of Blocks.
+        #           It means ListItem doesn't have 't' and 'c' elements.
+        'class':  BlockList,
+        'content':  {
+            'key':      None,
+            'type':     '[Block]'
+        },
+        'struct': None
+    },
     # 'DefinitionItem':  {
     #     # ([Inline], [[Block]]) is not List, Item(=Term+Definitions).
     #     'class':  DefinitionList,
@@ -154,40 +155,40 @@ _ELEMENT_TYPES = {
     #         'Text':     1
     #     }
     # },
-    # 'BlockQuote':  {
-    #     # BlockQuote [Block]
-    #     # - Block quote (list of blocks)
-    #     'class':  BlockList,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     '[Block]'
-    #     },
-    #     'struct': None
-    # },
-    # 'OrderedList':  {
-    #     # OrderedList ListAttributes [[Block]]
-    #     # - Ordered list (attributes and a list of items, each a list of blocks)
-    #     'class':  BlockList,
-    #     'content':  {
-    #         'key':      'c',
-    #         'main':     1,
-    #         'type':     '[[Block]]'
-    #     },
-    #     'struct': {
-    #         'ListAttributes':   0,
-    #         'ListItems':        1
-    #     }
-    # },
-    # 'BulletList':  {
-    #     # BulletList [[Block]]
-    #     # - Bullet list (list of items, each a list of blocks)
-    #     'class':  BlockList,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     '[[Block]]'
-    #     },
-    #     'struct': None
-    # },
+    'BlockQuote':  {
+        # BlockQuote [Block]
+        # - Block quote (list of blocks)
+        'class':  BlockList,
+        'content':  {
+            'key':      'c',
+            'type':     '[Block]'
+        },
+        'struct': None
+    },
+    'OrderedList':  {
+        # OrderedList ListAttributes [[Block]]
+        # - Ordered list (attributes and a list of items, each a list of blocks)
+        'class':  BlockList,
+        'content':  {
+            'key':      'c',
+            'main':     1,
+            'type':     '[[Block]]'
+        },
+        'struct': {
+            'ListAttributes':   0,
+            'ListItems':        1
+        }
+    },
+    'BulletList':  {
+        # BulletList [[Block]]
+        # - Bullet list (list of items, each a list of blocks)
+        'class':  BlockList,
+        'content':  {
+            'key':      'c',
+            'type':     '[[Block]]'
+        },
+        'struct': None
+    },
     # 'DefinitionList':  {
     #     # DefinitionList [([Inline], [[Block]])]
     #     # - Definition list. Each list item is a pair consisting of a term (a list of inlines) and one or more definitions (each a list of blocks)
@@ -235,20 +236,20 @@ _ELEMENT_TYPES = {
     #         'TableFoot':    5
     #     }
     # },
-    # 'Div':  {
-    #     # Div Attr [Block]
-    #     # - Generic block container with attributes
-    #     'class':  BlockList,
-    #     'content':  {
-    #         'key':      'c',
-    #         'main':     1,
-    #         'type':     '[Block]'
-    #     },
-    #     'struct': {
-    #         'Attr':     0,
-    #         '[Block]':  1
-    #     }
-    # },
+    'Div':  {
+        # Div Attr [Block]
+        # - Generic block container with attributes
+        'class':  BlockList,
+        'content':  {
+            'key':      'c',
+            'main':     1,
+            'type':     '[Block]'
+        },
+        'struct': {
+            'Attr':     0,
+            '[Block]':  1
+        }
+    },
     # 'Null':  {
     #     # Null
     #     # - Nothing
@@ -256,228 +257,228 @@ _ELEMENT_TYPES = {
     #
     # Inlines
     #
-    # 'Str':  {
-    #     # Str Text
-    #     # Text (string)
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     'Text'
-    #     },
-    #     'struct': None
-    # },
-    # 'Emph':  {
-    #     # Emph [Inline]
-    #     # Emphasized text (list of inlines)
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': None
-    # },
-    # 'Underline':  {
-    #     # Underline [Inline]
-    #     # Underlined text (list of inlines)
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': None
-    # },
-    # 'Strong':  {
-    #     # Strong [Inline]
-    #     # Strongly emphasized text (list of inlines)
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': None
-    # },
-    # 'Strikeout':  {
-    #     # Strikeout [Inline]
-    #     # Strikeout text (list of inlines)
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': None
-    # },
-    # 'Superscript':  {
-    #     # Superscript [Inline]
-    #     # Superscripted text (list of inlines)
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': None
-    # },
-    # 'Subscript':  {
-    #     # Subscript [Inline]
-    #     # Subscripted text (list of inlines)
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': None
-    # },
-    # 'SmallCaps':  {
-    #     # SmallCaps [Inline]
-    #     # Small caps text (list of inlines)
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': None
-    # },
-    # 'Quoted':  {
-    #     # Quoted QuoteType [Inline]
-    #     # Quoted text (list of inlines)
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'main':     1,
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': {
-    #         'QuotedType':   0,
-    #         'Inlines':      1
-    #     }
-    # },
-    # 'Cite':  {
-    #     # Cite [Citation] [Inline]
-    #     # Citation (list of inlines)
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'main':     1,
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': {
-    #         'Citation': 0,
-    #         'Inlines':  1
-    #     }
-    # },
-    # 'Code':  {
-    #     # Code Attr Text
-    #     # Inline code (literal)
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'main':     1,
-    #         'type':     'Text'
-    #     },
-    #     'struct': {
-    #         'Attr':     0,
-    #         'Text':     1
-    #     }
-    # },
-    # 'Space':  {
-    #     # Space
-    #     # Inter-word space
-    #     'class':  Inline,
-    #     'alt': ' '
-    # },
-    # 'SoftBreak':  {
-    #     # SoftBreak
-    #     # Soft line break
-    #     'class':  Inline,
-    #     'alt': ' '
-    # },
-    # 'LineBreak':  {
-    #     # LineBreak
-    #     # Hard line break
-    #     'class':  Inline,
-    #     'alt': '\n'
-    # },
-    # 'Math':  {
-    #     # Math MathType Text
-    #     # TeX math (literal)
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'main':     1,
-    #         'type':     'Text'
-    #     },
-    #     'struct': {
-    #         'MathType': 0,
-    #         'Text':     1
-    #     }
-    # },
-    # 'RawInline':  {
-    #     # RawInline Format Text
-    #     # Raw inline
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'main':     1,
-    #         'type':     'Text'
-    #     },
-    #     'struct': {
-    #         'Format':   0,
-    #         'Text':     1
-    #     }
-    # },
-    # 'Link':  {
-    #     # Link Attr [Inline] Target
-    #     # Hyperlink: alt text (list of inlines), target
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'main':     1,
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': {
-    #         'Attr':     0,
-    #         'Inlines':  1,
-    #         'Target':   2
-    #     }
-    # },
-    # 'Image':  {
-    #     # Image Attr [Inline] Target
-    #     # Image: alt text (list of inlines), target
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'main':     1,
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': {
-    #         'Attr':     0,
-    #         'Inlines':  1,
-    #         'Taget':    2
-    #     }
-    # },
-    # 'Note':  {
-    #     # Note [Block]
-    #     # Footnote or endnote
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     '[Block]'
-    #     },
-    #     'struct': None
-    # },
-    # 'Span':  {
-    #     # Span Attr [Inline]
-    #     # Generic inline container with attributes
-    #     'class':  Inline,
-    #     'content':  {
-    #         'key':      'c',
-    #         'main':     1,
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': {
-    #         'Attr':     0,
-    #         'Inlines':  1
-    #     }
-    # },
+    'Str':  {
+        # Str Text
+        # Text (string)
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'type':     'Text'
+        },
+        'struct': None
+    },
+    'Emph':  {
+        # Emph [Inline]
+        # Emphasized text (list of inlines)
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'type':     '[Inline]'
+        },
+        'struct': None
+    },
+    'Underline':  {
+        # Underline [Inline]
+        # Underlined text (list of inlines)
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'type':     '[Inline]'
+        },
+        'struct': None
+    },
+    'Strong':  {
+        # Strong [Inline]
+        # Strongly emphasized text (list of inlines)
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'type':     '[Inline]'
+        },
+        'struct': None
+    },
+    'Strikeout':  {
+        # Strikeout [Inline]
+        # Strikeout text (list of inlines)
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'type':     '[Inline]'
+        },
+        'struct': None
+    },
+    'Superscript':  {
+        # Superscript [Inline]
+        # Superscripted text (list of inlines)
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'type':     '[Inline]'
+        },
+        'struct': None
+    },
+    'Subscript':  {
+        # Subscript [Inline]
+        # Subscripted text (list of inlines)
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'type':     '[Inline]'
+        },
+        'struct': None
+    },
+    'SmallCaps':  {
+        # SmallCaps [Inline]
+        # Small caps text (list of inlines)
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'type':     '[Inline]'
+        },
+        'struct': None
+    },
+    'Quoted':  {
+        # Quoted QuoteType [Inline]
+        # Quoted text (list of inlines)
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'main':     1,
+            'type':     '[Inline]'
+        },
+        'struct': {
+            'QuotedType':   0,
+            'Inlines':      1
+        }
+    },
+    'Cite':  {
+        # Cite [Citation] [Inline]
+        # Citation (list of inlines)
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'main':     1,
+            'type':     '[Inline]'
+        },
+        'struct': {
+            'Citation': 0,
+            'Inlines':  1
+        }
+    },
+    'Code':  {
+        # Code Attr Text
+        # Inline code (literal)
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'main':     1,
+            'type':     'Text'
+        },
+        'struct': {
+            'Attr':     0,
+            'Text':     1
+        }
+    },
+    'Space':  {
+        # Space
+        # Inter-word space
+        'class':  Inline,
+        'alt': ' '
+    },
+    'SoftBreak':  {
+        # SoftBreak
+        # Soft line break
+        'class':  Inline,
+        'alt': ' '
+    },
+    'LineBreak':  {
+        # LineBreak
+        # Hard line break
+        'class':  Inline,
+        'alt': '\n'
+    },
+    'Math':  {
+        # Math MathType Text
+        # TeX math (literal)
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'main':     1,
+            'type':     'Text'
+        },
+        'struct': {
+            'MathType': 0,
+            'Text':     1
+        }
+    },
+    'RawInline':  {
+        # RawInline Format Text
+        # Raw inline
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'main':     1,
+            'type':     'Text'
+        },
+        'struct': {
+            'Format':   0,
+            'Text':     1
+        }
+    },
+    'Link':  {
+        # Link Attr [Inline] Target
+        # Hyperlink: alt text (list of inlines), target
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'main':     1,
+            'type':     '[Inline]'
+        },
+        'struct': {
+            'Attr':     0,
+            'Inlines':  1,
+            'Target':   2
+        }
+    },
+    'Image':  {
+        # Image Attr [Inline] Target
+        # Image: alt text (list of inlines), target
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'main':     1,
+            'type':     '[Inline]'
+        },
+        'struct': {
+            'Attr':     0,
+            'Inlines':  1,
+            'Taget':    2
+        }
+    },
+    'Note':  {
+        # Note [Block]
+        # Footnote or endnote
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'type':     '[Block]'
+        },
+        'struct': None
+    },
+    'Span':  {
+        # Span Attr [Inline]
+        # Generic inline container with attributes
+        'class':  Inline,
+        'content':  {
+            'key':      'c',
+            'main':     1,
+            'type':     '[Inline]'
+        },
+        'struct': {
+            'Attr':     0,
+            'Inlines':  1
+        }
+    },
     # #
     # # OtherTypes
     # #

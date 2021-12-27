@@ -48,7 +48,7 @@ def spec___init___2():
         }
     }
 
-    target = BlockList(_ELEMENT, 'BlockList', _TYPE_DEF['BlockList'])
+    target = BlockList(_ELEMENT, 'BlockList', _TYPE_DEF['BlockList'], 'dummy_function')
 
     assert target.pan_element is _ELEMENT
     assert target.type == 'BlockList'
@@ -76,12 +76,16 @@ def spec___init___3(mocker):
             self.parent = None
             self.pan_elem = pan_elem
 
-    mock = mocker.patch(
-        'gdoc.lib.pandocastobject.pandocast.blocklist.create_element',
+    # mock = mocker.patch(
+    #     'gdoc.lib.pandocastobject.pandocast.blocklist.create_element',
+    #     side_effect=mock_create_element
+    # )
+    mock = mocker.Mock(
+        # 'gdoc.lib.pandocastobject.pandocast.blocklist.create_element',
         side_effect=mock_create_element
     )
 
-    target = BlockList(_ELEMENT, 'BlockList', _TYPE_DEF['BlockList'])
+    target = BlockList(_ELEMENT, 'BlockList', _TYPE_DEF['BlockList'], mock)
 
     args = mock.call_args_list
 
@@ -119,12 +123,16 @@ def spec___init___4(mocker):
             self.pan_elem = pan_elem
             self.children = []
 
-    mock = mocker.patch(
-        'gdoc.lib.pandocastobject.pandocast.blocklist.create_element',
+    # mock = mocker.patch(
+    #     'gdoc.lib.pandocastobject.pandocast.blocklist.create_element',
+    #     side_effect=mock_create_element
+    # )
+    mock = mocker.Mock(
+        # 'gdoc.lib.pandocastobject.pandocast.blocklist.create_element',
         side_effect=mock_create_element
     )
 
-    target = BlockList(_ELEMENT, 'BlockMatrix', _TYPE_DEF['BlockMatrix'])
+    target = BlockList(_ELEMENT, 'BlockMatrix', _TYPE_DEF['BlockMatrix'], mock)
 
     args = mock.call_args_list
 

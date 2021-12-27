@@ -43,7 +43,7 @@ def spec_create_element_1(mocker):
     args = Class_mock.call_args_list
 
     assert Class_mock.call_count == 1
-    assert args[0] == [(pan_elem, 'TARGET', elem_types['TARGET']), {}]
+    assert args[0] == [(pan_elem, 'TARGET', elem_types['TARGET'], types.create_element), {}]
 
 def spec_create_element_2(mocker):
     r"""
@@ -63,7 +63,7 @@ def spec_create_element_2(mocker):
     args = Class_mock.call_args_list
 
     assert Class_mock.call_count == 1
-    assert args[0] == [(pan_elem, 'Pandoc', elem_types['Pandoc']), {}]
+    assert args[0] == [(pan_elem, 'Pandoc', elem_types['Pandoc'], types.create_element), {}]
 
 def spec_create_element_3(mocker):
     r"""
@@ -81,7 +81,7 @@ def spec_create_element_3(mocker):
     args = Class_mock.call_args_list
 
     assert Class_mock.call_count == 1
-    assert args[0] == [(pan_elem, 'TARGET', elem_types['TARGET']), {}]
+    assert args[0] == [(pan_elem, 'TARGET', elem_types['TARGET'], types.create_element), {}]
 
 def spec_create_element_4(mocker):
     r"""

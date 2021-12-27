@@ -31,13 +31,13 @@ ___init__ = "dummy for doxygen styling"
 
 def spec___init___1():
     r"""
-    [@spec \_\_init\_\_.1] `Inline` should be a class that inherits from Element.
+    [\@spec \_\_init\_\_.1] `Inline` should be a class that inherits from Element.
     """
     assert issubclass(Inline, Element)
 
 
 def spec___init___2():
-    """
+    r"""
     [\@spec __init__.2] | NO Content(Space, SoftBreak, LineBreak)
     """
     _ELEMENT_TYPES = {
@@ -51,13 +51,13 @@ def spec___init___2():
     pan_elem = { 't': 'TEST' }
     elem_type = 'TEST'
 
-    target = Inline(pan_elem, elem_type, _ELEMENT_TYPES[elem_type])
+    target = Inline(pan_elem, elem_type, _ELEMENT_TYPES[elem_type], 'dummy_function')
 
     assert target.text == 'TEST-ALT-TEXT'
 
 
 def spec___init___3():
-    """
+    r"""
     [\@spec __init__.3] | With Content(Text String)
     """
     _ELEMENT_TYPES = {
@@ -75,13 +75,13 @@ def spec___init___3():
     pan_elem = { 't': 'Str', 'c': 'TEST-TEXT-STRING' }
     elem_type = 'Str'
 
-    target = Inline(pan_elem, elem_type, _ELEMENT_TYPES[elem_type])
+    target = Inline(pan_elem, elem_type, _ELEMENT_TYPES[elem_type], 'dummy_function')
 
     assert target.text == 'TEST-TEXT-STRING'
 
 
 def spec___init___4(mocker):
-    """
+    r"""
     [\@spec __init__.4] | With Content(Child Inlines)
     """
     _ELEMENT_TYPES = {
@@ -105,12 +105,12 @@ def spec___init___4(mocker):
             self.pan_elem = pan_elem
             self.children = []
 
-    mock = mocker.patch(
-        'gdoc.lib.pandocastobject.pandocast.inline.create_element',
+    mock = mocker.Mock(
+        # 'gdoc.lib.pandocastobject.pandocast.inline.create_element',
         side_effect=mock_create_element
     )
 
-    target = Inline(pan_elem, elem_type, _ELEMENT_TYPES[elem_type])
+    target = Inline(pan_elem, elem_type, _ELEMENT_TYPES[elem_type], mock)
 
     args = mock.call_args_list
 

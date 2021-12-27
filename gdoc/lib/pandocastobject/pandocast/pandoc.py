@@ -2,15 +2,15 @@ r"""
 PandocAst class
 """
 
-from .element import Element
+from .blocklist import BlockList
 
 
-class Pandoc(Element):
+class Pandoc(BlockList):
     """
     Root element representing whole pandocAst object.
     """
 
-    def __init__(self, pan_elem, elem_type, type_def):
+    def __init__(self, pan_elem, elem_type, type_def, create_element):
         """ Constructor
         @param pan_elem(Dict)
             PandocAST Element
@@ -18,10 +18,7 @@ class Pandoc(Element):
             Element type
         @param type_def(Dict)
             Element structur data
+        @param create_element(func(pan_elem, elem_type : Element))
+            General constructor of pandoc Element types for creating children.
         """
-        super().__init__(pan_elem, elem_type, type_def)
-
-        # contents = self.get_content()
-
-        # for block in contents:
-        #     self._append_child(Element.create_element(block))
+        super().__init__(pan_elem, elem_type, type_def, create_element)
