@@ -57,7 +57,8 @@ _ELEMENT_TYPES = {
     #         'key':      None,
     #         'type':     '[Inline]'
     #     },
-    #     'struct': None
+    #     'struct': None,
+    #     'separator': ''
     # },
     'ListItem':  {
         # [Block]   is not ListItem object, just an Array of Blocks.
@@ -107,6 +108,7 @@ _ELEMENT_TYPES = {
     #         'type':     '[Inline]'
     #     },
     #     'struct': None
+    #     'separator': ''
     # },
     # 'Para':  {
     #     # Para [Inline]
@@ -117,6 +119,7 @@ _ELEMENT_TYPES = {
     #         'type':     '[Inline]'
     #     },
     #     'struct': None
+    #     'separator': ''
     # },
     # 'LineBlock':  {
     #     # LineBlock [[Inline]]
@@ -127,6 +130,7 @@ _ELEMENT_TYPES = {
     #         'type':     '[[Inline]]'
     #     },
     #     'struct': None
+    #     'separator': '\n'
     # },
     # 'CodeBlock':  {
     #     # CodeBlock Attr Text
@@ -134,6 +138,7 @@ _ELEMENT_TYPES = {
     #     'class':  InlineList,
     #     'content':  {
     #         'key':      'c',
+    #         'main':     1,
     #         'type':     'Text'
     #     },
     #     'struct': {
@@ -213,11 +218,13 @@ _ELEMENT_TYPES = {
     #         'Attr':     1,
     #         '[Inline]': 2
     #     }
+    #     'separator': ''
     # },
     # 'HorizontalRule':  {
     #     # HorizontalRule
     #     # - Horizontal rule
-    #     'class':  InlineList
+    #     'class':  InlineList,
+    #     'alt': ''
     # },
     # 'Table':  {
     #     # Table Attr Caption [ColSpec] TableHead [TableBody] TableFoot
