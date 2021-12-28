@@ -2,9 +2,10 @@ r"""
 PandocAst Type definitions and Utilities.
 """
 
-from .blocklist import BlockList
-from .inline import Inline
-from .pandoc import Pandoc
+from .blocklist     import BlockList
+from .inline        import Inline
+from .inlinelist    import InlineList
+from .pandoc        import Pandoc
 
 def create_element(pan_elem, elem_type=None):
     """
@@ -39,30 +40,19 @@ _ELEMENT_TYPES = {
     #
     # Gdoc additional types
     #
-    # 'BlockList':  {
-    #     # [Block]   is not BlockList object, just an Array of Blocks.
-    #     #           It means BlockList doesn't have 't' and 'c' elements.
-    #     'class':  BlockList,
-    #     'content':  {
-    #         'key':      None,
-    #         'type':     None
-    #     },
-    #     'struct': None
-    # },
-    # 'InlineList':  {
-    #     # [Inline]  is not InlineList object, just an Array of Inlines.
-    #     #           It means InlineList doesn't have 't' and 'c' elements.
-    #     'class':  InlineList,
-    #     'content':  {
-    #         'key':      None,
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': None,
-    #     'separator': ''
-    # },
+    'Line':  {
+        # [Inline]  is not Line object, just an Array of Inlines.
+        # It's 'Multiple non-breaking lines' for LineBlock class.
+        'class':  InlineList,
+        'content':  {
+            'key':      None,
+            'type':     None
+        },
+        'struct': None,
+        'separator': ''
+    },
     'ListItem':  {
         # [Block]   is not ListItem object, just an Array of Blocks.
-        #           It means ListItem doesn't have 't' and 'c' elements.
         'class':  BlockList,
         'content':  {
             'key':      None,
@@ -70,15 +60,6 @@ _ELEMENT_TYPES = {
         },
         'struct': None
     },
-    # 'DefinitionItem':  {
-    #     # ([Inline], [[Block]]) is not List, Item(=Term+Definitions).
-    #     'class':  DefinitionList,
-    #     'content':  {
-    #         'key':      None
-    #         # 'type':     [ '[Inline]', '[[Block]]' ]
-    #     },
-    #     'struct': None
-    # },
     #
     # Pandoc
     #
@@ -96,70 +77,70 @@ _ELEMENT_TYPES = {
             'Blocks':   'blocks'
         }
     },
-    # #
-    # # Blocks
-    # #
-    # 'Plain':  {
-    #     # Plain [Inline]
-    #     # - Plain text, not a paragraph
-    #     'class':  InlineList,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': None
-    #     'separator': ''
-    # },
-    # 'Para':  {
-    #     # Para [Inline]
-    #     # - Paragraph
-    #     'class':  InlineList,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': None
-    #     'separator': ''
-    # },
-    # 'LineBlock':  {
-    #     # LineBlock [[Inline]]
-    #     # - Multiple non-breaking lines
-    #     'class':  InlineList,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     '[[Inline]]'
-    #     },
-    #     'struct': None
-    #     'separator': '\n'
-    # },
-    # 'CodeBlock':  {
-    #     # CodeBlock Attr Text
-    #     # - Code block (literal) with attributes
-    #     'class':  InlineList,
-    #     'content':  {
-    #         'key':      'c',
-    #         'main':     1,
-    #         'type':     'Text'
-    #     },
-    #     'struct': {
-    #         'Attr':     0,
-    #         'Text':     1
-    #     }
-    # },
-    # 'RawBlock':  {
-    #     # RawBlock Format Text
-    #     # - Raw block
-    #     'class':  InlineList,
-    #     'content':  {
-    #         'key':      'c',
-    #         'main':     1,
-    #         'type':     'Text'
-    #     },
-    #     'struct': {
-    #         'Format':   0,
-    #         'Text':     1
-    #     }
-    # },
+    #
+    # Blocks
+    #
+    'Plain':  {
+        # Plain [Inline]
+        # - Plain text, not a paragraph
+        'class':  InlineList,
+        'content':  {
+            'key':      'c',
+            'type':     None
+        },
+        'struct': None,
+        'separator': ''
+    },
+    'Para':  {
+        # Para [Inline]
+        # - Paragraph
+        'class':  InlineList,
+        'content':  {
+            'key':      'c',
+            'type':     None
+        },
+        'struct': None,
+        'separator': ''
+    },
+    'LineBlock':  {
+        # LineBlock [[Inline]]
+        # - Multiple non-breaking lines
+        'class':  InlineList,
+        'content':  {
+            'key':      'c',
+            'type':     'Line'
+        },
+        'struct': None,
+        'separator': '\n'
+    },
+    'CodeBlock':  {
+        # CodeBlock Attr Text
+        # - Code block (literal) with attributes
+        'class':  InlineList,
+        'content':  {
+            'key':      'c',
+            'main':     1,
+            'type':     'Text'
+        },
+        'struct': {
+            'Attr':     0,
+            'Text':     1
+        }
+    },
+    'RawBlock':  {
+        # RawBlock Format Text
+        # - Raw block
+        'class':  InlineList,
+        'content':  {
+            'key':      'c',
+            'main':     1,
+            'type':     'Text'
+        },
+        'struct': {
+            'Format':   0,
+            'Text':     1
+        }
+    },
     'BlockQuote':  {
         # BlockQuote [Block]
         # - Block quote (list of blocks)
@@ -194,38 +175,28 @@ _ELEMENT_TYPES = {
         },
         'struct': None
     },
-    # 'DefinitionList':  {
-    #     # DefinitionList [([Inline], [[Block]])]
-    #     # - Definition list. Each list item is a pair consisting of a term (a list of inlines) and one or more definitions (each a list of blocks)
-    #     'class':  DefinitionList,
-    #     'content':  {
-    #         'key':      'c',
-    #         'type':     '[([Inline], [[Block]])]'
-    #     },
-    #     'struct': None
-    # },
-    # 'Header':  {
-    #     # Header Int Attr [Inline]
-    #     # - Header - level (integer) and text (inlines)
-    #     'class':  InlineList,
-    #     'content':  {
-    #         'key':      'c',
-    #         'main':     2,
-    #         'type':     '[Inline]'
-    #     },
-    #     'struct': {
-    #         'Level':    0,
-    #         'Attr':     1,
-    #         '[Inline]': 2
-    #     }
-    #     'separator': ''
-    # },
-    # 'HorizontalRule':  {
-    #     # HorizontalRule
-    #     # - Horizontal rule
-    #     'class':  InlineList,
-    #     'alt': ''
-    # },
+    'Header':  {
+        # Header Int Attr [Inline]
+        # - Header - level (integer) and text (inlines)
+        'class':  InlineList,
+        'content':  {
+            'key':      'c',
+            'main':     2,
+            'type':     None
+        },
+        'struct': {
+            'Level':    0,
+            'Attr':     1,
+            '[Inline]': 2
+        },
+        'separator': ''
+    },
+    'HorizontalRule':  {
+        # HorizontalRule
+        # - Horizontal rule
+        'class':  InlineList,
+        'alt': ''
+    },
     # 'Table':  {
     #     # Table Attr Caption [ColSpec] TableHead [TableBody] TableFoot
     #     # - Table, with attributes, caption, optional short caption, column alignments and widths (required), table head, table bodies, and table foot
@@ -257,10 +228,6 @@ _ELEMENT_TYPES = {
             '[Block]':  1
         }
     },
-    # 'Null':  {
-    #     # Null
-    #     # - Nothing
-    # },
     #
     # Inlines
     #
