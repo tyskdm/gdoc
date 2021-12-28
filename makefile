@@ -1,4 +1,4 @@
-.PHONY: all clean test doc
+.PHONY: all doc puml_img puml_clean clean test
 
 TARGET      := gdoc
 
@@ -33,14 +33,15 @@ puml_img:
 		echo puml_img: $$line; \
 	 	dir=$${line%.*}; \
 		dir=$$(basename "$$dir"); \
-		plantuml -o "./$$dir" $$PUMLFLAGS "$$line"; \
+		plantuml -o "./_puml_/$$dir" $$PUMLFLAGS "$$line"; \
 	done
 
 puml_clean:
 	@find $(PUMLSRC) \( -name *.puml -or -name *.pu \) | while read line; \
     do \
 	 	dir=$${line%.*}; \
-		$(RM) -rf "$$dir"; \
+		parent_dir=$$(dirname "$$dir"); \
+		$(RM) -rf "$$parent_dir"/_puml_; \
 	done
 
 clean: puml_clean

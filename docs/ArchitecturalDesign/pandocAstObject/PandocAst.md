@@ -95,7 +95,7 @@ The basic element types are as follows.
 <div align=center>
 
 [![@source: ./PandocAst.pml#PandocAstInternalBlocks  \
-@type: puml](./PandocAst/PandocAstInternalBlocks.png)](./PandocAst.puml)  \
+@type: puml](./_puml_/PandocAst/PandocAstInternalBlocks.png)](./PandocAst.puml)  \
 \
 [@fig 4.1\] PandocAst ElementHandlers
 
@@ -124,7 +124,7 @@ Two means to cover them are as follows.
 <div align=center>
 
 [![@source: ./PandocAst.puml#PandocAstObjectClassHierarchy  \
-@type: puml](./PandocAst/PandocAstObjectClassHierarchy.png)](./PandocAst.puml)  \
+@type: puml](./_puml_/PandocAst/PandocAstObjectClassHierarchy.png)](./PandocAst.puml)  \
   \
 [@fig 5.1\] PandocAst ElementHandler class hierarchy
 
