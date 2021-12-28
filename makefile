@@ -8,6 +8,7 @@ SPECDIR     := spec
 TESTDIR     := tests
 DOXYGENDIR  := doxy
 DOXYOUTDIR  := html
+DOXYXMLDIR  := xml
 
 # flags
 PYTESTFLAGS 	:=
@@ -44,6 +45,7 @@ puml_clean:
 
 clean: puml_clean
 	@$(RM) -rf $(DOXYGENDIR)/$(DOXYOUTDIR)
+	@$(RM) -rf $(DOXYGENDIR)/$(DOXYXMLDIR)
 	@py3clean .
 
 test:
