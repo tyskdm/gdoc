@@ -1,4 +1,4 @@
-.PHONY: all doc puml_img puml_clean clean test
+.PHONY: all doc puml_img puml_clean clean test test-cov
 
 TARGET      := gdoc
 
@@ -51,3 +51,6 @@ clean: puml_clean
 
 test:
 	@pytest $(PYTESTFLAGS)
+
+test-cov:
+	@pytest $(PYTESTFLAGS) --cov $(SRCDIR) --cov-branch
