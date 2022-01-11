@@ -157,3 +157,45 @@ def test__run_2(commandlines, expected):
     assert excinfo.value.cmd == [here + expected['excinfo']['cmd'][0]] + expected['excinfo']['cmd'][1:]
     assert excinfo.value.stdout == expected['excinfo']['stdout']
     assert excinfo.value.stderr == expected['excinfo']['stderr']
+
+
+## @}
+## @{ @name get_version(self)
+## [\@test get_version] returns versions of pandoc and pandoc-types.
+##
+
+_data_get_version_1 = {
+#   id: (
+#       stdout: b'output string'
+#       expected: [
+#           pandoc_version: [int],
+#           pandoc_types: [int]
+#       ]
+#   )
+    "Normal Case: Actual output from pnadoc":  (
+        b'pandoc 2.14.2\n' +
+        b'Compiled with pandoc-types 1.22,',
+        # expected
+        {
+            'output': {
+                'pandoc': [2, 14, 2],
+                'pandoc-types': [1, 22]
+            },
+            '_run': {
+                'call_count': 1,
+                'args': [(['pandoc --version'],), {}]
+            }
+        }
+    ),
+}
+@pytest.mark.parametrize("stdout, expected",
+    list(_data_get_version_1.values()), ids=list(_data_get_version_1.keys()))
+def test_get_version_1(mocker, stdout, expected):
+    r"""
+    [\@test get_version.1] run commandlines with NON-ZERO return_code.
+    """
+    target = Pandoc()
+    output = target.get_version()
+
+    assert output == expected['output']
+    assert target._version_str.startswith(stdout.decode())

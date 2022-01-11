@@ -52,36 +52,62 @@ class Pandoc:
         return output
 
 
-    def get_json(self, filepath, fromType=None):
-        """
-        """
-        commands = []
+    # def get_json(self, filepath, fromType=None):
+    #     """
+    #     """
+    #     commands = []
 
-        if fromType is None:
-            if (filepath.split('.')[-1]) == 'md':
-                cmd = 'pandoc -f gfm+sourcepos -t html'
-                cmd += ' ' + filepath
-                commands.append(cmd)
+    #     if fromType is None:
+    #         if (filepath.split('.')[-1]) == 'md':
+    #             cmd = 'pandoc -f gfm+sourcepos -t html'
+    #             cmd += ' ' + filepath
+    #             commands.append(cmd)
 
-                cmd = 'pandoc -f html -t json'
-                commands.append(cmd)
+    #             cmd = 'pandoc -f html -t json'
+    #             commands.append(cmd)
 
-            else:
-                cmd = 'pandoc -t json'
-                cmd += ' ' + filepath
-                commands.append(cmd)
+    #         else:
+    #             cmd = 'pandoc -t json'
+    #             cmd += ' ' + filepath
+    #             commands.append(cmd)
 
-        else:
-            cmd = 'pandoc -t json'
-            cmd += ' -f ' + fromType
-            cmd += ' ' + filepath
-            commands.append(cmd)
+    #     else:
+    #         cmd = 'pandoc -t json'
+    #         cmd += ' -f ' + fromType
+    #         cmd += ' ' + filepath
+    #         commands.append(cmd)
 
-        return self.run(commands)
+    #     return self.run(commands)
 
 
     def get_version(self):
         """
+        returns versions of pandoc and pandoc-types.
         """
+        if self._version is not None:
+            return self._version
 
-        output = self.run(['pandoc --version'])
+        version_str = self._run(['pandoc --version']).decode()
+        lines = version_str.split('\n')
+
+        version = {}
+        for line in lines:
+            words = line.replace(',', ' ').split()
+
+            for i, word in enumerate(words):
+                if ((word == 'pandoc') or (word == 'pandoc-types')) and (i < len(words)-1):
+                    vers = words[i+1].split('.')
+                    if not vers[0].isdecimal():
+                        break
+
+                    version[word] = []
+                    for ver in vers:
+                        version[word].append(
+                            int(ver) if ver.isdecimal() else ver
+                        )
+
+        if ('pandoc' in version) and ('pandoc-types' in version):
+            self._version = version
+            self._version_str = version_str
+
+        return self._version

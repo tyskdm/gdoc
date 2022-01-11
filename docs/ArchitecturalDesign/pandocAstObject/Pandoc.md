@@ -104,5 +104,5 @@ When the file extension is 'md', THIS convert the file in two steps.
 |         | @param      | in filepath : string
 |         | @param      | in opts : dict
 |         | @param      | out PandocAst json object : dict
-| @Method | get_version | returns version of pandoc command.
-|         | @param      | out pandoc version : string
+| @Method | get_version | returns versions of pandoc and pandoc-types.
+|         | @param      | out versions : { 'pandc': [int or str], 'pandoc-types': [int or str] )

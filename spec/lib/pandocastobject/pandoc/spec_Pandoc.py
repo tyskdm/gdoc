@@ -150,7 +150,7 @@ _data__run_1 = {
     list(_data__run_1.values()), ids=list(_data__run_1.keys()))
 def spec__run_1(mocker, commandlines, popen, expected):
     r"""
-    [\@spec _run.1] run commandlines with NON-ZERO return_code.
+    [\@spec _run.1] run commandlines with NO-ERROR.
     """
     #
     # Create a mock for subprocess.Popen
@@ -326,4 +326,178 @@ def spec__run_2(mocker, commandlines, popen, expected):
     assert excinfo.value.cmd == expected['excinfo']['cmd']
     assert excinfo.value.stdout == expected['excinfo']['stdout']
     assert excinfo.value.stderr == expected['excinfo']['stderr']
+
+
+## @}
+## @{ @name get_version(self)
+## [\@spec get_version] returns versions of pandoc and pandoc-types.
+##
+
+_data_get_version_1 = {
+#   id: (
+#       stdout: b'output string'
+#       expected: {
+#           output: {},
+#           _run: {}
+#       ]
+#   )
+    "Normal Case: Actual output from pnadoc":  (
+        b'pandoc 2.14.2\n' +
+        b'Compiled with pandoc-types 1.22, texmath 0.12.3.1, skylighting 0.11,\n' +
+        b'citeproc 0.5, ipynb 0.1.0.1\n',
+        # expected
+        {
+            'output': {
+                'pandoc': [2, 14, 2],
+                'pandoc-types': [1, 22]
+            },
+            '_version_str':
+                'pandoc 2.14.2\n' +
+                'Compiled with pandoc-types 1.22, texmath 0.12.3.1, skylighting 0.11,\n' +
+                'citeproc 0.5, ipynb 0.1.0.1\n',
+            '_run': {
+                'call_count': 1,
+                'args': [(['pandoc --version'],), {}]
+            }
+        }
+    ),
+    "Normal Case: Output in different format(1)":  (
+        b'pandoc 2.14.2, << FLLOWING SOME STRING\n' +
+        b'PLACED THE END OF LINE >> pandoc-types 1.22\n',
+        # expected
+        {
+            'output': {
+                'pandoc': [2, 14, 2],
+                'pandoc-types': [1, 22]
+            },
+            '_version_str':
+                'pandoc 2.14.2, << FLLOWING SOME STRING\n' +
+                'PLACED THE END OF LINE >> pandoc-types 1.22\n',
+            '_run': {
+                'call_count': 1,
+                'args': [(['pandoc --version'],), {}]
+            }
+        }
+    ),
+    "Normal Case: Output in different format(2)":  (
+        b'pandoc-types 1.22\n' +
+        b'pandoc 2.14.2\n',
+        # expected
+        {
+            'output': {
+                'pandoc': [2, 14, 2],
+                'pandoc-types': [1, 22]
+            },
+            '_version_str':
+                'pandoc-types 1.22\n' +
+                'pandoc 2.14.2\n',
+            '_run': {
+                'call_count': 1,
+                'args': [(['pandoc --version'],), {}]
+            }
+        }
+    ),
+    "Normal Case: Version strings are not only decimal char":  (
+        b'pandoc 2.14b.2\n' +
+        b'pandoc-types 1.22a\n',
+        # expected
+        {
+            'output': {
+                'pandoc': [2, '14b', 2],
+                'pandoc-types': [1, '22a']
+            },
+            '_version_str':
+                'pandoc 2.14b.2\n' +
+                'pandoc-types 1.22a\n',
+            '_run': {
+                'call_count': 1,
+                'args': [(['pandoc --version'],), {}]
+            }
+        }
+    ),
+    "Normal Case: Skip if version string does not start with decimal char":  (
+        b'pandoc NOT.VERSION.STRING\n' +
+        b'pandoc 2.14.2\n' +
+        b'pandoc-types 1.22\n',
+        # expected
+        {
+            'output': {
+                'pandoc': [2, 14, 2],
+                'pandoc-types': [1, 22]
+            },
+            '_version_str':
+                'pandoc NOT.VERSION.STRING\n' +
+                'pandoc 2.14.2\n' +
+                'pandoc-types 1.22\n',
+            '_run': {
+                'call_count': 1,
+                'args': [(['pandoc --version'],), {}]
+            }
+        }
+    ),
+    "Error Case: One of version string is missing":  (
+        b'pandoc 2.14.2\n' +
+        b'VER-STR IS MISSING >> pandoc-types\n',
+        # expected
+        {
+            'output': None,
+            '_version_str': None,
+            '_run': {
+                'call_count': 1,
+                'args': [(['pandoc --version'],), {}]
+            }
+        }
+    ),
+    "Error Case: One of version string does not start with decimal char":  (
+        b'pandoc NOT.VERSION.STRING\n' +
+        b'pandoc-types 1.22a\n',
+        # expected
+        {
+            'output': None,
+            '_version_str': None,
+            '_run': {
+                'call_count': 1,
+                'args': [(['pandoc --version'],), {}]
+            }
+        }
+    )
+}
+@pytest.mark.parametrize("stdout, expected",
+    list(_data_get_version_1.values()), ids=list(_data_get_version_1.keys()))
+def spec_get_version_1(mocker, stdout, expected):
+    r"""
+    [\@spec get_version.1] returns generated version info for the first time.
+    """
+    mock__run = mocker.Mock(return_value = stdout)
+
+    target = Pandoc()
+    target._run = mock__run
+    output = target.get_version()
+
+    assert output == expected['output']
+    assert target._version_str == expected['_version_str']
+
+    args__run = mock__run.call_args_list
+    assert mock__run.call_count == expected['_run']['call_count']
+    assert args__run[0] == expected['_run']['args']
+
+
+def spec_get_version_2(mocker):
+    r"""
+    [\@spec get_version.2] returns stored version info for the second time.
+    """
+    _VERSION_ = {
+        'pandoc': [0, 0, 0],
+        'pandoc-types': [0, 0]
+    },
+    mock__run = mocker.Mock()
+
+    target = Pandoc()
+    target._run = mock__run
+    target._version = _VERSION_
+    output = target.get_version()
+
+    assert mock__run.call_count == 0
+    assert output == _VERSION_
+
 
