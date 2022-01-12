@@ -501,3 +501,118 @@ def spec_get_version_2(mocker):
     assert output == _VERSION_
 
 
+## @}
+## @{ @name get_json(self, filepath, fromType=None, html=False)
+## [\@spec get_json] returns pandoc ast json object.
+##
+
+_data_get_json_1 = {
+#   id: (
+#       args: [filepath, filetype, html]
+#       expected: {
+#           call_count: int
+#           commandlines: [commandline]
+#       }
+#   )
+    "Case: .md with NO other arguments": (
+        ['TEST.md'],
+        [
+            'pandoc TEST.md -f gfm+sourcepos -t html',
+            'pandoc -f html -t json'
+        ]
+    ),
+    "Case: .md with default arguments": (
+        ['TEST.md', None, None],
+        [
+            'pandoc TEST.md -f gfm+sourcepos -t html',
+            'pandoc -f html -t json'
+        ]
+    ),
+    "Case: .MD with default arguments": (
+        ['TEST.MD', None, None],
+        [
+            'pandoc TEST.MD -f gfm+sourcepos -t html',
+            'pandoc -f html -t json'
+        ]
+    ),
+    "Case: .rst with default arguments": (
+        ['TEST.rst', None, None],
+        ['pandoc TEST.rst -t json']
+    ),
+    "Case: Long path with default arguments": (
+        ['/path/to/TEST.rst', None, None],
+        ['pandoc /path/to/TEST.rst -t json']
+    ),
+    "Case: No ext with default arguments": (
+        ['/path/to/TEST', None, None],
+        ['pandoc /path/to/TEST -t json']
+    ),
+    "Case: Filename includeing double '.' with default arguments": (
+        ['/path/to/TE.ST.rst', None, None],
+        ['pandoc /path/to/TE.ST.rst -t json']
+    ),
+    "Case: Filepath endswith('/') with default arguments": (
+        ['/path/to/documents/', None, None],
+        ['pandoc /path/to/documents/ -t json']
+    ),
+    "Case: .md with specified filetype 'markdown'": (
+        ['TEST.md', 'markdown', None],
+        ['pandoc TEST.md -f markdown -t json']
+    ),
+    "Case: .rst with specified filetype 'rst'": (
+        ['TEST.rst', 'rst', None],
+        ['pandoc TEST.rst -f rst -t json']
+    ),
+    "Case: .md with html=False": (
+        ['TEST.md', None, False],
+        ['pandoc TEST.md -t json']
+    ),
+    "Case: .md with html=True": (
+        ['TEST.md', None, True],
+        [
+            'pandoc TEST.md -t html',
+            'pandoc -f html -t json'
+        ]
+    ),
+    "Case: .md with arguments, filetype='markdown' and html=True": (
+        ['TEST.md', 'markdown', True],
+        [
+            'pandoc TEST.md -f markdown -t html',
+            'pandoc -f html -t json'
+        ]
+    ),
+    "Case: .md with arguments, filetype='markdown' and html=False": (
+        ['TEST.md', 'markdown', False],
+        ['pandoc TEST.md -f markdown -t json']
+    ),
+    "Case: filetype='commonmark' should be added '+sourcepos'": (
+        ['TEST.md', 'commonmark', False],
+        ['pandoc TEST.md -f commonmark+sourcepos -t json']
+    ),
+    "Case: filetype='gfm' should be added '+sourcepos'": (
+        ['TEST.md', 'gfm', False],
+        ['pandoc TEST.md -f gfm+sourcepos -t json']
+    ),
+}
+@pytest.mark.parametrize("args, expected",
+    list(_data_get_json_1.values()), ids=list(_data_get_json_1.keys()))
+def spec_get_json_1(mocker, args, expected):
+    r"""
+    [\@spec get_json.1] Generates and returns an object according to its arguments.
+    """
+    mock__run = mocker.Mock(return_value = b'{"TEST_KEY":"TEST_VALUE"}')
+
+    target = Pandoc()
+    target._run = mock__run
+
+    if len(args) > 2:
+        output = target.get_json(args[0], args[1], args[2])
+    else:
+        output = target.get_json(args[0])
+
+    args__run = mock__run.call_args_list
+    assert mock__run.call_count == 1
+    assert args__run[0] == ((expected,), {})
+    assert output == {'TEST_KEY':'TEST_VALUE'}
+
+

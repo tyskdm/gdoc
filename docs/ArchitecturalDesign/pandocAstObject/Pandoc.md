@@ -102,7 +102,8 @@ When the file extension is 'md', THIS convert the file in two steps.
 | sc.c1   | Pandoc      | Execute external pandoc command as a subprocess to parse a source md file to generate PandocAST json object.
 | @Method | get_json    | returns pandoc ast json object.
 |         | @param      | in filepath : string
-|         | @param      | in opts : dict
+|         | @param      | in filetype : string
+|         | @param      | in html : bool
 |         | @param      | out PandocAst json object : dict
 | @Method | get_version | returns versions of pandoc and pandoc-types.
 |         | @param      | out versions : { 'pandc': [int or str], 'pandoc-types': [int or str] )

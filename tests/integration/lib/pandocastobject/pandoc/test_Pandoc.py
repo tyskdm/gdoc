@@ -18,6 +18,7 @@ The test specification of Pandoc class.
 | @Method | \_run        | run multiple commands with PIPE and get output.
 
 """
+import json
 import pytest
 from subprocess import PIPE as _PIPE_
 from subprocess import CalledProcessError
@@ -199,3 +200,52 @@ def test_get_version_1(mocker, stdout, expected):
 
     assert output == expected['output']
     assert target._version_str.startswith(stdout.decode())
+
+
+## @}
+## @{ @name get_version(self)
+## [\@test get_version] returns versions of pandoc and pandoc-types.
+##
+
+_data_get_json_1 = {
+#   id: (
+#       filename: str,
+#       args: (filetype, html)
+#       jsonfile: jsonfilename
+#   )
+    "Case: No opt":  (
+        'test_1.md',
+        None,
+        'test_1_md(NO_OPT).json'
+    ),
+    "Case: html = False":  (
+        'test_1.md',
+        [None, False],
+        'test_1_md(html_false).json'
+    ),
+    "Case: html = True":  (
+        'test_1.md',
+        [None, True],
+        'test_1_md(html_true).json'
+    ),
+}
+@pytest.mark.parametrize("filename, args, jsonfile",
+    list(_data_get_json_1.values()), ids=list(_data_get_json_1.keys()))
+def test_get_json_1(monkeypatch, filename, args, jsonfile):
+    r"""
+    [\@test get_json.1] run pandoc and get json object.
+    """
+    datadir = '.'.join(__file__.split('.')[:-1])  # data directory
+    monkeypatch.chdir(datadir)
+
+    target = Pandoc()
+
+    if args is not None:
+        output = target.get_json(filename, args[0], args[1])
+    else:
+        output = target.get_json(filename)
+
+    with open(jsonfile, 'r', encoding='UTF-8') as f:
+        expected = json.load(f)
+
+    assert output == expected
