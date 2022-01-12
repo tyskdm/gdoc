@@ -15,6 +15,7 @@ The specification of Element class.
 | -------- | ---- | ----------- |
 | THIS     | ELEMENT_TYPES  | data dict of each element types containing handler class and element format.
 | @Method  | create_element | Find the element type and call constructor specified by it.
+| @Method  | PandocAst      | Creates a PandocAst object and returns it.
 
 """
 import pytest
@@ -115,16 +116,32 @@ def spec_create_element_5(mocker):
 
 
 ## @}
-## @{ @name PandocAst(pan_elem, elem_type=None)
-## [\@spec create_element] `pandocast.PandocAst` is an alias of `create_element`
-##                         as external interface.
+## @{ @name PandocAst(pan_elem)
+## [\@spec PandocAst] Creates a PandocAst object and returns it.
 _PandocAst = "dummy for doxygen styling"
 
 def spec_PandocAst_1():
     r"""
     [\@Spec PandocAst.1] alias
     """
-    assert pandocast.PandocAst is types.create_element
+    assert pandocast.PandocAst is types.PandocAst
+
+
+def spec_PandocAst_2(mocker):
+    r"""
+    [\@Spec PandocAst.2] alias
+    """
+    mock_create_element = mocker.patch(
+        'gdoc.lib.pandocastobject.pandocast.types.create_element',
+        return_value = 'PANDOC_AST_OBJECT'
+    )
+
+    output = pandocast.PandocAst('PAN_ELEM')
+
+    assert output == 'PANDOC_AST_OBJECT'
+    assert mock_create_element.call_count == 1
+    args = mock_create_element.call_args_list
+    assert args[0] == (('PAN_ELEM',), {})
 
 
 ## @}

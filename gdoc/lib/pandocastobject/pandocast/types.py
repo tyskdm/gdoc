@@ -3,11 +3,12 @@ PandocAst Type definitions and Utilities.
 """
 
 from .blocklist     import BlockList
+from .element       import Element
 from .inline        import Inline
 from .inlinelist    import InlineList
 from .pandoc        import Pandoc
 
-def create_element(pan_elem, elem_type=None):
+def create_element(pan_elem, elem_type=None)->Element:
     """
     Find the element type and call constructor specified by it.
     """
@@ -30,6 +31,13 @@ def create_element(pan_elem, elem_type=None):
                   pan_elem, etype, _ELEMENT_TYPES[etype], create_element)
 
     return element
+
+
+def PandocAst(pandoc_json) -> Pandoc:
+    """
+    Creates a PandocAst object and returns it.
+    """
+    return create_element(pandoc_json)
 
 
 # Text.Pandoc.Definition
