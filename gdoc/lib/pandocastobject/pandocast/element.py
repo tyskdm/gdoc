@@ -2,6 +2,9 @@ r"""
 Element class
 """
 
+from typing import List
+
+
 class Element:
     """
     Base class of PandocAST Element handler.
@@ -22,7 +25,7 @@ class Element:
         self.parent = None
         self.children = []
 
-    def _add_child(self, child):
+    def _add_child(self, child)->'Element':
         """ add an element as a child.
         @param child(Element)
             Element to add as a child.
@@ -33,7 +36,7 @@ class Element:
         self.children.append(child)
         return self
 
-    def next(self):
+    def next(self)->'Element':
         """ returns an element ordered at next to self.
         @return Element :
             If the next element does not exist, returns None.
@@ -47,7 +50,7 @@ class Element:
 
         return next
 
-    def prev(self):
+    def prev(self)->'Element':
         """ returns an element ordered at previous to self.
         @return Element :
             If the previous element does not exist, returns None.
@@ -61,20 +64,20 @@ class Element:
 
         return prev
 
-    def get_parent(self):
+    def get_parent(self)->'Element':
         """ returns parent element.
         @return Element : The parent element.
         """
         return self.parent
 
-    def get_children(self):
+    def get_children(self)->List['Element']:
         """ returns new copied list of child elements.
         @return [Element] :
             new list copied from children.
         """
         return self.children[:]
 
-    def get_first_child(self):
+    def get_first_child(self)->'Element':
         """ returns the first child elements.
         @return Element : The first child.
         """
@@ -85,7 +88,7 @@ class Element:
 
         return child
 
-    def get_type(self):
+    def get_type(self)->str:
         """ returns element type.
         @return Str : Type string.
         """
@@ -139,7 +142,7 @@ class Element:
 
         return attr
 
-    def hascontent(self):
+    def hascontent(self)->bool:
         """ returns True if self has content(s) or False if self is typed but has no content.
         @return Bool :
         """
@@ -167,7 +170,7 @@ class Element:
 
         return content
 
-    def get_content_type(self):
+    def get_content_type(self)->str:
         """ returns type of main content in the element.
         @return String : The type of main content in the element.
         """
@@ -180,7 +183,7 @@ class Element:
 
         return content_type
 
-    def walk(self, action, post_action=None, opt=None):
+    def walk(self, action, post_action=None, opt=None)->'Element':
         """ Walk through all elements of the tree and call out given functions.
         @param action(function) : def action(element, opt)
         @param post_action(function) : def post_action(element, opt)
