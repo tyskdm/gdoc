@@ -2,7 +2,7 @@ r"""
 Element class
 """
 
-from typing import List
+from typing import List, Union
 
 
 class Element:
@@ -10,7 +10,7 @@ class Element:
     Base class of PandocAST Element handler.
     """
 
-    def __init__(self, pan_elem, elem_type, type_def):
+    def __init__(self, pan_elem : dict, elem_type : str, type_def : dict):
         """ Constructor
         @param pan_elem(Dict)
             PandocAST Element
@@ -19,13 +19,13 @@ class Element:
         @param type_def(Dict)
             Element structur data
         """
-        self.pan_element = pan_elem
-        self.type = elem_type
-        self.type_def = type_def
-        self.parent = None
-        self.children = []
+        self.pan_element : dict = pan_elem
+        self.type : str = elem_type
+        self.type_def : dict = type_def
+        self.parent : Union[Element, None] = None
+        self.children : List[Element] = []
 
-    def _add_child(self, child)->'Element':
+    def _add_child(self, child) -> 'Element':
         """ add an element as a child.
         @param child(Element)
             Element to add as a child.
@@ -36,7 +36,7 @@ class Element:
         self.children.append(child)
         return self
 
-    def next(self)->'Element':
+    def next(self) -> Union['Element', None]:
         """ returns an element ordered at next to self.
         @return Element :
             If the next element does not exist, returns None.
@@ -50,7 +50,7 @@ class Element:
 
         return next
 
-    def prev(self)->'Element':
+    def prev(self) -> Union['Element', None]:
         """ returns an element ordered at previous to self.
         @return Element :
             If the previous element does not exist, returns None.
@@ -64,20 +64,25 @@ class Element:
 
         return prev
 
-    def get_parent(self)->'Element':
+    def get_parent(self) -> Union['Element', None]:
         """ returns parent element.
         @return Element : The parent element.
         """
         return self.parent
 
-    def get_children(self)->List['Element']:
+    def get_children(self) -> Union[List['Element'], None]:
         """ returns new copied list of child elements.
         @return [Element] :
             new list copied from children.
         """
-        return self.children[:]
+        children = None
 
-    def get_first_child(self)->'Element':
+        if self.children is not None:
+            children = self.children[:]
+
+        return children
+
+    def get_first_child(self) -> Union['Element', None]:
         """ returns the first child elements.
         @return Element : The first child.
         """
@@ -88,7 +93,7 @@ class Element:
 
         return child
 
-    def get_type(self)->str:
+    def get_type(self) -> str:
         """ returns element type.
         @return Str : Type string.
         """
@@ -142,7 +147,7 @@ class Element:
 
         return attr
 
-    def hascontent(self)->bool:
+    def hascontent(self) -> bool:
         """ returns True if self has content(s) or False if self is typed but has no content.
         @return Bool :
         """
@@ -170,7 +175,7 @@ class Element:
 
         return content
 
-    def get_content_type(self)->str:
+    def get_content_type(self) -> Union[str, None]:
         """ returns type of main content in the element.
         @return String : The type of main content in the element.
         """
@@ -183,7 +188,7 @@ class Element:
 
         return content_type
 
-    def walk(self, action, post_action=None, opt=None)->'Element':
+    def walk(self, action, post_action=None, opt=None) -> 'Element':
         """ Walk through all elements of the tree and call out given functions.
         @param action(function) : def action(element, opt)
         @param post_action(function) : def post_action(element, opt)
@@ -197,6 +202,107 @@ class Element:
                 child.walk(action, post_action, opt)
 
         if post_action is not None:
+            post_action(self, opt)
+
+        return self
+
+    #
+    # '_item()' related methods
+    #
+
+    def get_parent_item(self, ignore=['Div', 'Span']) -> Union['Element', None]:
+        """ returns parent item.
+        @return Element : The parent item.
+        """
+        parent = self.parent
+
+        while parent is not None:
+            if parent.type not in ignore:
+                break
+
+            parent = parent.parent
+
+        return parent
+
+    def get_child_items(self, ignore=['Div', 'Span']) -> List['Element']:
+        """ returns new copied list of child items.
+        @return [Element] :
+        """
+        child_items : List[Element] = []
+
+        if self.children is None:
+            return None
+
+        for child in self.children:
+            if child.type in ignore:
+                items = child.get_child_items(ignore)
+                if items is not None:
+                    child_items += items
+            else:
+                child_items.append(child)
+
+        return child_items
+
+    def next_item(self, ignore=['Div', 'Span']) -> Union['Element', None]:
+        """ returns an element ordered at next to self.
+        @return Element :
+            If the next element does not exist, returns None.
+        """
+        next : Union[Element, None] = None
+
+        parent = self.get_parent_item(ignore)
+        if parent is not None:
+            siblings = parent.get_child_items(ignore)
+            index = siblings.index(self) + 1
+            if index < len(siblings):
+                next = siblings[index]
+
+        return next
+
+    def prev_item(self, ignore=['Div', 'Span']) -> Union['Element', None]:
+        """ returns an element ordered at previous to self.
+        @return Element :
+            If the previous element does not exist, returns None.
+        """
+        prev : Union[Element, None] = None
+
+        parent = self.get_parent_item(ignore)
+        if parent is not None:
+            siblings = parent.get_child_items(ignore)
+            index = siblings.index(self) - 1
+            if index >= 0:
+                prev = siblings[index]
+
+        return prev
+
+    def get_first_item(self, ignore=['Div', 'Span']) -> Union['Element', None]:
+        """ returns the first child item.
+        @return Element : The first item.
+        """
+        first : Union[Element, None] = None
+
+        items = self.get_child_items(ignore)
+        if items is not None and len(items) > 0:
+            first = items[0]
+
+        return first
+
+    def walk_items(
+        self, action, post_action=None, opt=None, ignore=['Div', 'Span']) -> 'Element':
+        """ Walk through all items of the tree and call out given functions.
+        @param action(function) : def action(element, opt)
+        @param post_action(function) : def post_action(element, opt)
+        @return Element :
+            self, for chaining.
+        """
+        if self.type not in ignore:
+            action(self, opt)
+
+        if self.children is not None:
+            for child in self.children[:]:
+                child.walk_items(action, post_action, opt, ignore)
+
+        if post_action is not None and self.type not in ignore:
             post_action(self, opt)
 
         return self

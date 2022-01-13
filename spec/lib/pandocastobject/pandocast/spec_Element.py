@@ -853,3 +853,302 @@ def spec_walk_3(_fixt_walk, mocker):
     assert args[7] == [(target, opt), {}]
 
 ## @}
+## @{ @name get_parent_item(self, ignore=['Div', 'Span'])
+## [\@spec get_parent_item] returns parent item.
+_get_parent_item = "dummy for doxygen styling"
+
+def spec_get_parent_item_1():
+    r"""
+    [\@Spec get_parent.1] get_parent() returns parent element.
+    """
+    parent = Element({}, "PARENT_ITEM", {})
+    parent._add_child(Element({}, "Div", {}))
+    parent.get_first_child()._add_child(Element({}, "Span", {}))
+    parent.get_first_child().get_first_child()._add_child(Element({}, "CHILD_ITEM", {}))
+
+    target = parent.get_first_child().get_first_child().get_first_child()
+
+    assert target.get_parent_item() is parent
+
+def spec_get_parent_item_2():
+    r"""
+    [\@Spec get_parent.2] get_parent() returns None if parent is not existent.
+    """
+    parent = Element({}, "Div", {})
+    parent._add_child(Element({}, "Div", {}))
+    parent.get_first_child()._add_child(Element({}, "Span", {}))
+    parent.get_first_child().get_first_child()._add_child(Element({}, "CHILD_ITEM", {}))
+
+    target = parent.get_first_child().get_first_child().get_first_child()
+
+    assert target.get_parent_item() is None
+
+
+## @}
+## @{ @name get_child_items(self, ignore=['Div', 'Span'])
+## [\@spec get_child_items] returns new copied list of child items.
+_get_child_items = "dummy for doxygen styling"
+
+@pytest.fixture
+def _fixt_get_child_items():
+    r"""
+    """
+    parent = Element({}, "PARENT", {})
+
+    parent._add_child(Element({}, "Div", {}))
+    parent.children[0]._add_child(Element({}, "Div_CHILD", {}))
+
+    parent._add_child(Element({}, "Span", {}))
+    parent.children[1]._add_child(Element({}, "Span", {}))
+    parent.children[1].children[0]._add_child(Element({}, "Span_Span_CHILD1", {}))
+    parent.children[1].children[0]._add_child(Element({}, "Span_Span_CHILD2", {}))
+
+    parent._add_child(Element({}, "CHILD", {}))
+
+    return parent
+
+def spec_get_child_items_1(_fixt_get_child_items):
+    r"""
+    [\@Spec get_child_items.1] get_child_items() returns list of child items.
+    """
+    target = _fixt_get_child_items
+
+    child_items = target.get_child_items()
+    items = []
+    for item in child_items:
+        items.append(item.type)
+
+    assert items == [
+        'Div_CHILD',
+        'Span_Span_CHILD1',
+        'Span_Span_CHILD2',
+        'CHILD'
+    ]
+
+def spec_get_child_items_2(_fixt_get_child_items):
+    r"""
+    [\@Spec get_child_items.2] get_child_items() returns **new copied** list of child elements.
+    """
+    target = _fixt_get_child_items
+    target.children[0].children = None              # "Div".children = None
+    target.children[1].children[0].children = []    # "Span_Span".children = []
+
+    child_items = target.get_child_items()
+    items = []
+    for item in child_items:
+        items.append(item.type)
+
+    assert items == [
+        'CHILD'
+    ]
+
+
+## @}
+## @{ @name next_item(self, ignore=['Div', 'Span'])
+## [\@spec next_item] returns an item ordered at next to self.
+##
+_next_item = "dummy for doxygen styling"
+
+@pytest.fixture
+def _fixt_next_item():
+    r"""
+    """
+    parent = Element({}, "PARENT", {})
+
+    parent._add_child(Element({}, "Div", {}))
+    parent.children[0]._add_child(Element({}, "Div_CHILD", {}))
+
+    parent._add_child(Element({}, "Span", {}))
+    parent.children[1]._add_child(Element({}, "Span", {}))
+    parent.children[1].children[0]._add_child(Element({}, "Span_Span_CHILD1", {}))
+    parent.children[1].children[0]._add_child(Element({}, "Span_Span_CHILD2", {}))
+
+    parent._add_child(Element({}, "Div", {}))
+
+    return parent
+
+def spec_next_item_1(_fixt_next_item):
+    r"""
+    [\@spec next_item.1] returns next item ordered at next to self.
+    """
+    target = _fixt_next_item.children[0].children[0]    # "Div_CHILD"
+    assert target.next_item().type == "Span_Span_CHILD1"
+
+def spec_next_item_2(_fixt_next_item):
+    r"""
+    [\@spec next_item.2] returns None if next item is not existent.
+    """
+    target = _fixt_next_item.children[1].children[0].children[1]    # "Span_Span_CHILD2"
+    assert target.next_item() == None
+
+
+## @}
+## @{ @name prev_item(self, ignore=['Div', 'Span'])
+## [\@spec prev_item] returns an element ordered at previous to self.
+##
+_prev_item = "dummy for doxygen styling"
+
+@pytest.fixture
+def _fixt_prev_item():
+    r"""
+    """
+    parent = Element({}, "PARENT", {})
+
+    parent._add_child(Element({}, "Div", {}))
+
+    parent._add_child(Element({}, "Span", {}))
+    parent.children[1]._add_child(Element({}, "Span", {}))
+    parent.children[1].children[0]._add_child(Element({}, "Span_Span_CHILD1", {}))
+    parent.children[1].children[0]._add_child(Element({}, "Span_Span_CHILD2", {}))
+
+    parent._add_child(Element({}, "Div", {}))
+    parent.children[2]._add_child(Element({}, "Div_CHILD", {}))
+
+    return parent
+
+def spec_prev_item_1(_fixt_prev_item):
+    r"""
+    [\@spec prev_item.1] returns prev item ordered at next to self.
+    """
+    target = _fixt_prev_item.children[2].children[0]    # "Div_CHILD"
+    assert target.prev_item().type == "Span_Span_CHILD2"
+
+def spec_prev_item_2(_fixt_prev_item):
+    r"""
+    [\@spec prev_item.2] returns None if prev item is not existent.
+    """
+    target = _fixt_prev_item.children[1].children[0].children[0]    # "Span_Span_CHILD1"
+    assert target.prev_item() == None
+
+
+## @}
+## @{ @name get_first_item(self, ignore=['Div', 'Span'])
+## [\@spec get_first_item] returns the first child elements.
+_get_first_item = "dummy for doxygen styling"
+
+@pytest.fixture
+def _fixt_get_first_item():
+    r"""
+    """
+    parent = Element({}, "PARENT", {})
+    parent._add_child(Element({}, "Div", {}))
+    parent._add_child(Element({}, "Span", {}))
+    parent.children[1]._add_child(Element({}, "Span_CHILD1", {}))
+    parent.children[1]._add_child(Element({}, "Span_CHILD2", {}))
+    return parent
+
+def spec_get_first_item_1(_fixt_get_first_item):
+    r"""
+    [\@Spec get_first_item.1] get_first_item() returns the first child item.
+    """
+    assert _fixt_get_first_item.get_first_item().type == 'Span_CHILD1'
+
+def spec_get_first_item_2(_fixt_get_first_item):
+    r"""
+    [\@Spec get_first_item.2] get_first_item() returns None if child is not exist.
+    """
+    assert _fixt_get_first_item.children[0].get_first_item() is None    # "Div"
+
+    _fixt_get_first_item.children[1].children[0].children = None    # "Span_CHILD1"
+    assert _fixt_get_first_item.children[1].children[0].get_first_item() is None
+
+## @}
+## @{ @name walk_items(self, action, post_action=None, opt=None, ignore=['Div', 'Span'])
+## [\@spec walk_items] Walk through all items of the tree and call out given functions.
+_walk_items = "dummy for doxygen styling"
+
+@pytest.fixture
+def _fixt_walk_items():
+    r"""
+    """
+    parent = Element({}, "PARENT", {})
+    parent._add_child(
+        Element({}, "Div", {})._add_child(
+            Element({}, "FIRST", {})
+        )
+    )
+    parent._add_child(
+        Element({}, "SECOND", {})._add_child(
+            Element({}, "Span", {})._add_child(
+                Element({}, "LAST", {})
+            )
+        )
+    )
+
+    return parent
+
+def spec_walk_items_1(_fixt_walk_items, mocker):
+    r"""
+    [\@Spec walk_items.1] walk_items() call action for each items.
+    """
+    target = _fixt_walk_items
+    action_mock = mocker.Mock()
+
+    assert target.walk_items(action_mock) is target
+
+    args = action_mock.call_args_list
+
+    assert action_mock.call_count == 4
+    assert args[0] == [(target, None), {}]
+    assert args[1] == [(target.children[0].children[0], None), {}]              # First
+    assert args[2] == [(target.children[1], None), {}]                          # Second
+    assert args[3] == [(target.children[1].children[0].children[0], None), {}]  # Last
+
+def spec_walk_items_2(_fixt_walk_items, mocker):
+    r"""
+    [\@Spec walk_items.2] walk_items() call action and post_action for each elements.
+    """
+    target = _fixt_walk_items
+    action_mock = mocker.Mock()
+
+    assert target.walk_items(action_mock, post_action=action_mock) is target
+
+    args = action_mock.call_args_list
+
+    assert action_mock.call_count == 8
+    assert args[0] == [(target, None), {}]
+    assert args[1] == [(target.children[0].children[0], None), {}]
+    assert args[2] == [(target.children[0].children[0], None), {}]
+    assert args[3] == [(target.children[1], None), {}]
+    assert args[4] == [(target.children[1].children[0].children[0], None), {}]
+    assert args[5] == [(target.children[1].children[0].children[0], None), {}]
+    assert args[6] == [(target.children[1], None), {}]
+    assert args[7] == [(target, None), {}]
+
+def spec_walk_items_3(_fixt_walk_items, mocker):
+    r"""
+    [\@Spec walk_items.3] walk_items() call action with opt.
+    """
+    target = _fixt_walk_items
+    action_mock = mocker.Mock()
+    opt = {}
+
+    assert target.walk_items(action_mock, action_mock, opt) is target
+
+    args = action_mock.call_args_list
+
+    assert action_mock.call_count == 8
+    assert args[0] == [(target, opt), {}]
+    assert args[1] == [(target.children[0].children[0], opt), {}]
+    assert args[2] == [(target.children[0].children[0], opt), {}]
+    assert args[3] == [(target.children[1], opt), {}]
+    assert args[4] == [(target.children[1].children[0].children[0], opt), {}]
+    assert args[5] == [(target.children[1].children[0].children[0], opt), {}]
+    assert args[6] == [(target.children[1], opt), {}]
+    assert args[7] == [(target, opt), {}]
+
+def spec_walk_items_4(_fixt_walk_items, mocker):
+    r"""
+    [\@Spec walk_items.4] doesn't call if self.type in ignore_list.
+    """
+    target = _fixt_walk_items.children[0]
+    action_mock = mocker.Mock()
+
+    assert target.walk_items(action_mock) is target
+
+    args = action_mock.call_args_list
+
+    assert action_mock.call_count == 1
+    assert args[0] == [(target.children[0], None), {}]      # First
+
+## @}

@@ -251,7 +251,7 @@ Nothing worth mentioning.
 | @Method | prev | returns an element ordered at previous to self.
 | @Method | get_parent | returns parent element.
 | @Method | get_children | returns list of child elements.
-| @Method | get_first_child | returns the first child elements.
+| @Method | get_first_child | returns the first child element.
 | @Method | get_type | returns element type.
 | @Method | get_prop | returns a property of the element specified by key string.
 | @Method | get_attr | returns a attrbute of the element specified by key string.
@@ -259,6 +259,14 @@ Nothing worth mentioning.
 | @Method | get_content | returns main content data in the element.
 | @Method | get_content_type | returns type of main content in the element.
 | @Method | walk | Walk through all elements of the tree and call out given functions.
+| @Method | next_item | returns an item ordered at next to self.
+| @Method | prev_item | returns an item ordered at previous to self.
+| @Method | get_parent_item | returns parent item.
+| @Method | get_child_items | returns list of child items.
+| @Method | get_first_item | returns the first child item.
+| @Method | walk_items | Walk through all items of the tree and call out given functions.
+
+- `_item()` meshods ignore wrapper(Generic container) elements, `Div` and `Span`.
 
 ### 7.2. Block
 
