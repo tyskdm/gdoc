@@ -17,6 +17,7 @@ The specification of PandocAst class.
 | @Method | PandocAst | creates a new instance.
 
 """
+import json
 import pytest
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
@@ -48,13 +49,48 @@ def test_PandocAst_2():
     """
     datadir = '.'.join(__file__.split('.')[:-1]) + '/'  # data directory
 
-    pandoc = Pandoc()
-    pandoc_json = pandoc.get_json(datadir + 'test_2.md', 'gfm-sourcepos')
+    pandoc_json = Pandoc().get_json(datadir + 'test_2.md')
     pandoc_ast = PandocAst(pandoc_json)
-    child = pandoc_ast.get_first_child()
+    child = pandoc_ast.get_first_item()
 
-    assert len(pandoc_ast.get_children()) == 1
+    assert len(pandoc_ast.get_child_items()) == 1
     assert child.get_type() == 'Para'
+
+
+def test_PandocAst_3():
+    r"""
+    [@test PandocAst.2] 
+    """
+    datadir = '.'.join(__file__.split('.')[:-1]) + '/'  # data directory
+
+    pandoc_json = Pandoc().get_json(datadir + 'test_3.md')
+    pandoc_ast = PandocAst(pandoc_json)
+    expect_json = pandoc_ast.get_first_item().get_content()
+    expect_data = json.loads(expect_json)
+
+    _test_PandocAst_sub(pandoc_ast, expect_data)
+
+
+def _test_PandocAst_sub(target, expected):
+
+    assert target.get_type() == expected[0]
+
+    if expected[1] is None:
+        assert target.get_child_items() == None
+
+    elif type(expected[1]) == str:
+        assert target.get_content() == expected[1]
+        
+    elif type(expected[1]) == list:
+        items = target.get_child_items()
+        assert len(items) == len(expected[1])
+
+        for (t, e) in zip (items, expected[1]):
+            _test_PandocAst_sub(t, e)
+
+    else:
+        # if Flase, doesn't care its child items.
+        assert expected[1] is False
 
 
 ## @}
