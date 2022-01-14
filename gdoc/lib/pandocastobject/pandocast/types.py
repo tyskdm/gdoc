@@ -434,7 +434,7 @@ _ELEMENT_TYPES = {
         'struct': {
             'Attr':     0,
             'Inlines':  1,
-            'Taget':    2
+            'Target':   2
         }
     },
     'Note':  {
