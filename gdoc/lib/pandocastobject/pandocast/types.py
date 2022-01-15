@@ -33,11 +33,13 @@ def create_element(pan_elem, elem_type=None)->Element:
     return element
 
 
-def PandocAst(pandoc_json) -> Pandoc:
-    """
-    Creates a PandocAst object and returns it.
-    """
-    return create_element(pandoc_json)
+class PandocAst(Pandoc):
+    def __init__(self, pan_elem):
+        """ Constructor
+        @param pan_elem(Dict)
+            PandocAST Element
+        """
+        super().__init__(pan_elem, 'Pandoc', _ELEMENT_TYPES['Pandoc'], create_element)
 
 
 # Text.Pandoc.Definition

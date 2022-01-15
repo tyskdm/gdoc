@@ -19,8 +19,9 @@ The specification of Element class.
 
 """
 import pytest
-from gdoc.lib.pandocastobject.pandocast import types
 from gdoc.lib.pandocastobject import pandocast
+from gdoc.lib.pandocastobject.pandocast import types
+from gdoc.lib.pandocastobject.pandocast.pandoc import Pandoc
 
 ## @{ @name create_element(pan_elem, elem_type=None)
 ## [\@spec create_element] Find the element type and call constructor specified by it.
@@ -127,21 +128,41 @@ def spec_PandocAst_1():
     assert pandocast.PandocAst is types.PandocAst
 
 
-def spec_PandocAst_2(mocker):
+## @}
+## @{ @name \_\_init\_\_(pan_elem)
+## [\@spec \_\_init\_\_] creates a new PandocAst instance.
+##
+___init__ = "dummy for doxygen styling"
+
+def spec___init___1():
     r"""
-    [\@Spec PandocAst.2] alias
+    [@spec \_\_init\_\_.1] set props with default values.
     """
-    mock_create_element = mocker.patch(
-        'gdoc.lib.pandocastobject.pandocast.types.create_element',
-        return_value = 'PANDOC_AST_OBJECT'
-    )
+    _ELEMENT = { 'blocks': [] }
+    _TYPE_DEF = {
+        'Pandoc':  {
+            # Pandoc Meta [Block]
+            'class':  Pandoc,
+            'content':  {
+                'key':      None,
+                'main':     'blocks',
+                'type':     '[Block]'
+            },
+            'struct': {
+                'Version':  'pandoc-api-version',
+                'Meta':     'meta',
+                'Blocks':   'blocks'
+            }
+        },
+    }
 
-    output = pandocast.PandocAst('PAN_ELEM')
+    target = Pandoc(_ELEMENT, 'Pandoc', _TYPE_DEF['Pandoc'], 'dummy_function')
 
-    assert output == 'PANDOC_AST_OBJECT'
-    assert mock_create_element.call_count == 1
-    args = mock_create_element.call_args_list
-    assert args[0] == (('PAN_ELEM',), {})
+    assert target.pan_element is _ELEMENT
+    assert target.type == 'Pandoc'
+    assert target.type_def is _TYPE_DEF['Pandoc']
+    assert target.parent is None
+    assert target.children == []
 
 
 ## @}
