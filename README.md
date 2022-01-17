@@ -8,7 +8,21 @@ A Ghost documentation support tool.
 | ------- | --------- |
 | 0.1.1 - Scribble R2 | [Stability: 1 - Experimental](https://nodejs.org/api/documentation.html#documentation_stability_index)<br>No tests, No documents. Scribble codes only.
 
+- NOW ON REFACTORING to release the first version.
+
 ## 2. Motivation
+
+1. I wanted to write a software documents that looks like the following document.
+
+   - [Gdoc Architectural Design](./docs/ArchitecturalDesign/ArchitecturalDesign.md)
+   - [PandocAST Detailed Design](./docs/ArchitecturalDesign/pandocAstObject/PandocAst.md)
+
+   And want to extract design information from documents and use it.
+   for example, to display traceability information. \
+   --> try: [4.1. Sample](#41-sample)
+
+2. Or, just using markdown files as data store and to extract json(dict) data from it.
+
 
 ## 3. Requirements
 
@@ -20,8 +34,8 @@ A Ghost documentation support tool.
    gdoc can handle source-position attributes in pandoc AST json data.
    For this, pandoc version 2.11.3 or later is recommended.
 
-   > For anyone passing by this thread, this feature got released in 2.11.3  
-   > https://github.com/jgm/pandoc/issues/4565
+   > github.com/jgm/pandoc/issues/4565# Source mapping in AST: \
+   > [For anyone passing by this thread, this feature got released in 2.11.3](https://github.com/jgm/pandoc/issues/4565#:~:text=this%20feature%20got%20released%20in%202.11.3)
 
 2. python3
 
@@ -36,7 +50,7 @@ A Ghost documentation support tool.
 $ gdoc -v
 ```
 
-### Sample
+### 4.1. Sample
 
 ```sh
 $ gdoc trace --lower 3 OC3 docs/sample_ProjectManagement.md
