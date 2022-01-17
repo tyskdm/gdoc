@@ -49,11 +49,7 @@
     ["Para", [
         ["Str", "InlineMath"],
         ["Space", null],
-        ["Str", "$x=b^2$"],
-        ["Space", null],
-        ["Str", "NOT"],
-        ["Space", null],
-        ["Str", "supported."]
+        ["Math", "x=b^2"]
     ]],
     ["Para", [
         ["Str", "RawInline"],
@@ -82,8 +78,8 @@
 ## Case 1: Basic Inline elements in gfm
 
 **Note:** \
-This test runs pandoc with opttion `fomattype=gfm-sourcepos` and `html=false`.  \
-If you set `formattype=gfm/gfm+sourcepos` or `html=true`, the result will be different.
+This test runs pandoc with opttion `fomattype=gfm-sourcepos+tex_math_dollars` and `html=false`.  \
+If you set other format types or `html=true`, the result will be different.
 
 Hello world.
 
@@ -101,7 +97,7 @@ concatenates.
 LineBreak \
 breaks.
 
-InlineMath $x=b^2$ NOT supported.
+InlineMath $x=b^2$
 
 RawInline <RawInline opt> string.
 

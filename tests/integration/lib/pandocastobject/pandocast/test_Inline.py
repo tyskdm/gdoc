@@ -41,15 +41,15 @@ def _test_PandocAst_structure(target, expected):
 ## [\@test Inline] creates a new instance.
 ##
 _data_Inline_1 = {
-    "Case #1: Supported types by gfm.": ('case_1.md', 'gfm-sourcepos', False),
+    "Case #1: Supported types by gfm.": ('case_1.md', 'gfm-sourcepos+tex_math_dollars', False),
     # gfm supports Str, Emph, Strong, Strikeout, Code, Softbreak,
-    # LineBlreak, RawInline, Link, Image.
+    # LineBlreak, RawInline, Link, Image, Math.
 
     "Case #2: Supported types by docx.": ('case_2.docx', 'docx', False),
     # Additionally, docx supports Underline, Superscript, Subscript,
     # Smallcaps and Note.
 
-    # Not tested: Quoted, Cite, Math.
+    # Not tested: Quoted, Cite.
 }
 @pytest.mark.parametrize("filename, formattype, html",
     list(_data_Inline_1.values()), ids=list(_data_Inline_1.keys()))
