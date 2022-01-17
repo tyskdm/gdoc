@@ -7,15 +7,15 @@
 !include style.iuml
 !include SysML/bdd.iuml
 
-package "       PandocAst       " <<rectangle>> {
-  class "  PandocAst  " as PandocAst
+package "       Pandoc       " <<rectangle>> {
+  class "  Pandoc  " as Pandoc
   class Block
   class Inline
   class BlockList
   class InlineList
 }
 
-PandocAst *-- BlockList
+Pandoc *-- BlockList
 
 BlockList *-- "0..*" Block
 BlockList *-- "0..*" BlockList
@@ -26,8 +26,8 @@ Block <|-- BlockList
 InlineList *-- "0..*" Inline
 InlineList *-- "0..*" InlineList
 
-PandocAst .right.> PandocStr : "    use"
-PandocAst .left.> pandoc : "use  "
+Pandoc .right.> PandocStr : "    use"
+Pandoc .left.> pandoc : "use  "
 
 @enduml
 
@@ -37,17 +37,17 @@ PandocAst .left.> pandoc : "use  "
 
 !include style.iuml
 
-Class PandocAst
+Class Pandoc
 Entity ElementTypes <<static data>>
 
-Element <|-- PandocAst
+Element <|-- Pandoc
 Element <|-- Block
 Element <|-- Inline
 Block <|-- InlineList
 Block <|-- BlockList
 Block <|-- Table
 
-PandocAst ..> ElementTypes : use
+Pandoc ..> ElementTypes : use
 Block ..> ElementTypes : use
 Inline ..> ElementTypes : use
 InlineList ..> ElementTypes : use

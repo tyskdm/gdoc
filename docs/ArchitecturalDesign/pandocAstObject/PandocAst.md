@@ -36,7 +36,7 @@ Provide access methods to a pandoc AST object loaded from json file.
   - [7.8. TableBody](#78-tablebody)
   - [7.9. TableRow](#79-tablerow)
   - [7.10. TableCell](#710-tablecell)
-  - [7.11. PandocAst](#711-pandocast)
+  - [7.11. Pandoc](#711-pandoc)
 
 <br>
 
@@ -95,7 +95,7 @@ The basic element types are as follows.
 <div align=center>
 
 [![@source: ./PandocAst.pml#PandocAstInternalBlocks  \
-@type: puml](./PandocAst/PandocAstInternalBlocks.png)](./PandocAst.puml)  \
+@type: puml](./_puml_/PandocAst/PandocAstInternalBlocks.png)](./PandocAst.puml)  \
 \
 [@fig 4.1\] PandocAst ElementHandlers
 
@@ -124,7 +124,7 @@ Two means to cover them are as follows.
 <div align=center>
 
 [![@source: ./PandocAst.puml#PandocAstObjectClassHierarchy  \
-@type: puml](./PandocAst/PandocAstObjectClassHierarchy.png)](./PandocAst.puml)  \
+@type: puml](./_puml_/PandocAst/PandocAstObjectClassHierarchy.png)](./PandocAst.puml)  \
   \
 [@fig 5.1\] PandocAst ElementHandler class hierarchy
 
@@ -136,7 +136,7 @@ Two means to cover them are as follows.
 
 | Pandoc Type | Constructor | Gfm | Element Handler |
 | ----------- | ----------- | :-: | --------------- |
-| data Pandoc | Pandoc Meta [Block] | x | PandocAst? BlockList?
+| data Pandoc | Pandoc Meta [Block] | x | Pandoc
 
 #### 5.2.2. data Block
 
@@ -216,21 +216,21 @@ Intermediate data types for this purpose are as follows.
 | c1     | Element     | primitive element of pandoc AST with fundamental properties and methods.
 | c2     | Block       | Block element contains structured data without text string data.
 | c3     | Inline      | Inline element contains text string, text-decoration data or Inlines.
-| c4     | BlockList   | BlockList is a Block containing Blocks as a list.
+| c4     | BlockList   | BlockList is a Block containing Blocks or BlockLists as a list.
 | c5     | InlineList  | InlineList is a Block containing Inlines as a list.
 | c6     | Table
 | c7     | TableRowList
 | c8     | TableBody
 | c9     | TableRow
 | c10    | TableCell
-| c11    | PandocAst   | A python class to provide access methods to a pandoc ast object implemented in pandocast module.
+| c11    | Pandoc      | Root element representing whole pandocAst object.
 
 ### 5.4. Data Types
 
 | @block | Name | Text |
 | :----: | ---- | ---- |
 |        | Association   | @partof: THIS
-| d1     | _PANDOC_TYPES | data dict of each element types containing handler class and element format.
+| d1     | ELEMENT_TYPES | data dict of each element types containing handler class and element format.
 
 <br>
 
@@ -251,13 +251,22 @@ Nothing worth mentioning.
 | @Method | prev | returns an element ordered at previous to self.
 | @Method | get_parent | returns parent element.
 | @Method | get_children | returns list of child elements.
-| @Method | get_first_child | returns the first child elements.
+| @Method | get_first_child | returns the first child element.
 | @Method | get_type | returns element type.
 | @Method | get_prop | returns a property of the element specified by key string.
 | @Method | get_attr | returns a attrbute of the element specified by key string.
 | @Method | hascontent | returns True if self has content(s) or False if self is typed but has no content.
 | @Method | get_content | returns main content data in the element.
 | @Method | get_content_type | returns type of main content in the element.
+| @Method | walk | Walk through all elements of the tree and call out given functions.
+| @Method | next_item | returns an item ordered at next to self.
+| @Method | prev_item | returns an item ordered at previous to self.
+| @Method | get_parent_item | returns parent item.
+| @Method | get_child_items | returns list of child items.
+| @Method | get_first_item | returns the first child item.
+| @Method | walk_items | Walk through all items of the tree and call out given functions.
+
+- `_item()` meshods ignore wrapper(Generic container) elements, `Div` and `Span`.
 
 ### 7.2. Block
 
@@ -265,7 +274,7 @@ Nothing worth mentioning.
 | ------- | ---- | ----------- |
 | sc.c2   | Block | | Block element contains structured data without text string data.
 |         | Association | @Inherit: su[Element]
-| @Method |  |
+| @Method |  | No additional method
 
 ### 7.3. Inline
 
@@ -331,10 +340,10 @@ Nothing worth mentioning.
 |         | Association | @Inherit: su[Element]
 | @Method |  |
 
-### 7.11. PandocAst
+### 7.11. Pandoc
 
 | @Class& | Name | Description |
 | ------- | ---- | ----------- |
-| sc.c11  | PandocAst | provide access to all of original AST object.
+| sc.c11  | Pandoc | Root element representing whole pandocAst object.
 |         | Association | @Inherit: su[Element]
 | @Method |

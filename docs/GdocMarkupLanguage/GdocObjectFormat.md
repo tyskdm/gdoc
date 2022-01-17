@@ -30,7 +30,7 @@
 
 <div align=center>
 
-[![](./GdocObjectFormat/Plugins_ClassDiagram.png)](./GdocObjectFormat.puml)  \
+[![](./_puml_/GdocObjectFormat/Plugins_ClassDiagram.png)](./GdocObjectFormat.puml)  \
   \
 [@fig 4.1\] pandocAstObject Internal Blocks
 
@@ -67,7 +67,7 @@ Packageには２つの意味がある。
 
 <div align=center>
 
-[![](./GdocObjectFormat/GdocObjectClass.png)](./GdocObjectFormat.puml)  \
+[![](./_puml_/GdocObjectFormat/GdocObjectClass.png)](./GdocObjectFormat.puml)  \
   \
 [@fig 4.1\] pandocAstObject Internal Blocks
 

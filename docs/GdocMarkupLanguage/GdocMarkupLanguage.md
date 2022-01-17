@@ -147,7 +147,7 @@ GdObjectの概念説明用クラス図を以下に示す。
 
 <div align=center>
 
-[![](./GdocMarkupLanguage/GdocObjectClass.png)](./GdocMarkupLanguage.puml)  \
+[![](./_puml_/GdocMarkupLanguage/GdocObjectClass.png)](./GdocMarkupLanguage.puml)  \
 [@fig 1.1] GdObject Class
 
 </div>

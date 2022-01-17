@@ -1,4 +1,3 @@
-.PHONY: all clean test doc
 
 TARGET      := gdoc
 
@@ -8,43 +7,65 @@ SPECDIR     := spec
 TESTDIR     := tests
 DOXYGENDIR  := doxy
 DOXYOUTDIR  := html
+DOXYXMLDIR  := xml
+PYTESTDIR   := htmlcov
 
-# flags
-PYTESTFLAGS 	:=
-DOXYGENFLAGS	:=
+.PHONY: all clean doc doc-clean puml-img puml-clean test test-cov spec-cov spec-clean
 
-# PlantUML Settings
-## directories
-PUMLSRC     := .
-## flags
-PUMLFLAGS   :=
+all: clean test puml-img doc
 
+clean: puml-clean doc-clean spec-clean 
+	@py3clean .
 
-all: clean test puml_img doc
+#
+# Doxygen
+#
+DOXYGENFLAGS :=
 
 doc:
 	@$(RM) -rf $(DOXYGENDIR)/$(DOXYOUTDIR)
 	@cd doxy/; doxygen $(DOXYGENFLAGS)
 
-puml_img:
+doc-clean:
+	@$(RM) -rf $(DOXYGENDIR)/$(DOXYOUTDIR)
+	@$(RM) -rf $(DOXYGENDIR)/$(DOXYXMLDIR)
+
+#
+# PlantUML
+#
+PUMLSRC   := .
+PUMLFLAGS :=
+
+puml-img:
 	@find $(PUMLSRC) \( -name *.puml -or -name *.pu \) | while read line; \
     do \
-		echo puml_img: $$line; \
+		echo puml-img: $$line; \
 	 	dir=$${line%.*}; \
 		dir=$$(basename "$$dir"); \
-		plantuml -o "./$$dir" $$PUMLFLAGS "$$line"; \
+		plantuml -o "./_puml_/$$dir" $$PUMLFLAGS "$$line"; \
 	done
 
-puml_clean:
+puml-clean:
 	@find $(PUMLSRC) \( -name *.puml -or -name *.pu \) | while read line; \
     do \
 	 	dir=$${line%.*}; \
-		$(RM) -rf "$$dir"; \
+		parent_dir=$$(dirname "$$dir"); \
+		$(RM) -rf "$$parent_dir"/_puml_; \
 	done
 
-clean: puml_clean
-	@$(RM) -rf $(DOXYGENDIR)/$(DOXYOUTDIR)
-	@py3clean .
+#
+# pytest
+#
+PYTESTFLAGS :=
 
 test:
 	@pytest $(PYTESTFLAGS)
+
+test-cov:
+	@pytest $(PYTESTFLAGS) --cov $(SRCDIR) --cov-branch
+
+spec-cov:
+	@pytest $(SPECDIR) $(PYTESTFLAGS) --cov $(SRCDIR) --cov-branch --cov-report=html
+
+spec-clean:
+	@$(RM) -rf $(PYTESTDIR)
