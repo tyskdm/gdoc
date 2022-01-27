@@ -24,3 +24,51 @@ GdObject <|-- "Example.Gdoc:Section"
 "Example.GSN:Goal" -right-|> "Example.Gdoc:Section"
 
 @enduml
+
+
+@startuml TextBlockDataStruvture
+
+!include style.iuml
+!include SysML/bdd.iuml
+
+skinparam class {
+    BackgroundColor<<GDML Element>> Wheat
+    BorderColor<<PandocAst>> Tomato
+}
+
+class TextBlock <<GDML Element>>
+class Line <<GDML Element>>
+class Tag <<GDML Element>>
+class Text <<GDML Element>>
+class String <<GDML Element>>
+
+class Str <<PandocAst>>
+class Space <<PandocAst>>
+class SoftBreak <<PandocAst>>
+class LineBreak <<PandocAst>>
+class Code <<PandocAst>>
+class Math <<PandocAst>>
+class Image <<PandocAst>>
+class Quoted <<PandocAst>>
+
+Line -up-o TextBlock
+LineBreak -up-o TextBlock
+
+Tag -up-o Line
+Text -up-o Line
+
+String -up-o Tag
+
+String -up-o Text
+Code -up-o Text
+Math -up-o Text
+Image -up-o Text
+Quoted -up-o Text
+
+Str -up-o String
+Space -up-o String
+SoftBreak -up-o String
+
+@enduml
+
+

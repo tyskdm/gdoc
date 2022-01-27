@@ -56,8 +56,3 @@ $ gdoc -v
 $ gdoc trace --lower 3 OC3 docs/sample_ProjectManagement.md
 ```
 
----
-should be rst?
-
-> Quick reStructuredText for "Documenting Python"
-> https://docutils.sourceforge.io/sandbox/dkuhlman/docutils/docs/rst/pythonlatex_quickref.html
