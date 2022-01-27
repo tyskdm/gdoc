@@ -29,7 +29,7 @@ gdocサブコマンドはその構造化オブジェクトを参照してユー�
   - [3.1. [@ f] Input File Format](#31--f-input-file-format)
     - [3.1.1. Version](#311-version)
     - [3.1.2. Generating PandocAST](#312-generating-pandocast)
-  - [3.2. PandocAST From Gdoc's Point Of View](#32-pandocast-from-gdocs-point-of-view)
+  - [3.2. PandocAST From GDML's View](#32-pandocast-from-gdmls-view)
     - [3.2.1. PandocAST Element Types](#321-pandocast-element-types)
       - [3.2.1.1. Block Element Types](#3211-block-element-types)
       - [3.2.1.2. Inline Element Types](#3212-inline-element-types)
@@ -58,16 +58,18 @@ gdocサブコマンドはその構造化オブジェクトを参照してユー�
     - [4.1.2. BulletList/OrderedList](#412-bulletlistorderedlist)
     - [4.1.3. Block Types And Tag Types](#413-block-types-and-tag-types)
   - [4.2. Parsing A Text Block](#42-parsing-a-text-block)
-    - [4.2.1. Split to lines](#421-split-to-lines)
-    - [4.2.2. Detecting tags](#422-detecting-tags)
-      - [4.2.2.1. Categorize PandocAST Inline Elements](#4221-categorize-pandocast-inline-elements)
-      - [4.2.2.2. Detecting quoted string](#4222-detecting-quoted-string)
-      - [4.2.2.3. Detecting tags](#4223-detecting-tags)
-    - [4.2.3. Collecting Tag Info](#423-collecting-tag-info)
-      - [4.2.3.1. Class And Params](#4231-class-and-params)
-      - [4.2.3.2. Additional Params](#4232-additional-params)
-      - [4.2.3.3. Opt Strings](#4233-opt-strings)
-    - [4.2.4. Creating Objects](#424-creating-objects)
+    - [4.2.1. Data Structure](#421-data-structure)
+      - [4.2.1.1. PandocAST Inline Elements](#4211-pandocast-inline-elements)
+      - [4.2.1.2. Data Structure From GDML Parspective](#4212-data-structure-from-gdml-parspective)
+    - [4.2.2. Split to lines](#422-split-to-lines)
+    - [4.2.3. Detecting tags](#423-detecting-tags)
+      - [4.2.3.1. Range Tags Will Be Detected In](#4231-range-tags-will-be-detected-in)
+      - [4.2.3.2. Detecting tags](#4232-detecting-tags)
+    - [4.2.4. Collecting Tag Info](#424-collecting-tag-info)
+      - [4.2.4.1. Class And Params](#4241-class-and-params)
+      - [4.2.4.2. Additional Params](#4242-additional-params)
+      - [4.2.4.3. Opt Strings](#4243-opt-strings)
+    - [4.2.5. Creating Objects](#425-creating-objects)
   - [4.3. Parsing A Table](#43-parsing-a-table)
     - [4.3.1. Getting A Cell](#431-getting-a-cell)
     - [4.3.2. Detecting Top Tag](#432-detecting-top-tag)
@@ -176,8 +178,10 @@ Private Idは、名前空間の外（親）からは参照することができ�
 
 id文字列に、`.`は使用できない。
 
-- idに使用可能な文字列は、一般的なプログラミング言語のシンボル名と同じ。
-  - [ ] to be specified.
+- idに使用可能な文字は、Python識別子に使用可能な文字と同じ。
+  - [『 大文字と小文字の A から Z、アンダースコア _、先頭の文字を除く数字 0 から 9  』](https://docs.python.org/3/reference/lexical_analysis.html#identifiers)
+
+  - > [文字列が識別子として有効か確認: `isidentifier()`](https://note.nkmk.me/python-identifier-naming-rule/)
 
 このidを、名前解決の観点からShort Idと呼ぶことがある。
 
@@ -282,7 +286,7 @@ gdocは、PandocASTフォーマットのjsonデータを入力とする。
 
 - 現在 `+sourcepos` に対応しているのは gfm と commonmark のみであり、commonmark はテーブルに対応しないため、gdoc は gfm を推奨する。
 
-### 3.2. PandocAST From Gdoc's Point Of View
+### 3.2. PandocAST From GDML's View
 
 #### 3.2.1. PandocAST Element Types
 
@@ -501,12 +505,6 @@ Gdocはこのリスト内のブロックを先頭から順に取り出し、解�
 - BlockListから取り出したBlockがDiv Blockであった場合、これによる階層構造は無視し、Div Blockの子要素をDiv自身の位置に展開する。
 - Divが階層化している場合も、再帰的にこれを展開する。
 
-- @note:  \
-  以下の定義は保留する。pandocの振る舞いをもう少し調査する必要あり。
-
-  > Div Block内の子ブロックが任意数のPlane Blockのみである場合、このDiv Blockを１つのPlane Blockとして扱う。
-  > このとき、子Plane Blockのインラインリストを全て連結したものを、親Para Block（Div Block）のコンテンツとする。
-
 #### 4.1.2. BulletList/OrderedList
 
 BulletList/OrderedListの各リストアイテムは、文書全体と同様にブロックのリストである。
@@ -553,71 +551,187 @@ ex.
 > - ***[@Sys:Reqt er2]*** Application plugin system  \
 >   Application should be addaptable.
 
-#### 4.2.1. Split to lines
+#### 4.2.1. Data Structure
 
-1. Change `<br>` row html element to read `LineBreak` element.  \
-   Care it also in case `<BR>`, `<br/>`, `<br />`...
-
-2. Split Text block with a `LineBreak` element and get lines.
-
-#### 4.2.2. Detecting tags
-
-##### 4.2.2.1. Categorize PandocAST Inline Elements
+##### 4.2.1.1. PandocAST Inline Elements
 
 To parse tags and params, PandocAST Inline Elements are categorized as follows.
+
+###### 4.2.1.1.1. Basic Text
+
+基本的な文字列。
+
+タグとして解釈可能な文字列は、この基本文字列の連続のみで構成される。
+
+途中に（例えばImageやCodeなど）基本文字列以外の要素が挿入されていると、タグとして扱われない。
+SoftBreakは許容されるが、ソースドキュメントの可読性が低下することから推奨しない。
 
 | Type | Description | Handling | TokenType |
 | ---- | ----------- | -------- | :-------: |
 | Str | Str Text<br><small>Text (string)</small> | tag: Valid string<br>param: Valid string<br>quoted: Valid string | Str
-| Emph | Emph [Inline]<br><small>Emphasized text (list of inlines)</small> | Expand | -
-| Underline | Underline [Inline]<br><small>Underlined text (list of inlines)</small> | Expand | -
-| Strong | Strong [Inline]<br><small>Strongly emphasized text (list of inlines)</small> | Expand | -
-| Strikeout | Strikeout [Inline]<br><small>Strikeout text (list of inlines)</small> | Ignore | -
-| Superscript | Superscript [Inline]<br><small>Superscripted text (list of inlines)</small> | when parsing tag: **Delimiter**<br>when parsing param: **Error**<br>quoted: Valid string | Delim
-| Subscript | Subscript [Inline]<br><small>Subscripted text (list of inlines)</small> | when parsing tag: **Delimiter**<br>when parsing param: **Error**<br>quoted: Valid string | Delim
-| SmallCaps | SmallCaps [Inline]<br><small>Small caps text (list of inlines)</small> | Expand | -
-| Quoted | Quoted QuoteType [Inline]<br><small>Quoted text (list of inlines)</small> | when parsing tag: **Delimiter**<br>when parsing param: **Quoted**<br>quoted: Expand with `\"` | Quoted
-| Cite | Cite [Citation] [Inline]<br><small>Citation (list of inlines)</small> | when parsing tag: **Delimiter**<br>when parsing param: **Error**<br>quoted: Valid string | Delim
-| Code | Code Attr Text<br><small>Inline code (literal)</small> | when parsing tag: **Delimiter**<br>when parsing param: **Error**<br>quoted: ` quoted string | Delim
 | Space | Space<br><small>Inter-word space</small> | Space | Space
 | SoftBreak | SoftBreak<br><small>Soft line break</small> | Space | Space
 | LineBreak | LineBreak<br><small>Hard line break</small> | LineBreake<br>(Removed when split to line) | -
+
+###### 4.2.1.1.2. Special Text
+
+1. Code/Mathは、タグ記述に使用できないが、プロパティテキストとして使用可能。
+2. RawInlineはGDML文法上の全てのケースで無視される。
+
+| Type | Description | Handling | TokenType |
+| ---- | ----------- | -------- | :-------: |
+| Code | Code Attr Text<br><small>Inline code (literal)</small> | when parsing tag: **Delimiter**<br>when parsing param: **Error**<br>quoted: ` quoted string | Delim
 | Math | Math MathType Text<br><small>TeX math (literal)</small> | when parsing tag: **Delimiter**<br>when parsing param: **Error**<br>quoted: `$` quoted string | Delim
 | RawInline | RawInline Format Text<br><small>Raw inline</small> | Ignore | -
+
+###### 4.2.1.1.3. Decorator
+
+プロパティ文字列の属性として情報が保持されるが、同一性比較の際には無視される。
+
+| Type | Description | Handling | TokenType |
+| ---- | ----------- | -------- | :-------: |
+| Emph | Emph [Inline]<br><small>Emphasized text (list of inlines)</small> | Expand | -
+| Underline | Underline [Inline]<br><small>Underlined text (list of inlines)</small> | Expand | -
+| Strong | Strong [Inline]<br><small>Strongly emphasized text (list of inlines)</small> | Expand | -
+| Superscript | Superscript [Inline]<br><small>Superscripted text (list of inlines)</small> | when parsing tag: **Delimiter**<br>when parsing param: **Error**<br>quoted: Valid string | Delim
+| Subscript | Subscript [Inline]<br><small>Subscripted text (list of inlines)</small> | when parsing tag: **Delimiter**<br>when parsing param: **Error**<br>quoted: Valid string | Delim
+| SmallCaps | SmallCaps [Inline]<br><small>Small caps text (list of inlines)</small> | Expand | -
 | Link | Link Attr [Inline] Target<br><small>Hyperlink: alt text (list of inlines), target</small> | Expand | -
+
+###### 4.2.1.1.4. Special Conteiner
+
+プロパティテキストに以下の要素が含まれる場合、その扱いはタグの仕様による。
+
+ただし、StrikeoutはGDML文法上の全てのケースで無視される。
+
+| Type | Description | Handling | TokenType |
+| ---- | ----------- | -------- | :-------: |
 | Image | Image Attr [Inline] Target<br><small>Image: alt text (list of inlines), target</small> | Expand | -
+| Quoted | Quoted QuoteType [Inline]<br><small>Quoted text (list of inlines)</small> | when parsing tag: **Delimiter**<br>when parsing param: **Quoted**<br>quoted: Expand with `\"` | Quoted
+| Cite | Cite [Citation] [Inline]<br><small>Citation (list of inlines)</small> | when parsing tag: **Delimiter**<br>when parsing param: **Error**<br>quoted: Valid string | Delim
 | Note | Note [Block]<br><small>Footnote or endnote</small> | Ignore | -
+| Strikeout | Strikeout [Inline]<br><small>Strikeout text (list of inlines)</small> | Ignore | -
+
+###### 4.2.1.1.5. Generic Container
+
+GDML文法上の全てのケースで無視される。
+
+- この階層がなかったように扱われ、この要素があった場所に子要素が配置される。
+
+| Type | Description | Handling | TokenType |
+| ---- | ----------- | -------- | :-------: |
 | Span | Span Attr [Inline]<br><small>Generic inline container with attributes</small> | Expand | -
 
+##### 4.2.1.2. Data Structure From GDML Parspective
+
+入力情報の形式について。
+
+<br>
+<div align=center>
+
+[![](./_puml_/GdocMarkupLanguage/TextBlockDataStruvture.png)](./GdocMarkupLanguage.puml)  \
+[@fig 1.1] TextBlock Data Struvture
+
+</div>
 <br>
 
-##### 4.2.2.2. Detecting quoted string
+Memo:
 
-Extract text enclosed in double quotation marks as quotation string tokens.
+- Imageの代替テキストは、LineBreakもImageも含まない。
+- Codeも解除され、単にStringとして扱われる。
+- 太字も効かない。
 
-- mdではダブルコーテーションマークで括られた文字列もQuotedにならずにStrとなるので、自前で検出する。
-- エスケープシーケンスに対応する。`\`を無条件にエスケープ文字とみなす。
-- `"`のみ対応。
-  - @note:  \
-    Mathの$もmdでは対応しないが、こちらはgdocも対応しない。  \
-    (`"`と異なりtag書式に使用しないため)
+#### 4.2.2. Split to lines
 
-##### 4.2.2.3. Detecting tags
+Split Text block with a `LineBreak` element and get lines.
 
-tag notation ruleはここに隠蔽
+- GDMLの仕様では、`<br>`などのhtmlタグを解釈しない。
 
-- spase[@任意文字列]space
-- spase@任意文字列:space
+- Markdownの表のなかで`<br>`を使用して改行している場合など、htmlタグを解釈させたい場合には：
+
+  ```sh
+  pandoc -f gfm -t html | pandoc -f html -t json
+  ```
+
+  を実行して、htmlタグ解釈済みのPandocASTファイルを取得することで実現する。
+
+#### 4.2.3. Detecting tags
+
+##### 4.2.3.1. Range Tags Will Be Detected In
+
+連続するStringエレメントのみを対象とする。
+
+- Codeなどが挟まると、検出しない。
+
+  > [@ `Code` ] これはタグとして認識されない。
+
+##### 4.2.3.2. Detecting tags
+
+- Block tag
+
+  RE = `\[@.*?(".*?(\\".*?)*?".*?)*?\]`
+
+  ```py
+  r"""
+  \[@             # 1. Tag starts with '[@'.
+    .*?           #    2. Tag may include chars.
+    (             #    3. Tag may include Quoted strings and following chars.
+      \"          #       4. Quoted str starts with '"'.
+        .*?       #          5. Quoted str may include chars.
+        (         #
+          \\\"    #          6. Quoted str may include escaped '"'s
+          .*?     #             and following chars.
+        )*?       #
+      \"          #       7. Quoted str ends with '"'
+      .*?         #          and following chars.
+    )*?           #
+  \]`             # 8. Tag ends with ']'
+  """
+  ```
+
+  - L_BLOCK_TAG = `r"\[@"`
+  - R_BLOCK_TAG = `r"\]"`
+
+- Inline tag
+
+  RE = `(?:^|\s)@(\w|#)*?(\(.*?(".*?(\\".*?)*?".*?)*?\))?:(?=\s|$)`
+
+  ```py
+  r"""
+  (?:^|\s)@         # 1. Tag starts with (^ or space) and '@'.
+    (\w|[#])*?      #    2. Tag name may follow tag header without space char.
+    (\(.*?          #    3. Tag may have args in '()'.
+      (             #    4. Args may include Quoted strings and following chars.
+        \"          #       5. Quoted str starts with '"'.
+          .*?       #          6. Quoted str may include chars.
+          (         #
+            \\\"    #          7. Quoted str may include escaped '"'s
+            .*?     #             and following chars.
+          )*?       #
+        \"          #       8. Quoted str ends with '"'
+        .*?         #          and following chars.
+      )*?           #
+    \))?            #    9. Tag name(or Args) trail NO chars.
+  :(?=\s|$)         # 10. Tag ends with ':' and have no trailing chars.
+  """
+  ```
+
+  - L_INLINE_TAG = `r"(^|\s)@"`
+  - R_INLINE_TAG = `r":(?=\s|$)"`
+
+[@]
+
+- @tag(key=" \" "):  @tag( "" ): id id
 
 1. 行頭もしくはスペース直後
 
 2. 無視タグを開始文字直前に置くことができる
 
-   > `<!-- gdoc-ignore-tag -->[@`
+   > `<!-- gdml-ignore -->[@`
 
 <br>
 
-#### 4.2.3. Collecting Tag Info
+#### 4.2.4. Collecting Tag Info
 
 tag文字列（gdString）から、パラメータ情報を取得する。
 
@@ -625,11 +739,11 @@ ex.
 
 > ***[@gdoc:import gdml.p.st3 from=gdml.md as=st3]***
 
-##### 4.2.3.1. Class And Params
+##### 4.2.4.1. Class And Params
 
 See 3.4.
 
-##### 4.2.3.2. Additional Params
+##### 4.2.4.2. Additional Params
 
 Block tagが付与された行の直後に連続する０以上の行が `[]` で括られていた場合、これをタグの続きとみなす。
 
@@ -644,20 +758,20 @@ ex.
 >
 > FFF [@class param] GGG [key=param key=param]
 
-##### 4.2.3.3. Opt Strings
+##### 4.2.4.3. Opt Strings
 
 ```js
 optStrings = {         // Para, Plane, Header
   "Preceding lines": {
 
   },
-  "Preceding string": {
+  "Preceding text": {
 
   },
   "Block tag": {
 
   },
-  "Following string": {
+  "Following text": {
 
   },
   "Following lines": {
@@ -672,7 +786,7 @@ Opt Strings 使用には一般ルールがある。
    その際、`[@class param] Name String: additional string` のように `:` を含む場合には最初のコロンより前を名前として採用する。
 
 
-#### 4.2.4. Creating Objects
+#### 4.2.5. Creating Objects
 
 See 5. Creating Objects
 
