@@ -1,0 +1,263 @@
+r"""
+PandocStr class
+"""
+
+from ast import Delete
+
+_ALLOWED_TYPES_ = ('Str', 'Space', 'SoftBreak', 'LineBreak')
+
+class PandocStr:
+    """
+    Handles text strings in 'Str' inline elements and keep source mapping data.
+    """
+
+    def __init__(self, items = None, start: int = 0, stop: int = None):
+        """ Constructor
+        @param items : [Str] | None
+            PandocAST items to be added.
+        @param start : int = 0
+            start char pos in the str items.
+        @param stop : int | None = None
+            stop char pos in the str items.
+        @return output : PandocStr
+        """
+
+        # self._items = []
+        # self._text = ""
+        # self._len = 0
+        self._items, self._text, self._len = self._create_items_list(items, start, stop)
+
+
+    def add_items(self, items = None, start: int = 0, stop: int = None):
+        """ Constructor
+        @param items : [Str] | None
+            PandocAST items to be added.
+        @param start : int = 0
+            start char pos in the str items.
+        @param stop : int | None = None
+            stop char pos in the str items.
+        @return output : PandocStr
+        """
+
+        ## Create new items list
+        # new_items = []
+        # new_text = ""
+        # new_len = 0
+        new_items, new_text, new_len = self._create_items_list(items, start, stop)
+
+        ## Join new list to existing lit.
+        self._join_items(new_items, new_text, new_len)
+
+
+    def get_items(self):
+        """ Constructor
+        @return output : PandocStr
+        """
+        return self._items
+
+
+    def get_str(self, start: int = 0, stop: int = None):
+        """ Constructor
+        @param start : int = 0
+            start char pos in the str items.
+        @param stop : int | None = None
+            stop char pos in the str items.
+        @return output : python str
+        """
+        return self._text[start:stop]
+
+
+    def get_info(self, index: int = 0):
+        """ Constructor
+        @param index : int = 0
+            index of the target char in self._text
+        @return (sourcepos : {path:str, line:int, col:int}, decoration, item)
+        """
+        _index = index
+        sourcepos = None
+        decoration = 0
+        prev_ast_item = False
+
+        for item in self._items:
+            if _index >= item["len"]:
+                _index -= item["len"]
+                continue
+            else:
+                break
+
+        if item["_item"].get_type() in ("Str", "Space", "LineBreak", "SoftBreak"):
+            # Pandoc AST elem type 'Str', 'Space', 'LineBreak' don't have pos attr.
+            # But their parents are 'Span' and have pos attr, when 'sourcepos'
+            # extension is enabled.
+            pos = item["_item"].get_parent().get_attr(('pos', 'data-pos'))
+
+            if (pos is None) or (len(pos.split('@')) < 2):
+                prev_ast_item = item["_item"].prev_item()
+                pos = prev_ast_item.get_attr(('pos', 'data-pos'))
+                if (pos is None) or (len(pos.split('@')) < 2):
+                    pos = prev_ast_item.get_parent().get_attr(('pos', 'data-pos'))
+
+            if (pos is not None) and (len(pos.split('@')) >= 2):
+                # ".tmp/t.md@1:1-1:3"
+                p =  pos.split('@')
+                _path = p[0]
+                p = p[1].split('-')
+
+                if prev_ast_item is False:
+                    p = p[0].split(':')
+                else:
+                    p = p[1].split(':')
+
+                _line = int(p[0])
+                _col = int(p[1]) + _index
+
+                sourcepos = {
+                    "path": _path,
+                    "line": _line,
+                    "col": _col
+                }
+            else:
+                # should raise
+                pass
+
+        else:
+            # should raise
+            pass
+
+
+        return sourcepos, decoration, item
+
+
+    def _create_items_list(self, items = None, start: int = 0, stop: int = None):
+        """ Constructor
+        @param items : [Str] | None
+            PandocAST items to be added.
+        @param start : int = 0
+            start char pos in the str items.
+        @param stop : int | None = None
+            stop char pos in the str items.
+        @return output : PandocStr
+        """
+        ##
+        ## Create new items list
+        ##
+        new_items = []
+        new_text = ""
+        new_len = 0
+        _stop = stop    # storing for error reporting
+
+        if items is None or len(items) == 0:
+            return (new_items, new_text, new_len)
+
+        total_lenght = 0
+        for item in items:
+            if item.get_type() in _ALLOWED_TYPES_:
+                new_items.append({
+                    "_item": item,
+                    "start" : 0,
+                    "stop": len(item.text),
+                    "text": item.text,
+                    "len": len(item.text),
+                    "decoration": 0
+                })
+                total_lenght += len(item.text)
+
+            else:
+                # raise error
+                raise TypeError('Invalid item type(' + item.get_type() + ')')
+
+        # Set stop as plus val(0 - total_length)
+        if stop is None:
+            stop = total_lenght
+        elif stop < 0:
+            stop = total_lenght + stop
+
+        trailing_str_len = total_lenght - stop
+
+        # Check invalid start and stop
+        if (total_lenght > 0):
+            if ((start < 0) or (start > total_lenght)):
+                raise IndexError('Out of range specifier: start = ' + str(start))
+
+            if ((stop < 0) or (stop > total_lenght)):
+                raise IndexError('Out of range specifier: stop = ' + str(_stop))
+
+        new_len = stop - start    # if start pos == stop pos: len = 0
+        if (new_len < 0):
+            # raise error
+            raise ValueError('Invalid range specification')
+
+        # Check `start` value
+        while start > 0:
+            length = new_items[0]["len"]
+
+            if length <= start:
+                del new_items[0]
+                start -= length
+
+            else:
+                new_items[0]["start"] = start
+                new_items[0]["len"] -= start
+                break
+
+        # Check `stop` value
+        while trailing_str_len > 0:
+            length = len(new_items[-1]["_item"].text)
+
+            if length < trailing_str_len:
+                del new_items[-1]
+                trailing_str_len -= length
+
+            else:
+                new_items[-1]["stop"] = length - trailing_str_len
+                new_items[-1]["len"] -= trailing_str_len
+                break
+
+        # remove empty items and text out of range.
+        for item in new_items:
+            if (item["len"] == 0):
+                del new_items[new_items.index(item)]
+                continue
+
+            # remove text out of range.
+            elif (item["start"] > 0) or (item["stop"] < len(new_items[-1]["_item"].text)):
+                item["text"] = item["text"][item["start"]:item["stop"]]
+
+            new_text += item["text"]
+
+        return (new_items, new_text, new_len)
+
+
+    def _join_items(self, new_items, new_text, new_len):
+        """ Constructor
+        @param items : [Str] | None
+            PandocAST items to be added.
+        @param start : int = 0
+            start char pos in the str items.
+        @param stop : int | None = None
+            stop char pos in the str items.
+        @return output : PandocStr
+        """
+
+        ##
+        ## Join new list to existing lit.
+        ##
+        if ((self._len > 0) and (new_len > 0)) and \
+           (self._items[-1]["_item"] is new_items[0]["_item"]) and \
+           (self._items[-1]["stop"] == new_items[0]["start"]):
+
+                # Merge them
+                # "_item": item,            <- same
+                # "start" : 0,              <- same
+                # "stop": len(item.text),   <- add
+                # "text": item.text,        <- add
+                # "len": len(item.text),    <- add
+                # "decoration": 0           <- same
+                self._items[-1]["stop"] = new_items[0]["stop"]
+                self._items[-1]["len"] += new_items[0]["len"]
+                self._items[-1]["text"] += new_items[0]["text"]
+                del new_items[0]
+
+        self._items += new_items
+        self._text += new_text
+        self._len += new_len
