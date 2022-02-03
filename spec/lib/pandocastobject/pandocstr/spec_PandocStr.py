@@ -1131,19 +1131,76 @@ def spec_get_str_1(items, position, slice, expected):
     assert target_str == expected
 
 
-## @{ @name \_\_init\_\_(pan_elem, type_def)
-## [\@spec \_\_init\_\_] creates a new instance.
+## @{ @name get_info(pan_elem, type_def)
+## [\@spec get_info] creates a new instance.
 ##
 # | @Method      | get_info       |
 # |              | @param         | in index : int = 0
 # |              | @param         | out char_info : (sourcepos : {path:str, line:int, col:int}, decoration, item)
+#
+# >> SEE spec_get_info.py
+#
 
-
-## @{ @name \_\_init\_\_(pan_elem, type_def)
-## [\@spec \_\_init\_\_] creates a new instance.
+## @{ @name \_\_len\_\_(pan_elem, type_def)
+## [\@spec \_\_len\_\_] creates a new instance.
 ##
 # | @Method      | `__len__`      | () -> int
 # |              | @param         | out length : int
+_data___len___1 = {
+#   id: (
+#       items: [
+#           (type, text),....
+#       ],
+#       position: [ start, stop ],
+#       expected: string
+#   )
+    "Case: One item":  (
+        [   # items
+            { 'type': 'Str', 'text': 'ABCDEF' }
+        ],
+        [   # position
+            1, -1,
+        ],
+        # expected
+        4
+    ),
+    "Case: 3 items":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' },
+        ],
+        [   # position
+            1, -1,
+        ],
+        # expected
+        7
+    ),
+}
+@pytest.mark.parametrize("items, position, expected",
+                         list(_data___len___1.values()),
+                         ids=list(_data___len___1.keys()))
+def spec___len___1(items, position, expected):
+    r"""
+    [@spec add_items.1] construct with various items - Normal cases.
+    """
+    class _TEST_ITEM_:
+        def __init__(self, type, text):
+            self.text = text
+            self.type = type
+
+        def get_type(self):
+            return self.type
+
+    TEST_ITEMS = []
+    for item in items:
+        TEST_ITEMS.append(_TEST_ITEM_(item['type'], item['text']))
+
+    target = PandocStr(*([TEST_ITEMS] + position))
+    target_len = target.__len__()
+
+    assert target_len == expected
+    assert len(target) == expected
 
 
 ## @{ @name \_\_init\_\_(pan_elem, type_def)

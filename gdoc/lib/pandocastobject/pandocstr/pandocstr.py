@@ -137,6 +137,13 @@ class PandocStr:
         return sourcepos, decoration, item
 
 
+    def __len__(self):
+        """ Constructor
+        @return output : PandocStr
+        """
+        return self._len
+
+
     def _create_items_list(self, items = None, start: int = 0, stop: int = None):
         """ Constructor
         @param items : [Str] | None
