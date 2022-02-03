@@ -18,7 +18,7 @@ GHI \
 JKL  
 MNO<br>PQR
 
-### Case #1: Simple strings via html
+### Case #1: Simple strings +sourcepos via html
 
 - this md should be converted with gfm+sourcepos option. \
   if not, result will be different.

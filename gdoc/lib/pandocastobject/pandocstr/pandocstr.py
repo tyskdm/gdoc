@@ -85,45 +85,54 @@ class PandocStr:
             else:
                 break
 
-        if item["_item"].get_type() in ("Str", "Space", "LineBreak", "SoftBreak"):
-            # Pandoc AST elem type 'Str', 'Space', 'LineBreak' don't have pos attr.
-            # But their parents are 'Span' and have pos attr, when 'sourcepos'
-            # extension is enabled.
-            pos = item["_item"].get_parent().get_attr(('pos', 'data-pos'))
+        if _index > item["len"]:
+            # _index is longer than PandocStr._text.
+            # So refer to the last item and points the end of the item.
+            prev_ast_item = True
+            _index = 0
 
-            if (pos is None) or (len(pos.split('@')) < 2):
-                prev_ast_item = item["_item"].prev_item()
+        # Pandoc AST elem type 'Str', 'Space', 'LineBreak' don't have pos attr.
+        # But their parents are 'Span' and have pos attr, when 'sourcepos'
+        # extension is enabled.
+        pos = item["_item"].get_parent().get_attr(('pos', 'data-pos'))
+
+        if (pos is None) or (len(pos.split('@')) < 2):
+            # Currently(pandoc -v = 2.14.2),
+            # If the type is SoftBreak, data-pos is not provided and is "".
+            # Therefore, try to get the prev item and get its stop position.
+            # The stop position points start point of the next(this) element.
+            prev_ast_item = item["_item"].prev_item()
+            if prev_ast_item is not None:
                 pos = prev_ast_item.get_attr(('pos', 'data-pos'))
                 if (pos is None) or (len(pos.split('@')) < 2):
                     pos = prev_ast_item.get_parent().get_attr(('pos', 'data-pos'))
 
-            if (pos is not None) and (len(pos.split('@')) >= 2):
-                # ".tmp/t.md@1:1-1:3"
-                p =  pos.split('@')
-                _path = p[0]
-                p = p[1].split('-')
+        if (pos is not None) and (len(pos.split('@')) >= 2):
+            # ".tmp/t.md@1:1-1:3"
+            p =  pos.split('@')
+            _path = p[0]
+            p = p[1].split('-')
 
-                if prev_ast_item is False:
-                    p = p[0].split(':')
-                else:
-                    p = p[1].split(':')
-
-                _line = int(p[0])
-                _col = int(p[1]) + _index
-
-                sourcepos = {
-                    "path": _path,
-                    "line": _line,
-                    "col": _col
-                }
+            if prev_ast_item is False:
+                p = p[0].split(':')
             else:
-                # should raise
-                pass
+                p = p[1].split(':')
+
+            _line = int(p[0])
+            _col = int(p[1]) + _index
+
+            sourcepos = {
+                "path": _path,
+                "line": _line,
+                "col": _col
+            }
 
         else:
-            # should raise
-            pass
-
+            sourcepos = {
+                "path": "[Source pos not found]",
+                "line": 0,
+                "col": 0
+            }
 
         return sourcepos, decoration, item
 
