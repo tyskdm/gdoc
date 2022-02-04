@@ -9,9 +9,6 @@ The specification of get_info method.
 
 [@import SWDD.SU[get_info] as=THIS]
 
-- [ ] TODO should test and implement: in case item has start and end index.
-
-
 """
 import json
 import pytest
@@ -127,6 +124,47 @@ def spec_get_info_2(filename, formattype, html):
         sourcepos, _, _ = target.get_info(expect[0])
         assert sourcepos["line"] == expect[3][0]
         assert sourcepos["col"] == expect[3][1]
+        if sourcepos["line"] != 0:
+            assert sourcepos["path"].split('/')[-1] == filename
+        else:
+            assert sourcepos["path"] == "[Source pos not found]"
+
+
+_data_get_info_3 = {
+    "Case P1: PandocStr constructed with parts of Str items.":
+        ('case_P1.md', 'gfm+sourcepos', True),
+}
+@pytest.mark.parametrize("filename, formattype, html",
+    list(_data_get_info_3.values()), ids=list(_data_get_info_3.keys()))
+def spec_get_info_3(filename, formattype, html):
+    r"""
+    [@test get_info.3] returns sourcepos info of the char at specified index
+    """
+    datadir = '.'.join(__file__.split('.')[:-1]) + '/'  # data directory
+
+    pandoc_json = Pandoc().get_json(datadir + filename, formattype, html)
+    pandoc_ast = PandocAst(pandoc_json)
+
+    expect_json = pandoc_ast.get_first_item().get_content()
+    expect_data = json.loads(expect_json)
+
+    para = pandoc_ast.get_child_items()[1]
+    para_items = para.get_child_items()
+
+    target = PandocStr()
+    for i in range(len(expect_data[0][0])):
+        target.add_items(*[[para_items[i]]] + expect_data[0][0][i])
+
+    target_str = target.get_str()
+    assert target_str == expect_data[0][1]
+
+    for expect in expect_data[1:]:
+        assert target_str[expect[0]] == expect[1]
+        # out = sourcepos : {path:str, line:int, col:int}, decoration, item
+        # sourcepos, decoration, item = target.get_info(1)
+        sourcepos, _, _ = target.get_info(expect[0])
+        assert sourcepos["line"] == expect[3][0] , expect[2]
+        assert sourcepos["col"] == expect[3][1] , expect[2]
         if sourcepos["line"] != 0:
             assert sourcepos["path"].split('/')[-1] == filename
         else:

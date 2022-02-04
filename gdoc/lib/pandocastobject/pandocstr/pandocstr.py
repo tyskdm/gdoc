@@ -87,16 +87,17 @@ class PandocStr:
 
         if _index > item["len"]:
             # _index is longer than PandocStr._text.
-            # So refer to the last item and points the end of the item.
+            # Then refer to the last item and points the end of the item.
             prev_ast_item = True
             _index = 0
 
-        # Pandoc AST elem type 'Str', 'Space', 'LineBreak' don't have pos attr.
+        # Pandoc AST elem type 'Str', 'Space', 'SoftBreak', 'LineBreak' don't have pos attr.
         # But their parents are 'Span' and have pos attr, when 'sourcepos'
         # extension is enabled.
         pos = item["_item"].get_parent().get_attr(('pos', 'data-pos'))
 
-        if (pos is None) or (len(pos.split('@')) < 2):
+        if ((pos is None) or (len(pos.split('@')) < 2) and
+            (item["_item"].get_type() in ('Space', 'SoftBreak'))):
             # Currently(pandoc -v = 2.14.2),
             # If the type is SoftBreak, data-pos is not provided and is "".
             # Therefore, try to get the prev item and get its stop position.
@@ -115,11 +116,12 @@ class PandocStr:
 
             if prev_ast_item is False:
                 p = p[0].split(':')
+                _line = int(p[0])
+                _col = int(p[1]) + item["start"] + _index
             else:
                 p = p[1].split(':')
-
-            _line = int(p[0])
-            _col = int(p[1]) + _index
+                _line = int(p[0])
+                _col = int(p[1])
 
             sourcepos = {
                 "path": _path,
