@@ -1203,12 +1203,438 @@ def spec___len___1(items, position, expected):
     assert len(target) == expected
 
 
-## @{ @name \_\_init\_\_(pan_elem, type_def)
-## [\@spec \_\_init\_\_] creates a new instance.
+## @{ @name \_\_getitem\_\_(pan_elem, type_def)
+## [\@spec \_\_getitem\_\_] creates a new instance.
 ##
 # | @Method      | `__getitem__`  | (__i: SupportsIndex \| slice) -> PandocStr.
 # |              | @param         | in index : int \| slice
 # |              | @param         | out : PandocStr
+_data___getitem___1 = {
+#   id: (
+#       items: [
+#           (type, text),....
+#       ],
+#       position: [ start, stop ],
+#       index:  int | slice
+#       expected: {
+#           items: [index nums of input items list],
+#           text:
+#           len:
+#       }
+#   )
+    "Normal Case lenght=1(1/2): One item(1/2)":  (
+        [   # items
+            { 'type': 'Str', 'text': '0123456' }
+        ],
+        [], # position
+        # index
+        3,
+        {   # expected
+            "items":    [0],
+            "text":     "3",
+            "len":      1
+        }
+    ),
+    "Normal Case lenght=1(1/2): One item(2/2)":  (
+        [   # items
+            { 'type': 'Str', 'text': '0123456' }
+        ],
+        [   # position
+            1, -1,
+        ],
+        # index
+        -3,
+        {   # expected
+            "items":    [0],
+            "text":     "3",
+            "len":      1
+        }
+    ),
+    "Normal Case lenght=1(2/2): 3 items pattern(1/3)":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' },
+        ],
+        [], # position
+        # index
+        0,
+        {   # expected
+            "items":    [0],
+            "text":     "0",
+            "len":      1
+        }
+    ),
+    "Normal Case lenght=1(2/2): 3 items pattern(2/3)":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' },
+        ],
+        [], # position
+        # index
+        4,
+        {   # expected
+            "items":    [1],
+            "text":     "4",
+            "len":      1
+        }
+    ),
+    "Normal Case lenght=1(2/2): 3 items pattern(3/3)":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' },
+        ],
+        [], # position
+        # index
+        8,
+        {   # expected
+            "items":    [2],
+            "text":     "8",
+            "len":      1
+        }
+    ),
+    "Normal Case slice(1/2)): One item(1/2)":  (
+        [   # items
+            { 'type': 'Str', 'text': '0123456' }
+        ],
+        [], # position
+        # index
+        slice(1, -1),
+        {   # expected
+            "items":    [0],
+            "text":     "12345",
+            "len":      5
+        }
+    ),
+    "Normal Case slice(1/2)): One item(2/2)":  (
+        [   # items
+            { 'type': 'Str', 'text': '0123456' }
+        ],
+        [   # position
+            1, -1,
+        ],
+        # index
+        slice(1, -1),
+        {   # expected
+            "items":    [0],
+            "text":     "234",
+            "len":      3
+        }
+    ),
+    "Normal Case slice(2/2): 3 items pattern(1/7)":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' },
+        ],
+        [   # position
+            1, -1,
+        ],
+        # index
+        slice(0, 7),
+        {   # expected
+            "items":    [0, 1, 2],
+            "text":     "1234567",
+            "len":      7
+        }
+    ),
+    "Normal Case slice(2/2): 3 items pattern(2/7)":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' },
+        ],
+        [   # position
+            1, -1,
+        ],
+        # index
+        slice(1, -1),
+        {   # expected
+            "items":    [0, 1, 2],
+            "text":     "23456",
+            "len":      5
+        }
+    ),
+    "Normal Case slice(2/2): 3 items pattern(3/7)":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' },
+        ],
+        [   # position
+            1, -1,
+        ],
+        # index
+        slice(1, 3),
+        {   # expected
+            "items":    [0, 1],
+            "text":     "23",
+            "len":      2
+        }
+    ),
+    "Normal Case slice(2/2): 3 items pattern(4/7)":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' },
+        ],
+        [   # position
+            1, -1,
+        ],
+        # index
+        slice(4, 6),
+        {   # expected
+            "items":    [1, 2],
+            "text":     "56",
+            "len":      2
+        }
+    ),
+    "Normal Case slice(2/2): 3 items pattern(5/7)":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' },
+        ],
+        [   # position
+            1, -1,
+        ],
+        # index
+        slice(0, 2),
+        {   # expected
+            "items":    [0],
+            "text":     "12",
+            "len":      2
+        }
+    ),
+    "Normal Case slice(2/2): 3 items pattern(6/7)":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' },
+        ],
+        [   # position
+            1, -1,
+        ],
+        # index
+        slice(2, 5),
+        {   # expected
+            "items":    [1],
+            "text":     "345",
+            "len":      3
+        }
+    ),
+    "Normal Case slice(2/2): 3 items pattern(7/7)":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' },
+        ],
+        [   # position
+            1, -1,
+        ],
+        # index
+        slice(5, 7),
+        {   # expected
+            "items":    [2],
+            "text":     "67",
+            "len":      2
+        }
+    ),
+}
+@pytest.mark.parametrize("items, position, index, expected",
+                         list(_data___getitem___1.values()),
+                         ids=list(_data___getitem___1.keys()))
+def spec___getitem___1(items, position, index, expected):
+    r"""
+    [@spec add_items.1] construct with various items - Normal cases.
+    """
+    class _TEST_ITEM_:
+        def __init__(self, type, text):
+            self.text = text
+            self.type = type
+
+        def get_type(self):
+            return self.type
+
+    TEST_ITEMS = []
+    for item in items:
+        TEST_ITEMS.append(_TEST_ITEM_(item['type'], item['text']))
+
+    target = PandocStr(*([TEST_ITEMS] + position))
+    # substring = target.__getitem__(index)
+    substring = target[index]
+
+    assert substring._text == expected["text"]
+    assert substring._len == expected["len"]
+
+    assert len(substring._items) == len(expected["items"])
+    for i in range(len(expected["items"])):
+        assert substring._items[i]["_item"] is TEST_ITEMS[expected["items"][i]]
+
+
+## @{ @name \_limit\_slice\_to\_range(pan_elem, type_def)
+## [\@spec \_limit\_slice\_to\_range] creates a new instance.
+##
+# | @Method      | `_limit_slice_to_range`  | (slice, int) -> (int, int, int)
+# |              | @param         | in index : slice
+# |              | @param         | in length : int
+# |              | @param         | out : (start: int, stop: int, length: int)
+_data__limit_slice_to_range_1 = {
+#   id: (
+#       input: (slice, length)
+#       expected: (start, stop, length)
+#   )
+    "Case start=0(1/3): 0 <= stop <= length (1/3)":  (
+        (slice(0, 5), 5),   # input
+        (0, 5, 5)           # expected
+    ),
+    "Case start=0(1/3): 0 <= stop <= length (2/3)":  (
+        (slice(0, 3), 5),   # input
+        (0, 3, 3)           # expected
+    ),
+    "Case start=0(1/3): 0 <= stop <= length (3/3)":  (
+        (slice(0, 0), 5),   # input
+        (0, 0, 0)           # expected
+    ),
+    "Case start=0(2/3): stop > length":  (
+        (slice(0, 10), 5),  # input
+        (0, 5, 5)           # expected
+    ),
+    "Case start=0(3/3): stop < 0 (1/3)":  (
+        (slice(0, -2), 5),  # input
+        (0, 3, 3)           # expected
+    ),
+    "Case start=0(3/3): stop < 0 (2/3)":  (
+        (slice(0, -5), 5),  # input
+        (0, 0, 0)           # expected
+    ),
+    "Case start=0(3/3): stop < 0 (3/3)":  (
+        (slice(0, -10), 5), # input
+        (0, 0, 0)           # expected
+    ),
+    "Case stop=3(1/3): 0 <= start <= length (1/3)":  (
+        (slice(0, 3), 5),   # input
+        (0, 3, 3)           # expected
+    ),
+    "Case stop=3(1/3): 0 <= start <= length (2/3)":  (
+        (slice(3, 3), 5),   # input
+        (3, 3, 0)           # expected
+    ),
+    "Case stop=3(1/3): 0 <= start <= length (2/3)":  (
+        (slice(5, 3), 5),   # input
+        (5, 3, 0)           # expected
+    ),
+    "Case stop=3(2/3): start > length":  (
+        (slice(10, 3), 5),  # input
+        (5, 3, 0)           # expected
+    ),
+    "Case stop=3(3/3): start < 0 (1/4)":  (
+        (slice(-1, 3), 5),  # input
+        (4, 3, 0)           # expected
+    ),
+    "Case stop=3(3/3): start < 0 (2/4)":  (
+        (slice(-3, 3), 5),  # input
+        (2, 3, 1)           # expected
+    ),
+    "Case stop=3(3/3): start < 0 (3/4)":  (
+        (slice(-5, 3), 5),  # input
+        (0, 3, 3)           # expected
+    ),
+    "Case stop=3(3/3): start < 0 (4/4)":  (
+        (slice(-10, 3), 5), # input
+        (0, 3, 3)           # expected
+    ),
+}
+@pytest.mark.parametrize("input, expected",
+                         list(_data__limit_slice_to_range_1.values()),
+                         ids=list(_data__limit_slice_to_range_1.keys()))
+def spec__limit_slice_to_range_1(input, expected):
+    r"""
+    [@spec _limit_slice_to_range.1] construct with various items - Normal cases.
+    """
+    target = PandocStr._limit_slice_to_range(input[0], input[1])
+
+    assert target == expected
+
+
+## @{ @name \_limit\_index\_to\_range(pan_elem, type_def)
+## [\@spec \_limit\_index\_to\_range] creates a new instance.
+##
+# | @Method      | `_limit_index_to_range`  | (slice, int) -> (int, int, int)
+# |              | @param         | in index : slice
+# |              | @param         | in length : int
+# |              | @param         | out : (start: int, stop: int, length: int)
+_data__limit_index_to_range_1 = {
+#   id: (
+#       input: (index, length)
+#       exception: False | args
+#       expected: (start, index, length)
+#   )
+    "Normal Case: 0 <= index < length (1/3)":  (
+        (0, 5),     # input
+        False,      # exception
+        (0, 1, 1)   # expected
+    ),
+    "Normal Case: 0 <= index < length (2/3)":  (
+        (3, 5),     # input
+        False,      # exception
+        (3, 4, 1)   # expected
+    ),
+    "Normal Case: 0 <= index < length (2/3)":  (
+        (4, 5),     # input
+        False,      # exception
+        (4, 5, 1)   # expected
+    ),
+    "Normal Case: 0 <= length + index(minux) < length (1/3)":  (
+        (-1, 5),    # input
+        False,      # exception
+        (4, 5, 1)   # expected
+    ),
+    "Normal Case: 0 <= length + index(minux) < length (2/3)":  (
+        (-3, 5),    # input
+        False,      # exception
+        (2, 3, 1)   # expected
+    ),
+    "Normal Case: 0 <= length + index(minux) < length (3/3)":  (
+        (-5, 5),    # input
+        False,      # exception
+        (0, 1, 1)   # expected
+    ),
+    "Error Case: index >= length (1/2)":  (
+        (5, 5),                             # input
+        ("PandocStr index out of range", ), # exception
+        None                                # expected
+    ),
+    "Error Case: index >= length (2/2)":  (
+        (10, 5),                            # input
+        ("PandocStr index out of range", ), # exception
+        None                                # expected
+    ),
+    "Error Case: length + index(minux) < 0":  (
+        (-6, 5),                            # input
+        ("PandocStr index out of range", ), # exception
+        None                                # expected
+    ),
+}
+@pytest.mark.parametrize("input, exception, expected",
+                         list(_data__limit_index_to_range_1.values()),
+                         ids=list(_data__limit_index_to_range_1.keys()))
+def spec__limit_index_to_range_1(input, exception, expected):
+    r"""
+    [@spec _limit_index_to_range.1] construct with various items - Normal cases.
+    """
+
+    if exception:
+        with pytest.raises(IndexError) as exc_info:
+            _ = PandocStr._limit_index_to_range(input[0], input[1])
+        
+        assert exc_info.value.args == exception
+
+    else:
+        target = PandocStr._limit_index_to_range(input[0], input[1])
+        assert target == expected
 
 
 ## @{ @name \_\_init\_\_(pan_elem, type_def)

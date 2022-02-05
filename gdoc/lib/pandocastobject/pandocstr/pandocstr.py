@@ -146,6 +146,105 @@ class PandocStr:
         return self._len
 
 
+    def __getitem__(self, index: int or slice = 0):
+        """ Constructor
+        @param index : int | slice
+        @return output : PandocStr
+        """
+        new_pandoc_str = None
+
+        # 1. Setup indices
+        if type(index) is int:
+            start, stop, length = PandocStr._limit_index_to_range(index, self._len)
+
+        elif type(index) is slice:
+            start, stop, length = PandocStr._limit_slice_to_range(index, self._len)
+
+        else:
+            raise TypeError("PandocStr indices must be integers")
+
+        # 2. Create empty pandocstr
+        new_pandoc_str = PandocStr()
+
+        # 3. Add all each items with start/stop info.
+        if length > 0:
+            # 3.1. move to start point
+            for item in self._items:
+                if start < item["len"]:
+                    break
+                else:
+                    start -= item["len"]
+                    continue
+
+            # 3.2. add items for length
+            for item in self._items[self._items.index(item):]:
+
+                _start = item["start"] + start
+
+                if start + length < item["len"]:
+                    _stop = _start + length
+                else:
+                    _stop = item["stop"]
+
+                length -= item["len"] - start
+                start = 0
+
+                new_pandoc_str.add_items([item["_item"]], _start, _stop)
+
+                if length <= 0:
+                    break
+
+        # 4. Return the new pandocstr
+        return new_pandoc_str
+
+
+    @classmethod
+    def _limit_index_to_range(cls, index, length):
+        if ((index >= length) or     # index > 0
+            (length + index < 0)):   # index < 0
+            raise IndexError("PandocStr index out of range")
+        else:
+            if index < 0:
+                start = length + index
+            else:
+                start = index
+
+        return start, (start + 1), 1
+
+
+    @classmethod
+    def _limit_slice_to_range(cls, index, length):
+        # start
+        if index.start >= 0:
+            if index.start > length:
+                start = length
+            else:
+                start = index.start
+        else:
+            start = length + index.start
+            if start < 0:
+                start = 0
+
+        # stop
+        if index.stop >= 0:
+            if index.stop > length:
+                stop = length
+            else:
+                stop = index.stop
+        else:
+            stop = length + index.stop
+            if stop < 0:
+                stop = 0
+
+        # length
+        if stop >= start:
+            _length = stop - start
+        else:
+            _length = 0
+
+        return start, stop, _length
+
+
     def _create_items_list(self, items = None, start: int = 0, stop: int = None):
         """ Constructor
         @param items : [Str] | None
@@ -267,7 +366,7 @@ class PandocStr:
                 # Merge them
                 # "_item": item,            <- same
                 # "start" : 0,              <- same
-                # "stop": len(item.text),   <- add
+                # "stop": len(item.text),   <- replace
                 # "text": item.text,        <- add
                 # "len": len(item.text),    <- add
                 # "decoration": 0           <- same
