@@ -1676,6 +1676,53 @@ def spec__limit_index_to_range_1(input, exception, expected):
 ##
 # | @Method      | `__str__`      | () -> str
 # |              | @param         | out : str
+_data___str___1 = {
+#   id: (
+#       items: [
+#           (type, text),....
+#       ],
+#       position: [ start, stop ],
+#       expected: str
+#   )
+    "Case #1":  (
+        [   # items
+            { 'type': 'Str', 'text': '0123456' }
+        ],
+        [], # position
+        # expected
+        "0123456"
+    ),
+    "Case #2":  (
+        [   # items
+            { 'type': 'Str', 'text': '0123456' }
+        ],
+        [1, -1], # position
+        # expected
+        "12345"
+    ),
+}
+@pytest.mark.parametrize("items, position, expected",
+                         list(_data___str___1.values()),
+                         ids=list(_data___str___1.keys()))
+def spec___str___1(items, position, expected):
+    r"""
+    [@spec add_items.1] construct with various items - Normal cases.
+    """
+    class _TEST_ITEM_:
+        def __init__(self, type, text):
+            self.text = text
+            self.type = type
+
+        def get_type(self):
+            return self.type
+
+    TEST_ITEMS = []
+    for item in items:
+        TEST_ITEMS.append(_TEST_ITEM_(item['type'], item['text']))
+
+    target = PandocStr(*([TEST_ITEMS] + position))
+
+    assert str(target) == expected
 
 
 ## @{ @name \_\_init\_\_(pan_elem, type_def)

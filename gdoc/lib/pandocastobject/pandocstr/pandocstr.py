@@ -245,6 +245,13 @@ class PandocStr:
         return start, stop, _length
 
 
+    def __str__(self) -> str:
+        """ Constructor
+        @return str
+        """
+        return self._text
+
+
     def _create_items_list(self, items = None, start: int = 0, stop: int = None):
         """ Constructor
         @param items : [Str] | None
