@@ -268,6 +268,16 @@ class PandocStr:
         return str(o) == self._text
 
 
+    def index(self, value, start: int = 0, stop: int = None):
+        """ Constructor
+        @param value : str | PandocStr
+        @param start : int = 0
+        @param stop : int | None = None
+        @return index : int
+        """
+        return self._text.index(str(value), start, stop)
+
+
     def _create_items_list(self, items = None, start: int = 0, stop: int = None):
         """ Constructor
         @param items : [Str] | None
