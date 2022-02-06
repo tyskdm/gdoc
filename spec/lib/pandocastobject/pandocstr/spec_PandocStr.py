@@ -1546,6 +1546,18 @@ _data__limit_slice_to_range_1 = {
         (slice(-10, 3), 5), # input
         (0, 3, 3)           # expected
     ),
+    "Case start=None or stop=None: case 1/3":  (
+        (slice(None, None), 5), # input
+        (0, 5, 5)               # expected
+    ),
+    "Case start=None or stop=None: case 2/3":  (
+        (slice(None, 5), 5),    # input
+        (0, 5, 5)               # expected
+    ),
+    "Case start=None or stop=None: case 3/3":  (
+        (slice(0, None), 5),    # input
+        (0, 5, 5)               # expected
+    ),
 }
 @pytest.mark.parametrize("input, expected",
                          list(_data__limit_slice_to_range_1.values()),
@@ -2143,20 +2155,212 @@ def spec___str___1(items, position, expected):
     assert str(target) == expected
 
 
-## @{ @name \_\_init\_\_(pan_elem, type_def)
-## [\@spec \_\_init\_\_] creates a new instance.
+## @{ @name \_\_add\_\_(pan_elem, type_def)
+## [\@spec \_\_add\_\_] creates a new instance.
 ##
 # | @Method      | `__add__`      | (__s: PandocStr) -> PandocStr
 # |              | @param         | in pString : PandocStr
 # |              | @param         | out : PandocStr \| str
+_data___add___1 = {
+#   id: (
+#       items: [
+#           (type, text),....
+#       ],
+#       target: []      # range in items
+#       original: []     # range in items
+#       expected: {
+#           text: str
+#           items: []   # item indices
+#       }
+#   )
+    "Case #1":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' }
+        ],
+        [0, 3],     # original
+        [6, 9],     # operand
+        {   # expected
+            "text": "012678",
+            "items": [0, 2]
+        }
+    ),
+    "Case #2":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' }
+        ],
+        [2, 4],     # original
+        [5, 7],     # operand
+        {   # expected
+            "text": "2356",
+            "items": [0, 1, 1, 2]
+        }
+    ),
+    "Case #3":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' }
+        ],
+        [1, 5],     # original
+        [5, 8],     # operand
+        {   # expected
+            "text": "1234567",
+            "items": [0, 1, 2]
+        }
+    ),
+    "Case #4":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' }
+        ],
+        [1, 5],     # original
+        [4, 8],     # operand
+        {   # expected
+            "text": "12344567",
+            "items": [0, 1, 1, 2]
+        }
+    ),
+}
+@pytest.mark.parametrize("items, original, operand, expected",
+                         list(_data___add___1.values()),
+                         ids=list(_data___add___1.keys()))
+def spec___add___1(items, original, operand, expected):
+    r"""
+    [@spec __eq__.2] construct with various items - Normal cases.
+    """
+    class _TEST_ITEM_:
+        def __init__(self, type, text):
+            self.text = text
+            self.type = type
+
+        def get_type(self):
+            return self.type
+
+    TEST_ITEMS = []
+    for item in items:
+        TEST_ITEMS.append(_TEST_ITEM_(item['type'], item['text']))
+
+    original_str = PandocStr(*([TEST_ITEMS] + original))
+    operand_str = PandocStr(*([TEST_ITEMS] + operand))
+
+    target = original_str + operand_str
+
+    assert target._text == expected["text"]
+    assert len(target._items) == len(expected["items"])
+    for i in range(len(target._items)):
+        assert target._items[i]["_item"] is TEST_ITEMS[expected["items"][i]]
+
+    assert type(original_str + str(operand_str)) is str
+    assert original_str + str(operand_str) == expected["text"]
 
 
-## @{ @name \_\_init\_\_(pan_elem, type_def)
-## [\@spec \_\_init\_\_] creates a new instance.
+## @{ @name \_\_radd\_\_(pan_elem, type_def)
+## [\@spec \_\_radd\_\_] creates a new instance.
 ##
 # | @Method      | `__radd__`     | (self, other) # right side value ( "str" + THIS )
 # |              | @param         | in pString : PandocStr
 # |              | @param         | out : PandocStr \| str
+_data___radd___1 = {
+#   id: (
+#       items: [
+#           (type, text),....
+#       ],
+#       target: []      # range in items
+#       original: []     # range in items
+#       expected: {
+#           text: str
+#           items: []   # item indices
+#       }
+#   )
+    "Case #1":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' }
+        ],
+        [6, 9],     # original
+        [0, 3],     # operand
+        {   # expected
+            "text": "012678",
+            "items": [0, 2]
+        }
+    ),
+    "Case #2":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' }
+        ],
+        [5, 7],     # original
+        [2, 4],     # operand
+        {   # expected
+            "text": "2356",
+            "items": [0, 1, 1, 2]
+        }
+    ),
+    "Case #3":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' }
+        ],
+        [5, 8],     # original
+        [1, 5],     # operand
+        {   # expected
+            "text": "1234567",
+            "items": [0, 1, 2]
+        }
+    ),
+    "Case #4":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' }
+        ],
+        [4, 8],     # original
+        [1, 5],     # operand
+        {   # expected
+            "text": "12344567",
+            "items": [0, 1, 1, 2]
+        }
+    ),
+}
+@pytest.mark.parametrize("items, original, operand, expected",
+                         list(_data___radd___1.values()),
+                         ids=list(_data___radd___1.keys()))
+def spec___radd___1(items, original, operand, expected):
+    r"""
+    [@spec __eq__.2] construct with various items - Normal cases.
+    """
+    class _TEST_ITEM_:
+        def __init__(self, type, text):
+            self.text = text
+            self.type = type
+
+        def get_type(self):
+            return self.type
+
+    TEST_ITEMS = []
+    for item in items:
+        TEST_ITEMS.append(_TEST_ITEM_(item['type'], item['text']))
+
+    original_str = PandocStr(*([TEST_ITEMS] + original))
+    operand_str = PandocStr(*([TEST_ITEMS] + operand))
+
+    target = original_str.__radd__(operand_str)
+
+    assert target._text == expected["text"]
+    assert len(target._items) == len(expected["items"])
+    for i in range(len(target._items)):
+        assert target._items[i]["_item"] is TEST_ITEMS[expected["items"][i]]
+
+    assert type(str(operand_str) + original_str) is str
+    assert str(operand_str) + original_str == expected["text"]
 
 
 ## @{ @name \_\_init\_\_(pan_elem, type_def)

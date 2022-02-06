@@ -215,7 +215,9 @@ class PandocStr:
     @classmethod
     def _limit_slice_to_range(cls, index, length):
         # start
-        if index.start >= 0:
+        if index.start is None:
+            start = 0
+        elif index.start >= 0:
             if index.start > length:
                 start = length
             else:
@@ -226,7 +228,9 @@ class PandocStr:
                 start = 0
 
         # stop
-        if index.stop >= 0:
+        if index.stop is None:
+            stop = length
+        elif index.stop >= 0:
             if index.stop > length:
                 stop = length
             else:
@@ -284,6 +288,50 @@ class PandocStr:
         @return str
         """
         return self._text.count(str(value))
+
+
+    def __add__(self, s):
+        """ Constructor
+        @param s : PandocStr | str
+        @return PandocStr | str
+        """
+        new_pandoc_str = None
+
+        if type(s) is PandocStr:
+            new_pandoc_str = self[:]
+            pstr = s[:]
+            new_pandoc_str._join_items(pstr._items, pstr._text, pstr._len)
+
+        elif type(s) is str:
+            new_pandoc_str = self._text + s
+
+        else:
+            # should raise
+            pass
+
+        return new_pandoc_str
+
+
+    def __radd__(self, s):
+        """ Constructor
+        @param s : PandocStr | str
+        @return PandocStr | str
+        """
+        new_pandoc_str = None
+
+        if type(s) is PandocStr:
+            new_pandoc_str = s[:]
+            pstr = self[:]
+            new_pandoc_str._join_items(pstr._items, pstr._text, pstr._len)
+
+        elif type(s) is str:
+            new_pandoc_str = s + self._text
+
+        else:
+            # should raise
+            pass
+
+        return new_pandoc_str
 
 
     def _create_items_list(self, items = None, start: int = 0, stop: int = None):
