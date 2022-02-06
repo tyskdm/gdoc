@@ -252,6 +252,13 @@ class PandocStr:
         return self._text
 
 
+    def __contains__(self, x) -> bool:
+        """ Constructor
+        @return str
+        """
+        return str(x) in self._text
+
+
     def _create_items_list(self, items = None, start: int = 0, stop: int = None):
         """ Constructor
         @param items : [Str] | None
