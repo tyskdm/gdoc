@@ -254,9 +254,18 @@ class PandocStr:
 
     def __contains__(self, x) -> bool:
         """ Constructor
+        @param x : str | PandocStr
         @return str
         """
         return str(x) in self._text
+
+
+    def __eq__(self, o) -> bool:
+        """ Constructor
+        @param o : str | PandocStr
+        @return str
+        """
+        return str(o) == self._text
 
 
     def _create_items_list(self, items = None, start: int = 0, stop: int = None):
