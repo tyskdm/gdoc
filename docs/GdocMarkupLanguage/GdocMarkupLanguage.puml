@@ -4,7 +4,7 @@
 '
 @startuml GdocObjectClass
 
-' !include style.iuml
+!include style.iuml
 
 class GdObject {
     id : str
@@ -123,6 +123,15 @@ Quoted -up-o Text
 Str -up-o String
 Space -up-o String
 SoftBreak -up-o String
+
+note as N1
+  It may contain line breaks, but
+  they are ignored when splitting
+  a text block into lines.
+end note
+
+Image .. N1
+Quoted .. N1
 
 @enduml
 
