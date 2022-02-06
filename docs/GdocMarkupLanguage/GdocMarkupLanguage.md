@@ -13,9 +13,9 @@ gdocサブコマンドはその構造化オブジェクトを参照してユー�
 
 <br>
 
-## CONTENTS <!-- omit in toc -->
+## TABLE OF CONTENTS <!-- omit in toc -->
 
-- [1. .phony](#1-phony)
+- [1. INTRODUCTION](#1-introduction)
 - [2. [@ o] GDOC OBJECT](#2--o-gdoc-object)
   - [2.1. GdObject Classes](#21-gdobject-classes)
     - [2.1.1. Parent-Child Relationship](#211-parent-child-relationship)
@@ -31,11 +31,9 @@ gdocサブコマンドはその構造化オブジェクトを参照してユー�
     - [3.1.2. Generating PandocAST](#312-generating-pandocast)
   - [3.2. PandocAST From GDML's View](#32-pandocast-from-gdmls-view)
     - [3.2.1. PandocAST Element Types](#321-pandocast-element-types)
-      - [3.2.1.1. Block Element Types](#3211-block-element-types)
-      - [3.2.1.2. Inline Element Types](#3212-inline-element-types)
-    - [3.2.2. Document Hierarchy](#322-document-hierarchy)
-      - [3.2.2.1. Document Section](#3221-document-section)
-      - [3.2.2.2. List Item](#3222-list-item)
+    - [3.2.2. Document Structure](#322-document-structure)
+      - [3.2.2.1. Section](#3221-section)
+      - [3.2.2.2. ListBlock](#3222-listblock)
       - [3.2.2.3. Object Section](#3223-object-section)
   - [3.3. Gdoc Tag Types](#33-gdoc-tag-types)
     - [3.3.1. Block tag](#331-block-tag)
@@ -127,7 +125,7 @@ gdocサブコマンドはその構造化オブジェクトを参照してユー�
 
 <br>
 
-## 1. .phony
+## 1. INTRODUCTION
 
 ## 2. [@ o] GDOC OBJECT
 
@@ -280,65 +278,90 @@ gdocは、PandocASTフォーマットのjsonデータを入力とする。
 
 #### 3.1.2. Generating PandocAST
 
-- `pandoc -f gfm+sourcepos -t json`
+- gfmをメインターゲットとする。
+
+- `pandoc -f gfm+sourcepos -t html | pandoc -f html -t json`
 
   `+sourcepos` オプションによる、ソースマッピング情報に対応する。
 
-- 現在 `+sourcepos` に対応しているのは gfm と commonmark のみであり、commonmark はテーブルに対応しないため、gdoc は gfm を推奨する。
+  一旦htmlを経由することで、`<br>` をLineBreakとして解釈するなど埋め込まれたhtmlによる記述をPandocAst要素として取り込む。
+
+  - 現在 `+sourcepos` に対応しているのは gfm と commonmark のみであり、commonmark はテーブルに対応しない。
+  - 他のタイプでも動作するが、完全なテスト（特にgfmに存在しない要素タイプのテスト）は行っていない。
+
+- [ ] +sourcepos による振る舞いの違い（todoリストなど）、どこかに記述できる場所をつくる。
 
 ### 3.2. PandocAST From GDML's View
 
 #### 3.2.1. PandocAST Element Types
 
-##### 3.2.1.1. Block Element Types
+Pandoc AST は、以下のような要素タイプを持ち、DOMに近いものになっている。
 
-- PandocASTにおいて、文書全体はブロックのリストである。
-- ブロックは種別をもち、そのブロック自身がブロックのリストを構成するものもある。
-  つまり、ブロックは階層化する。
+1. Block Element Types
 
-Para, plane, Table, OrderedList, BulletList, Headerなど。
+   PandocASTにおいて、文書全体はブロックのリストである。
+
+   ブロックは種別をもち、そのブロック自身がブロックのリストを構成するものもある。
+
+   Para, plane, Table, OrderedList, BulletList, Headerなど。
+
+2. Inline Element Types
+
+   Paragraph, Planeのコンテンツは、Inline要素のリストである。
+
+   Inline要素は種別をもち、Inlineのリストを構成するものがある。
+   デコレーターも、このインライン要素のリストを構成するインライン要素である。
+
+   Str, Space, LineBreak, Strong, Emphasis, Codeなど。
+
+#### 3.2.2. Document Structure
+
+Pandoc AST is a great data structure for format conversion, but it is a bare data structure that is not necessarily intuitive for human reading and writing.
+
+Therefore, GDML covers Pandoc AST with a thin abstract concept and considers a document as the following structure.
+
+This is called the Gdoc data structure, and a document that follows this structure is called a Gdoc.
+
+GDML is a markup language for Gdoc documents.
+
+<br>
+<div align=center>
+
+[![](./_puml_/GdocMarkupLanguage/GdocObjectStructure.png)](./GdocMarkupLanguage.puml) \
+\
+[@fig 1.1] Gdoc Data Structure
+
+</div>
+<br>
 
 Gdoc Markup Notation では便宜上、Header, Para, Plane, LineBlock の４タイプを、テキストブロックと呼ぶ。
 
-##### 3.2.1.2. Inline Element Types
-
-- Paragraph, Planeのコンテンツは、Inline要素のリストである。
-- Inline要素は種別をもち、Inlineのリストを構成するものがある。
-  つまり、Inlineは階層化する。
-
-Str, Space, LineBreak, Strong, Emphasis, Codeなど。
-
-- @note:  \
-  Inline要素のNoteタイプはそのプロパティとしてブロックリストを含み、引用タイプは引用情報を含むが、gdocはこれに対応しない。
-
 - 装飾が無視されること、Strikeout は無視されること、などを例示する。
 
-#### 3.2.2. Document Hierarchy
+##### 3.2.2.1. Section
 
-##### 3.2.2.1. Document Section
+Headerで区切られ階層化した論理的なブロックリストを Sectionと呼ぶ。
 
-Headerで区切られ階層化した論理的なブロックリストを Document Sectionと呼ぶ。
-
-実際には Pandoc ASTのデータ構造に Document Section の概念はない。
+Pandoc ASTのデータ構造に Section の概念はない。
 ブロックリストは階層化しない一次配列であり、Headerブロックもまたその要素の１つである。
 
 gdocはHeaderブロックをセクションの開始とみなして、階層化したブロックリスト構造として扱う。
 
-##### 3.2.2.2. List Item
+##### 3.2.2.2. ListBlock
 
-BulletListとOrderedListとがある。
-リストの項目は、それぞれブロックのリストで構成される。
+ListBlockには、Pandoc ASTのBulletListとOrderedListとがある。
+リストの各項目は、それぞれブロックのリストで構成される。
 
-gdocは、リスト全体に対するタグ（リストへのキャプションタグ）が付与されていない限り単に階層化したブロックとみなし、解析中にはこの階層を再帰的に解析対象とみなす。
+gdocは、ListBlockに対するタグ（キャプションタグ）が付与されていない限り単に階層化したBlockListとみなし、解析中にはこの階層を再帰的に解析対象とみなす。
 
-つまり、Document Sections も List Items も、Gdoc にとっては階層化したブロックリストである。
+つまり、Section も ListBlock も、Gdoc にとっては階層化したBlockListである。
 
 *@eng:*  \
-In other words, "document sections" and "list items" are both hierarchical block lists for Gdoc.
+In other words, "Sections" and "ListBlock" are both hierarchical BlockLists for Gdoc.
 
 ##### 3.2.2.3. Object Section
 
-Document Sectionあるいはリストアイテムのうち、先頭ブロックにタグを付与されたものは GdObject が生成され、名前空間を提供するなどオブジェクトのコンテクストとして機能する。
+Sectionあるいはリストアイテムのうち、先頭ブロックにタグを付与されたものは GdObject が生成され、名前空間を提供するなどオブジェクトのコンテクストとして機能する。
 
 Gdoc では、このコンテクスト空間を Object Section とよび、空間を構成する GdObject を Section Object と呼ぶ。
 
@@ -500,6 +523,16 @@ PandocASTの文書全体は、連続するブロックのリストである。
 Gdocはこのリスト内のブロックを先頭から順に取り出し、解析する。
 そのブロック取り出しの際、以下のルールに従う。
 
+<br>
+<div align=center>
+
+[![](./_puml_/GdocMarkupLanguage/SectionDataStructure.png)](./GdocMarkupLanguage.puml) \
+\
+[@fig 1.1] Section Data Structure
+
+</div>
+<br>
+
 #### 4.1.1. Div Block
 
 - BlockListから取り出したBlockがDiv Blockであった場合、これによる階層構造は無視し、Div Blockの子要素をDiv自身の位置に展開する。
@@ -629,8 +662,9 @@ GDML文法上の全てのケースで無視される。
 <br>
 <div align=center>
 
-[![](./_puml_/GdocMarkupLanguage/TextBlockDataStruvture.png)](./GdocMarkupLanguage.puml)  \
-[@fig 1.1] TextBlock Data Struvture
+[![](./_puml_/GdocMarkupLanguage/TextBlockDataStructure.png)](./GdocMarkupLanguage.puml)  \
+\
+[@fig 1.1] TextBlock Data Structure
 
 </div>
 <br>
