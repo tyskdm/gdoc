@@ -278,6 +278,14 @@ class PandocStr:
         return self._text.index(str(value), start, stop)
 
 
+    def count(self, value) -> int:
+        """ Constructor
+        @param value : str | PandocStr
+        @return str
+        """
+        return self._text.count(str(value))
+
+
     def _create_items_list(self, items = None, start: int = 0, stop: int = None):
         """ Constructor
         @param items : [Str] | None

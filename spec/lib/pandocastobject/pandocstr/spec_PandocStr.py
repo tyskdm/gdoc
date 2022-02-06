@@ -1867,12 +1867,115 @@ def spec___index___2(items, val, pos, expected):
     assert target.index(*([val_str] + pos)) == expected
 
 
-## @{ @name \_\_init\_\_(pan_elem, type_def)
-## [\@spec \_\_init\_\_] creates a new instance.
+## @{ @name \_\_count\_\_(pan_elem, type_def)
+## [\@spec \_\_count\_\_] creates a new instance.
 ##
 # | @Method      | `count`        | (value: Any) -> int
 # |              | @param         | in value : str \| PandocStr
 # |              | @param         | out count : int
+_data___count___1 = {
+#   id: (
+#       items: [
+#           (type, text),....
+#       ],
+#       x: str,
+#       expected: bool
+#   )
+    "Case #1":  (
+        [   # items
+            { 'type': 'Str', 'text': '01230123' }
+        ],
+        "123",  # x
+        2       # expected
+    ),
+    "Case #2":  (
+        [   # items
+            { 'type': 'Str', 'text': '01230123' }
+        ],
+        "301",  # x
+        1       # expected
+    ),
+}
+@pytest.mark.parametrize("items, x, expected",
+                         list(_data___count___1.values()),
+                         ids=list(_data___count___1.keys()))
+def spec___count___1(items, x, expected):
+    r"""
+    [@spec __count__.1] construct with various items - Normal cases.
+    """
+    class _TEST_ITEM_:
+        def __init__(self, type, text):
+            self.text = text
+            self.type = type
+
+        def get_type(self):
+            return self.type
+
+    TEST_ITEMS = []
+    for item in items:
+        TEST_ITEMS.append(_TEST_ITEM_(item['type'], item['text']))
+
+    target = PandocStr(*([TEST_ITEMS]))
+
+    assert target.count(x) is expected
+
+
+_data___count___2 = {
+#   id: (
+#       items: [
+#           (type, text),....
+#       ],
+#       x: [
+#           (type, text),....
+#       ],
+#       expected: bool
+#   )
+    "Case #1":  (
+        [   # items
+            { 'type': 'Str', 'text': '01230123' }
+        ],
+        [   # x
+            { 'type': 'Str', 'text': '012' }
+        ],
+        2   # expected
+    ),
+    "Case #2":  (
+        [   # items
+            { 'type': 'Str', 'text': '01230123' }
+        ],
+        [   # x
+            { 'type': 'Str', 'text': '301' }
+        ],
+        1   # expected
+    ),
+}
+@pytest.mark.parametrize("items, x, expected",
+                         list(_data___count___2.values()),
+                         ids=list(_data___count___2.keys()))
+def spec___count___2(items, x, expected):
+    r"""
+    [@spec __count__.2] construct with various items - Normal cases.
+    """
+    class _TEST_ITEM_:
+        def __init__(self, type, text):
+            self.text = text
+            self.type = type
+
+        def get_type(self):
+            return self.type
+
+    TEST_ITEMS = []
+    for item in items:
+        TEST_ITEMS.append(_TEST_ITEM_(item['type'], item['text']))
+
+    X_ITEMS = []
+    for item in x:
+        X_ITEMS.append(_TEST_ITEM_(item['type'], item['text']))
+
+    target = PandocStr(*([TEST_ITEMS]))
+    x_str = PandocStr(*([X_ITEMS]))
+
+    assert target.count(x_str) is expected
 
 
 ## @{ @name \_\_eq\_\_(pan_elem, type_def)
