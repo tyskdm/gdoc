@@ -17,6 +17,7 @@ The specification of Block class.
 | @Method | \_\_init\_\_ | creates a new instance as Constructor
 
 """
+from cmath import exp
 from typing import Type
 import pytest
 import inspect
@@ -1295,7 +1296,7 @@ _data___getitem___1 = {
             "len":      1
         }
     ),
-    "Normal Case slice(1/2)): One item(1/2)":  (
+    "Normal Case slice(1/2)): One item(1/3)":  (
         [   # items
             { 'type': 'Str', 'text': '0123456' }
         ],
@@ -1308,7 +1309,7 @@ _data___getitem___1 = {
             "len":      5
         }
     ),
-    "Normal Case slice(1/2)): One item(2/2)":  (
+    "Normal Case slice(1/2)): One item(2/3)":  (
         [   # items
             { 'type': 'Str', 'text': '0123456' }
         ],
@@ -1321,6 +1322,19 @@ _data___getitem___1 = {
             "items":    [0],
             "text":     "234",
             "len":      3
+        }
+    ),
+    "Normal Case slice(1/2)): One item(3/3)":  (
+        [   # items
+            { 'type': 'Str', 'text': '0123456' }
+        ],
+        [], # position
+        # index
+        slice(4, 3),
+        {   # expected
+            "items":    [],
+            "text":     "",
+            "len":      0
         }
     ),
     "Normal Case slice(2/2): 3 items pattern(1/7)":  (
@@ -1472,6 +1486,59 @@ def spec___getitem___1(items, position, index, expected):
     assert len(substring._items) == len(expected["items"])
     for i in range(len(expected["items"])):
         assert substring._items[i]["_item"] is TEST_ITEMS[expected["items"][i]]
+
+
+_data___getitem___2 = {
+#   id: (
+#       items: [
+#           (type, text),....
+#       ],
+#       position: [ start, stop ],
+#       index:  int | slice
+#       expected: {
+#           items: [index nums of input items list],
+#           text:
+#           len:
+#       }
+#   )
+    "Normal Case lenght=1(1/2): One item(1/2)":  (
+        [   # items
+            { 'type': 'Str', 'text': '0123456' }
+        ],
+        [], # position
+        # index
+        "INVALID-TYPE",
+        # expected
+        "PandocStr indices must be integers"
+    ),
+}
+@pytest.mark.parametrize("items, position, index, expected",
+                         list(_data___getitem___2.values()),
+                         ids=list(_data___getitem___2.keys()))
+def spec___getitem___2(items, position, index, expected):
+    r"""
+    [@spec add_items.1] construct with various items - Normal cases.
+    """
+    class _TEST_ITEM_:
+        def __init__(self, type, text):
+            self.text = text
+            self.type = type
+
+        def get_type(self):
+            return self.type
+
+    TEST_ITEMS = []
+    for item in items:
+        TEST_ITEMS.append(_TEST_ITEM_(item['type'], item['text']))
+
+    target = PandocStr(*([TEST_ITEMS] + position))
+
+    # TypeError: "PandocStr indices must be integers"
+    with pytest.raises(TypeError) as exc_info:
+        _ = target[index]
+
+    assert str(exc_info.value) == expected
+
 
 
 ## @{ @name \_limit\_slice\_to\_range(pan_elem, type_def)
@@ -2278,6 +2345,55 @@ def spec___add___1(items, original, operand, expected):
         assert operand_str._items[i] == operand_str2._items[i]
 
 
+_data___add___2 = {
+#   id: (
+#       items: [
+#           (type, text),....
+#       ],
+#       position: [ start, stop ],
+#       index:  int | slice
+#       expected: re
+#   )
+    "Normal Case lenght=1(1/2): One item(1/2)":  (
+        [   # items
+            { 'type': 'Str', 'text': '0123456' }
+        ],
+        [], # position
+        # index
+        3,
+        # expected
+        r"^can only concatenate PandocStr or str \(not \"\S+\"\) to PandocStr$"
+    ),
+}
+@pytest.mark.parametrize("items, position, index, expected",
+                         list(_data___add___2.values()),
+                         ids=list(_data___add___2.keys()))
+def spec___add___2(items, position, index, expected):
+    r"""
+    [@spec add_items.1] construct with various items - Normal cases.
+    """
+    class _TEST_ITEM_:
+        def __init__(self, type, text):
+            self.text = text
+            self.type = type
+
+        def get_type(self):
+            return self.type
+
+    TEST_ITEMS = []
+    for item in items:
+        TEST_ITEMS.append(_TEST_ITEM_(item['type'], item['text']))
+
+    target = PandocStr(*([TEST_ITEMS] + position))
+
+    # TypeError: "PandocStr indices must be integers"
+    with pytest.raises(TypeError) as exc_info:
+        target + index
+
+    assert exc_info.match(expected)
+
+
+
 ## @{ @name \_\_radd\_\_(pan_elem, type_def)
 ## [\@spec \_\_radd\_\_] creates a new instance.
 ##
@@ -2399,6 +2515,54 @@ def spec___radd___1(items, original, operand, expected):
     for i in range(len(operand_str._items)):
         assert operand_str._items[i] is not operand_str2._items[i]
         assert operand_str._items[i] == operand_str2._items[i]
+
+
+_data___radd___2 = {
+#   id: (
+#       items: [
+#           (type, text),....
+#       ],
+#       position: [ start, stop ],
+#       index:  int | slice
+#       expected: re
+#   )
+    "Normal Case lenght=1(1/2): One item(1/2)":  (
+        [   # items
+            { 'type': 'Str', 'text': '0123456' }
+        ],
+        [], # position
+        # index
+        3,
+        # expected
+        r"^can only concatenate PandocStr or str \(not \"\S+\"\) to PandocStr$"
+    ),
+}
+@pytest.mark.parametrize("items, position, index, expected",
+                         list(_data___radd___2.values()),
+                         ids=list(_data___radd___2.keys()))
+def spec___radd___2(items, position, index, expected):
+    r"""
+    [@spec add_items.1] construct with various items - Normal cases.
+    """
+    class _TEST_ITEM_:
+        def __init__(self, type, text):
+            self.text = text
+            self.type = type
+
+        def get_type(self):
+            return self.type
+
+    TEST_ITEMS = []
+    for item in items:
+        TEST_ITEMS.append(_TEST_ITEM_(item['type'], item['text']))
+
+    target = PandocStr(*([TEST_ITEMS] + position))
+
+    # TypeError: "PandocStr indices must be integers"
+    with pytest.raises(TypeError) as exc_info:
+        index + target
+
+    assert exc_info.match(expected)
 
 
 ## @{ @name \_\_init\_\_(pan_elem, type_def)

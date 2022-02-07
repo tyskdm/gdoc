@@ -169,7 +169,7 @@ class PandocStr:
         # 3. Add all each items with start/stop info.
         if length > 0:
             # 3.1. move to start point
-            for item in self._items:
+            for item in self._items:    # pragma: no branch: This line never complete.
                 if start < item["len"]:
                     break
                 else:
@@ -177,8 +177,8 @@ class PandocStr:
                     continue
 
             # 3.2. add items for length
-            for item in self._items[self._items.index(item):]:
-
+            for item in self._items[self._items.index(item):]:  # pragma: no branch
+                                                                # This line never complete.
                 _start = item["start"] + start
 
                 if start + length < item["len"]:
@@ -306,8 +306,10 @@ class PandocStr:
             new_pandoc_str = self._text + s
 
         else:
-            # should raise
-            pass
+            raise TypeError(
+                'can only concatenate PandocStr or str (not "' +
+                s.__class__.__name__ + '") to PandocStr'
+            )
 
         return new_pandoc_str
 
@@ -328,8 +330,10 @@ class PandocStr:
             new_pandoc_str = s + self._text
 
         else:
-            # should raise
-            pass
+            raise TypeError(
+                'can only concatenate PandocStr or str (not "' +
+                s.__class__.__name__ + '") to PandocStr'
+            )
 
         return new_pandoc_str
 
@@ -345,8 +349,6 @@ class PandocStr:
             self._join_items(opr_str._items, opr_str._text, opr_str._len)
 
         else:
-            # should raise
-            # TypeError: can only concatenate str (not "int") to str
             raise TypeError(
                 'can only concatenate PandocStr (not "' +
                 s.__class__.__name__ + '") to PandocStr'
