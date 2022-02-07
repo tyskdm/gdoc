@@ -299,8 +299,8 @@ class PandocStr:
 
         if type(s) is PandocStr:
             new_pandoc_str = self[:]
-            pstr = s[:]
-            new_pandoc_str._join_items(pstr._items, pstr._text, pstr._len)
+            opr_str = s[:]
+            new_pandoc_str._join_items(opr_str._items, opr_str._text, opr_str._len)
 
         elif type(s) is str:
             new_pandoc_str = self._text + s
@@ -321,8 +321,8 @@ class PandocStr:
 
         if type(s) is PandocStr:
             new_pandoc_str = s[:]
-            pstr = self[:]
-            new_pandoc_str._join_items(pstr._items, pstr._text, pstr._len)
+            opr_str = self[:]
+            new_pandoc_str._join_items(opr_str._items, opr_str._text, opr_str._len)
 
         elif type(s) is str:
             new_pandoc_str = s + self._text
@@ -332,6 +332,27 @@ class PandocStr:
             pass
 
         return new_pandoc_str
+
+
+    def __iadd__(self, s):
+        """ Constructor
+        @param s : PandocStr | str
+        @return PandocStr | str
+        """
+
+        if type(s) is PandocStr:
+            opr_str = s[:]
+            self._join_items(opr_str._items, opr_str._text, opr_str._len)
+
+        else:
+            # should raise
+            # TypeError: can only concatenate str (not "int") to str
+            raise TypeError(
+                'can only concatenate PandocStr (not "' +
+                s.__class__.__name__ + '") to PandocStr'
+            )
+
+        return self
 
 
     def _create_items_list(self, items = None, start: int = 0, stop: int = None):
