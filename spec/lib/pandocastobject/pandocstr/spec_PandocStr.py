@@ -2689,3 +2689,60 @@ def spec___iadd___1(items, original, operand, expected):
 
     assert exc_info.match(r"^can only concatenate PandocStr \(not \"\S+\"\) to PandocStr$")
 
+_data___iadd___2 = {
+#   id: (
+#       items: [
+#           (type, text),....
+#       ],
+#       target: []      # range in items
+#       original: []     # range in items
+#       expected: {
+#           text: str
+#           items: []   # item indices
+#       }
+#   )
+    "Case #1":  (
+        [   # items
+            { 'type': 'Str', 'text': '012' },
+            { 'type': 'Str', 'text': '345' },
+            { 'type': 'Str', 'text': '678' }
+        ],
+        [1, -1],     # index
+        {   # expected
+            "text": "1234567"
+        }
+    ),
+}
+@pytest.mark.parametrize("items, index, expected",
+                         list(_data___iadd___2.values()),
+                         ids=list(_data___iadd___2.keys()))
+def spec___iadd___2(items, index, expected):
+    r"""
+    [@spec __eq__.2] construct with various items - Normal cases.
+    """
+    class _TEST_ITEM_:
+        def __init__(self, type, text):
+            self.text = text
+            self.type = type
+
+        def get_type(self):
+            return self.type
+
+    TEST_ITEMS = []
+    for item in items:
+        TEST_ITEMS.append(_TEST_ITEM_(item['type'], item['text']))
+
+    src = PandocStr(*([TEST_ITEMS] + index))
+    src2 = PandocStr(*([TEST_ITEMS] + index))
+
+    dst = PandocStr()
+
+    for c in src:
+        dst += c
+
+    # Results of addition
+    assert src2 == dst
+    assert len(src2._items) == len(dst._items)
+    for i in range(len(src2._items)):
+        assert src2._items[i]["_item"] is dst._items[i]["_item"]
+
