@@ -181,6 +181,8 @@ id文字列に、`.`は使用できない。
 
   - > [文字列が識別子として有効か確認: `isidentifier()`](https://note.nkmk.me/python-identifier-naming-rule/)
 
+  - ただし、先頭が数字であってもよい。数字のみのidも許可される。
+
 このidを、名前解決の観点からShort Idと呼ぶことがある。
 
 #### 2.1.3. Name Resolution And Long Id
