@@ -177,6 +177,15 @@ __split_symbol_1 = {
             'tags': []
         }
     ),
+    "ErrCase: name (4/)":  (
+        # symbolstr,
+        ' [B C] ',
+        {   # expected
+            'Exception': (GdocSyntaxError, "invalid syntax", 5),
+            'symbols': [],
+            'tags': []
+        }
+    ),
     "ErrCase: mixed (1/)":  (
         # symbolstr,
         '[A].B["C" D] ',
@@ -347,6 +356,65 @@ __split_symbol_1 = {
             'tags': []
         }
     ),
+    #
+    # Mixed Invalid syntax
+    #
+    "ErrCase: Mixed error (1/)":  (
+        'A[B]C',
+        {   # expected
+            'Exception': (GdocSyntaxError, "invalid syntax", 5),
+            'symbols': [],
+            'tags': []
+        }
+    ),
+    "ErrCase: Mixed error (2/)":  (     # Is it OK that column = 2?
+        'A(S, #123',
+        {   # expected
+            'Exception': (GdocSyntaxError, "invalid syntax", 2),
+            'symbols': [],
+            'tags': []
+        }
+    ),
+    "ErrCase: Mixed error (3/)":  (     # Is it OK that column = 2?
+        'A(B,C).D',
+        {   # expected
+            'Exception': (GdocSyntaxError, "invalid syntax", 2),
+            'symbols': [],
+            'tags': []
+        }
+    ),
+    "ErrCase: Mixed error (4/)":  (
+        'A..',
+        {   # expected
+            'Exception': (GdocSyntaxError, "invalid syntax", 3),
+            'symbols': [],
+            'tags': []
+        }
+    ),
+    "ErrCase: Mixed error (5/)":  (
+        'A.',
+        {   # expected
+            'Exception': (GdocSyntaxError, "invalid syntax", 2),
+            'symbols': [],
+            'tags': []
+        }
+    ),
+    "ErrCase: Mixed error (6/)":  (
+        'A.[B]',
+        {   # expected
+            'Exception': (GdocSyntaxError, "invalid syntax", 3),
+            'symbols': [],
+            'tags': []
+        }
+    ),
+    "ErrCase: Mixed error (7/)":  (
+        '.A',
+        {   # expected
+            'Exception': (GdocSyntaxError, "invalid syntax", 1),
+            'symbols': [],
+            'tags': []
+        }
+    )
 }
 @pytest.mark.parametrize("symbolstr, expected",
     list(__split_symbol_1.values()), ids=list(__split_symbol_1.keys()))
@@ -530,6 +598,22 @@ __get_namestr_1 = {
         {   # expected
             # - index start with 0
             'Exception': (GdocSyntaxError, "EOS while scanning string literal", 5)
+        }
+    ),
+    "ErrorCase: Quoted (4/)":  (
+        # symbolstr,
+        '["A\\]',
+        {   # expected
+            # - index start with 0
+            'Exception': (GdocSyntaxError, "EOS while scanning string literal", 4)
+        }
+    ),
+    "ErrorCase: Quoted (5/)":  (
+        # symbolstr,
+        '["A\\',
+        {   # expected
+            # - index start with 0
+            'Exception': (GdocSyntaxError, "EOS while scanning string literal", 3)
         }
     ),
     "Case: Empty (1/)":  (

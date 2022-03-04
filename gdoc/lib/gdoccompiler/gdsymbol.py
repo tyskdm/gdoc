@@ -11,12 +11,6 @@ class GdSymbol:
     ;
     """
 
-    def __init__(self):
-        """ Constructor
-        """
-        self._version = None
-        self._version_str = None
-
     _IDENTIFIER = re.compile(r"\.(\S*?)(?=(\.|\[|\(|$))")
     _IDENTIFIER_INDEX = 1
 
@@ -28,7 +22,7 @@ class GdSymbol:
     @classmethod
     def _split_symbol(cls, symbolstr : str):
         """ split symbol string to ids or names and tags.
-        @param symbol : str \| PandocStr
+        @param symbol : str | PandocStr
         @return (list(str), list(str))
 
         T.B.D. : Error handling
@@ -70,7 +64,17 @@ class GdSymbol:
                 identifier = s.group(cls._IDENTIFIER_INDEX)
                 length = len(s.group(0))
 
-                if (i := cls._is_gdoc_identifier(identifier)) is not True:
+                if identifier == '':
+                    column = column + length
+                    if column > len(symbolstr):
+                        # in case _IDENTIFIER matched with $(EOL)
+                        column -= 1
+
+                    raise GdocSyntaxError(
+                        "invalid syntax",
+                        (None, None, column, str(symbolstr))
+                    )
+                elif (i := cls._is_gdoc_identifier(identifier)) is not True:
                     raise GdocSyntaxError(
                         "invalid character in identifier",
                         (None, None, column + i + 1, str(symbolstr))
@@ -107,7 +111,7 @@ class GdSymbol:
             else:
                 raise GdocSyntaxError(
                     "invalid syntax",
-                    (None, None, len(symbolstr), str(symbolstr))
+                    (None, None, column, str(symbolstr))
                 )
 
             column += length
@@ -124,7 +128,7 @@ class GdSymbol:
             result = True
         
         else:
-            for c in identifier:
+            for c in identifier:        # pragma: no branch: This line never complete.
                 if not ('a' + c).isidentifier():
                     break
 
@@ -204,20 +208,13 @@ class GdSymbol:
         else:
             while index < length and (c := target[index]) != ']':
 
-                if c == ' ':
-                    if name != "":
-                        break
-
-                    # else: nop
-                    # skip leading white spaces
+                if c == ' ':    # string ended
+                    break
 
                 else:
                     name += c
 
                 index += 1
-
-            # if index == length:
-            #     raise GdocSyntaxError("")
 
         #
         # Wait closing ']'
@@ -232,7 +229,7 @@ class GdSymbol:
                     (None, None, index, target)
                 )
 
-            # target[i] == ' '
+            # else: target[i] == ' '
             index += 1
 
         if index == length:
