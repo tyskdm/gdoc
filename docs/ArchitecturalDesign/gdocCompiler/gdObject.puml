@@ -1,0 +1,148 @@
+' # [@ ad] Gdoc Object detailed design
+'
+' ## [@ gdo] GdocObject_dumps_sequence
+'
+@startuml GdocObject_dumps_Sequence
+
+!include style.iuml
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+Participant Client
+Participant "Plugin Class" as pluginClass
+Participant gdObject
+Participant gdSymbolTable
+Participant "Child objects" as child
+
+Client -> gdObject ++ : dumps(opts)\n~# No need to override by plug-ins
+
+    gdObject -> pluginClass ++ : dumpd()
+
+    rnote over pluginClass
+        Store class-specific attrs
+        into __properties if needed.
+    endrnote
+
+    pluginClass -> gdObject ++ : dumpd()
+
+        rnote over gdObject
+            Create newDict.
+        endrnote
+
+        gdObject -> gdSymbolTable ++ : dumpd()
+            rnote over gdSymbolTable
+                Export management
+                attrs as a dict
+            endrnote
+        return dict
+
+        rnote over gdObject
+            1. __SymbolTable__
+            Store the dict from
+            gdSymbolTable into
+            newDict["."]
+        endrnote
+
+        rnote over gdObject
+            2. __properties__
+            Store __properties
+            into newDict[":"].
+        endrnote
+
+        loop for child in __children
+            gdObject -> child ++ : dumpd()
+            return childDict
+
+            rnote over gdObject
+                3. __children__
+                Store childDict
+                into newDict["id"].
+            endrnote
+        end
+
+        return newDict
+
+    rnote over pluginClass
+        class-specific process
+        if needed.
+    endrnote
+
+    return newDict
+
+    rnote over gdObject
+        json.dumps(newDict, opts)
+    endrnote
+
+return json_string
+
+@enduml
+
+'
+' ## [@ gdo] GdocObject_loads_sequence
+'
+@startuml GdocObject_loads_Sequence
+
+!include style.iuml
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+Participant Client
+Participant "Plugin Class" as pluginClass
+Participant gdObject
+Participant gdSymbolTable
+Participant "Child objects" as child
+
+== loads(json_str) ==
+
+Client -> gdObject ++ : ~# Class Method\nloads(json_str)
+
+    rnote over gdObject
+        dict = json.loads(json_str)
+    endrnote
+
+    gdObject -> gdObject : loadd(dict)
+
+return gdObject
+
+== loadd(dict) ==
+
+Client -> gdObject ++ : ~# Class Method\nloadd(dict)
+
+    gdObject -> pluginClass ++ : Constructor(dict)
+
+        pluginClass -> gdObject ++ : ~__init__(self, dict)
+
+            gdObject -> gdSymbolTable ++ : ~__init__(self, dict)
+                rnote over gdSymbolTable
+                    Restore attrs of
+                    SymbolTable from
+                    dict["."].
+                endrnote
+            return
+
+        rnote over gdObject
+            Restore __properties
+            from dict[":"].
+        endrnote
+
+        loop for id in dict
+            gdObject -> child ++ : Constructor(dict["id"])
+            return child
+
+            rnote over gdObject
+                self.add_childe(child)
+            endrnote
+        end
+
+        return
+
+    rnote over pluginClass
+        Retore class-specific attrs
+        from __properties if needed.
+    endrnote
+
+    return gdObject
+
+return gdObject
+
+@enduml

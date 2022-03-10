@@ -15,10 +15,11 @@
 - [5. [@ sc] STRUCTURE](#5--sc-structure)
 - [6. [@ bh] BEHAVIOR](#6--bh-behavior)
   - [6.1. gdObject](#61-gdobject)
-- [7. [@ su] SOFTWARE UNITS](#7--su-software-units)
-  - [7.1. GdSymbol](#71-gdsymbol)
-  - [7.2. GdSymboltable](#72-gdsymboltable)
-  - [7.3. gdObject](#73-gdobject)
+- [7. [@ ra] Requirements allocation](#7--ra-requirements-allocation)
+- [8. [@ su] SOFTWARE UNITS](#8--su-software-units)
+  - [8.1. GdSymbol](#81-gdsymbol)
+  - [8.2. GdSymboltable](#82-gdsymboltable)
+  - [8.3. gdObject](#83-gdobject)
 
 <br>
 
@@ -75,20 +76,20 @@ This document refers to the following documents.
 
 ## 4. [@ sg] STRATEGY
 
-1. [@Strategy sg1] ~~THIS provides access methods like dict or class instances.~~ \
+1. [@Strategy sg1] THIS provides property access methods like dict. \
    ex.
 
    ```py
-   dgobj.id1.id2.id3
-   dgobj["name1"]["name2"].id3
+   dgobj["note"]["2"]
+   # >>> note text in __properties.
    ```
 
 2. [@Strategy sg2] THIS provides object controll methods for linker and application subcommands. \
    ex.
 
    ```py
-   gdobj._resolve("...lib.abc")
-   gdobj._add_child(Class, *args, **kwargs)  # _add_child(Class, args, args, key=kwargs,...)
+   gdobj.resolve("...lib.abc")
+   gdobj.add_child(Class, *args, **kwargs)  # _add_child(Class, args, args, key=kwargs,...)
    handle = gdObject._open()
    ```
 
@@ -113,9 +114,39 @@ The behavior of the properties follows GdocMarkupLanguage/Properties.md.
 
 <br>
 
-## 7. [@ su] SOFTWARE UNITS
+<div align=center>
 
-### 7.1. GdSymbol
+[![](./_puml_/gdObject/GdocObject_dumps_Sequence.png)](./gdObject.puml) \
+\
+[@fig 1.1] dumps() Sequence
+
+</div>
+
+<br>
+
+<div align=center>
+
+[![](./_puml_/gdObject/GdocObject_loads_Sequence.png)](./gdObject.puml) \
+\
+[@fig 1.2] loads() Sequence
+
+</div>
+
+<br>
+
+## 7. [@ ra] Requirements allocation
+
+| @Reqt | Name | Text | Trace |
+| :---: | ---- | ---- | :---: |
+| 1b    |      |  | @copy:
+| @Spec | 1b.1 |  | @Allocate:
+| @Spec | 1b.2 |  | @Allocate:
+
+- Symbol tables can register objects and references.
+
+## 8. [@ su] SOFTWARE UNITS
+
+### 8.1. GdSymbol
 
 | @class& | Name | Description |
 | :-----: | ---- | ----------- |
@@ -137,7 +168,7 @@ The behavior of the properties follows GdocMarkupLanguage/Properties.md.
 | @Method | stringify     | Returns the entire symbol string including tags.
 |         | @param        | out : str \| PandocStr
 
-### 7.2. GdSymboltable
+### 8.2. GdSymboltable
 
 | @class&  | Name | Description |
 | :------: | ---- | ----------- |
@@ -145,25 +176,57 @@ The behavior of the properties follows GdocMarkupLanguage/Properties.md.
 | # properties ||
 | @prperty | __parent       |
 | @prperty | __children     |
+| @prperty | __namelist     |
+| @prperty | __cache        | Cache "SymbolString": { Symbol(), resolve() }
+| @prperty | __link_to      |
+| @prperty | __link_from    |
+| @prperty | scope          | Enum [ public, private ] or [ '+', '-' ]
 | @prperty | id             |
-| @prperty | scope          |
 | @prperty | name           | str \| pandocStr
 | @prperty | tags           |
 | # methods ||
-| @Method  | add_child      | `def add_child(self, id, name, objectClass, item, scope=Scope.PUBLIC)`
+| @Method  | \_\_init\_\_   |
+|          | @param         | in id : str \| PandocStr \| dict
+|          | @param         | in scope : str \| PandocStr
+|          | @param         | in name : str \| PandocStr
+|          | @param         | in tags : list(str \| PandocStr)
+| @Method  | get_parent     |
+| @Method  | add_child      | `def add_child(self, child)`
+| @Method  | add_ref_child  | `def add_ref_child(self, child)`
+| @Method  | get_children   |
+| @Method  | get_child      |
+| @Method  | get_child_by_name |
 | @Method  | resolve        | `def resolve(self, symbol)`
 | @Method  | find           | `def find_items(self, symbol)`
+| @Method  | dumpd          |
 
-### 7.3. gdObject
+- Is it better that referenced objects can have additional children but not additional properties?
+- Symbol tables can register objects and references.
+- When linking, if references exist in the same namespace as the original, they are merged.
+
+### 8.3. gdObject
+
+- gdObject would like to be able to access properties the same way as dict.
 
 | @class&  | Name | Description |
 | :------: | ---- | ----------- |
 | c1       | gdObject       | Inherit from GdSymboltable
-| @prperty | type           | {category, type, version}
+| @prperty | class          | { category, type, version }
 | @prperty | __properties   |
 | @Method  | add_prop       |
 | @Method  | get_prop       |
-| @Method  | prop_keys      |
-| @Method  | export         |
-| @Method  | import         |
-
+| @Method  | dumps          |
+| @Method  | dumpd          |
+| @Method  | loads          |
+| @Method  | loadd          |
+| #        | abc.Mapping      | Simply call the method of the same name in __properties.
+| @Method  | \_\_getitem\_\_  |
+| @Method  | \_\_iter\_\_     |
+| @Method  | \_\_len\_\_      |
+| @Method  | \_\_contains\_\_ |
+| @Method  | \_\_eq\_\_       |
+| @Method  | \_\_ne\_\_       |
+| @Method  | keys             |
+| @Method  | items            |
+| @Method  | values           |
+| @Method  | get              |
