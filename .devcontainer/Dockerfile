@@ -23,6 +23,9 @@ RUN apt-get install -y default-jre graphviz fonts-migmix
 # Some other japanese-fonts are:
 # fonts-ipafont fonts-takao-mincho fonts-takao-gothic fonts-migmix fonts-noto-cjk
 
+# Other utils
+RUN apt-get install -y gitk less cloc
+
 # Creating a non-root user
 # https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user#_creating-a-nonroot-user
 # 1. ARGs
