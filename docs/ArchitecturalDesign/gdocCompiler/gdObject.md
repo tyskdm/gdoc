@@ -207,7 +207,7 @@ The behavior of the properties follows GdocMarkupLanguage/Properties.md.
 | @Method  | get_parent     |
 | @Method  | add_child      | `def add_child(self, child, type=object)`
 |          | @param         | in child : GdSymbolTable
-| @Method  | _add_reference | `def _add_reference(self, child)`
+| @Method  | __add_reference | `def __add_reference(self, child)`
 |          | @param         | in child : GdSymbolTable
 | @Method  | get_children   |
 | @Method  | get_child      |

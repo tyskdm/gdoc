@@ -17,6 +17,7 @@ The specification of SymbolTable class.
 | @Method | \_\_init\_\_       | creates a new instance.
 
 """
+from typing import Type
 import pytest
 import inspect
 from gdoc.lib.gdoccompiler.gdsymboltable import GdSymbolTable
@@ -382,22 +383,22 @@ def spec_add_child_2(mocker, child_ids, expected):
 
 
 ## @}
-## @{ @name _add_reference(cls, symbol)
-## [\@spec _add_reference] returns splited symbols and tags.
+## @{ @name __add_reference(cls, symbol)
+## [\@spec __add_reference] returns splited symbols and tags.
 ##
-## | @Method | _add_reference      | returns splited symbols and tags.
+## | @Method | __add_reference      | returns splited symbols and tags.
 ## |         | @param        | in symbol : str \| PandocStr
 ## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
-__add_reference_1 = "dummy for doxygen styling"
+___add_reference_1 = "dummy for doxygen styling"
 
-def spec__add_reference_1():
+def spec___add_reference_1():
     r"""
-    [\@spec _add_reference.1]
+    [\@spec __add_reference.1]
     """
     parent = GdSymbolTable("PARENT")
     child = GdSymbolTable("CHILD")
 
-    parent._add_reference(child)
+    parent._GdSymbolTable__add_reference(child)
 
     assert parent._GdSymbolTable__parent is None
     assert len(parent._GdSymbolTable__children) == 1
@@ -410,13 +411,13 @@ def spec__add_reference_1():
 
 
 ## @}
-## @{ @name _add_reference(cls, symbol)
-## [\@spec _add_reference] returns splited symbols and tags.
+## @{ @name __add_reference(cls, symbol)
+## [\@spec __add_reference] returns splited symbols and tags.
 ##
-## | @Method | _add_reference      | returns splited symbols and tags.
+## | @Method | __add_reference      | returns splited symbols and tags.
 ## |         | @param        | in symbol : str \| PandocStr
 ## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
-__add_reference_2 = {
+___add_reference_2 = {
 #   id: (
 #       child_ids,
 #       expected: {
@@ -474,8 +475,8 @@ __add_reference_2 = {
     ),
 }
 @pytest.mark.parametrize("child_ids, expected",
-    list(__add_reference_2.values()), ids=list(__add_reference_2.keys()))
-def spec__add_reference_2(mocker, child_ids, expected):
+    list(___add_reference_2.values()), ids=list(___add_reference_2.keys()))
+def spec___add_reference_2(mocker, child_ids, expected):
     r"""
     [\@spec _run.1] run child_ids with NO-ERROR.
     """
@@ -487,7 +488,7 @@ def spec__add_reference_2(mocker, child_ids, expected):
     if expected["Exception"] is None:
 
         for id in child_ids:
-            parent._add_reference(GdSymbolTable(id))
+            parent._GdSymbolTable__add_reference(GdSymbolTable(id))
 
         for id in expected["IDs"]:
             assert type(parent._GdSymbolTable__children[id[0]]) == list
@@ -501,7 +502,7 @@ def spec__add_reference_2(mocker, child_ids, expected):
             for id in child_ids:
                 child = GdSymbolTable("id")
                 child.id = id
-                parent.add_child(child)
+                parent._GdSymbolTable__add_reference(child)
 
         assert exc_info.match(expected["Exception"][1])
 
@@ -583,11 +584,301 @@ def spec_get_children_1(mocker, child_ids, expected):
         parent.add_child(GdSymbolTable(id=id[0], name=id[1]))
 
     for id in child_ids[1]:
-        parent._add_reference(GdSymbolTable(id=id[0], name=id[1]))
+        parent._GdSymbolTable__add_reference(GdSymbolTable(id=id[0], name=id[1]))
 
     children = parent.get_children()
 
     for i in range(len(children)):
         assert children[i][0] == expected["children"][i][0]
         assert children[i][1].name == expected["children"][i][1]
+
+## @}
+## @{ @name unidir_link_to(cls, symbol)
+## [\@spec unidir_link_to] returns splited symbols and tags.
+##
+## | @Method | unidir_link_to      | returns splited symbols and tags.
+## |         | @param        | in symbol : str \| PandocStr
+## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+_unidir_link_to_1 = {
+#   id: (
+#       child_ids,
+#       expected: {
+#           Exception,
+#           IDs
+#       }
+#   )
+    "Case: REFERENCE to (1/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE},
+            {'id':'DST', '_type': GdSymbolTable.Type.OBJECT}
+        ],
+        {   # expected
+            'Exception': None,
+        }
+    ),
+    "Case: REFERENCE to (2/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE},
+            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE}
+        ],
+        {   # expected
+            'Exception': None,
+        }
+    ),
+    "Case: REFERENCE to (3/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE},
+            {'id':'DST', '_type': GdSymbolTable.Type.IMPORT}
+        ],
+        {   # expected
+            'Exception': None,
+        }
+    ),
+    "Case: REFERENCE to (4/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE},
+            {'id':'DST', '_type': GdSymbolTable.Type.ACCESS}
+        ],
+        {   # expected
+            'Exception': None,
+        }
+    ),
+    "Case: IMPORT to (1/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.IMPORT},
+            {'id':'DST', '_type': GdSymbolTable.Type.OBJECT}
+        ],
+        {   # expected
+            'Exception': None,
+        }
+    ),
+    "Case: IMPORT to (2/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.IMPORT},
+            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE}
+        ],
+        {   # expected
+            'Exception': None,
+        }
+    ),
+    "Case: IMPORT to (3/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.IMPORT},
+            {'id':'DST', '_type': GdSymbolTable.Type.IMPORT}
+        ],
+        {   # expected
+            'Exception': None,
+        }
+    ),
+    "Case: IMPORT to (4/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.IMPORT},
+            {'id':'DST', '_type': GdSymbolTable.Type.ACCESS}
+        ],
+        {   # expected
+            'Exception': None,
+        }
+    ),
+    "Case: ACCESS to (1/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.ACCESS},
+            {'id':'DST', '_type': GdSymbolTable.Type.OBJECT}
+        ],
+        {   # expected
+            'Exception': None,
+        }
+    ),
+    "Case: ACCESS to (2/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.ACCESS},
+            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE}
+        ],
+        {   # expected
+            'Exception': None,
+        }
+    ),
+    "Case: ACCESS to (3/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.ACCESS},
+            {'id':'DST', '_type': GdSymbolTable.Type.IMPORT}
+        ],
+        {   # expected
+            'Exception': None,
+        }
+    ),
+    "Case: ACCESS to (4/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.ACCESS},
+            {'id':'DST', '_type': GdSymbolTable.Type.ACCESS}
+        ],
+        {   # expected
+            'Exception': None,
+        }
+    ),
+    "Case: OBJECT to (1/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.OBJECT},
+            {'id':'DST', '_type': GdSymbolTable.Type.OBJECT}
+        ],
+        {   # expected
+            'Exception': (TypeError, "'OBJECT' cannot link to any others"),
+        }
+    ),
+}
+@pytest.mark.parametrize("child_ids, expected",
+    list(_unidir_link_to_1.values()), ids=list(_unidir_link_to_1.keys()))
+def spec_unidir_link_to_1(mocker, child_ids, expected):
+    r"""
+    [\@spec _run.1] run child_ids with NO-ERROR.
+    """
+    #
+    # Normal case
+    #
+    SRC = GdSymbolTable(**child_ids[0])
+    DST = GdSymbolTable(**child_ids[1])
+
+    if expected["Exception"] is None:
+
+        SRC.unidir_link_to(DST)
+
+        assert SRC._GdSymbolTable__link_to is DST
+        assert DST._GdSymbolTable__link_from == []
+
+    #
+    # Error case
+    #
+    else:
+        with pytest.raises(expected["Exception"][0]) as exc_info:
+            SRC.unidir_link_to(DST)
+
+        assert exc_info.match(expected["Exception"][1])
+
+
+## @}
+## @{ @name bidir_link_to(cls, symbol)
+## [\@spec bidir_link_to] returns splited symbols and tags.
+##
+## | @Method | bidir_link_to      | returns splited symbols and tags.
+## |         | @param        | in symbol : str \| PandocStr
+## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+_bidir_link_to_1 = {
+#   id: (
+#       child_ids,
+#       expected: {
+#           Exception,
+#           IDs
+#       }
+#   )
+    "Case: REFERENCE to (1/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE},
+            {'id':'DST', '_type': GdSymbolTable.Type.OBJECT}
+        ],
+        {   # expected
+            'Exception': None,
+        }
+    ),
+    "Case: REFERENCE to (2/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE},
+            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE}
+        ],
+        {   # expected
+            'Exception': None,
+        }
+    ),
+    "Case: REFERENCE to (3/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE},
+            {'id':'DST', '_type': GdSymbolTable.Type.IMPORT}
+        ],
+        {   # expected
+            'Exception': (TypeError, "cannot bidir_link to 'IMPORT'"),
+        }
+    ),
+    "Case: REFERENCE to (4/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE},
+            {'id':'DST', '_type': GdSymbolTable.Type.ACCESS}
+        ],
+        {   # expected
+            'Exception': (TypeError, "cannot bidir_link to 'ACCESS'"),
+        }
+    ),
+    "Case: IMPORT to (1/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.IMPORT},
+            {'id':'DST', '_type': GdSymbolTable.Type.OBJECT}
+        ],
+        {   # expected
+            'Exception': (TypeError, "'IMPORT' cannot bidir_link to any others"),
+        }
+    ),
+    "Case: ACCESS to (1/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.ACCESS},
+            {'id':'DST', '_type': GdSymbolTable.Type.OBJECT}
+        ],
+        {   # expected
+            'Exception': (TypeError, "'ACCESS' cannot bidir_link to any others"),
+        }
+    ),
+    "Case: OBJECT to (1/)":  (
+        # child_ids,
+        [
+            {'id':'SRC', '_type': GdSymbolTable.Type.OBJECT},
+            {'id':'DST', '_type': GdSymbolTable.Type.OBJECT}
+        ],
+        {   # expected
+            'Exception': (TypeError, "'OBJECT' cannot bidir_link to any others"),
+        }
+    ),
+}
+@pytest.mark.parametrize("child_ids, expected",
+    list(_bidir_link_to_1.values()), ids=list(_bidir_link_to_1.keys()))
+def spec_bidir_link_to_1(mocker, child_ids, expected):
+    r"""
+    [\@spec _run.1] run child_ids with NO-ERROR.
+    """
+    #
+    # Normal case
+    #
+    SRC = GdSymbolTable(**child_ids[0])
+    DST = GdSymbolTable(**child_ids[1])
+
+    if expected["Exception"] is None:
+
+        SRC.bidir_link_to(DST)
+
+        assert SRC._GdSymbolTable__link_to is DST
+        assert DST._GdSymbolTable__link_from[0] is SRC
+
+    #
+    # Error case
+    #
+    else:
+        with pytest.raises(expected["Exception"][0]) as exc_info:
+            SRC.bidir_link_to(DST)
+
+        assert exc_info.match(expected["Exception"][1])
+
 

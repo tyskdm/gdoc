@@ -62,7 +62,7 @@ class GdSymbolTable:
         @return (list(str), list(str))
         """
         if child.__type == GdSymbolTable.Type.REFERENCE:
-            self._add_reference(child)
+            self.__add_reference(child)
 
         else:
             if child.id.startswith('&'):
@@ -78,7 +78,7 @@ class GdSymbolTable:
             self.__children[child.id] = child
 
 
-    def _add_reference(self, child: "GdSymbolTable"):
+    def __add_reference(self, child: "GdSymbolTable"):
         """ split symbol string to ids or names and tags.
         @param symbol : str | PandocStr
         @return (list(str), list(str))
@@ -122,3 +122,41 @@ class GdSymbolTable:
                     children.append((id, c))
 
         return children
+
+
+    def unidir_link_to(self, dst: "GdSymbolTable"):
+        """ split symbol string to ids or names and tags.
+        @param symbol : str | PandocStr
+        @return (list(str), list(str))
+        """
+        if self.__type == GdSymbolTable.Type.OBJECT:
+            raise TypeError("'OBJECT' cannot link to any others")
+
+        self.__link_to = dst
+
+
+    def bidir_link_to(self, dst: "GdSymbolTable"):
+        """ split symbol string to ids or names and tags.
+        @param symbol : str | PandocStr
+        @return (list(str), list(str))
+        """
+        if self.__type == GdSymbolTable.Type.REFERENCE:
+
+            if dst.__type in (GdSymbolTable.Type.OBJECT, GdSymbolTable.Type.REFERENCE):
+                self.__link_to = dst
+                dst.__link_from.append(self)
+
+            elif dst.__type == GdSymbolTable.Type.IMPORT:
+                raise TypeError("cannot bidir_link to 'IMPORT'")
+
+            else:   # dst.__type == GdSymbolTable.Type.ACCESS:
+                raise TypeError("cannot bidir_link to 'ACCESS'")
+
+        elif self.__type == GdSymbolTable.Type.OBJECT:
+            raise TypeError("'OBJECT' cannot bidir_link to any others")
+
+        elif self.__type == GdSymbolTable.Type.IMPORT:
+            raise TypeError("'IMPORT' cannot bidir_link to any others")
+
+        else:   # self.__type == GdSymbolTable.Type.ACCESS:
+            raise TypeError("'ACCESS' cannot bidir_link to any others")
