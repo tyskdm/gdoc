@@ -130,7 +130,10 @@ class GdSymbolTable:
         @return (list(str), list(str))
         """
         if self.__type == GdSymbolTable.Type.OBJECT:
-            raise TypeError("'OBJECT' cannot link to any others")
+            raise TypeError("'OBJECT' cannot unidir_link to any others")
+
+        elif self.__type == GdSymbolTable.Type.REFERENCE:
+            raise TypeError("'REFERENCE' cannot unidir_link to any others")
 
         self.__link_to = dst
 

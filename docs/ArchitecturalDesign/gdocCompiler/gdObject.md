@@ -212,9 +212,9 @@ The behavior of the properties follows GdocMarkupLanguage/Properties.md.
 | @Method  | get_children   |
 | @Method  | get_child      |
 | @Method  | get_child_by_name |
-| @Method  | unidir_link_to | can link to OBJECT, REFERENCE, IMPORT/ACCESS
+| @Method  | unidir_link_to | can link to OBJECT, REFERENCE, IMPORT/ACCESS<br>from IMPORT/ACCESS
 |          | @param         | in target : GdSymbolTable
-| @Method  | bidir_link_to  | can link only to OBJECT
+| @Method  | bidir_link_to  | can link only to OBJECT or REFERENCE from REFERENCE
 |          | @param         | in target : GdSymbolTable
 | @Method  | resolve        | `def resolve(self, symbol)`
 | @Method  | find           | `def find_items(self, symbol)`

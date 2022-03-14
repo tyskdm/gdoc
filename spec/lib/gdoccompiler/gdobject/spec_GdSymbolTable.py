@@ -614,37 +614,7 @@ _unidir_link_to_1 = {
             {'id':'DST', '_type': GdSymbolTable.Type.OBJECT}
         ],
         {   # expected
-            'Exception': None,
-        }
-    ),
-    "Case: REFERENCE to (2/)":  (
-        # child_ids,
-        [
-            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE},
-            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE}
-        ],
-        {   # expected
-            'Exception': None,
-        }
-    ),
-    "Case: REFERENCE to (3/)":  (
-        # child_ids,
-        [
-            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE},
-            {'id':'DST', '_type': GdSymbolTable.Type.IMPORT}
-        ],
-        {   # expected
-            'Exception': None,
-        }
-    ),
-    "Case: REFERENCE to (4/)":  (
-        # child_ids,
-        [
-            {'id':'SRC', '_type': GdSymbolTable.Type.REFERENCE},
-            {'id':'DST', '_type': GdSymbolTable.Type.ACCESS}
-        ],
-        {   # expected
-            'Exception': None,
+            'Exception': (TypeError, "'REFERENCE' cannot unidir_link to any others"),
         }
     ),
     "Case: IMPORT to (1/)":  (
@@ -734,7 +704,7 @@ _unidir_link_to_1 = {
             {'id':'DST', '_type': GdSymbolTable.Type.OBJECT}
         ],
         {   # expected
-            'Exception': (TypeError, "'OBJECT' cannot link to any others"),
+            'Exception': (TypeError, "'OBJECT' cannot unidir_link to any others"),
         }
     ),
 }
