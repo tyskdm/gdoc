@@ -45,11 +45,13 @@ def spec___init___2():
     assert target.id == TEST_ID
     assert target.name == None
     assert target.tags == []
+    assert target._GdSymbolTable__type == GdSymbolTable.Type.OBJECT
     assert target._GdSymbolTable__parent == None
     assert target._GdSymbolTable__children == {}
-    assert target._GdSymbolTable__cache == []
+    assert target._GdSymbolTable__namelist == {}
     assert target._GdSymbolTable__link_to == None
     assert target._GdSymbolTable__link_from == []
+    assert target._GdSymbolTable__cache == []
 
 ## @}
 ## @{ @name __init__(cls, symbol)
@@ -71,7 +73,7 @@ ___init___3 = {
         {'id': 'A'},
         {   # expected
             'Exception': None,
-            'attrs': ('A', '+', None, [])
+            'attrs': ('A', '+', None, [], GdSymbolTable.Type.OBJECT)
         }
     ),
     "Case: id (2/)":  (
@@ -100,7 +102,7 @@ ___init___3 = {
         {'id': 'A', 'scope': '-'},
         {   # expected
             'Exception': None,
-            'attrs': ('A', '-', None, [])
+            'attrs': ('A', '-', None, [], GdSymbolTable.Type.OBJECT)
         }
     ),
     "Case: scope (2/)":  (
@@ -108,7 +110,7 @@ ___init___3 = {
         {'id': 'A', 'scope': '+'},
         {   # expected
             'Exception': None,
-            'attrs': ('A', '+', None, [])
+            'attrs': ('A', '+', None, [], GdSymbolTable.Type.OBJECT)
         }
     ),
     "Case: scope (3/)":  (
@@ -137,7 +139,7 @@ ___init___3 = {
         {'id': 'A', 'name': 'ABC'},
         {   # expected
             'Exception': None,
-            'attrs': ('A', '+', 'ABC', [])
+            'attrs': ('A', '+', 'ABC', [], GdSymbolTable.Type.OBJECT)
         }
     ),
     "Case: tags (1/)":  (
@@ -145,7 +147,7 @@ ___init___3 = {
         {'id': 'A', 'tags': ['ABC']},
         {   # expected
             'Exception': None,
-            'attrs': ('A', '+', None, ['ABC'])
+            'attrs': ('A', '+', None, ['ABC'], GdSymbolTable.Type.OBJECT)
         }
     ),
     "Case: tags (2/)":  (
@@ -153,6 +155,45 @@ ___init___3 = {
         {'id': 'A', 'tags': 'A'},
         {   # expected
             'Exception': (TypeError, "can only add a list as a tag")
+        }
+    ),
+    "Case: type (1/)":  (
+        # kwargs,
+        {'id': 'A', '_type': GdSymbolTable.Type.OBJECT},
+        {   # expected
+            'Exception': None,
+            'attrs': ('A', '+', None, [], GdSymbolTable.Type.OBJECT)
+        }
+    ),
+    "Case: type (2/)":  (
+        # kwargs,
+        {'id': 'A', '_type': GdSymbolTable.Type.REFERENCE},
+        {   # expected
+            'Exception': None,
+            'attrs': ('A', '+', None, [], GdSymbolTable.Type.REFERENCE)
+        }
+    ),
+    "Case: type (3/)":  (
+        # kwargs,
+        {'id': 'A', '_type': GdSymbolTable.Type.IMPORT},
+        {   # expected
+            'Exception': None,
+            'attrs': ('A', '+', None, [], GdSymbolTable.Type.IMPORT)
+        }
+    ),
+    "Case: type (4/)":  (
+        # kwargs,
+        {'id': 'A', '_type': GdSymbolTable.Type.ACCESS},
+        {   # expected
+            'Exception': None,
+            'attrs': ('A', '+', None, [], GdSymbolTable.Type.ACCESS)
+        }
+    ),
+    "Case: type (5/)":  (
+        # kwargs,
+        {'id': 'A', '_type': 'A'},
+        {   # expected
+            'Exception': (TypeError, "can only add enum")
         }
     ),
 }
@@ -175,6 +216,7 @@ def spec___init___3(mocker, kwargs, expected):
         assert target.tags == expected["attrs"][3]
         if 'tags' in kwargs:
             assert target.tags is not kwargs['tags']
+        assert target._GdSymbolTable__type == expected["attrs"][4]
 
     #
     # Error case
@@ -229,7 +271,7 @@ _add_child_2 = {
 #   )
     "Case: id (1/)":  (
         # child_ids,
-        ['A'],
+        [{'id':'A'}],
         {   # expected
             'Exception': None,
             'IDs': {'A'}
@@ -237,7 +279,7 @@ _add_child_2 = {
     ),
     "Case: id (2/)":  (
         # child_ids,
-        ['A', 'B'],
+        [{'id':'A'}, {'id':'B'}],
         {   # expected
             'Exception': None,
             'IDs': {'A', 'B'}
@@ -245,7 +287,7 @@ _add_child_2 = {
     ),
     "ErrCase: id (1/)":  (
         # child_ids,
-        ['A', 'A'],
+        [{'id':'A'}, {'id':'A'}],
         {   # expected
             'Exception': (GdocIdError, "duplicate id \"A\""),
             'IDs': {}
@@ -253,7 +295,7 @@ _add_child_2 = {
     ),
     "ErrCase: id (2/)":  (
         # child_ids,
-        ['&A'],
+        [{'id':'&A'}],
         {   # expected
             'Exception': (GdocIdError, "invalid id \"&A\""),
             'IDs': {}
@@ -261,7 +303,7 @@ _add_child_2 = {
     ),
     "ErrCase: id (3/)":  (
         # child_ids,
-        [':'],
+        [{'id':':'}],
         {   # expected
             'Exception': (GdocIdError, "invalid id \":\""),
             'IDs': {}
@@ -269,10 +311,42 @@ _add_child_2 = {
     ),
     "ErrCase: id (4/)":  (
         # child_ids,
-        ['.'],
+        [{'id':'.'}],
         {   # expected
             'Exception': (GdocIdError, "invalid id \".\""),
             'IDs': {}
+        }
+    ),
+    "Case: type (1/)":  (
+        # child_ids,
+        [{'id':'A', '_type': GdSymbolTable.Type.OBJECT}],
+        {   # expected
+            'Exception': None,
+            'IDs': {'A'}
+        }
+    ),
+    "Case: type (2/)":  (
+        # child_ids,
+        [{'id':'A', '_type': GdSymbolTable.Type.IMPORT}],
+        {   # expected
+            'Exception': None,
+            'IDs': {'A'}
+        }
+    ),
+    "Case: type (3/)":  (
+        # child_ids,
+        [{'id':'A', '_type': GdSymbolTable.Type.ACCESS}],
+        {   # expected
+            'Exception': None,
+            'IDs': {'A'}
+        }
+    ),
+    "Case: type (4/)":  (
+        # child_ids,
+        [{'id':'A', '_type': GdSymbolTable.Type.REFERENCE}],
+        {   # expected
+            'Exception': None,
+            'IDs': {'&A'}
         }
     ),
 }
@@ -289,8 +363,8 @@ def spec_add_child_2(mocker, child_ids, expected):
 
     if expected["Exception"] is None:
 
-        for id in child_ids:
-            parent.add_child(GdSymbolTable(id))
+        for kwargs in child_ids:
+            parent.add_child(GdSymbolTable(**kwargs))
 
         assert set(parent._GdSymbolTable__children.keys()) == expected["IDs"]
 
@@ -299,31 +373,31 @@ def spec_add_child_2(mocker, child_ids, expected):
     #
     else:
         with pytest.raises(expected["Exception"][0]) as exc_info:
-            for id in child_ids:
+            for kwargs in child_ids:
                 child = GdSymbolTable("id")
-                child.id = id
+                child.id = kwargs['id']
                 parent.add_child(child)
 
         assert exc_info.match(expected["Exception"][1])
 
 
 ## @}
-## @{ @name add_ref_child(cls, symbol)
-## [\@spec add_ref_child] returns splited symbols and tags.
+## @{ @name _add_reference(cls, symbol)
+## [\@spec _add_reference] returns splited symbols and tags.
 ##
-## | @Method | add_ref_child      | returns splited symbols and tags.
+## | @Method | _add_reference      | returns splited symbols and tags.
 ## |         | @param        | in symbol : str \| PandocStr
 ## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
-_add_ref_child_1 = "dummy for doxygen styling"
+__add_reference_1 = "dummy for doxygen styling"
 
-def spec_add_ref_child_1():
+def spec__add_reference_1():
     r"""
-    [\@spec add_ref_child.1]
+    [\@spec _add_reference.1]
     """
     parent = GdSymbolTable("PARENT")
     child = GdSymbolTable("CHILD")
 
-    parent.add_ref_child(child)
+    parent._add_reference(child)
 
     assert parent._GdSymbolTable__parent is None
     assert len(parent._GdSymbolTable__children) == 1
@@ -336,13 +410,13 @@ def spec_add_ref_child_1():
 
 
 ## @}
-## @{ @name add_ref_child(cls, symbol)
-## [\@spec add_ref_child] returns splited symbols and tags.
+## @{ @name _add_reference(cls, symbol)
+## [\@spec _add_reference] returns splited symbols and tags.
 ##
-## | @Method | add_ref_child      | returns splited symbols and tags.
+## | @Method | _add_reference      | returns splited symbols and tags.
 ## |         | @param        | in symbol : str \| PandocStr
 ## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
-_add_ref_child_2 = {
+__add_reference_2 = {
 #   id: (
 #       child_ids,
 #       expected: {
@@ -378,7 +452,7 @@ _add_ref_child_2 = {
         # child_ids,
         ['&A'],
         {   # expected
-            'Exception': (GdocIdError, "invalid id \"\S+\""),
+            'Exception': (GdocIdError, r"invalid id \"\S+\""),
             'IDs': {}
         }
     ),
@@ -386,7 +460,7 @@ _add_ref_child_2 = {
         # child_ids,
         [':'],
         {   # expected
-            'Exception': (GdocIdError, "invalid id \"\S+\""),
+            'Exception': (GdocIdError, r"invalid id \"\S+\""),
             'IDs': {}
         }
     ),
@@ -394,14 +468,14 @@ _add_ref_child_2 = {
         # child_ids,
         ['.'],
         {   # expected
-            'Exception': (GdocIdError, "invalid id \"\S+\""),
+            'Exception': (GdocIdError, r"invalid id \"\S+\""),
             'IDs': {}
         }
     ),
 }
 @pytest.mark.parametrize("child_ids, expected",
-    list(_add_ref_child_2.values()), ids=list(_add_ref_child_2.keys()))
-def spec_add_ref_child_2(mocker, child_ids, expected):
+    list(__add_reference_2.values()), ids=list(__add_reference_2.keys()))
+def spec__add_reference_2(mocker, child_ids, expected):
     r"""
     [\@spec _run.1] run child_ids with NO-ERROR.
     """
@@ -413,7 +487,7 @@ def spec_add_ref_child_2(mocker, child_ids, expected):
     if expected["Exception"] is None:
 
         for id in child_ids:
-            parent.add_ref_child(GdSymbolTable(id))
+            parent._add_reference(GdSymbolTable(id))
 
         for id in expected["IDs"]:
             assert type(parent._GdSymbolTable__children[id[0]]) == list
@@ -509,7 +583,7 @@ def spec_get_children_1(mocker, child_ids, expected):
         parent.add_child(GdSymbolTable(id=id[0], name=id[1]))
 
     for id in child_ids[1]:
-        parent.add_ref_child(GdSymbolTable(id=id[0], name=id[1]))
+        parent._add_reference(GdSymbolTable(id=id[0], name=id[1]))
 
     children = parent.get_children()
 

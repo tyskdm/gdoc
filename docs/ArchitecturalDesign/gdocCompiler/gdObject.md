@@ -18,7 +18,9 @@
 - [7. [@ ra] Requirements allocation](#7--ra-requirements-allocation)
 - [8. [@ su] SOFTWARE UNITS](#8--su-software-units)
   - [8.1. GdSymbol](#81-gdsymbol)
-  - [8.2. GdSymboltable](#82-gdsymboltable)
+  - [8.2. GdSymbolTable](#82-gdsymboltable)
+    - [8.2.1. Solution](#821-solution)
+    - [8.2.2. Structure](#822-structure)
   - [8.3. gdObject](#83-gdobject)
 
 <br>
@@ -168,41 +170,59 @@ The behavior of the properties follows GdocMarkupLanguage/Properties.md.
 | @Method | stringify     | Returns the entire symbol string including tags.
 |         | @param        | out : str \| PandocStr
 
-### 8.2. GdSymboltable
+### 8.2. GdSymbolTable
+
+#### 8.2.1. Solution
+
+- GdSymbol handle 3 types of entities.
+  1. Object
+  2. Reference
+  3. Import/Access
+
+
+#### 8.2.2. Structure
 
 | @class&  | Name | Description |
 | :------: | ---- | ----------- |
-| c2       | GdSymboltable    | Symbol string
+| c2       | GdSymbolTable    | Symbol string
 | # properties ||
-| @prperty | __parent       |
-| @prperty | __children     |
-| @prperty | __namelist     |
-| @prperty | __cache        | Cache "SymbolString": { Symbol(), resolve() }
-| @prperty | __link_to      |
-| @prperty | __link_from    |
+| @prperty | __type         | Enum [ object, reference, import, access ]
+| @prperty | __parent       | None \| GdSymbolTable
+| @prperty | __children     | { "id": GdSymbolTable }
+| @prperty | __namelist     | { "Name": GdSymbolTable }
+| @prperty | __link_from    | list(GdSymbolTable)
+| @prperty | __link_to      | None \| GdSymbolTable
+| @prperty | __cache        | { "SymbolString": GdSymbolTable }
 | @prperty | scope          | Enum [ public, private ] or [ '+', '-' ]
-| @prperty | id             |
+| @prperty | id             | str \| pandocStr
 | @prperty | name           | str \| pandocStr
-| @prperty | tags           |
+| @prperty | tags           | list(str \| pandocStr)
 | # methods ||
 | @Method  | \_\_init\_\_   |
 |          | @param         | in id : str \| PandocStr \| dict
 |          | @param         | in scope : str \| PandocStr
 |          | @param         | in name : str \| PandocStr
 |          | @param         | in tags : list(str \| PandocStr)
+|          | @param         | in _type : GdSymbolTable.Type = Type.OBJECT
 | @Method  | get_parent     |
-| @Method  | add_child      | `def add_child(self, child)`
-| @Method  | add_ref_child  | `def add_ref_child(self, child)`
+| @Method  | add_child      | `def add_child(self, child, type=object)`
+|          | @param         | in child : GdSymbolTable
+| @Method  | _add_reference | `def _add_reference(self, child)`
+|          | @param         | in child : GdSymbolTable
 | @Method  | get_children   |
 | @Method  | get_child      |
 | @Method  | get_child_by_name |
+| @Method  | unidir_link_to | can link to OBJECT, REFERENCE, IMPORT/ACCESS
+|          | @param         | in target : GdSymbolTable
+| @Method  | bidir_link_to  | can link only to OBJECT
+|          | @param         | in target : GdSymbolTable
 | @Method  | resolve        | `def resolve(self, symbol)`
 | @Method  | find           | `def find_items(self, symbol)`
 | @Method  | dumpd          |
 
-- Is it better that referenced objects can have additional children but not additional properties?
-- Symbol tables can register objects and references.
-- When linking, if references exist in the same namespace as the original, they are merged.
+- Reference objects can have additional children but not additional properties.
+- Symbol tables can register objects, references and imports/accesses.
+- IMPORT and ACCESS cannot have any children. **add_child() should reject**.
 
 ### 8.3. gdObject
 
