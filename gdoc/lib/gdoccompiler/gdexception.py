@@ -23,3 +23,5 @@ class GdocRuntimeError(RuntimeError):
 class GdocSyntaxError(SyntaxError):
     pass
 
+class GdocTypeError(TypeError):
+    pass

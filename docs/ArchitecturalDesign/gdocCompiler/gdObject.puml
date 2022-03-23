@@ -146,3 +146,104 @@ Client -> gdObject ++ : ~# Class Method\nloadd(dict)
 return gdObject
 
 @enduml
+
+
+' ## [@ pis] GdObject_hierarchy
+'
+@startuml GdObject_hierarchy
+
+!include style.iuml
+
+class GdSymbolTable {
+    +{field} scope
+    +{field} id
+    +{field} name
+    +{field} tags
+    --
+    +get_parent()
+    +add_child()
+    +get_child()
+    +get_child_by_name()
+    +get_children()
+    +resolve()
+    +get_fqid()
+    +dumpd()
+}
+
+class gdObject {
+    -__properties
+    --
+    ..Overide..
+    +add_child()
+    ..Additional utilities..
+    +set_property()
+    +get_property()
+    +set_valid_property()
+    +is_valid_property()
+    +dumpd()
+}
+
+class GdDocument {
+    -__filepath
+    --
+    +get_filepath()
+    +open() -> handle
+    +close()
+    +set_plugin_path()
+    +dumpd()
+}
+
+gdObject -up-|> GdSymbolTable
+
+GdDocument -up-|> gdObject
+
+@enduml
+
+' ## [@ pa] gdocCompilerSequenceDiagram
+'
+@startuml gdocCompilerSequenceDiagram
+
+!include style.iuml
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+Participant Client
+box gdocCompiler
+  Participant gdCompiler
+  Participant gdDocument
+  Participant gdParser
+endbox
+Participant pandocAstObject
+
+Client -> gdCompiler : A source file
+
+gdCompiler -> pandocAstObject ++ : Read a sourcefile and Get a pandocAst object
+return pandocAst object
+
+gdCompiler -> gdDocument ++ : Open gdDocument\n(PluginHandle)
+
+  gdCompiler -> gdParser ++ : Parse\npandocAstObject\n(BlockList, gdDocument)
+
+    loop While Block exists
+      gdParser -> gdDocument: CallBack\n: OpenObjectSection
+      gdParser -> gdParser : reentry\n(BlockList)
+      gdParser -> gdDocument: CallBack\n: GetTableType
+      gdParser -> gdDocument: CallBack\n: CreateObject
+      gdParser -> gdDocument: CallBack\n: AddProperty
+      gdParser -> gdDocument: CallBack\n: CloseObjectSection
+    end
+
+  return ExitCode
+
+gdCompiler -> gdDocument : Close\nPandocAst Object
+deactivate gdDocument
+
+gdCompiler -> Client : gdDocument
+
+== Exception ==
+
+gdCompiler <--? ++ : Exception
+?<-- gdCompiler -- : Exception
+
+@enduml
+
