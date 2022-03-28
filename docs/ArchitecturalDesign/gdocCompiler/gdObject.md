@@ -29,7 +29,10 @@
       - [8.2.2.3. Linking Import/Access](#8223-linking-importaccess)
     - [8.2.3. Structure](#823-structure)
   - [8.3. gdObject](#83-gdobject)
-  - [8.3. gdDocument](#83-gddocument)
+    - [8.3.1. Structure](#831-structure)
+    - [8.3.2. Behavior](#832-behavior)
+      - [8.3.2.1. `set_prop()`](#8321-set_prop)
+  - [8.4. gdDocument](#84-gddocument)
 
 <br>
 
@@ -404,16 +407,18 @@ Basically, same method as linking references.
 
 ### 8.3. gdObject
 
+#### 8.3.1. Structure
+
 - gdObject would like to be able to access properties the same way as dict.
 
 | @class&  | Name | Description |
 | :------: | ---- | ----------- |
-| c3       | gdObject       | Inherit from GdSymboltable
-| @prperty | class          | { category, type, version }
-| @prperty | __properties   |
-| @Method  | add_prop       |
-| @Method  | get_prop       |
-| @Method  | dumpd          |
+| c3       | gdObject         | Inherit from GdSymboltable
+| @prperty | class            | { category, type, version }
+| @prperty | __properties     |
+| @Method  | set_prop         | sets the property specified by key and value.<br>@See: [../../GdocMarkupLanguage/Properties](../../GdocMarkupLanguage/Properties.md)
+| @Method  | get_prop         |
+| @Method  | dumpd            |
 | #        | abc.Mapping      | Simply call the method of the same name in __properties.
 | @Method  | \_\_getitem\_\_  |
 | @Method  | \_\_iter\_\_     |
@@ -426,7 +431,16 @@ Basically, same method as linking references.
 | @Method  | values           |
 | @Method  | get              |
 
-### 8.3. gdDocument
+#### 8.3.2. Behavior
+
+##### 8.3.2.1. `set_prop()`
+
+| value type<br>to add | None | Str | Array | Dict |
+| :------------------: | ---- | --- | ----- | ---- |
+| dict | add dict | replace to dict<br>and move val to "" | replace to dict<br>and move array to "" | nop<br>(already exist)
+| str  | add str  | replce to array<br>and append str | append str to array | add str to "" or<br>append to array "".
+
+### 8.4. gdDocument
 
 | @class&  | Name | Description |
 | :------: | ---- | ----------- |
