@@ -184,17 +184,33 @@ ___init___3 = {
     ),
     "Case: type (4/)":  (
         # kwargs,
-        {'id': 'A', '_type': GdSymbolTable.Type.ACCESS},
+        {'id': 'A', 'scope': '-', '_type': GdSymbolTable.Type.IMPORT},
         {   # expected
             'Exception': None,
-            'attrs': ('A', '+', None, [], GdSymbolTable.Type.ACCESS)
+            'attrs': ('A', '+', None, [], GdSymbolTable.Type.IMPORT)
         }
     ),
     "Case: type (5/)":  (
         # kwargs,
+        {'id': 'A', '_type': GdSymbolTable.Type.ACCESS},
+        {   # expected
+            'Exception': None,
+            'attrs': ('A', '-', None, [], GdSymbolTable.Type.ACCESS)
+        }
+    ),
+    "Case: type (6/)":  (
+        # kwargs,
+        {'id': 'A', 'scope': '+', '_type': GdSymbolTable.Type.ACCESS},
+        {   # expected
+            'Exception': None,
+            'attrs': ('A', '-', None, [], GdSymbolTable.Type.ACCESS)
+        }
+    ),
+    "Case: type (7/)":  (
+        # kwargs,
         {'id': 'A', '_type': 'A'},
         {   # expected
-            'Exception': (TypeError, "can only add enum")
+            'Exception': (TypeError, "can only set GdSymbolTable.Type")
         }
     ),
 }

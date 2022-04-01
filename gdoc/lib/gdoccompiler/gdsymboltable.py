@@ -40,7 +40,12 @@ class GdSymbolTable:
             raise TypeError("can only add a list as a tags")
 
         elif type(_type) is not GdSymbolTable.Type:
-            raise TypeError("can only add enum")
+            raise TypeError("can only set GdSymbolTable.Type")
+
+        if _type is GdSymbolTable.Type.IMPORT:
+            scope = '+'
+        elif _type is GdSymbolTable.Type.ACCESS:
+            scope = '-'
 
         self.id = id
         self.scope = scope
