@@ -22,7 +22,7 @@ class GdSymbolTable:
         ACCESS = auto()
 
 
-    def __init__(self, id, scope='+', name=None, tags=[], _type=Type.OBJECT):
+    def __init__(self, id, *, scope='+', name=None, tags=[], _type=Type.OBJECT):
         """ split symbol string to ids or names and tags.
         @param symbol : str | PandocStr
         @return (list(str), list(str))

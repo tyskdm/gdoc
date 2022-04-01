@@ -9,23 +9,18 @@ class GdObject(GdSymbolTable):
     """
     ;
     """
-    def __init__(self, id, scope='+', name=None, tags=[], reference=None):
+    def __init__(self, *args, **kwargs):
         """ Constructs GdObject.
         @param id : str | PandocStr
         """
-        _type = GdSymbolTable.Type.OBJECT
-        if reference is not None:
-            _type = GdSymbolTable.Type.REFERENCE
-
-        super().__init__(id, scope=scope, name=name, tags=tags, _type=_type)
+        super().__init__(*args, **kwargs)
 
         self.__properties = {
             "": {
-                "id": id,
-                "scope": scope,
-                "name": name,
-                "tags": tags[:],
-                "type": _type
+                "id": self.id,
+                "scope": self.scope,
+                "name": self.name,
+                "tags": self.tags[:]
             }
         }
 

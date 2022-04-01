@@ -48,8 +48,7 @@ def spec___init___2():
             "id": TEST_ID,
             "scope": '+',
             "name": None,
-            "tags": [],
-            "type": GdSymbolTable.Type.OBJECT
+            "tags": []
         }
     }
 
