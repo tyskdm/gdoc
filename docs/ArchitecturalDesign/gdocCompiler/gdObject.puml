@@ -155,10 +155,13 @@ return gdObject
 !include style.iuml
 
 class GdSymbolTable {
-    +{field} scope
-    +{field} id
-    +{field} name
-    +{field} tags
+    +{field} scope: str ('+'/'-')
+    +{field} id: str
+    +{field} name: str
+    +{field} tags: list(str)
+    -{field} __type: enum\n(OBJECT/REFERNCE/IMPORT/ACCESS)
+    -{field} __link_to: GdObject
+    -{field} __link_from: list(GdObject)
     --
     +get_parent()
     +add_child()
@@ -170,32 +173,95 @@ class GdSymbolTable {
     +dumpd()
 }
 
-class gdObject {
-    -__properties
+class GdObject {
+    +classname: list(str) - [cat, type]
+    -__properties: dict
+    -__valid_prop: dict
     --
-    ..Overide..
-    +add_child()
-    ..Additional utilities..
-    +set_property()
-    +get_property()
-    +set_valid_property()
-    +is_valid_property()
+    +set_prop()
+    +get_prop()
+    +set_valid_prop()
+    +is_valid_prop()
     +dumpd()
 }
 
-class GdDocument {
-    -__filepath
-    --
-    +get_filepath()
-    +open() -> handle
-    +close()
-    +set_plugin_path()
-    +dumpd()
+GdObject -up-|> GdSymbolTable
+
+package primitivetypes {
+    class " IMPORT / ACCESS " as IMPORT {
+        ..prop..
+        +refs.package_path: str
+        +refs.object_path: str
+        --
+        +get_package_path()
+        +get_object_path()
+    }
+
+    class OBJECT {
+        ..prop..
+        +object.class.category: str
+        +object.class.type: str
+        +refs.object_path: str
+        --
+        +create_object()
+        #_get_gdopts()
+        #_get_constructor()
+    }
+
+    class Plugin {
+        +{field} NAME: str
+        +{field} TYPES: dict - (name: str, constructor: class)
+        +{field} ALIASES: dict - (alias: str, original: str)
+        +{field} DEFAULTS: dict - (parent: str, type: str)
+        --
+        +get_type(target_type, parent_type, aliases)
+    }
+
+    OBJECT -up-|> GdObject
+    IMPORT -up-|> GdObject
+    OBJECT -left-* OBJECT
+    IMPORT -right-* OBJECT
+
+    class DOCUMENT {
+        +{field} file_path: str
+        +{field} file_type: str
+        +{field} doc_class: str
+        -{field} __gdopts
+        -{field} _ext_references
+        ..prop..
+        +document.file.path: str
+        +document.file.type: str\n(gfm/commonmark/,...)
+        +document.class: str (category name)
+        --
+        #_add_gdopts()
+        #_get_gdopts()
+    }
+
+    IMPORT -down-* DOCUMENT
+    OBJECT -down-* DOCUMENT
+    DOCUMENT -up-|> OBJECT
+
+    class PACKAGE {
+        -__documents
+        -__main_document
+        -__gdoc_opts
+        -_ext_references
+        ..prop..
+        +package.path
+        +package.main_document
+        +package.ext_references
+        --
+        +add_document(path, file_type, doc_class)
+        +add_package(path, doc_class)
+        #_get_constructor()
+        #_set_plugin_path()
+        #_get_plugin()
+    }
+
+    DOCUMENT -down-* PACKAGE
+    PACKAGE -up-|> DOCUMENT
+    PACKAGE -left-* PACKAGE
 }
-
-gdObject -up-|> GdSymbolTable
-
-GdDocument -up-|> gdObject
 
 @enduml
 
