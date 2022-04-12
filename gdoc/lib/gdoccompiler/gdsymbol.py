@@ -10,7 +10,80 @@ class GdSymbol:
     """
     ;
     """
+    def __init__(self, symbol):
+        """
+        """
+        self.__symbols, self.__tags = GdSymbol._split_symbol(symbol)
+        self.__symbol_str = symbol  # str is immutable and needless to copy.
+                                    # TODO: PandocStr needs to copy.
 
+
+    def is_id(self):
+        """
+        """
+        return not self.__symbols[-1].startswith('*')
+
+
+    def get_symbols(self):
+        """
+        """
+        return self.__symbols[:]
+
+
+    def get_symbol_str(self):
+        """
+        """
+        symbol_str = ""
+
+        for s in self.__symbols:
+            if s.startswith('*'):
+                symbol_str += '[' + s[1:] + ']'
+            elif symbol_str != "":
+                symbol_str += '.' + s
+            else:
+                symbol_str = s
+
+        return symbol_str
+
+
+    def get_tags(self):
+        """
+        """
+        return self.__tags[:]
+
+
+    #
+    # Class Methods
+    #
+    @classmethod
+    def is_valid_symbol(cls, symbol):
+        """
+        """
+        result = True
+
+        try:
+            cls._split_symbol(symbol)
+        except:
+            result = False
+
+        return result
+
+
+    @classmethod
+    def is_valid_id(cls, symbol):
+        """
+        """
+        result = GdSymbol._is_gdoc_identifier(symbol)
+
+        if result is not True:
+            result = False
+
+        return result
+
+
+    #
+    # Class Private Variables and Methods
+    #
     _IDENTIFIER = re.compile(r"\.(\S*?)(?=(\.|\[|\(|$))")
     _IDENTIFIER_INDEX = 1
 

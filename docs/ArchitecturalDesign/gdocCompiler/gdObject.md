@@ -273,20 +273,23 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
 | @class& | Name | Description |
 | :-----: | ---- | ----------- |
-| c1      | GdSymbol      | GdSymbol class
-| # | Class methods |
-| @Method | is_symbol     | returns if the symbol string is valid.
-|         | @param        | in symbol : str \| PandocStr
-|         | @param        | out : bool
-| # | Instance methods |
-| @Method | is_id         | returns if the leaf symbol string is id.
-|         | @param        | out : bool
-| @Method | get_symbols   | Returns the list of splited symbol strings.
-|         | @param        | out : list(str \| PandocStr)
-| @Method | get_long_symbol | Returns the entire unsplited symbol string, excluding tags.
-|         | @param        | out : str \| PandocStr
-| @Method | get_tags      | Returns the list of tag strings.
-|         | @param        | out : list(str \| PandocStr)
+| c1      | GdSymbol       | GdSymbol class
+| # | Class methods
+| @Method | is_valid_symbol | returns if the symbol string is valid.
+|         | @param         | in symbol : str \| PandocStr
+|         | @param         | out : bool
+| @Method | is_valid_id    | returns if the id is a single valid id string.
+|         | @param         | in id : str \| PandocStr
+|         | @param         | out : bool
+| # | Instance methods
+| @Method | is_id          | returns if the leaf symbol is id.
+|         | @param         | out : bool
+| @Method | get_symbols    | Returns the list of splited symbol strings.
+|         | @param         | out : list(str \| PandocStr)
+| @Method | get_symbol_str | Returns the entire unsplited symbol string, excluding tags.
+|         | @param         | out : str \| PandocStr
+| @Method | get_tags       | Returns the list of tag strings.
+|         | @param         | out : list(str \| PandocStr)
 
 ### 8.2. GdSymbolTable
 

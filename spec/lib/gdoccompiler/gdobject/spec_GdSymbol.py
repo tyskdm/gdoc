@@ -33,15 +33,192 @@ def spec___init___1():
     """
     assert inspect.isclass(GdSymbol) == True
 
-def xspec___init___2():
+def spec___init___2():
     r"""
     [@spec \_\_init\_\_.2] set props with default values.
     """
-    SYMBOL_STR = "parent.self(S, #123)"
-    target = GdSymbol(SYMBOL_STR)
+    SYMBOL = "parent[self].child(S, #123)"
+    target = GdSymbol(SYMBOL)
 
-    assert target._symbol_str == SYMBOL_STR
-    assert target._symbol_str is not SYMBOL_STR
+    assert target._GdSymbol__symbol_str == SYMBOL
+
+    assert target._GdSymbol__symbols == ['parent', '*self', 'child']
+    assert target._GdSymbol__tags == ['S', '#123']
+
+
+## @}
+## @{ @name is_id()
+## [\@spec is_id] returns if the leaf symbol is id.
+##
+## | @Method | is_id      | returns if the leaf symbol is id.
+## |         | @param     | out : bool
+def spec_is_id_1():
+    r"""
+    [@spec is_id.1]
+    """
+    SYMBOL = "parent[self].child(S, #123)"
+    target = GdSymbol(SYMBOL)
+
+    assert target.is_id() == True
+
+
+def spec_is_id_2():
+    r"""
+    [@spec is_id.2]
+    """
+    SYMBOL = "parent.self[child](S, #123)"
+    target = GdSymbol(SYMBOL)
+
+    assert target.is_id() == False
+
+
+## @}
+## @{ @name get_symbols()
+## [\@spec get_symbols] Returns the list of splited symbol strings.
+##
+## | @Method | get_symbols  | Returns the list of splited symbol strings.
+## |         | @param       | out : list(str | PandocStr)
+def spec_get_symbols_1():
+    r"""
+    [@spec get_symbols.1]
+    """
+    SYMBOL = "parent[self].child(S, #123)"
+    target = GdSymbol(SYMBOL)
+
+    assert target.get_symbols() == ['parent', '*self', 'child']
+    assert target.get_symbols() is not target._GdSymbol__symbols
+
+
+def spec_get_symbols_2():
+    r"""
+    [@spec get_symbols.2]
+    """
+    SYMBOL = "id"
+    target = GdSymbol(SYMBOL)
+
+    assert target.get_symbols() == ['id']
+    assert target.get_symbols() is not target._GdSymbol__symbols
+
+
+## @}
+## @{ @name get_symbol_str()
+## [\@spec get_symbol_str] Returns the entire unsplited symbol string, excluding tags.
+##
+## | @Method | get_symbol_str  | Returns the entire unsplited symbol string, excluding tags.
+## |         | @param       | out : str | PandocStr
+def spec_get_symbol_str_1():
+    r"""
+    [@spec get_symbol_str.1]
+    """
+    SYMBOL = "id"
+    target = GdSymbol(SYMBOL)
+
+    assert target.get_symbol_str() == "id"
+
+
+def spec_get_symbol_str_2():
+    r"""
+    [@spec get_symbol_str.2]
+    """
+    SYMBOL = "[name]"
+    target = GdSymbol(SYMBOL)
+
+    assert target.get_symbol_str() == "[name]"
+
+
+def spec_get_symbol_str_3():
+    r"""
+    [@spec get_symbol_str.3]
+    """
+    SYMBOL = "parent[self].child(S, #123)"
+    target = GdSymbol(SYMBOL)
+
+    assert target.get_symbol_str() == "parent[self].child"
+
+
+## @}
+## @{ @name get_tags()
+## [\@spec get_tags] Returns the list of tag strings.
+##
+## | @Method | get_tags  | Returns the list of tag strings.
+## |         | @param    | out : list(str | PandocStr)
+def spec_get_tags_1():
+    r"""
+    [@spec get_tags.1]
+    """
+    SYMBOL = "parent[self].child(S, #123)"
+    target = GdSymbol(SYMBOL)
+
+    assert target.get_tags() == ['S', '#123']
+    assert target.get_tags() is not target._GdSymbol__tags
+
+
+def spec_get_tags_2():
+    r"""
+    [@spec get_tags.2]
+    """
+    SYMBOL = "id"
+    target = GdSymbol(SYMBOL)
+
+    assert target.get_tags() == []
+    assert target.get_tags() is not target._GdSymbol__symbols
+
+
+def spec_get_tags_3():
+    r"""
+    [@spec get_tags.3]
+    """
+    SYMBOL = "id()"
+    target = GdSymbol(SYMBOL)
+
+    assert target.get_tags() == []
+    assert target.get_tags() is not target._GdSymbol__symbols
+
+
+## @}
+## @{ @name is_valid_symbol()
+## [\@spec is_valid_symbol] returns if the symbol string is valid.
+##
+## | @Method | is_valid_symbol  | returns if the symbol string is valid.
+## |         | @param           | out : bool
+def spec_is_valid_symbol_1():
+    r"""
+    [@spec is_valid_symbol.1]
+    """
+    SYMBOL = "parent[self].child(S, #123)"
+
+    assert GdSymbol.is_valid_symbol(SYMBOL) == True
+
+
+def spec_is_valid_symbol_2():
+    r"""
+    [@spec is_valid_symbol.2]
+    """
+    SYMBOL = "parent.se@@@lf[child](S, #123)"
+
+    assert GdSymbol.is_valid_symbol(SYMBOL) == False
+
+
+## @}
+## @{ @name is_valid_id()
+## [\@spec is_valid_id] returns if the symbol string is valid.
+##
+## | @Method | is_valid_id  | returns if the symbol string is valid.
+## |         | @param           | out : bool
+def spec_is_valid_id_1():
+    r"""
+    [@spec is_valid_id.1]
+    """
+    assert GdSymbol.is_valid_id("id") == True
+    assert GdSymbol.is_valid_id("123") == True
+
+
+def spec_is_valid_id_2():
+    r"""
+    [@spec is_valid_id.2]
+    """
+    assert GdSymbol.is_valid_id("@") == False
+    assert GdSymbol.is_valid_id("[name]") == False
 
 
 ## @}
