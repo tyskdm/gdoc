@@ -312,9 +312,8 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 | @Method  | get_children   |
 | @Method  | get_child      |
 | @Method  | get_child_by_name |
-| @Method  | resolve        | `def resolve(self, symbol)`
+| @Method  | resolve        | `def resolve(self, symbol)`<br>**todo**: visibility and import/access.
 | @Method  | [**todo**] find           | `def find_items(self, symbol)`
-| @Method  | [**todo**] dumpd          |
 
 1. GdSymbol handle 3 types of entities.
    1. Object
@@ -330,6 +329,10 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 | @class&  | Name | Description |
 | :------: | ---- | ----------- |
 | c3       | GdObject         | Inherit from GdSymboltable
+| #        | **classmethods** |
+| @Method  | set_category      | sets the category module of the class.
+| @Method  | get_category      | returns the category module of the class.
+| #        | **instancemethods** |
 | @Method  | set_prop         | sets the property specified by key and value.<br>@See: [../../GdocMarkupLanguage/Properties](../../GdocMarkupLanguage/Properties.md)
 | @Method  | get_prop         |
 | @Method  | get_keys         | returns list of property sub-keys. It's similar to keys, but does not include value-key("") in the list.

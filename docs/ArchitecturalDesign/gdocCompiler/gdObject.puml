@@ -169,20 +169,30 @@ class GdSymbolTable {
     +get_child_by_name()
     +get_children()
     +resolve()
-    +get_fqid()
-    +dumpd()
 }
 
 class GdObject {
-    +classname: list(str) - [cat, type]
-    -__properties: dict
-    -__valid_prop: dict
+    +{field} class_category: str
+    +{field} class_type: str
+    +{field} class_version: str
+    -{field} __properties: dict
+    ..prop..
+    -{field} scope: str ('+'/'-')
+    -{field} id: str
+    -{field} name: str
+    -{field} tags: list(str)
+    -{field} class.category: str
+    -{field} class.type: str
+    -{field} class.version: str
+    ..classvariables..
+    -{field} __category_module
     --
     +set_prop()
     +get_prop()
-    +set_valid_prop()
-    +is_valid_prop()
     +dumpd()
+    ..classmethods..
+    +set_category()
+    +get_category()
 }
 
 GdObject -up-|> GdSymbolTable
@@ -190,31 +200,25 @@ GdObject -up-|> GdSymbolTable
 package primitivetypes {
     class " IMPORT / ACCESS " as IMPORT {
         ..prop..
-        +refs.package_path: str
-        +refs.object_path: str
+        -{field} ref.package_path: str
+        -{field} ref.object_path: str
         --
-        +get_package_path()
-        +get_object_path()
     }
 
     class OBJECT {
         ..prop..
-        +object.class.category: str
-        +object.class.type: str
-        +refs.object_path: str
+        -{field} ref.object_path: str
+        ..classvariables..
+        -{field} __valid_prop: dict
         --
+        +is_valid_prop()
         +create_object()
-        #_get_gdopts()
-        #_get_constructor()
-    }
-
-    class Plugin {
-        +{field} NAME: str
-        +{field} TYPES: dict - (name: str, constructor: class)
-        +{field} ALIASES: dict - (alias: str, original: str)
-        +{field} DEFAULTS: dict - (parent: str, type: str)
-        --
-        +get_type(target_type, parent_type, aliases)
+        -__get_opts()
+        -__get_constructor()
+        ..classmethods..
+        +set_category()
+        +get_category()
+        +set_valid_prop()
     }
 
     OBJECT -up-|> GdObject
@@ -223,18 +227,19 @@ package primitivetypes {
     IMPORT -right-* OBJECT
 
     class DOCUMENT {
-        +{field} file_path: str
-        +{field} file_type: str
-        +{field} doc_class: str
-        -{field} __gdopts
-        -{field} _ext_references
+        -{field} file_path: str
+        -{field} file_type: str
+        -{field} doc_class: str
+        -{field} __opts
+        #{field} _ext_refs
         ..prop..
-        +document.file.path: str
-        +document.file.type: str\n(gfm/commonmark/,...)
-        +document.class: str (category name)
+        +{field} document.file.path: str
+        +{field} document.file.type: str\n(gfm/commonmark/,...)
+        +{field} document.class: str (category name)
+        +{field} document.ext_refs
         --
-        #_add_gdopts()
-        #_get_gdopts()
+        #_add_opts()
+        #_get_opts()
     }
 
     IMPORT -down-* DOCUMENT
@@ -245,11 +250,11 @@ package primitivetypes {
         -__documents
         -__main_document
         -__gdoc_opts
-        -_ext_references
+        #_ext_refs
         ..prop..
         +package.path
         +package.main_document
-        +package.ext_references
+        +package.ext_refs
         --
         +add_document(path, file_type, doc_class)
         +add_package(path, doc_class)
@@ -259,7 +264,7 @@ package primitivetypes {
     }
 
     DOCUMENT -down-* PACKAGE
-    PACKAGE -up-|> DOCUMENT
+    PACKAGE -up-|> OBJECT
     PACKAGE -left-* PACKAGE
 }
 

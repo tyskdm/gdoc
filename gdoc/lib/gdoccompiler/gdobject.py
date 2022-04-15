@@ -9,6 +9,18 @@ class GdObject(GdSymbolTable):
     """
     ;
     """
+    __category_module = None
+
+    @classmethod
+    def set_category(cls, module):
+        cls.__category_module = module
+
+
+    @classmethod
+    def get_category(cls):
+        return cls.__category_module
+
+
     def __init__(self, *args, **kwargs):
         """ Constructs GdObject.
         @param id : str | PandocStr

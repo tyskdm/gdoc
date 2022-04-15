@@ -23,6 +23,41 @@ from gdoc.lib.gdoccompiler.gdobject import GdObject
 from gdoc.lib.gdoccompiler.gdsymboltable import GdSymbolTable
 from gdoc.lib.gdoccompiler.gdexception import *
 
+## @{ @name _set_category(cls, module)
+## [\@spec _set_category]
+##
+__set_category = "dummy for doxygen styling"
+
+def spec_set_category_1():
+    r"""
+    [@spec set_category.1]
+    """
+    MODULE = "TEST1"
+
+    assert GdObject._GdObject__category_module is None
+
+    GdObject.set_category(MODULE)
+
+    assert GdObject._GdObject__category_module is MODULE
+
+
+## @}
+## @{ @name get_category(self)
+## [\@spec get_category]
+##
+_get_category = "dummy for doxygen styling"
+
+def spec_get_category_1():
+    r"""
+    [@spec get_category.1]
+    """
+    MODULE = "TEST2"
+    GdObject.set_category(MODULE)
+
+    assert GdObject.get_category() is MODULE
+
+
+## @}
 ## @{ @name \_\_init\_\_(str \| PandocStr)
 ## [\@spec \_\_init\_\_] creates a new instance.
 ##
