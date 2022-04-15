@@ -1,7 +1,6 @@
 r"""
 GdObject class
 """
-from unittest import result
 from .gdsymboltable import GdSymbolTable
 from .gdexception import *
 
@@ -141,3 +140,43 @@ class GdObject(GdSymbolTable):
             result = [v]
 
         return result
+
+
+    def __getitem__(self, *args, **kwargs):
+        return self.__properties.__getitem__(*args, **kwargs)
+
+
+    def __iter__(self, *args, **kwargs):
+        return self.__properties.__iter__(*args, **kwargs)
+
+
+    def __len__(self, *args, **kwargs):
+        return self.__properties.__len__(*args, **kwargs)
+
+
+    def __contains__(self, *args, **kwargs):
+        return self.__properties.__contains__(*args, **kwargs)
+
+
+    def __eq__(self, *args, **kwargs):
+        return self.__properties.__eq__(*args, **kwargs)
+
+
+    def __ne__(self, *args, **kwargs):
+        return self.__properties.__ne__(*args, **kwargs)
+
+
+    def keys(self, *args, **kwargs):
+        return self.__properties.keys(*args, **kwargs)
+
+
+    def items(self, *args, **kwargs):
+        return self.__properties.items(*args, **kwargs)
+
+
+    def values(self, *args, **kwargs):
+        return self.__properties.values(*args, **kwargs)
+
+
+    def get(self, *args, **kwargs):
+        return self.__properties.get(*args, **kwargs)

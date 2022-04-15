@@ -169,6 +169,8 @@ class GdSymbolTable {
     +get_child_by_name()
     +get_children()
     +resolve()
+    +unidir_link_to()
+    +bidir_link_to()
 }
 
 class GdObject {

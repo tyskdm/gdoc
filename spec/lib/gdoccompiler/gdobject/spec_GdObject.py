@@ -463,3 +463,59 @@ def spec_get_prop_1(mocker, props, key, expected):
 
 
 ## @}
+## @{ @name abc.mapping
+## [\@spec abc_mapping]
+##
+_abc_mapping = "dummy for doxygen styling"
+
+def spec_abc_mapping_1():
+    r"""
+    [@spec set_category.1]
+    """
+    target = GdObject("TARGET")
+
+    for k, v in [
+            ('1', 'A'),
+            ('2', 'B'),
+            ('3', 'C'),
+            ('4', 'D'),
+            ('5', 'E'),
+        ]:
+        target.set_prop(k, v)
+
+    # __getitem__
+    assert target['1'] == 'A'
+    assert target['2'] == 'B'
+
+    # __iter__
+    for k, v in target.items():
+        assert target._GdObject__properties[k] == v
+
+    # __len__
+    assert len(target) == len(target._GdObject__properties)
+
+    # __contains__
+    assert ('1' in target) == True
+
+    # __eq__
+    assert target == target._GdObject__properties
+    assert target._GdObject__properties == target
+
+    # __ne__
+    assert target.__ne__({}) == True
+
+    # keys
+    assert list(target.keys()) == ['', '1', '2', '3', '4', '5']
+
+    # items
+    for k, v in target.items():
+        assert target._GdObject__properties[k] == v
+
+    # values
+    assert list(target.values()) == list(target._GdObject__properties.values())
+
+    # get
+    assert target.get('1') == 'A'
+    assert target.get('@') is None
+
+## @}
