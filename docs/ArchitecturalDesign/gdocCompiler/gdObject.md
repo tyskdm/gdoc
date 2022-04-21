@@ -41,7 +41,7 @@
     - [8.7.3. What gdDocument should satisfy](#873-what-gddocument-should-satisfy)
     - [8.7.4. What gdPackage should satisfy](#874-what-gdpackage-should-satisfy)
   - [8.8. Package](#88-package)
-  - [8.8. Plugin](#88-plugin)
+  - [8.8. Category](#88-category)
 
 <br>
 
@@ -171,7 +171,7 @@ These are internal classes that provide the basic mechanisms.
 | t3    | Access        | Same as Import but has private visibility.
 | t4    | Document      | An object that represents the source document file.
 | t5    | Package       | An object that represents the source document file.
-| t6    | Plugin        | Interface class of gdoc data type plugin module.
+| t6    | Category      | Interface class of Object Category plugin module.
 
 ### 5.2. [@class& t4] Package
 
@@ -382,6 +382,8 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 | @class& | Name | Description |
 | :-----: | ---- | ----------- |
 | t1      | BaseObject    | The base class for all gdoc objects except Import and Access.
+| @Method | create_object     |
+| @Method | __get_constructor |
 
 ### 8.5. Import
 
@@ -483,9 +485,10 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 | @prperty | __external_link  | list of file or package paths.
 | @prperty | __package_config |
 
-### 8.8. Plugin
+### 8.8. Category
 
 | @class&  | Name | Description |
 | :------: | ---- | ----------- |
-| t6       | Plugin        | Interface class of gdoc data type plugin module.
+| t6       | Category      | Interface class of gdoc data type plugin module.
+| @Method  | get_type      | get object class by name
 
