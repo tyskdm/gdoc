@@ -381,8 +381,24 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
 | @class& | Name | Description |
 | :-----: | ---- | ----------- |
-| t1      | BaseObject    | The base class for all gdoc objects except Import and Access.
-| @Method | create_object     |
+| t1      | BaseObject        | The base class for all gdoc objects except Import and Access.
+| @Method | \_\_init\_\_      | Creates an object and sets the values of the type_args as properties.
+|         | @Param typename   | in typename: str
+|         | @Param id         | in id: str \| PandocStr
+|         | @Param scope      | in scope: str (`+`/`-`)
+|         | @Param name       | in name: str \| PandocStr
+|         | @Param tags       | in tags: list(str \| PandocStr)
+|         | @Param ref        | in ref: str \| PandocStr<br># None to OBJECT / path_str to REFERENCE<br># * IMPORT/ACCESS can not be referenced
+|         | @Param type_args  | in type_args: dict<br># keyword arguments to the type constructor
+|         | @Param object     | out object: BaseObject
+| @Method | create_object     | creates new object and return it.
+|         | @Param cat_name   | in cat_name: str \| PandocStr
+|         | @Param type_name  | in type_name: str \| PandocStr
+|         | @Param reference  | in reference: bool
+|         | @Param scope      | in scope: str \| PandocStr
+|         | @Param symbol     | in symbol: str \| PandocStr \| GdSymbol
+|         | @Param type_args  | in type_args: dict<br># keyword arguments to the type constructor
+|         | @Param object     | out object: BaseObject
 | @Method | __get_constructor |
 
 ### 8.5. Import

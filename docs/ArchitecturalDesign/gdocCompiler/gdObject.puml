@@ -171,21 +171,17 @@ class GdSymbolTable {
     +resolve()
     +unidir_link_to()
     +bidir_link_to()
+    -__get_linkto_target()
+    -__get_linkfrom_list()
 }
 
 class GdObject {
-    +{field} class_category: str
-    +{field} class_type: str
-    +{field} class_version: str
     -{field} __properties: dict
     ..prop..
     -{field} scope: str ('+'/'-')
     -{field} id: str
     -{field} name: str
     -{field} tags: list(str)
-    -{field} class.category: str
-    -{field} class.type: str
-    -{field} class.version: str
     ..classvariables..
     -{field} __category_module
     --
@@ -201,15 +197,20 @@ GdObject -up-|> GdSymbolTable
 
 package primitivetypes {
     class " IMPORT / ACCESS " as IMPORT {
-        ..prop..
-        -{field} ref.package_path: str
-        -{field} ref.object_path: str
         --
     }
 
     class OBJECT {
+        +{field} class_category: str
+        +{field} class_type: str
+        +{field} class_version: str
+        +{field} class_isref: bool
         ..prop..
-        -{field} ref.object_path: str
+        -{field} class.category: str
+        -{field} class.type: str
+        -{field} class.version: str
+        -{field} class.ref.package_path: str
+        -{field} class.ref.object_path: str
         ..classvariables..
         -{field} __valid_prop: dict
         --
@@ -221,9 +222,9 @@ package primitivetypes {
     }
 
     OBJECT -up-|> GdObject
-    IMPORT -up-|> GdObject
     OBJECT -left-* OBJECT
     IMPORT -right-* OBJECT
+    IMPORT -right-|> OBJECT
 
     class DOCUMENT {
         -{field} file_path: str
