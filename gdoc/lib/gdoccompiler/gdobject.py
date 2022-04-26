@@ -180,3 +180,7 @@ class GdObject(GdSymbolTable):
 
     def get(self, *args, **kwargs):
         return self.__properties.get(*args, **kwargs)
+
+
+    def update(self, *args, **kwargs):
+        return self.__properties.update(*args, **kwargs)

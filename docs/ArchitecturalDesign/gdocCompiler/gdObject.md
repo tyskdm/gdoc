@@ -348,6 +348,7 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 | @Method  | items            |
 | @Method  | values           |
 | @Method  | get              |
+| @Method  | update           | **TODO**: add spec
 
 #### 8.3.1. Behavior
 

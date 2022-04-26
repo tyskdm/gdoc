@@ -13,13 +13,9 @@ class BaseObject(GdObject):
     """
     def __init__(self, typename, id, *, scope='+', name=None, tags=[], ref=None, type_args={}):
         # def __init__(self, id, *, scope='+', name=None, tags=[], _type=Type.OBJECT):
-        if typename in ("IMPORT", "ACCESS"):
-            _type = {
-                "IMPORT": GdSymbolTable.Type.IMPORT,
-                "ACCESS": GdSymbolTable.Type.ACCESS
-            }[typename]
-            if ref is not None:
-                raise GdocRuntimeError()
+        if type(typename) is GdSymbolTable.Type:
+            _type = typename
+            typename = typename.name
 
         else:
             if ref is None:
@@ -53,8 +49,7 @@ class BaseObject(GdObject):
         else:
             self.class_isref = False
 
-        for k in type_args:
-            self.set_prop(k, type_args[k])
+        self.update(type_args)
 
 
     def create_object(self, cat_name, type_name, reference, scope, symbol, type_args):
