@@ -395,7 +395,7 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 | @Method | create_object     | creates new object and return it.
 |         | @Param cat_name   | in cat_name: str \| PandocStr
 |         | @Param type_name  | in type_name: str \| PandocStr
-|         | @Param reference  | in reference: bool
+|         | @Param isref      | in isref: bool
 |         | @Param scope      | in scope: str \| PandocStr
 |         | @Param symbol     | in symbol: str \| PandocStr \| GdSymbol
 |         | @Param type_args  | in type_args: dict<br># keyword arguments to the type constructor

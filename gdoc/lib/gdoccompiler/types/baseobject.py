@@ -12,7 +12,6 @@ class BaseObject(GdObject):
     """
     """
     def __init__(self, typename, id, *, scope='+', name=None, tags=[], ref=None, type_args={}):
-        # def __init__(self, id, *, scope='+', name=None, tags=[], _type=Type.OBJECT):
         if type(typename) is GdSymbolTable.Type:
             _type = typename
             typename = typename.name
@@ -52,7 +51,8 @@ class BaseObject(GdObject):
         self.update(type_args)
 
 
-    def create_object(self, cat_name, type_name, reference, scope, symbol, type_args):
+    def create_object(self, cat_name: str, type_name: str, isref: bool,
+                        scope: str, symbol, name: str =None, type_args: dict ={}) -> "BaseObject":
         r"""
         To avoid consuming the keyword argument namespace, required
         arguments are received in tuples as positional arguments.
@@ -60,46 +60,59 @@ class BaseObject(GdObject):
         | @Method | create_object     | creates new object and return it.
         |         | @Param cat_name   | in cat_name: str \| PandocStr
         |         | @Param type_name  | in type_name: str \| PandocStr
-        |         | @Param reference  | in reference: bool
+        |         | @Param isref      | in isref: bool
         |         | @Param scope      | in scope: str \| PandocStr
         |         | @Param symbol     | in symbol: str \| PandocStr \| GdSymbol
         |         | @Param type_args  | in type_args: dict<br># keyword arguments to the type constructor
         |         | @Param object     | out object: BaseObject
         """
-        class_name = None
+        type_name = None
         constructor = None
 
         if type(symbol) is not GdSymbol:
             symbol = GdSymbol(symbol)
 
         if not symbol.is_id():
-            raise GdocIdError("Invalid id")
+            raise GdocSyntaxError("Invalid id")
 
         symbols = symbol.get_symbols()
-        id = symbol[-1]
+        id = symbols[-1]
 
-        # if reference:
-        #     store symbol as reference object_path
-        #     and check it later linkage-timing.
-        # else:
-        #     assert here if symbols[0:-1] are valid
+        ref = None
+        if isref:
+            ref = symbols
+        else:
+            ref = None
+            # assert here if symbols[0:-1] are valid
+            symbols.pop()
+            p = self.get_parent()
+            while len(symbols) > 0:
+                s = symbols.pop()
+                if s.startwith('*'):    #name
+                    if p.name != s[1:]:
+                        raise GdocRuntimeError()
+                else:                   #id
+                    if p.id != s:
+                        raise GdocRuntimeError()
 
         tags = symbol.get_tags()
 
         obj = self
         while obj is not None:
-            class_name, constructor = obj.__get_constructor(cat_name, type_name)
+            type_name, constructor = obj.__get_constructor(cat_name, type_name)
             if constructor is not None:
                 break
 
             obj = obj.get_parent()
 
         if constructor is not None:
-            child = constructor(class_name, reference, scope, id, tags, type_args)
-            self.add_child(child)
+            child = constructor(type_name, id, scope=scope, name=name,
+                                tags=tags, ref=ref, type_args=type_args)
 
         else:
             raise GdocTypeError("Class not found")
+
+        self.add_child(child)
 
         return child
 
@@ -110,12 +123,11 @@ class BaseObject(GdObject):
         constructor = None
         class_name = None
 
-        if cat_name is None:
-            cat_name = self.class_category
+        if cat_name in (None, self.class_category):
+            cat = self.__class__.get_category()
 
-        if cat_name == self.class_category:
-
-            class_name, constructor = self.__class__.get_category().get_type(
+        if type(cat) is Category:
+            class_name, constructor = cat.get_type(
                                           type_name, self.class_type
                                       )
 
