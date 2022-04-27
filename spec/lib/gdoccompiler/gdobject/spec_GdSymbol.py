@@ -19,7 +19,7 @@ The specification of Symbol class.
 """
 import pytest
 import inspect
-from gdoc.lib.gdoccompiler.gdsymbol import GdSymbol
+from gdoc.lib.gdoccompiler.gdobject.gdsymbol import GdSymbol
 from gdoc.lib.gdoccompiler.gdexception import *
 
 ## @{ @name \_\_init\_\_(str \| PandocStr)

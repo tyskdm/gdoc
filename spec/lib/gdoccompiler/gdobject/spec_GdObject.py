@@ -19,8 +19,8 @@ The specification of GdObject class.
 """
 import pytest
 import inspect
-from gdoc.lib.gdoccompiler.gdobject import GdObject
-from gdoc.lib.gdoccompiler.gdsymboltable import GdSymbolTable
+from gdoc.lib.gdoccompiler.gdobject.gdobject import GdObject
+from gdoc.lib.gdoccompiler.gdobject.gdsymboltable import GdSymbolTable
 from gdoc.lib.gdoccompiler.gdexception import *
 
 ## @{ @name _set_category(cls, module)

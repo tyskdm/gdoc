@@ -19,8 +19,8 @@ The base class for all gdoc objects except Import and Access.
 import pytest
 import inspect
 from gdoc.lib.gdoccompiler.gdexception import *
-from gdoc.lib.gdoccompiler.gdsymboltable import GdSymbolTable
-from gdoc.lib.gdoccompiler.types.baseobject import BaseObject
+from gdoc.lib.gdoccompiler.gdobject.gdsymboltable import GdSymbolTable
+from gdoc.lib.gdoccompiler.gdobject.types.baseobject import BaseObject
 
 
 ## @{ @name \_\_init\_\_(str \| PandocStr)

@@ -5,7 +5,7 @@ Gdoc primitive types setup module
 """
 from .types import CATEGORY_INFO
 from .types.category import Category
-from .types.package import Package
+# from .types.package import Package
 from .types.baseobject import BaseObject
 
 Category(CATEGORY_INFO)

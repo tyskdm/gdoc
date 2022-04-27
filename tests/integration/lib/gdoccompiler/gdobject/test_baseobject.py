@@ -10,7 +10,7 @@ The specification of Inline class.
 [@import SWDD.SU[Inline] as=THIS]
 
 """
-from gdoc.lib.gdoccompiler.gdtypes import BaseObject
+from gdoc.lib.gdoccompiler.gdobject.gdtypes import BaseObject
 
 ## @{ @name Inline
 ## [\@test Inline] creates a new instance.

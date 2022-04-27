@@ -4,7 +4,7 @@ GdSymbol class
 import json
 import re
 
-from .gdexception import *
+from ..gdexception import *
 
 class GdSymbol:
     """

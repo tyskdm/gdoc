@@ -18,7 +18,7 @@ The base class for all gdoc objects except Import and Access.
 """
 import pytest
 import inspect
-from gdoc.lib.gdoccompiler.types.category import Category
+from gdoc.lib.gdoccompiler.gdobject.types.category import Category
 from gdoc.lib.gdoccompiler.gdexception import *
 
 @pytest.fixture
@@ -81,7 +81,7 @@ def spec___init___3(_TEST_CLASS):
     r"""
     [@spec \_\_init\_\_.2] set props with default values.
     """
-    from gdoc.lib.gdoccompiler.types import CATEGORY_INFO
+    from gdoc.lib.gdoccompiler.gdobject.types import CATEGORY_INFO
     target = Category(CATEGORY_INFO)
 
     assert target.name == ""

@@ -2,7 +2,7 @@ r"""
 BaseObject class
 """
 
-from ..gdexception import *
+from ...gdexception import *
 from ..gdobject import GdObject
 from ..gdsymbol import GdSymbol
 from ..gdsymboltable import GdSymbolTable

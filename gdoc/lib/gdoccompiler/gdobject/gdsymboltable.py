@@ -6,7 +6,7 @@ import re
 import enum
 from enum import Enum, auto
 
-from .gdexception import *
+from ..gdexception import *
 
 class GdSymbolTable:
     """

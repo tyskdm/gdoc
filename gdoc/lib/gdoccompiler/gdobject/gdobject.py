@@ -2,7 +2,7 @@ r"""
 GdObject class
 """
 from .gdsymboltable import GdSymbolTable
-from .gdexception import *
+from ..gdexception import *
 
 class GdObject(GdSymbolTable):
     """
