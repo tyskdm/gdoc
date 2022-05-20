@@ -1,0 +1,320 @@
+' # [@ ad] Gdoc Object detailed design
+'
+' ## [@ gdo] GdocObject_dumps_sequence
+'
+@startuml GdocObject_dumps_Sequence
+
+!include style.iuml
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+Participant Client
+Participant "Plugin Class" as pluginClass
+Participant gdObject
+Participant gdSymbolTable
+Participant "Child objects" as child
+
+Client -> gdObject ++ : dumps(opts)\n~# No need to override by plug-ins
+
+    gdObject -> pluginClass ++ : dumpd()
+
+    rnote over pluginClass
+        Store class-specific attrs
+        into __properties if needed.
+    endrnote
+
+    pluginClass -> gdObject ++ : dumpd()
+
+        rnote over gdObject
+            Create newDict.
+        endrnote
+
+        gdObject -> gdSymbolTable ++ : dumpd()
+            rnote over gdSymbolTable
+                Export management
+                attrs as a dict
+            endrnote
+        return dict
+
+        rnote over gdObject
+            1. __SymbolTable__
+            Store the dict from
+            gdSymbolTable into
+            newDict["."]
+        endrnote
+
+        rnote over gdObject
+            2. __properties__
+            Store __properties
+            into newDict[":"].
+        endrnote
+
+        loop for child in __children
+            gdObject -> child ++ : dumpd()
+            return childDict
+
+            rnote over gdObject
+                3. __children__
+                Store childDict
+                into newDict["id"].
+            endrnote
+        end
+
+        return newDict
+
+    rnote over pluginClass
+        class-specific process
+        if needed.
+    endrnote
+
+    return newDict
+
+    rnote over gdObject
+        json.dumps(newDict, opts)
+    endrnote
+
+return json_string
+
+@enduml
+
+'
+' ## [@ gdo] GdocObject_loads_sequence
+'
+@startuml GdocObject_loads_Sequence
+
+!include style.iuml
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+Participant Client
+Participant "Plugin Class" as pluginClass
+Participant gdObject
+Participant gdSymbolTable
+Participant "Child objects" as child
+
+== loads(json_str) ==
+
+Client -> gdObject ++ : ~# Class Method\nloads(json_str)
+
+    rnote over gdObject
+        dict = json.loads(json_str)
+    endrnote
+
+    gdObject -> gdObject : loadd(dict)
+
+return gdObject
+
+== loadd(dict) ==
+
+Client -> gdObject ++ : ~# Class Method\nloadd(dict)
+
+    gdObject -> pluginClass ++ : Constructor(dict)
+
+        pluginClass -> gdObject ++ : ~__init__(self, dict)
+
+            gdObject -> gdSymbolTable ++ : ~__init__(self, dict)
+                rnote over gdSymbolTable
+                    Restore attrs of
+                    SymbolTable from
+                    dict["."].
+                endrnote
+            return
+
+        rnote over gdObject
+            Restore __properties
+            from dict[":"].
+        endrnote
+
+        loop for id in dict
+            gdObject -> child ++ : Constructor(dict["id"])
+            return child
+
+            rnote over gdObject
+                self.add_childe(child)
+            endrnote
+        end
+
+        return
+
+    rnote over pluginClass
+        Retore class-specific attrs
+        from __properties if needed.
+    endrnote
+
+    return gdObject
+
+return gdObject
+
+@enduml
+
+
+' ## [@ pis] GdObject_hierarchy
+'
+@startuml GdObject_hierarchy
+
+!include style.iuml
+
+class GdSymbolTable {
+    +{field} scope: str ('+'/'-')
+    +{field} id: str
+    +{field} name: str
+    +{field} tags: list(str)
+    -{field} __type: enum\n(OBJECT/REFERNCE/IMPORT/ACCESS)
+    -{field} __link_to: GdObject
+    -{field} __link_from: list(GdObject)
+    --
+    +get_parent()
+    +add_child()
+    +get_child()
+    +get_child_by_name()
+    +get_children()
+    +resolve()
+    +unidir_link_to()
+    +bidir_link_to()
+    -__get_linkto_target()
+    -__get_linkfrom_list()
+}
+
+class GdObject {
+    -{field} __properties: dict
+    ..prop..
+    -{field} scope: str ('+'/'-')
+    -{field} id: str
+    -{field} name: str
+    -{field} tags: list(str)
+    ..classvariables..
+    -{field} __category_module
+    --
+    +set_prop()
+    +get_prop()
+    +dumpd()
+    ..classmethods..
+    +set_category()
+    +get_category()
+}
+
+GdObject -up-|> GdSymbolTable
+
+package primitivetypes {
+    class " IMPORT / ACCESS " as IMPORT {
+        --
+    }
+
+    class OBJECT {
+        +{field} class_category: str
+        +{field} class_type: str
+        +{field} class_version: str
+        +{field} class_isref: bool
+        ..prop..
+        -{field} class.category: str
+        -{field} class.type: str
+        -{field} class.version: str
+        -{field} class.ref.package_path: str
+        -{field} class.ref.object_path: str
+        ..classvariables..
+        -{field} __valid_prop: dict
+        --
+        +is_valid_prop()
+        +create_object()
+        -__get_constructor()
+        ..classmethods..
+        +set_valid_prop()
+    }
+
+    OBJECT -up-|> GdObject
+    OBJECT -left-* OBJECT
+    IMPORT -right-* OBJECT
+    IMPORT -right-|> OBJECT
+
+    class DOCUMENT {
+        -{field} file_path: str
+        -{field} file_type: str
+        -{field} doc_class: str
+        -{field} __opts
+        #{field} _ext_refs
+        ..prop..
+        +{field} document.file.path: str
+        +{field} document.file.type: str\n(gfm/commonmark/,...)
+        +{field} document.class: str (category name)
+        +{field} document.ext_refs
+        --
+        #_add_opts()
+        #_get_opts()
+    }
+
+    IMPORT -down-* DOCUMENT
+    OBJECT -down-* DOCUMENT
+    DOCUMENT -up-|> OBJECT
+
+    class PACKAGE {
+        -__documents
+        -__main_document
+        -__gdoc_opts
+        #_ext_refs
+        ..prop..
+        +package.path
+        +package.main_document
+        +package.ext_refs
+        --
+        +add_document(path, file_type, doc_class)
+        +add_package(path, doc_class)
+        #_get_constructor()
+        #_set_plugin_path()
+        #_get_plugin()
+    }
+
+    DOCUMENT -down-* PACKAGE
+    PACKAGE -up-|> OBJECT
+    PACKAGE -left-* PACKAGE
+}
+
+@enduml
+
+' ## [@ pa] gdocCompilerSequenceDiagram
+'
+@startuml gdocCompilerSequenceDiagram
+
+!include style.iuml
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+Participant Client
+box gdocCompiler
+  Participant gdCompiler
+  Participant gdDocument
+  Participant gdParser
+endbox
+Participant pandocAstObject
+
+Client -> gdCompiler : A source file
+
+gdCompiler -> pandocAstObject ++ : Read a sourcefile and Get a pandocAst object
+return pandocAst object
+
+gdCompiler -> gdDocument ++ : Open gdDocument\n(PluginHandle)
+
+  gdCompiler -> gdParser ++ : Parse\npandocAstObject\n(BlockList, gdDocument)
+
+    loop While Block exists
+      gdParser -> gdDocument: CallBack\n: OpenObjectSection
+      gdParser -> gdParser : reentry\n(BlockList)
+      gdParser -> gdDocument: CallBack\n: GetTableType
+      gdParser -> gdDocument: CallBack\n: CreateObject
+      gdParser -> gdDocument: CallBack\n: AddProperty
+      gdParser -> gdDocument: CallBack\n: CloseObjectSection
+    end
+
+  return ExitCode
+
+gdCompiler -> gdDocument : Close\nPandocAst Object
+deactivate gdDocument
+
+gdCompiler -> Client : gdDocument
+
+== Exception ==
+
+gdCompiler <--? ++ : Exception
+?<-- gdCompiler -- : Exception
+
+@enduml
+

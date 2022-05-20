@@ -169,7 +169,7 @@ class PandocStr:
         # 3. Add all each items with start/stop info.
         if length > 0:
             # 3.1. move to start point
-            for item in self._items:
+            for item in self._items:    # pragma: no branch: This line never complete.
                 if start < item["len"]:
                     break
                 else:
@@ -177,8 +177,8 @@ class PandocStr:
                     continue
 
             # 3.2. add items for length
-            for item in self._items[self._items.index(item):]:
-
+            for item in self._items[self._items.index(item):]:  # pragma: no branch
+                                                                # This line never complete.
                 _start = item["start"] + start
 
                 if start + length < item["len"]:
@@ -215,7 +215,9 @@ class PandocStr:
     @classmethod
     def _limit_slice_to_range(cls, index, length):
         # start
-        if index.start >= 0:
+        if index.start is None:
+            start = 0
+        elif index.start >= 0:
             if index.start > length:
                 start = length
             else:
@@ -226,7 +228,9 @@ class PandocStr:
                 start = 0
 
         # stop
-        if index.stop >= 0:
+        if index.stop is None:
+            stop = length
+        elif index.stop >= 0:
             if index.stop > length:
                 stop = length
             else:
@@ -250,6 +254,107 @@ class PandocStr:
         @return str
         """
         return self._text
+
+
+    def __contains__(self, x) -> bool:
+        """ Constructor
+        @param x : str | PandocStr
+        @return str
+        """
+        return str(x) in self._text
+
+
+    def __eq__(self, o) -> bool:
+        """ Constructor
+        @param o : str | PandocStr
+        @return str
+        """
+        return str(o) == self._text
+
+
+    def index(self, value, start: int = 0, stop: int = None):
+        """ Constructor
+        @param value : str | PandocStr
+        @param start : int = 0
+        @param stop : int | None = None
+        @return index : int
+        """
+        return self._text.index(str(value), start, stop)
+
+
+    def count(self, value) -> int:
+        """ Constructor
+        @param value : str | PandocStr
+        @return str
+        """
+        return self._text.count(str(value))
+
+
+    def __add__(self, s):
+        """ Constructor
+        @param s : PandocStr | str
+        @return PandocStr | str
+        """
+        new_pandoc_str = None
+
+        if type(s) is PandocStr:
+            new_pandoc_str = self[:]
+            opr_str = s[:]
+            new_pandoc_str._join_items(opr_str._items, opr_str._text, opr_str._len)
+
+        elif type(s) is str:
+            new_pandoc_str = self._text + s
+
+        else:
+            raise TypeError(
+                'can only concatenate PandocStr or str (not "' +
+                s.__class__.__name__ + '") to PandocStr'
+            )
+
+        return new_pandoc_str
+
+
+    def __radd__(self, s):
+        """ Constructor
+        @param s : PandocStr | str
+        @return PandocStr | str
+        """
+        new_pandoc_str = None
+
+        if type(s) is PandocStr:
+            new_pandoc_str = s[:]
+            opr_str = self[:]
+            new_pandoc_str._join_items(opr_str._items, opr_str._text, opr_str._len)
+
+        elif type(s) is str:
+            new_pandoc_str = s + self._text
+
+        else:
+            raise TypeError(
+                'can only concatenate PandocStr or str (not "' +
+                s.__class__.__name__ + '") to PandocStr'
+            )
+
+        return new_pandoc_str
+
+
+    def __iadd__(self, s):
+        """ Constructor
+        @param s : PandocStr | str
+        @return PandocStr | str
+        """
+
+        if type(s) is PandocStr:
+            opr_str = s[:]
+            self._join_items(opr_str._items, opr_str._text, opr_str._len)
+
+        else:
+            raise TypeError(
+                'can only concatenate PandocStr (not "' +
+                s.__class__.__name__ + '") to PandocStr'
+            )
+
+        return self
 
 
     def _create_items_list(self, items = None, start: int = 0, stop: int = None):

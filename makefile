@@ -10,7 +10,7 @@ DOXYOUTDIR  := html
 DOXYXMLDIR  := xml
 PYTESTDIR   := htmlcov
 
-.PHONY: all clean doc doc-clean puml-img puml-clean test test-cov spec-cov spec-clean
+.PHONY: all clean doc doc-clean puml-img puml-clean test test-cov cov spec-clean
 
 all: clean test puml-img doc
 
@@ -64,7 +64,7 @@ test:
 test-cov:
 	@pytest $(PYTESTFLAGS) --cov $(SRCDIR) --cov-branch
 
-spec-cov:
+cov:
 	@pytest $(SPECDIR) $(PYTESTFLAGS) --cov $(SRCDIR) --cov-branch --cov-report=html
 
 spec-clean:

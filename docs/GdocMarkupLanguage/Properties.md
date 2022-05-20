@@ -13,11 +13,14 @@
 
 ## CONTENTS <!-- omit in toc -->
 
-- [](#)
-- [1. OBJECT STRUCTURE](#1-object-structure)
-  - [1.1. API](#11-api)
-  - [1.2. Example](#12-example)
-- [2. INLINE TAG](#2-inline-tag)
+- [1. USE CASES](#1-use-cases)
+  - [1.1. note](#11-note)
+  - [1.2. trace](#12-trace)
+- [2. OBJECT STRUCTURE](#2-object-structure)
+  - [2.1. API](#21-api)
+  - [2.2. Example](#22-example)
+- [3. INLINE TAG](#3-inline-tag)
+  - [3.1. Rule](#31-rule)
 
 ## 1. USE CASES
 
@@ -74,10 +77,12 @@
 
 ```py
 add_prop(key, val)  -> None
-get_prop(key)       -> None / str / array(str)
-get_child_keys(key) -> None / array(str)
-get_prop_keys()     -> array(str)
+get_prop(key)       -> None | str | array(str)
+prop_keys()         -> None | array(str)
 ```
+
+- propertyへのアクセスに、dictへのアクセスと同じ記法を使えるようにしたい。
+  - property自体はもともと辞書なので、オブジェクト本体からプロパティへたどり着けさえすればよいのではないか。
 
 ### 2.2. Example
 
@@ -158,7 +163,7 @@ get_prop_keys()     -> array(str)
 
 ## 3. INLINE TAG
 
-### Rule
+### 3.1. Rule
 
 > 前置ラインs \
 > 前置テキスト @inlinetag: 後置テキスト \
