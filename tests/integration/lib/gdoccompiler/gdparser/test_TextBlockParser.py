@@ -15,7 +15,7 @@ import pytest
 from unittest import mock
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
-from gdoc.lib.gdoccompiler.gdparser.textblock import TextBlockParser
+from gdoc.lib.gdoccompiler.gdparser.textblock import parse_TextBlock
 
 ## @{ @name Inline
 ## [\@test Inline] creates a new instance.
@@ -40,14 +40,8 @@ def test_gdParser_1(mocker: mock, filename, formattype, html):
     # Mock
     gdobject = mocker.MagicMock(["create_object"])
 
-    # Target
-    target = TextBlockParser()
-
     # Execution
-    target.start(gdobject)
-    target_data.accept(target)  # target_data calls back target's function:
-                                # on_entry(), on_event() and on_exit().
-    target.stop()
+    parse_TextBlock(target_data, gdobject)
 
     # Assertion
     gdobject.create_object.assert_called_once_with(

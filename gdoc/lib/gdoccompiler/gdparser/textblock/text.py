@@ -3,9 +3,9 @@ text.py: Text class
 """
 
 from enum import Enum, auto
-from ...pandocastobject.pandocstr import PandocStr
-from ...pandocastobject.pandocast.element import Element
-from ..gdexception import *
+from ....pandocastobject.pandocstr import PandocStr
+from ....pandocastobject.pandocast.element import Element
+from ...gdexception import *
 
 class Text():
 
@@ -53,5 +53,14 @@ class Text():
 
 
     def get_str(self):
-        return ""
+        result = ""
+
+        if self.type is Text.Type.PLAIN:
+            result = self.element
+        elif self.type is Text.Type.CODE:
+            result = '`' + self.element.get_content() + '`'
+        elif self.type is Text.Type.MATH:
+            result = '$' + self.element.get_content() + '$'
+
+        return result
 

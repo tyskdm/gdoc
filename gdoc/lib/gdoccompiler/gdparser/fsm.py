@@ -4,8 +4,12 @@ fsm.py: Finite State Machine
 
 class State():
 
-    def __init__(self, name : str="") -> None:
-        self.name = name
+    def __init__(self, name : str=None) -> None:
+        self.name = name or __class__.__name__
+
+
+    def start(self, param=None):
+        return
 
 
     def on_entry(self, event=None):
@@ -22,21 +26,24 @@ class State():
         # re-entry      --> (self, event)
         # transition    --> state or (state, event)
         # done          --> None or (None, result)
-        raise RuntimeError("State '" + self.name + "' has no on_event() handler.")
+        return self
 
 
     def on_exit(self):
         return
 
 
+    def stop(self):
+        return
+
+
 class StateMachine(State):
 
-    def __init__(self, name : str="") -> None:
-        super().__init__(name)
+    def __init__(self, name : str=None) -> None:
+        super().__init__(name or __class__.__name__)
 
         self.__state_list : list[State] = []
         self.__current_state : State = None
-        self.param = None
 
 
     def add_state(self, state):
@@ -45,17 +52,15 @@ class StateMachine(State):
         else:
             raise TypeError(
                 'state to add should be State or StateMachine(not "'
-                + type(state) + '")')
+                + type(state).__name__ + '")')
         return self
 
 
     def start(self, param=None):
-        self.param = param
         self.__current_state = self.__state_list[0]
 
         for state in self.__state_list:
-            if isinstance(state, StateMachine):
-                state.start()
+            state.start(param)
 
 
     def on_entry(self, event=None):
@@ -91,8 +96,7 @@ class StateMachine(State):
         # Should be guaranteed that on_exit() will be called here.
         #
         for state in self.__state_list:
-            if isinstance(state, StateMachine):
-                state.stop()
+            state.stop()
 
         self.__current_state = None
 
