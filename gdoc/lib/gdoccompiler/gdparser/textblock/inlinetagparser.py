@@ -3,6 +3,9 @@ from .line import Line
 from .text import Text
 
 
-def detect_InlineTag(pstr: str):
+def parse_InlineTag(pstr: str):
     return None, None
 
+
+def detect_InlineTag(pstr: str):
+    return None, None

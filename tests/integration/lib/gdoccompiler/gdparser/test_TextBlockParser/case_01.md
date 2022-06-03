@@ -21,6 +21,5 @@
 
 Preceding line 1 \
 Preceding line 2 \
-Preceding text [@ ID key=val] Following text \
-Following line 1 \
-Following line 2
+Preceding text [@class a1 a2, a3, k1=1 , k2 = 2] Following text \
+Preceding text [@category:type& id.id[name][name](tag, #123) from="../../readme.md"] Following text

@@ -2,8 +2,8 @@ from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from ..fsm import StateMachine, State
 from .line import Line
 from .text import Text
-from .blocktagparser import detect_BlockTag
-from .inlinetagparser import detect_InlineTag
+from .blocktagparser import parse_BlockTag, detect_BlockTag
+from .inlinetagparser import parse_InlineTag
 
 
 def parse_PlainText(text: Text):
@@ -15,14 +15,13 @@ def parse_PlainText(text: Text):
     following_text = None
     block_tag = None
 
-    block_tag, tagpos = detect_BlockTag(pstr)
+    tagpos, block_tag = parse_BlockTag(pstr)
     if block_tag is not None:
         preceding_text = text if len(text := pstr[:tagpos.start]) else None
         following_text = text if len(text := pstr[:tagpos.stop]) else None
         block_tag = [ block_tag ]
 
-        t, tagpos = detect_BlockTag(following_text)
-        if t is not None:
+        if detect_BlockTag(following_text)[0] is not None:
             raise GdocSyntaxError("Multiple tags")
 
     else:
@@ -31,7 +30,7 @@ def parse_PlainText(text: Text):
 
     precedings = []
     while preceding_text is not None:
-        inline_tag, tagpos = detect_InlineTag(preceding_text)
+        inline_tag, tagpos = parse_InlineTag(preceding_text)
 
         if inline_tag is not None:
             if len(text := preceding_text[:tagpos.start]) > 0:
@@ -45,7 +44,7 @@ def parse_PlainText(text: Text):
 
     followings = []
     while following_text is not None:
-        inline_tag, tagpos = detect_InlineTag(following_text)
+        inline_tag, tagpos = parse_InlineTag(following_text)
 
         if inline_tag is not None:
             if len(text := following_text[:tagpos.start]) > 0:

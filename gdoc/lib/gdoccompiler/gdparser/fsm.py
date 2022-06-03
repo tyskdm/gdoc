@@ -9,7 +9,7 @@ class State():
 
 
     def start(self, param=None):
-        return
+        return self     # `self` for chaining
 
 
     def on_entry(self, event=None):
@@ -17,7 +17,8 @@ class State():
         # re-entry      --> (self, event)
         # transition(forward)
         #               --> state or (state, event)
-        # done          --> None or (None, result)
+        # done(default transition)
+        #               --> None or (None, result)
         return self
 
 
@@ -25,7 +26,8 @@ class State():
         # continue      --> self
         # re-entry      --> (self, event)
         # transition    --> state or (state, event)
-        # done          --> None or (None, result)
+        # done(default transition)
+        #               --> None or (None, result)
         return self
 
 
@@ -42,18 +44,21 @@ class StateMachine(State):
     def __init__(self, name : str=None) -> None:
         super().__init__(name or __class__.__name__)
 
-        self.__state_list : list[State] = []
+        self.__state_list = []
+        self.__next_state = {}
         self.__current_state : State = None
 
 
-    def add_state(self, state):
+    def add_state(self, state, next=None):
         if isinstance(state, State):
             self.__state_list.append(state)
+            self.__next_state[state] = next
         else:
             raise TypeError(
                 'state to add should be State or StateMachine(not "'
                 + type(state).__name__ + '")')
-        return self
+
+        return self     # `self` for chaining
 
 
     def start(self, param=None):
@@ -62,13 +67,20 @@ class StateMachine(State):
         for state in self.__state_list:
             state.start(param)
 
+        return self     # `self` for chaining
+
 
     def on_entry(self, event=None):
         # continue      --> self
         # re-entry      --> (self, event)
         # transition(forward)
         #               --> state or (state, event)
-        # done          --> None or (None, result)
+        # done(default transition)
+        #               --> None or (None, result)
+        if self.__current_state is None:
+            # Not yet started.
+            raise RuntimeError('StateMachine ' + self.name + ' is stopped / not started.')
+
         next = self.__current_state.on_entry(event)
         return self.__move_to(next)
 
@@ -77,10 +89,11 @@ class StateMachine(State):
         # continue      --> self
         # re-entry      --> (self, event)
         # transition    --> state or (state, event)
-        # done          --> None or (None, result)
+        # done(default transition)
+        #               --> None or (None, result)
         if self.__current_state is None:
             # Not yet started.
-            raise RuntimeError('StateMachine ' + self.name + ' is not started.')
+            raise RuntimeError('StateMachine ' + self.name + ' is stopped / not started.')
 
         next = self.__current_state.on_event(event)
         return self.__move_to(next)
@@ -105,33 +118,43 @@ class StateMachine(State):
         # continue      --> self
         # re-entry      --> (self, event)
         # transition    --> state or (state, event)
-        # done          --> None or (None, result)
+        # done(default transition)
+        #               --> None or (None, result)
         if next is self.__current_state:
             # continue
-            next = self
-
-        elif next is None:
-            # done
-            self.__current_state.on_exit()
-            self.__current_state = None
+            next = self     # `self` is __current_state for parent state
 
         else:
+            self.__current_state.on_exit()
+
+            # Unpack
             if type(next) is tuple:
                 _next, _event = next
             else:
                 _next = next
                 _event = None
 
-            self.__current_state.on_exit()
-            self.__current_state = self.__get_state(_next)
+            # Get default next state
+            if _next is None:
+                _next = self.__next_state[self.__current_state]
 
-            if self.__current_state is not None:
-                self.__current_state.on_entry(_event)
-                next = self
-            
-            # if self.current_state is None(Not found), 
-            # return the unfound state to upper layer.
-            # next = next
+            # done, and no next state
+            if _next is None:
+                self.__current_state = None
+                # next = None or (None, event)
+
+            # move to next
+            else:
+                self.__current_state = self.__get_state(_next)
+
+                if self.__current_state is not None:
+                    next = self.__current_state.on_entry(_event)
+                    next = self.__move_to(next)
+
+                # else:
+                # if self.current_state is None(Not found), 
+                # return the unfound state to upper layer.
+                # next = next or (next, event)
 
         return next
 
@@ -148,7 +171,7 @@ class StateMachine(State):
                     state = s
                     break
 
-        else:
+        elif next is not None:
             raise RuntimeError('Returned next state is not State')
 
         return state
