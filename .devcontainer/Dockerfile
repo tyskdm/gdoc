@@ -47,8 +47,11 @@ RUN groupadd --gid $USER_GID $USERNAME \
 # 3. [Optional] Set the default user. Omit if you want to keep the default as root.
 USER $USERNAME
 
+# python and pip
+ENV PYTHONUNBUFFERED=1 \
+PYTHONDONTWRITEBYTECODE=1 \
+PATH="/home/${USERNAME}/.local/bin:$PATH"
+
 # poetry
-RUN set -x && \
-    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python - && \
-    /home/${USERNAME}/.poetry/bin/poetry config virtualenvs.create false
-ENV PATH $home/.poetry/bin:$PATH
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python - && \
+    $HOME/.poetry/bin/poetry config virtualenvs.create false
