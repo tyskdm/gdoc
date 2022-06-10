@@ -3,7 +3,7 @@ from .line import Line
 from .text import Text
 from .plaintextparser import parse_PlainText
 
-def parse_Line(line: Line):
+def parse_Line(line: Line) -> Line:
     """
     """
     parser: StateMachine = LineParser()
@@ -13,7 +13,7 @@ def parse_Line(line: Line):
     for text in line:
         parser.on_event(text)
 
-    result = parser.on_exit()
+    result: Line = parser.on_exit()
     parser.stop()
 
     return result
@@ -24,21 +24,21 @@ class LineParser(State):
     """
     def __init__(self, name=None) -> None:
         super().__init__(name or __class__.__name__)
-        self.line_elements = []
+        self.line_elements = Line()
 
 
     def on_entry(self, e):
-        self.line_elements = []
+        self.line_elements.clear()
 
 
     def on_event(self, text: Text):
         if text.type == Text.Type.PLAIN:
-            self.line_elements.extend(parse_PlainText(text))
+            self.line_elements += parse_PlainText(text)
 
         else:
             self.line_elements.append(text)
 
 
     def on_exit(self):
-        return self.line_elements
+        return self.line_elements[:]
 

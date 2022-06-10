@@ -4,7 +4,7 @@ from ..fsm import StateMachine, State
 from .line import Line
 from .text import Text
 from .lineparser import parse_Line
-
+from ...gdobject.types.baseobject import BaseObject
 
 DECORATOR_TO_BE_IGNORED = [
     "Span", "Emph", "Underline", "Strong", "Superscript", "Subscript", "SmallCaps", "Link"
@@ -115,21 +115,43 @@ class TextBlock(State):
 
 
     def start(self, param):
-        self.__gdobject = param
+        self.__gdobject: BaseObject = param
 
 
     def on_event(self, line):
 
         parsed_line = parse_Line(line)
-        for t in parsed_line:
-            if not isinstance(t, Text):
-                self.block_tag = t
+
+        if self.block_tag is None:
+
+            for i, t in enumerate(parsed_line):
+                if not isinstance(t, Text):
+                    self.block_tag = t
+                    break
+
+            if self.block_tag is None:
+                self.preceding_lines.append(parsed_line)
+            else:
+                self.preceding_text = parsed_line[:i]
+                self.following_text = parsed_line[i+1:]
+        else:
+            self.following_lines.append(parsed_line)
 
         return self
 
 
     def on_exit(self):
-        if self.block_tag is not None:
-            pass
+        super().on_exit()
 
-        return super().on_exit()
+        if self.block_tag is not None:
+            args, kwargs = self.block_tag.get_object_arguments()
+
+            kwargs.update({
+                "preceding_lines": self.preceding_lines,
+                "following_lines": self.following_lines,
+                "preceding_text": self.preceding_text,
+                "following_text": self.following_text
+            })
+
+            self.__gdobject.create_object(*args, **kwargs)
+

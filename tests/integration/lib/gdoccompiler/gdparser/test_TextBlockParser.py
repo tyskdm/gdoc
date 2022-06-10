@@ -44,8 +44,59 @@ def test_gdParser_1(mocker: mock, filename, formattype, html):
     parse_TextBlock(target_data, gdobject)
 
     # Assertion
-    gdobject.create_object.assert_called_once_with(
-        expect_data['args'], expect_data['kwargs']
-    )
+    gdobject.create_object.assert_called_once()
+    args = gdobject.create_object.call_args_list[0][0]
+    kwargs = gdobject.create_object.call_args_list[0][1]
+
+    assert len(args) == len(expect_data['args'])
+    for i in range(len(expect_data['args'])-1):
+        assert str(args[i]) == expect_data['args'][i]
+
+    act = args[-1]
+    exp = expect_data['args'][-1]
+    assert len(act) == len(exp)
+    for i in range(len(exp)):
+        assert str(act[i][0]) == exp[i][0]
+        assert str(act[i][1]) == exp[i][1]
+
+    assert len(kwargs) == len(expect_data['kwargs'])
+    assert _assert_kwargs(kwargs, expect_data['kwargs'])
+
+
+def _assert_kwargs(actual, expected):
+
+    assert len(expected) == len(actual)
+
+    # Preceding Lines
+    act = actual["preceding_lines"]
+    exp = expected["preceding_lines"]
+    assert len(act) == len(exp)
+    for ln in range(len(exp)):
+        assert str(act[ln].get_str()) == exp[ln]
+
+    # Preceding Text
+    act = actual["preceding_text"]
+    exp = expected["preceding_text"]
+    assert str(act.get_str()) == exp
+
+    # Tag Text
+    act = actual["tag_text"]
+    exp = expected["tag_text"]
+    assert str(act.get_str()) == exp
+
+    # Following Text
+    act = actual["following_text"]
+    exp = expected["following_text"]
+    assert str(act.get_str()) == exp
+
+    # Following Lines
+    act = actual["following_lines"]
+    exp = expected["following_lines"]
+    assert len(act) == len(exp)
+    for ln in range(len(exp)):
+        assert str(act[ln].get_str()) == exp[ln]
+
+    return True
+
 
 ## @}

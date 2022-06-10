@@ -3,6 +3,7 @@ from gdoc.lib.pandocastobject.pandocstr import PandocStr
 from ...gdexception import *
 from ..fsm import StateMachine, State
 from .tokenizer import Tokenizer
+from .tag import BlockTag
 
 
 def parse_BlockTag(pstr: str):
@@ -15,7 +16,7 @@ def parse_BlockTag(pstr: str):
         """
         Create tag object
         """
-        tag = create_BlockTag(tokens[1:-1])
+        tag = create_BlockTag(tokens[1:-1], pstr[tagpos])
 
     return tagpos, tag
 
@@ -25,23 +26,26 @@ def detect_BlockTag(pstr: str):
     tokens = None
 
     start = str(pstr).find('[@')
-    if start >= 0:
+    while start >= 0:
         tokenizer = Tokenizer().start()
 
         tokenizer.on_entry()
         for i, c in enumerate(pstr[start:]):
             if tokenizer.on_event(c) is None:
-                tagpos = slice(start, start + i)
+                tagpos = slice(start, start + i + 1)    # 1 = len(']')
                 break
 
         result = tokenizer.on_exit()
         if tagpos:
             tokens = result
+            break
+
+        start = str(pstr).find('[@', start + 2)   # 2 = len('[@')
 
     return tagpos, tokens
 
 
-def create_BlockTag(tokens):
+def create_BlockTag(tokens, tag_text=None):
     """
     Call this function with tokens as argument that does
     NOT include starting '[@' and closing ']'.
@@ -58,15 +62,15 @@ def create_BlockTag(tokens):
             if class_info:
                 tokens = tokens[1:]
 
-        elements = detect_Arguments(tokens)
+        class_args, class_kwargs = parse_Arguments(tokens)
 
-        class_args, class_kwargs = parse_Arguments(elements)
+    tag = BlockTag(class_info, class_args, class_kwargs, tag_text)
 
-    return (class_info, class_args, class_kwargs)
+    return tag
 
 
 def parse_ClassInfo(token: PandocStr):
-    class_info = ["", "", False]        # ( category, type, is_referrence )
+    class_info = [None, None, False]        # ( category, type, is_referrence )
 
     if (i := str(token).find(':')) >= 0:
         class_info[0] = token[:i]
@@ -78,8 +82,8 @@ def parse_ClassInfo(token: PandocStr):
         class_info[1] = token[:]
 
     if str(class_info[1]).endswith('&'):
+        class_info[2] = class_info[1][-1]
         class_info[1] = class_info[1][:-1]
-        class_info[2] = True
 
     return class_info
 
@@ -88,12 +92,13 @@ def parse_ClassInfo(token: PandocStr):
 # Argument Parser
 #
 
-def parse_Arguments(elements):
+def parse_Arguments(tokens):
     """
     element = [ words | "str" ] | { argument } | '"' | ' ' | ','
     """
-    parser = ArgumentParser().start()
+    elements = detect_parentheses(tokens)
 
+    parser = ArgumentParser().start()
     parser.on_entry()
 
     for e in elements:
@@ -283,13 +288,13 @@ class _Value(State):
         return
 
 
-def detect_Arguments(tokens):
+def detect_parentheses(tokens):
     """
     element = [ words | "str" ] | { argument } | '"' | ' ' | ','
     """
     elements = []
 
-    detector = ArgumentDetector().start(elements)
+    detector = ParenthesesDetector().start(elements)
 
     detector.on_entry()
 
@@ -301,13 +306,13 @@ def detect_Arguments(tokens):
     return elements
 
 
-class ArgumentDetector(StateMachine):
+class ParenthesesDetector(StateMachine):
     """
     """
     def __init__(self, name: str = None) -> None:
         super().__init__(name)
         self.add_state(_Main("Main"), None)
-        self.add_state(_Arguments("Arguments"), "Main")
+        self.add_state(_Parentheses("Parentheses"), "Main")
 
 
     def start(self, param):
@@ -346,7 +351,7 @@ class _Main(State):
         next = self
 
         if token == '(':
-            next = ("Arguments", token)
+            next = ("Parentheses", token)
 
         elif token == ')':
             raise GdocSyntaxError()
@@ -372,7 +377,7 @@ class _Main(State):
             self.word = []
 
 
-class _Arguments(State):
+class _Parentheses(State):
     """
     """
     def start(self, elements: list):

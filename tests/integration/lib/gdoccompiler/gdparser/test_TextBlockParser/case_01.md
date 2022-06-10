@@ -1,25 +1,20 @@
 ```json
 {
-    "args": [],
+    "args": ["cat", "type", "&", "-", "id", [["k1", "1"], ["k2", "2"]]],
     "kwargs": {
-        "opts": {
-            "preceding_lines": [
-                "Preceding line 1",
-                "Preceding line 2"
-            ],
-            "preceding_text": "Preceding text",
-            "tage_text": "[@ ID key=val]",
-            "following_text": "Following text",
-            "following_lines": [
-                "Following line 1",
-                "Following line 2"
-            ]
-        }
+        "preceding_lines": [
+            "Preceding line"
+        ],
+        "preceding_text": "Preceding text ",
+        "tag_text": "[@cat:type& - id k1=1, k2=2]",
+        "following_text": " Following text",
+        "following_lines": [
+            "Following line"
+        ]
     }
 }
 ```
 
-Preceding line 1 \
-Preceding line 2 \
-Preceding text [@class a1 a2, a3, k1=1 , k2 = 2] Following text \
-Preceding text [@category:type& id.id[name][name](tag, #123) from="../../readme.md"] Following text
+Preceding line \
+Preceding text [@cat:type& - id k1=1, k2=2] Following text \
+Following line

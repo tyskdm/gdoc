@@ -2,7 +2,7 @@ from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from ..fsm import StateMachine, State
 from .line import Line
 from .text import Text
-from .blocktagparser import parse_BlockTag, detect_BlockTag
+from .blocktagparser import parse_BlockTag
 from .inlinetagparser import parse_InlineTag
 
 
@@ -18,11 +18,8 @@ def parse_PlainText(text: Text):
     tagpos, block_tag = parse_BlockTag(pstr)
     if block_tag is not None:
         preceding_text = text if len(text := pstr[:tagpos.start]) else None
-        following_text = text if len(text := pstr[:tagpos.stop]) else None
+        following_text = text if len(text := pstr[tagpos.stop:]) else None
         block_tag = [ block_tag ]
-
-        if detect_BlockTag(following_text)[0] is not None:
-            raise GdocSyntaxError("Multiple tags")
 
     else:
         preceding_text = pstr

@@ -18,3 +18,10 @@ class Line(list):
 
         return result
 
+
+    def __getitem__(self, index):
+        result = super().__getitem__(index)
+        if type(index) is slice:
+            result = Line(result)
+
+        return result
