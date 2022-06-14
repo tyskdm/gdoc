@@ -3,9 +3,8 @@ text.py: Text class
 """
 
 from enum import Enum, auto
-from ....pandocastobject.pandocstr import PandocStr
-from ....pandocastobject.pandocast.element import Element
-from ...gdexception import *
+from ..pandocastobject.pandocstr import PandocStr
+from ..pandocastobject.pandocast.element import Element
 
 class Text():
 
@@ -46,10 +45,10 @@ class Text():
                 self.type = _supported[t]
             
             else:
-                raise GdocRuntimeError()
+                raise RuntimeError()
 
         else:
-            raise GdocRuntimeError()
+            raise RuntimeError()
 
 
     def get_str(self):

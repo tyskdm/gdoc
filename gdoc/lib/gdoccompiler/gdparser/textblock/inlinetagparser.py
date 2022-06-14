@@ -1,6 +1,6 @@
 from ..fsm import StateMachine, State
-from .line import Line
-from .text import Text
+from gdoc.lib.gdoc.line import Line
+from gdoc.lib.gdoc.text import Text
 
 
 def parse_InlineTag(pstr: str):

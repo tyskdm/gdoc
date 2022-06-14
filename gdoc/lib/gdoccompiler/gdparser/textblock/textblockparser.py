@@ -1,8 +1,8 @@
 from gdoc.lib.pandocastobject.pandocast.element import Element
 from gdoc.lib.pandocastobject.pandocstr.pandocstr import PandocStr
 from ..fsm import StateMachine, State
-from .line import Line
-from .text import Text
+from gdoc.lib.gdoc.line import Line
+from gdoc.lib.gdoc.text import Text
 from .lineparser import parse_Line
 from ...gdobject.types.baseobject import BaseObject
 
