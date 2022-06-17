@@ -45,7 +45,7 @@ def detect_BlockTag(pstr: str):
     return tagpos, tokens
 
 
-def create_BlockTag(tokens, tag_text=None):
+def create_BlockTag(tokens, tag_text):
     """
     Call this function with tokens as argument that does
     NOT include starting '[@' and closing ']'.
@@ -103,6 +103,8 @@ def parse_Arguments(tokens):
 
     for e in elements:
         parser.on_event(e)
+
+    parser.on_event(None)   # EOL
 
     return parser.on_exit()
 
@@ -173,7 +175,7 @@ class _Idle(State):
     def on_event(self, element):
         next = self
 
-        if element == ' ':
+        if element in (' ', None):
             skip
 
         elif element == ',':
@@ -195,8 +197,7 @@ class _Key(State):
     """
     """
     def start(self, param):
-        self.key = param[0]
-        return
+        self.key, self.args, self.kwargs = param
 
 
     def on_entry(self, element):
@@ -210,6 +211,10 @@ class _Key(State):
 
         if type(element) is list:
             self.key += element
+
+        elif element is None:
+            if len(self.key) > 0:
+                self.args.append(self.key[:])
 
         else:
             next = (None, element)
@@ -243,6 +248,10 @@ class _AfterKey(State):
         elif element == '=':
             next = "Value"
 
+        elif element is None:
+            if len(self.key) > 0:
+                self.args.append(self.key[:])
+
         else:
             if kwargs:
                 raise GdocSyntaxError()
@@ -275,6 +284,10 @@ class _Value(State):
 
         if type(element) is list:
             self.value += element
+
+        elif element is None:
+            skip
+            # todo: if value is empty, rase error.
 
         else:
             if len(self.value) > 0:

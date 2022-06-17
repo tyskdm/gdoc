@@ -6,25 +6,27 @@ from enum import Enum, auto
 
 from click import argument
 from gdoc.lib.pandocastobject.pandocstr import PandocStr
-from gdoc.lib.pandocastobject.pandocast.element import Element
+from gdoc.lib.gdoc.text import Text
 from ...gdexception import *
 
-class Tag:
+class Tag(Text):
     """
     """
     class Type(Enum):
         BLOCK = auto()
         INLINE = auto()
 
-    def __init__(self, type):
-        self.tag_type = type
+    def __init__(self, element, tag_type):
+        super().__init__(element)
+
+        self.tag_type = tag_type
 
 
 class BlockTag(Tag):
     """
     """
-    def __init__(self, class_info, class_args, class_kwargs, tag_text=None):
-        super().__init__(Tag.Type.BLOCK)
+    def __init__(self, class_info, class_args, class_kwargs, tag_text):
+        super().__init__(tag_text, Tag.Type.BLOCK)
 
         self.category, self.type, self.is_referrence = class_info
         self.tag_text = tag_text
@@ -59,26 +61,34 @@ class BlockTag(Tag):
     def get_object_arguments(self):
         scope = None
         symbol = None
+        tag_args = []
 
+        idx = 0
         c = len(self.class_args)
-        if (c > 0) and (c <= 2):
-            if c == 2:
-                if self.class_args[0] in ('+', '-'):
-                    scope = self.class_args[0]
-                else:
-                    raise GdocSyntaxError()
-            
-            # class_args[-1] should be symbol
-            symbol = self.class_args[-1]
-            if symbol[0] in ('+', '-'):
-                if scope is None:
-                    scope = symbol[0]
-                    symbol = symbol[1:]
-                else:
-                    raise GdocSyntaxError()
+        if (c > 0):
+            if self.class_args[idx] in ('+', '-'):
+                scope = self.class_args[idx]
+                idx += 1
 
-        elif c > 2:
-            raise GdocSyntaxError()
+                if c < 2:
+                    raise GdocSyntaxError()
+                    # Symbol should follow
+
+            if idx < c:
+                # class_args[idx] should be symbol
+                symbol = self.class_args[idx]
+                idx += 1
+
+                if symbol[0] in ('+', '-'):
+                    if scope is None:
+                        scope = symbol[0]
+                        symbol = symbol[1:]
+                    else:
+                        raise GdocSyntaxError()
+                        # Scope is duplecated
+
+            tag_args = self.class_args[idx:]
+
 
         # def create_object(self, cat_name: str, type_name: str, isref: bool,
         #     scope: str, symbol, name: str =None, type_args: dict ={}) -> "BaseObject":
@@ -92,22 +102,23 @@ class BlockTag(Tag):
         #     |         | @Param isref      | in isref: bool
         #     |         | @Param scope      | in scope: str \| PandocStr
         #     |         | @Param symbol     | in symbol: str \| PandocStr \| GdSymbol
-        #     |         | @Param type_args  | in type_args: dict<br># keyword arguments to the type constructor
+        #     |         | @Param type_kwargs  | in type_args: dict<br># keyword arguments to the type constructor
         #     |         | @Param object     | out object: BaseObject
         #     """
-        args = []
-        args.append(self.category)
-        args.append(self.type)
-        args.append(self.is_referrence)
-        args.append(scope)
-        args.append(symbol)
-        args.append(self.class_kwargs)
+        class_args = []
+        class_args.append(self.category)
+        class_args.append(self.type)
+        class_args.append(self.is_referrence)
+        class_args.append(scope)
+        class_args.append(symbol)
 
-        kwargs = {
+        tag_opts = {
+            "tag_args": tag_args,
+            "tag_kwargs": self.class_kwargs,
             "tag_text": self.tag_text
         }
 
-        return args, kwargs
+        return class_args, tag_opts
 
 
 class InlineTag(Tag):

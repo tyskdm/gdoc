@@ -21,7 +21,8 @@ from gdoc.lib.gdoccompiler.gdparser.textblock import parse_TextBlock
 ## [\@test Inline] creates a new instance.
 ##
 _data_Inline_1 = {
-    "Case-01: ": ('case_01.md', 'gfm-sourcepos', False)
+    "Case-01: ": ('case_01.md', 'gfm-sourcepos', False),
+    "Case-02: ": ('case_02.md', 'gfm-sourcepos', False)
 }
 @pytest.mark.parametrize("filename, formattype, html",
     list(_data_Inline_1.values()), ids=list(_data_Inline_1.keys()))
@@ -49,23 +50,35 @@ def test_gdParser_1(mocker: mock, filename, formattype, html):
     kwargs = gdobject.create_object.call_args_list[0][1]
 
     assert len(args) == len(expect_data['args'])
-    for i in range(len(expect_data['args'])-1):
-        assert str(args[i]) == expect_data['args'][i]
+    for i in range(len(expect_data['args'])):
+        if type(expect_data['args'][i]) is str:
+            assert str(args[i]) == expect_data['args'][i]
+        else:
+            assert args[i] == expect_data['args'][i]
 
-    act = args[-1]
-    exp = expect_data['args'][-1]
-    assert len(act) == len(exp)
-    for i in range(len(exp)):
-        assert str(act[i][0]) == exp[i][0]
-        assert str(act[i][1]) == exp[i][1]
-
-    assert len(kwargs) == len(expect_data['kwargs'])
-    assert _assert_kwargs(kwargs, expect_data['kwargs'])
+    assert len(kwargs) == 1
+    assert 'type_args' in kwargs
+    assert _assert_kwargs(kwargs['type_args'], expect_data['type_args'])
 
 
 def _assert_kwargs(actual, expected):
 
     assert len(expected) == len(actual)
+
+    # tag_args
+    act = actual["tag_args"]
+    exp = expected["tag_args"]
+    assert len(act) == len(exp)
+    for ln in range(len(exp)):
+        assert str(act[ln].get_str()) == exp[ln]
+
+    # tag_kwargs
+    act = actual["tag_kwargs"]
+    exp = expected["tag_kwargs"]
+    assert len(act) == len(exp)
+    for ln in range(len(exp)):
+        assert str(act[ln][0].get_str()) == exp[ln][0]
+        assert str(act[ln][1].get_str()) == exp[ln][1]
 
     # Preceding Lines
     act = actual["preceding_lines"]

@@ -52,7 +52,7 @@ class Text():
 
 
     def get_str(self):
-        result = ""
+        result = " "
 
         if self.type is Text.Type.PLAIN:
             result = self.element
