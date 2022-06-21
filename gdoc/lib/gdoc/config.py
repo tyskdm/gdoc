@@ -8,7 +8,8 @@ DEFAULTS: dict = {
                 "Span", "Emph", "Underline", "Strong", "Superscript",
                 "Subscript", "SmallCaps", "Link"
             ],
-            "plaintext": ["Str", "Space", "SoftBreak"]
+            "plaintext": ["Str", "Space", "SoftBreak"],
+            "textblock": ["Plain", "Para", "LineBlock", "Header"]
         },
         "altchar": {
             "Code": '`',
