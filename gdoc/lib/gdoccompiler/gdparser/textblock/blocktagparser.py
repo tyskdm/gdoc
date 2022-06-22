@@ -50,7 +50,7 @@ def create_BlockTag(tokens, tag_text):
     Call this function with tokens as argument that does
     NOT include starting '[@' and closing ']'.
     """
-    class_info = None
+    class_info = ["", "", False]
     class_args = []
     class_kwargs = []
 

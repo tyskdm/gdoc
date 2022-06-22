@@ -2,22 +2,14 @@ r"""
 Document class
 """
 
-from ..gdexception import *
+from ...gdexception import *
 from .baseobject import BaseObject
+from ..gdsymboltable import GdSymbolTable
 
 class Document(BaseObject):
     """
     """
-    def __init__(self, typename, id, *, scope='+', name=None, tags=[], **kwargs):
+    def __init__(self, id, name=None):
         """
         """
-
-
-    def add_document(self, symbol, cat_name = None, type_name = None, scope = '+', **kwargs):
-        """
-        """
-
-    def add_package(self):
-        """
-        """
-
+        super().__init__(GdSymbolTable.Type.OBJECT, id, name=name)

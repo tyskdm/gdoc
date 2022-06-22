@@ -13,6 +13,7 @@ Integration Tests of gdParser software items.
 import json
 import pytest
 from unittest import mock
+from gdoc.lib.gdoc.document import Document
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
 from gdoc.lib.gdoccompiler.gdparser.textblock import parse_TextBlock
@@ -34,9 +35,9 @@ def test_gdParser_1(mocker: mock, filename, formattype, html):
     pandoc_json = Pandoc().get_json(datadir + filename, formattype, html)
     pandoc_ast = PandocAst(pandoc_json)
 
-    target_data = pandoc_ast.get_first_item().next_item()       # 2nd. block
     expect_json = pandoc_ast.get_first_item().get_content()     # 1st. block
     expect_data = json.loads(expect_json)
+    target_data = Document(pandoc_ast)[1]   # 2nd. block
 
     # Mock
     gdobject = mocker.MagicMock(["create_object"])

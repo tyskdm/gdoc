@@ -1,17 +1,15 @@
 from gdoc.lib.gdoccompiler.gdparser.textblock.tag import BlockTag
-from gdoc.lib.pandocastobject.pandocast.element import Element
 from gdoc.lib.gdoc.textblock import TextBlock
 from ...gdobject.types.baseobject import BaseObject
 from ..fsm import StateMachine, State
 from .lineparser import parse_Line
 
 
-def parse_TextBlock(textblock: Element, gdobject, opts={}):
-    block = TextBlock(textblock, opts)
+def parse_TextBlock(textblock: TextBlock, gdobject, opts={}):
     parser: StateMachine = TextBlockParser()
     parser.start(gdobject).on_entry()
 
-    for line in block:
+    for line in textblock:
         parser.on_event(line)
 
     return parser.on_exit()
@@ -60,9 +58,12 @@ class TextBlockParser(State):
     def on_exit(self):
         super().on_exit()
 
+        child = None
         if self.block_tag is not None:
             tag_args, tag_opts = self.block_tag.get_object_arguments()
-            self._create_objects(tag_args, tag_opts)
+            child = self._create_objects(tag_args, tag_opts)
+
+        return child
 
 
     def _create_objects(self, tag_args, tag_opts):
@@ -134,5 +135,5 @@ class TextBlockParser(State):
         if text:
             tag_opts["properties"] = { "text": text }
 
-        self.__gdobject.create_object(*tag_args, type_args = tag_opts)
+        return self.__gdobject.create_object(*tag_args, type_args = tag_opts)
 
