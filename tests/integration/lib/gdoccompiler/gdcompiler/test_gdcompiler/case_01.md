@@ -1,25 +1,12 @@
 ```json
-{
-    "args": ["cat", "type", "&", "-", "id", "Following text"],
-    "type_args": {
-        "properties": {"text": ["Following line"]},
-
-        "tag_args": [],
-        "tag_kwargs": [["k1", "1"], ["k2", "2"]],
-
-        "preceding_lines": [
-            "Preceding line"
-        ],
-        "preceding_text": "Preceding text ",
-        "tag_text": "[@cat:type& - id k1=1, k2=2]",
-        "following_text": " Following text",
-        "following_lines": [
-            "Following line"
-        ]
-    }
-}
+[
+    ["id_01", "name_01", []],
+    ["id_02", "name_02", []]
+]
 ```
 
-Preceding line \
-Preceding text [@ ID] NAME \
+Preceding text [@ id_01] name_01 \
+Following line
+
+Preceding text [@ id_02] name_02 \
 Following line

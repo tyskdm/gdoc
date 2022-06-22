@@ -1,15 +1,17 @@
 r"""
 Document class
 """
-
-from ...gdexception import *
+from . import CATEGORY_INFO
+from .category import Category
 from .baseobject import BaseObject
-from ..gdsymboltable import GdSymbolTable
+
 
 class Document(BaseObject):
     """
     """
+    Category(CATEGORY_INFO)
+
     def __init__(self, id, name=None):
         """
         """
-        super().__init__(GdSymbolTable.Type.OBJECT, id, name=name)
+        super().__init__("DOCUMENT", id, name=name)
