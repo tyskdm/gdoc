@@ -1,23 +1,17 @@
 r"""
 Document class
 """
-
-from ..gdexception import *
+from . import CATEGORY_INFO
+from .category import Category
 from .baseobject import BaseObject
+
 
 class Document(BaseObject):
     """
     """
-    def __init__(self, typename, id, *, scope='+', name=None, tags=[], **kwargs):
-        """
-        """
+    Category(CATEGORY_INFO)
 
-
-    def add_document(self, symbol, cat_name = None, type_name = None, scope = '+', **kwargs):
+    def __init__(self, id, name=None):
         """
         """
-
-    def add_package(self):
-        """
-        """
-
+        super().__init__("DOCUMENT", id, name=name)

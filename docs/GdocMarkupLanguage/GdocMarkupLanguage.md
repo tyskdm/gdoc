@@ -338,7 +338,7 @@ GDML is a markup language for Gdoc documents.
 
 [![](./_puml_/GdocMarkupLanguage/GdocObjectStructure.png)](./GdocMarkupLanguage.puml) \
 \
-[@fig 1.1] Gdoc Data Structure
+[@fig 1.1] Gdoc Data Structure [Overview]
 
 </div>
 <br>

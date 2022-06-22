@@ -22,7 +22,8 @@ CATEGORY_INFO = {
     },
     "defaults": {
         "": "OBJECT",
-        "OBJECT": "OBJECT"
+        "OBJECT": "OBJECT",
+        "DOCUMENT": "OBJECT"
     }
 }
 

@@ -1,6 +1,3 @@
-from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from ..fsm import StateMachine, State
-from gdoc.lib.gdoc.line import Line
 from gdoc.lib.gdoc.text import Text
 from .blocktagparser import parse_BlockTag
 from .inlinetagparser import parse_InlineTag

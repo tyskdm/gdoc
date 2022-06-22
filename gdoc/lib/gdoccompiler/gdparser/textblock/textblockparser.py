@@ -1,111 +1,21 @@
 from gdoc.lib.gdoccompiler.gdparser.textblock.tag import BlockTag
-from gdoc.lib.pandocastobject.pandocast.element import Element
-from gdoc.lib.pandocastobject.pandocstr.pandocstr import PandocStr
-from ..fsm import StateMachine, State
-from gdoc.lib.gdoc.line import Line
-from gdoc.lib.gdoc.text import Text
-from .lineparser import parse_Line
+from gdoc.lib.gdoc.textblock import TextBlock
 from ...gdobject.types.baseobject import BaseObject
-
-DECORATOR_TO_BE_IGNORED = [
-    "Span", "Emph", "Underline", "Strong", "Superscript", "Subscript", "SmallCaps", "Link"
-]
-
-DECORATOR_TO_BE_REMOVED = [
-    "Strikeout"
-]
+from ..fsm import StateMachine, State
+from .lineparser import parse_Line
 
 
-def parse_TextBlock(textblock: Element, gdobject):
-    """
-    Receives PandocAst elements,
-    Splits to lines and creates Line objects from them,
-    Then, through to TextBlock parser.
-    """
-    textblock_parser: StateMachine = TextBlock()
-    textblock_parser.start(gdobject)
+def parse_TextBlock(textblock: TextBlock, gdobject, opts={}):
+    parser: StateMachine = TextBlockParser()
+    parser.start(gdobject).on_entry()
 
-    parser = LineSplitter(textblock_parser)
-    result = apply(textblock, parser, ignore=DECORATOR_TO_BE_IGNORED)
+    for line in textblock:
+        parser.on_event(line)
 
-    return result
+    return parser.on_exit()
 
 
-def apply(element, parser, ignore=None):
-    """ Aplly visitor object to element and calls back visitor APIs.
-    @param visitor : should have three APIs.
-                        1. on_entry(e)     # e = self
-                        2. on_event(e)     # e = each child items
-                        3. on_exit(e)      # e = None
-    @param ignore : element types list to ignore.
-    @return : return value of on_exit()
-    """
-    parser.on_entry(element)
-
-    kwarg = {"ignore": ignore} if ignore else {}
-    children = element.get_child_items(**kwarg)
-
-    for c in children:
-        parser.on_event(c)
-
-    result = parser.on_exit()
-
-    return result
-
-
-class LineSplitter:
-    """
-    """
-    def __init__(self, visitor: State) -> None:
-        self.visitor: State = visitor
-        self.line_elements = []
-
-
-    def on_entry(self, e):
-        self.line_elements = []
-        self.visitor.on_entry(e)
-
-
-    def on_event(self, element: Element):
-        if element.get_type() != "LineBreak":
-            self.line_elements.append(element)
-        else:
-            line = self._construct_line(self.line_elements)
-            self.visitor.on_event(line)
-            self.line_elements = []
-
-
-    def on_exit(self):
-        line = self._construct_line(self.line_elements)
-        self.visitor.on_event(line)
-        self.visitor.on_exit()
-
-
-    def _construct_line(self, line_elements):
-        line = Line()
-        pstr = []
-
-        for e in line_elements:
-            if e.get_type() == DECORATOR_TO_BE_REMOVED:
-                pass    # ignore the element
-
-            elif e.get_type() in ("Str", "Space", "SoftBreak"):
-                pstr.append(e)
-
-            else:
-                if len(pstr) > 0:
-                    line.append(Text(PandocStr(pstr)))
-                    pstr = []
-
-                line.append(Text(e))
-
-        if len(pstr) > 0:
-            line.append(Text(PandocStr(pstr)))
-
-        return line
-
-
-class TextBlock(State):
+class TextBlockParser(State):
     """
     """
     def __init__(self, name: str = None) -> None:
@@ -120,6 +30,7 @@ class TextBlock(State):
 
     def start(self, param):
         self.__gdobject: BaseObject = param
+        return self
 
 
     def on_event(self, line):
@@ -147,9 +58,12 @@ class TextBlock(State):
     def on_exit(self):
         super().on_exit()
 
+        child = None
         if self.block_tag is not None:
             tag_args, tag_opts = self.block_tag.get_object_arguments()
-            self._create_objects(tag_args, tag_opts)
+            child = self._create_objects(tag_args, tag_opts)
+
+        return child
 
 
     def _create_objects(self, tag_args, tag_opts):
@@ -221,5 +135,5 @@ class TextBlock(State):
         if text:
             tag_opts["properties"] = { "text": text }
 
-        self.__gdobject.create_object(*tag_args, type_args = tag_opts)
+        return self.__gdobject.create_object(*tag_args, type_args = tag_opts)
 
