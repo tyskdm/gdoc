@@ -10,7 +10,9 @@ The specification of Inline class.
 [@import SWDD.SU[Inline] as=THIS]
 
 """
-from gdoc.lib.gdoccompiler.gdobject.gdtypes import BaseObject
+from gdoc.lib.gdoccompiler.gdobject.types import CATEGORY_INFO
+from gdoc.lib.gdoccompiler.gdobject.types.category import Category
+from gdoc.lib.gdoccompiler.gdobject.types.baseobject import BaseObject
 
 ## @{ @name Inline
 ## [\@test Inline] creates a new instance.
@@ -19,6 +21,8 @@ def test_BaseObject_1():
     r"""
     [@test Inline.2] Code.
     """
+    Category(CATEGORY_INFO)
+
     target = BaseObject("OBJECT", "ID")
     
     child = target.create_object(None, "OBJECT", False, '+', "CHILD")

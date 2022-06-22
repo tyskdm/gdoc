@@ -22,6 +22,8 @@ class BaseObject(GdObject):
             else:
                 _type = GdSymbolTable.Type.REFERENCE
 
+        if scope is None:
+            scope = '+'
         super().__init__(id, scope=scope, name=name, tags=tags, _type=_type)
 
         cat = self.__class__.get_category()

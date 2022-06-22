@@ -37,10 +37,16 @@ skinparam class {
 }
 
 class Document <<Gdoc Element>>
-class Section <<Gdoc Element>>
-class "     BlockList     " as BlockList <<Gdoc Element>>
+
+class "     Section     \n\n" as Section <<Gdoc Element>>
 class TextBlock <<Gdoc Element>>
 class ListBlock <<Gdoc Element>>
+
+class Pandoc <<PandocAst>>
+class BlockList <<PandocAst>>
+class CodeBlock <<PandocAst>>
+class RawBlock <<PandocAst>>
+class Table <<PandocAst>>
 
 class Pandoc <<PandocAst>>
 class Header <<PandocAst>>
@@ -55,28 +61,26 @@ class Table <<PandocAst>>
 class BulletList <<PandocAst>>
 class OrderedList <<PandocAst>>
 
+Document *-right- Pandoc
 Document -down-|> Section
-Document <|-right- Pandoc
+Section o-- Section
+Section ..left.. BlockList
 
-Section -down-|> BlockList
+Section o.. CodeBlock
+Section o.. RawBlock
+Section o.. Table
+Section ..o Table
 
-BlockList o-up- Section
-BlockList o-- TextBlock
-BlockList o-- ListBlock
-BlockList o-- CodeBlock
-BlockList o-- RawBlock
+Section o-- TextBlock
+TextBlock <|.. Header
+TextBlock <|.. Plain
+TextBlock <|.. Para
+TextBlock <|.. LineBlock
 
-BlockList o-- Table
-BlockList --o Table
-
-TextBlock <|-- Header
-TextBlock <|-- Plain
-TextBlock <|-- Para
-TextBlock <|-- LineBlock
-
-ListBlock o-- BlockList
-ListBlock <|-- BulletList
-ListBlock <|-- OrderedList
+ListBlock o-up- Section
+ListBlock -up-o Section
+ListBlock <|.. BulletList
+ListBlock <|.. OrderedList
 
 @enduml
 
@@ -95,7 +99,11 @@ class TextBlock <<Gdoc Element>>
 class Line <<Gdoc Element>>
 class Tag <<Gdoc Element>>
 class Text <<Gdoc Element>>
-class String <<Gdoc Element>>
+class "Plain" as PlainText <<Gdoc Element>>
+class "Code" as CodeText <<Gdoc Element>>
+class "Math" as MathText <<Gdoc Element>>
+class "Image" as ImageText <<Gdoc Element>>
+class "Quoted" as QuotedText <<Gdoc Element>>
 
 class Str <<PandocAst>>
 class Space <<PandocAst>>
@@ -105,24 +113,30 @@ class Code <<PandocAst>>
 class Math <<PandocAst>>
 class Image <<PandocAst>>
 class Quoted <<PandocAst>>
+class PandocStr <<PandocAst>>
 
 Line -up-o TextBlock
-LineBreak -up-o TextBlock
+LineBreak -left-o Line
 
-Tag -up-o Line
 Text -up-o Line
+PlainText <|-right- Tag
 
-String -up-o Tag
+PandocStr -up-* PlainText
+Code -up-* CodeText
+Math -up-* MathText
+Image -up-* ImageText
+Quoted -up-* QuotedText
 
-String -up-o Text
-Code -up-o Text
-Math -up-o Text
-Image -up-o Text
-Quoted -up-o Text
 
-Str -up-o String
-Space -up-o String
-SoftBreak -up-o String
+PlainText -up-|> Text
+CodeText -up-|> Text
+MathText -up-|> Text
+ImageText -up-|> Text
+QuotedText -up-|> Text
+
+Str -up-o PandocStr
+Space -up-o PandocStr
+SoftBreak -up-o PandocStr
 
 note as N1
   It may contain line breaks, but
@@ -148,32 +162,39 @@ skinparam class {
 
 class Document <<Gdoc Element>>
 
-class Section <<Gdoc Element>>
-class "     BlockList     " as BlockList <<Gdoc Element>>
+class "     Section     \n\n" as Section <<Gdoc Element>>
 class TextBlock <<Gdoc Element>>
 class ListBlock <<Gdoc Element>>
 
+class Pandoc <<PandocAst>>
+class BlockList <<PandocAst>>
 class CodeBlock <<PandocAst>>
 class RawBlock <<PandocAst>>
 class Table <<PandocAst>>
 
+Document *-right- Pandoc
 Document -down-|> Section
-Section -down-|> BlockList
+Section o-- Section
+Section ..left.. BlockList
 
-BlockList o-up- Section
-BlockList o-- TextBlock
-BlockList o-- CodeBlock
-BlockList o-- RawBlock
-BlockList o-- Table
-BlockList --o Table
+Section o.. CodeBlock
+Section o.. RawBlock
+Section o.. Table
+Section ..o Table
 
-BlockList o-- ListBlock
-ListBlock o-- BlockList
+Section o-- TextBlock
+
+Section o-- ListBlock
+ListBlock o-- Section
 
 class Line <<Gdoc Element>>
 class Tag <<Gdoc Element>>
 class Text <<Gdoc Element>>
-class String <<Gdoc Element>>
+class "Plain" as PlainText <<Gdoc Element>>
+class "Code" as CodeText <<Gdoc Element>>
+class "Math" as MathText <<Gdoc Element>>
+class "Image" as ImageText <<Gdoc Element>>
+class "Quoted" as QuotedText <<Gdoc Element>>
 
 class Str <<PandocAst>>
 class Space <<PandocAst>>
@@ -183,24 +204,29 @@ class Code <<PandocAst>>
 class Math <<PandocAst>>
 class Image <<PandocAst>>
 class Quoted <<PandocAst>>
+class PandocStr <<PandocAst>>
 
 Line -up-o TextBlock
-LineBreak -up-o TextBlock
-
-Tag -up-o Line
+LineBreak -left-o Line
 Text -up-o Line
+PlainText <|-right- Tag
 
-String -up-o Tag
+PandocStr -up-* PlainText
+Code -up-* CodeText
+Math -up-* MathText
+Image -up-* ImageText
+Quoted -up-* QuotedText
 
-String -up-o Text
-Code -up-o Text
-Math -up-o Text
-Image -up-o Text
-Quoted -up-o Text
 
-Str -up-o String
-Space -up-o String
-SoftBreak -up-o String
+PlainText -up-|> Text
+CodeText -up-|> Text
+MathText -up-|> Text
+ImageText -up-|> Text
+QuotedText -up-|> Text
+
+Str -up-o PandocStr
+Space -up-o PandocStr
+SoftBreak -up-o PandocStr
 
 @enduml
 

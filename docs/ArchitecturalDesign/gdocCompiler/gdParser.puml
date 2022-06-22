@@ -1,0 +1,87 @@
+' # [@ gdp] gdParser
+'
+' # block list
+'
+@startuml BlockListParser
+
+!include style.iuml
+' hide empty description
+
+[*] --> BlockListParser : on_entry(None) : BlockList\n on_entry(Header) : Section
+state BlockListParser {
+
+    [*] --> Block : on_entry(None) : BlockList\n on_entry(Header) : Section
+
+    state Block
+    Block: on_event(Block)
+    Block:
+    Block: 1. if Block is Header
+    Block: \t-> next = (Section, Header)
+    Block:
+    Block: 2. Block.accept(BlockParserMap[Block.Type])
+    Block:
+    Block: 3. if (the first Block is TextBlock) and (it returns Object)
+    Block: \t-> context(self.param[context]) = the Object
+
+    state Section
+    Section: on_entry(Header)
+    Section: 1. Create SectionParser if not exist yet.
+    Section: \t(If generating it at init time, it'll get an infinite loop.)
+    Section: 2. SectionParser.start(context)
+    Section: 3. SectionParser.on_entry(Header)
+    Section: 
+    Section: on_event(Block):
+    Section: 1. if Block is Header and level <= self.level
+    Section: \tRe-entry -> return(self, Header)
+    Section: 2. Send Block to SectionParser
+    Section: 
+    Section: on_exit()
+    Section: 1. SectionParser.on_exit()
+    Section: 2. SectionParser.stop()
+
+    Block -right-> Section : on_entry\n(Header)
+    Section <-- Section : Re-entory\n(Header)
+}
+
+BlockListParser -down-> [*] : on_exit()
+
+@enduml
+
+' # text block
+'
+@startuml TextBlockParser
+
+!include style.iuml
+' hide empty description
+
+[*] --> TextBlock : on_entry()
+
+TextBlock: The text block parser divides the components of a text block into lines.
+TextBlock: 1. It extracts only the semantic components of the elements of the block, ignoring the decorative elements.
+TextBlock: 2. The extracted element sequence is divided by line break elements to generate lines.
+state TextBlock {
+
+    [*] --> SingleBlock
+    state SingleBlock
+    SingleBlock: on_event(block)
+    SingleBlock: 1. Check block type
+    SingleBlock: 2. Send block to parser in charge of it.
+    note bottom of SingleBlock
+        If (first TextBlock is text block)
+           and (the TextBlock is tagged as a object):
+        let the object be new section context.
+    end note
+
+    SingleBlock -right-> Captioned : CaptionTag
+    state Captioned: on_entry(caption):
+    Captioned: ---
+    Captioned: Wait TextBlock and Send the TextBlock to \nSpecified parser by the caption.
+
+    Captioned -left-> SingleBlock : Done
+    Captioned --> [*] : Error Unexpected\nBlock type or\nEnd of TextBlock
+}
+
+TextBlock --> [*] : Stop()
+
+@enduml
+
