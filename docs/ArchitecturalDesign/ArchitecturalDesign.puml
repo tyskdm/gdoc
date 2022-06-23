@@ -1,0 +1,634 @@
+' # [@ ad] Gdoc architectural design
+'
+' ## [@ gdoc] GdocArchitecturalDesign
+'
+@startuml GdocArchitecturalDesign
+
+!include style.iuml
+!include SysML/bdd.iuml
+
+class gdoc <<TheTargetSoftware>>
+
+package "gdoc main components" <<Rectangle>> {
+  class gdocCli
+  class Plugins
+  class ApplicationSubcommand
+  class gdocCoreLibrary
+}
+
+gdoc *--> gdocCli
+gdoc *--> ApplicationSubcommand
+gdoc *--> Plugins
+gdoc *--> gdocCoreLibrary
+
+gdocCoreLibrary *--> PluginManager
+gdocCoreLibrary *--> gdocPackage
+gdocCoreLibrary *--> gdocCompiler
+gdocCoreLibrary *--> pandocAstObject
+
+Plugins *--> Plugin
+PluginManager --> Plugin : use
+ApplicationSubcommand --> "0..*  " Plugin : use
+
+@enduml
+
+' ## [@ pis] Gdoc_StartToFinish_Sequence
+'
+@startuml Gdoc_StartToFinish_Sequence
+
+!include style.iuml
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+actor "User" as User
+Participant gdocCli
+Participant "Application\nSubcommand" as subcommand
+Participant gdocPackage
+Participant gdocCompiler
+Participant pandocAstObject
+Database FileSystem
+
+User -> gdocCli ++ : Command line opts
+
+  rnote over gdocCli
+    Open .gdocconfig
+    to get CfgObj.
+  endrnote
+
+  gdocCli -> subcommand ++ : setup(Parser)
+    rnote over subcommand
+      Setup arguments
+      parsing rule.
+    endrnote
+  return
+
+  rnote over gdocCli
+    Parse arguments and
+    construct OptObj.
+  endrnote
+
+  gdocCli -> subcommand ++ : run(OptObj, CfgObj)
+    subcommand -> gdocPackage ++ : get_package\n(Opt, CfgObj)
+      loop While remaining files to read
+        gdocPackage -> gdocCompiler ++ : get_package\n(Opt, CfgObj)
+          gdocCompiler -> pandocAstObject ++ : get_package\n(Opt, CfgObj)
+            pandocAstObject -> FileSystem ++ : read()
+            return
+          return gdObject
+        return gdPackage
+        |||
+      end
+    return gdPackage
+
+    rnote over subcommand
+
+      Application tasks
+
+    endrnote
+
+  return Error Code
+return Exit Code
+
+@enduml
+
+' ## [@ pis] Gdoc_CreateObject_Sequence
+'
+@startuml Gdoc_CreateObject_Sequence
+
+!include style.iuml
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+Participant gdocCompiler
+Participant PluginManager
+box Plugins
+  Participant ClassPlugin
+  Participant SuperClassPlugin
+endbox
+
+rnote over gdocCompiler
+  Parse a source document
+  and get tag infromation
+  to create a data object.
+endrnote
+
+gdocCompiler -> PluginManager ++ : get_class(FQCN)
+  PluginManager -> ClassPlugin ++ : get_class(type)
+    ClassPlugin -> PluginManager ++ : get_class(FQCN, id)
+      PluginManager -> SuperClassPlugin ++ : get_class(type)
+      return SuperPluginClass
+    return SuperPluginClass
+  return PluginClass
+return PluginClass
+
+rnote over gdocCompiler
+  OBJ = new PluginClass()
+endrnote
+
+@enduml
+
+' ## [@ pa] gdocPackage_ClassHierarchy
+'
+@startuml gdocPackage_ClassHierarchy
+
+!include style.iuml
+
+class "gdObject" as supreclass
+
+class gdPackage {
+  - children: {}
+  + add_child()
+  + get_child()
+}
+class gdDocument
+
+gdPackage -up-|> supreclass
+' gdPackage "0..*" --o gdPackage
+
+gdPackage o-- "0..*" gdDocument
+gdDocument -left-|> supreclass
+
+@enduml
+
+
+' ## [@ pa] gdocPackageInternalBlocks
+'
+@startuml gdocPackageInternalBlocks
+
+!include style.iuml
+!include SysML/bdd.iuml
+
+package gdocPackage <<Frame>> {
+  class "  gdLinker  " as gdLinker
+  class "  gdPackage  " as gdPackage
+  class "\n     gdBuilder    \n" as gdBuilder
+
+  gdBuilder #--# gdPackage : > gdObject
+
+  gdBuilder #--# gdLinker : > gdPackage
+}
+
+gdocPackage #-right-# gdBuilder : > BuildOption
+gdBuilder #-left-# gdocPackage : > gdPackage
+
+class "  gdocCompiler " as gdocCompiler
+gdBuilder #-right-# gdocCompiler : > SourceFile
+gdBuilder #-right-# gdocCompiler : < gdDocument
+
+@enduml
+
+' ## [@ pa] gdocPackage_Build_Sequence
+'
+@startuml gdocPackage_Build_Sequence
+
+!include style.iuml
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+Participant Client
+box gdocPackage
+  Participant gdBuilder
+  Participant gdPackage
+  Participant gdLinker
+endbox
+Participant gdocCompiler
+
+Client -> gdBuilder ++ : Build opts and\nConfig obj
+
+  rnote over gdBuilder
+    Search and list
+    target documents
+  endrnote
+
+  gdBuilder -> gdPackage : Create a new\nempty package
+  |||
+  loop All of each target document
+    gdBuilder -> gdocCompiler ++ : Compile a sourcefile.
+    return gdDocument
+    gdBuilder -> gdPackage : add_document\n(gdDocument)
+    |||
+  end
+
+  gdBuilder -> gdLinker ++ : Link documents(gdPackage)
+
+    loop All of each target gdDocuments
+      rnote over gdLinker
+        Search all import/access
+        object targeting to an out
+        of the document.
+      endrnote
+      |||
+      loop All of searched import/access objects
+        |||
+        opt the target document is not found in the gdPackage
+          gdLinker -> gdBuilder ++ : Call back:\nget_object(documentPath)
+
+          rnote over gdBuilder
+            Find the target document
+            from search paths.
+          endrnote
+          |||
+          alt the target is found
+            gdBuilder -> gdocCompiler ++ : Compile a sourcefile.
+            return gdDocument
+            gdBuilder -> gdPackage : add_document\n(gdDocument)
+            |||
+          else the target is not found in the search paths
+            rnote over gdBuilder
+              Error handling or
+              Throwing an exception
+            endrnote
+            |||
+          end
+
+          return gdDocument
+          |||
+        end
+        |||
+        rnote over gdLinker
+          Add a reference
+          to the target gdDocument
+          into the import/access obj.
+        endrnote
+
+      end
+      |||
+    end
+
+  return ExitCode
+
+return : gdPackage
+
+== Exception ==
+
+gdBuilder <--? ++ : Exception
+?<-- gdBuilder -- : Exception
+
+@enduml
+
+' ## [@ pa] gdocPackage_Lint_Sequence
+'
+@startuml gdocPackage_Lint_Sequence
+
+!include style.iuml
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+Participant Client
+box gdocPackage
+  Participant gdBuilder
+  Participant gdPackage
+  Participant gdLinker
+endbox
+Participant gdocCompiler
+
+Client -> gdBuilder ++ : Lint opts and\nConfig obj
+
+  rnote over gdBuilder
+    Search and list
+    target documents
+  endrnote
+
+  loop All of each target document
+    gdBuilder -> gdocCompiler ++ : Lint a sourcefile.
+    return gdDocument
+    |||
+  end
+
+return ErrorCode
+
+== Exception ==
+
+gdBuilder <--? ++ : Exception\n(LintError)
+[<-- gdBuilder -- : Report lint errors\nto stderr.
+
+@enduml
+
+' ## [@ pa] gdocCompilerInternalBlocks
+'
+@startuml gdocCompilerInternalBlocks
+
+!include style.iuml
+!include SysML/bdd.iuml
+
+package gdocCompiler <<Frame>> {
+  class "  gdParser  " as gdParser
+  class "  gdObject  " as gdObject
+  class "\n     gdCompiler    \n" as gdCompiler
+
+  gdCompiler #--# gdObject : > Plagins
+  ' (gdCompiler, gdObject) .. Plagins
+
+  gdCompiler #--# gdParser : > Target
+  ' (gdCompiler, gdParser) .. Target
+
+  gdParser .left.> gdObject : Callback
+}
+
+gdocCompiler #-right-# gdCompiler : > CompileOption
+gdCompiler #-left-# gdocCompiler : > gdObject
+
+
+class "  pandocAstObject " as pandocAstObject
+gdCompiler #-right-# pandocAstObject : > File
+
+@enduml
+
+' ## [@ pa] gdocCompilerSequenceDiagram
+'
+@startuml gdocCompilerSequenceDiagram
+
+!include style.iuml
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+Participant Client
+box gdocCompiler
+  Participant gdCompiler
+  Participant gdObject
+  Participant gdParser
+endbox
+Participant pandocAstObject
+
+Client -> gdCompiler : A source file
+
+gdCompiler -> pandocAstObject ++ : Read a sourcefile and Get a pandocAst object
+return pandocAst object
+
+gdCompiler -> gdObject ++ : Open gdObject\n(PluginHandle)
+
+  gdCompiler -> gdParser ++ : Parse\npandocAstObject\n(BlockList, gdObject)
+
+    loop While Block exists
+      gdParser -> gdObject: CallBack\n: OpenObjectSection
+      gdParser -> gdParser : reentry\n(BlockList)
+      gdParser -> gdObject: CallBack\n: GetTableType
+      gdParser -> gdObject: CallBack\n: CreateObject
+      gdParser -> gdObject: CallBack\n: AddProperty
+      gdParser -> gdObject: CallBack\n: CloseObjectSection
+    end
+
+  return ExitCode
+
+gdCompiler -> gdObject : Close\nPandocAst Object
+deactivate gdObject
+
+gdCompiler -> Client : gdObject
+
+== Exception ==
+
+gdCompiler <--? ++ : Exception
+?<-- gdCompiler -- : Exception
+
+@enduml
+
+' ## [@ pa] gdocCompilerArchitecturalDesign2
+'
+@startuml gdocCompilerArchitecturalDesign2
+
+!include style.iuml
+
+Client -> gdCompiler : A source file
+
+rnote over gdCompiler
+  Create a
+  PandocAst Object
+endnote
+
+gdCompiler -> BlockListParser : PandocAst Object\n(BlockList)\nand PluginHandle
+
+loop While Block exists
+  alt HeaderBlock
+    rnote over BlockListParser
+      Nest a
+      Object Section
+    endnote
+    BlockListParser -> gdCompiler : CallBack\n: NestObject or\n: Close Object
+  else ListBlock
+    BlockListParser -> gdCompiler : CallBack\n: NestObject
+    BlockListParser -> BlockListParser : ListItem\n(BlockList)
+    BlockListParser -> gdCompiler : CallBack\n: CloseObject
+  else InlineBlock
+    BlockListParser -> InlineParser : InlineBlock
+    BlockListParser <- InlineParser : BlockInfo\n(tag etc.)
+    BlockListParser -> gdCompiler : CallBack\n: CreateObject
+  else TableBlock
+    BlockListParser -> TableParser : TableBlock
+    TableParser -> CellParser : InlineBlock\n(in a Cell)
+    BlockListParser -> gdCompiler : CallBack\n: CreateObject
+  end
+
+end
+
+BlockListParser -> gdCompiler : ErrorCode
+
+@enduml
+
+' ## [@ pa] pandocAstObjectArchitecturalDesign
+'
+@startuml pandocAstObjectArchitecturalDesign
+
+!include style.iuml
+!include SysML/bdd.iuml
+
+pandocAstObject *--> Pandoc
+pandocAstObject *--> PandocAst
+pandocAstObject *--> PandocStr
+
+PandocAst .left.> Pandoc : " use"
+PandocAst .right.> PandocStr : "use "
+
+Pandoc ..> " pnadoc external command " : " use"
+
+@enduml
+
+' ## [@ pis] Plugins_ClassDiagram
+'
+@startuml Plugins_ClassDiagram
+
+!include style.iuml
+
+class gdObject {
+  -{field} class: (category, type, version)
+  -{field} bases: [class, class, ...]
+  -{field} children: {}
+  -{field} properties: {}
+  ..
+  #{field} _link: {to: {}, from: {}}
+  --
+  +get_class()
+  +get_bases()
+  ..
+  +add_child()
+  #_add_child()
+  +get_children()
+  +get_first_child()
+  +get_parent()
+  +next()
+  +prev()
+  +walk()
+  +resolve()
+  +get_fqid()
+  ..
+  +set_property()
+  #_set_property()
+  +get_property()
+  #_get_property()
+  ..
+  +export()
+  +import()
+}
+
+class gbDefaultObject {
+  -valid_properties: [\n  ["note", "str"], ["association", "id"],  \n  ["trace", "id"],...\n]
+  --
+  ..Overide..
+  +add_child()
+  +set_property()
+  ..Additional utilities..
+  +add_note()
+  +add_association()
+  +add_trace()
+  +is_valid_property()
+  ..Settings..
+  +get_parser()
+}
+
+gdObject <|-- gbDefaultObject
+
+gbDefaultObject <|-- ":Document"
+gbDefaultObject <|-- ":Section"
+gbDefaultObject <|-- "Sys:Block"
+gbDefaultObject <|-- "Sys:Requirement"
+
+"Sys:Block" <|-- "My:OwnClass"
+
+@enduml
+
+' ## [@ pis] Plugins_CreateObject_Sequence
+'
+@startuml Plugins_CreateObject_Sequence
+
+!include style.iuml
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+Participant Client
+Participant gdocObject
+Participant PluginManager
+Participant ClassPlugin
+Participant SuperClassPlugin
+
+Client -> gdocObject ++ : create_object\n(FQCN, tagInfo)
+  gdocObject -> PluginManager ++ : get_plugin(FQCN)
+    PluginManager -> ClassPlugin ++ : get_class(type)
+      ClassPlugin -> PluginManager ++ : get_plugin(FQCN, ver)
+        PluginManager -> SuperClassPlugin ++ : get_class(type, ver)
+        return SuperPluginClass
+      return SuperPluginClass
+    return PluginClass
+  return PluginClass
+
+  rnote over gdocObject
+    OBJ = new PluginClass()
+  endrnote
+return OBJ
+
+@enduml
+
+' ## [@ pis] Plugins_AddProp_Sequence
+'
+@startuml Plugins_AddProp_Sequence
+
+!include style.iuml
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+Participant Client
+Participant ClassPlugin
+Participant SuperClassPlugin
+Participant gdObject
+
+Client -> ClassPlugin ++ : OBJ.set_prop(key, val)
+  alt My property
+    ClassPlugin -> gdObject ++ : this._set_prop(key, val)
+    return
+    |||
+  else Parent's property
+    ClassPlugin -> SuperClassPlugin ++ : super().set_prop(key, val)
+      SuperClassPlugin -> gdObject ++ : this._set_prop(key, val)
+      return
+    return
+    |||
+  end
+return ErrCode
+|||
+@enduml
+
+' ## [@ pis] Plugins_AddChild_Sequence
+'
+@startuml Plugins_AddChild_Sequence
+
+!include style.iuml
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+Participant Client
+Participant ClassPlugin
+Participant SuperClassPlugin
+Participant gdObject
+
+Client -> ClassPlugin ++ : PARENT.add_child(OBJ)
+
+  ClassPlugin -> SuperClassPlugin ++ : super().add_child(OBJ)
+    SuperClassPlugin -> gdObject ++ : super().add_child(OBJ)
+    gdObject -> gdObject : this._add_child(OBJ)
+    return
+    rnote over SuperClassPlugin
+      Setting association
+      with child, etc.
+    endnote
+  return
+  rnote over ClassPlugin
+    Setting association
+    with child, etc.
+  endnote
+return
+|||
+@enduml
+
+' ## [@ pa] Plugin_Blcok_Diagram
+'
+@startuml Plugin_Blcok_Diagram
+
+!include style.iuml
+!include SysML/bdd.iuml
+
+package "Plugin" <<Rectangle>> {
+  class " PluginModule " as PluginModule {
+    +plugin_id : String
+    +lib : Dict
+    +get_class() : Constructor
+  }
+  class " PluginClass " as PluginClass
+}
+
+PluginModule *--> "0..*" PluginClass
+
+@enduml
+
+' ## [@ pa] ApplicationSubcommand_Block_Definition
+'
+@startuml ApplicationSubcommand_Block_Definition
+
+!include style.iuml
+!include SysML/bdd.iuml
+
+package ApplicationSubcommand <<Rectangle>> {
+  class " ApplicationModule " as AppModule {
+    +setup()
+    +run()
+  }
+}
+@enduml
+

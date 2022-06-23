@@ -1,0 +1,142 @@
+' # [@ gdon] Gdoc GdObject Notation
+'
+' ## [@ pis] Plugins_ClassDiagram
+'
+@startuml Plugins_ClassDiagram
+
+!include style.iuml
+
+class gdObject {
+  -{field} class: (category, type, version)
+  -{field} bases: [class, class, ...]
+  -{field} children: {}
+  -{field} properties: {}
+  ..
+  #{field} _link: {to: {}, from: {}}
+  --
+  +get_class()
+  +get_bases()
+  ..
+  +add_child()
+  #_add_child()
+  +get_children()
+  +get_first_child()
+  +get_parent()
+  +next()
+  +prev()
+  +walk()
+  +resolve()
+  +get_fqid()
+  ..
+  +set_property()
+  #_set_property()
+  +get_property()
+  #_get_property()
+  ..
+  +export()
+  +import()
+}
+
+class gbDefaultObject {
+  -valid_properties: [\n  ["note", "str"], ["association", "id"],  \n  ["trace", "id"],...\n]
+  --
+  ..Overide..
+  +add_child()
+  +set_property()
+  ..Additional utilities..
+  +add_note()
+  +add_association()
+  +add_trace()
+  +is_valid_property()
+  ..Settings..
+  +get_parser()
+}
+
+gdObject <|-- gbDefaultObject
+
+gbDefaultObject <|-- ":Document"
+gbDefaultObject <|-- ":Section"
+gbDefaultObject <|-- "Sys:Block"
+gbDefaultObject <|-- "Sys:Requirement"
+
+"Sys:Block" <|-- "My:OwnClass"
+
+@enduml
+
+' ## [@] Gdoc Object Classes
+'
+@startuml GdocObjectClass
+
+!include style.iuml
+
+class Package {
+    properties : {
+    .    PackageName : string
+    .    Version : string
+    .    Description : string
+    .    Main : string // DocumentPath
+    .    Author : string
+    .    License : string
+    .    Dependencies : []
+    .}
+    ExportFile : FilePath.gdp.json
+    ..
+    children : { Name: DocumentPath/PackagePath }
+    --
+    +add_document(str)
+}
+
+class Document {
+    DocumentPath : string
+    FilePath : string
+    FileType : enum {md, gdp, ast, htm, rst,...}
+    doctype : string
+    Refs : [Document]
+    Libs : [Document]
+    ExportFile : FilePath.gdd.json
+    ..
+    children : { id: gdObject }
+}
+
+Package::children *-- Document
+
+@enduml
+
+@startuml SymbolString
+
+!include style.iuml
+hide empty description
+
+[*] --> Start : trimed str
+Start: if the first char is:
+Start: 1. '[' --> name
+Start: 2. IDCHARSET --> id
+
+Start --> id : IDCHARSET
+id : While IDCHARSET
+
+Start --> name : '['
+state name {
+  [*] --> NotQuoted
+  [*] --> Quoted : '"'
+
+  state Quoted {
+    [*] --> String
+    String : if '\': skip\nnext one
+    String --> [*] : '"'
+  }
+
+  NotQuoted : while IDCHARSET
+
+  NotQuoted --> [*] : ']'
+  Quoted --> [*] : ']'
+}
+
+id -down-> WaitNext
+name -down-> WaitNext : ']'
+
+WaitNext -down-> [*] : EOS
+WaitNext -up-> id : '.'
+WaitNext -up-> name : '['
+
+@enduml

@@ -1,0 +1,233 @@
+' # [@ gdon] Gdoc GdObject Notation
+'
+' ## [@] Gdoc Object Classes
+'
+@startuml GdocObjectClass
+
+!include style.iuml
+
+class GdObject {
+    id : str
+    class : {category, type, version}
+    __
+    parent : GdObject
+    children : { id: GdObject }
+    properties : { key: value }
+}
+
+GdObject <|-- "Example.SysML:Requirement"
+
+GdObject <|-- "Example.Gdoc:Section"
+
+"Example.Gdoc:Section" -right- "0..*" "Example.SysML:Requirement"
+
+"Example.GSN:Goal" -right-|> "Example.Gdoc:Section"
+
+@enduml
+
+
+@startuml SectionDataStructure
+
+!include style.iuml
+!include SysML/bdd.iuml
+
+skinparam class {
+    BackgroundColor<<Gdoc Element>> Wheat
+    BorderColor<<PandocAst>> Tomato
+}
+
+class Document <<Gdoc Element>>
+
+class "     Section     \n\n" as Section <<Gdoc Element>>
+class TextBlock <<Gdoc Element>>
+class ListBlock <<Gdoc Element>>
+
+class Pandoc <<PandocAst>>
+class BlockList <<PandocAst>>
+class CodeBlock <<PandocAst>>
+class RawBlock <<PandocAst>>
+class Table <<PandocAst>>
+
+class Pandoc <<PandocAst>>
+class Header <<PandocAst>>
+class Plain <<PandocAst>>
+class Para <<PandocAst>>
+class LineBlock <<PandocAst>>
+
+class CodeBlock <<PandocAst>>
+class RawBlock <<PandocAst>>
+class Table <<PandocAst>>
+
+class BulletList <<PandocAst>>
+class OrderedList <<PandocAst>>
+
+Document *-right- Pandoc
+Document -down-|> Section
+Section o-- Section
+Section ..left.. BlockList
+
+Section o.. CodeBlock
+Section o.. RawBlock
+Section o.. Table
+Section ..o Table
+
+Section o-- TextBlock
+TextBlock <|.. Header
+TextBlock <|.. Plain
+TextBlock <|.. Para
+TextBlock <|.. LineBlock
+
+ListBlock o-up- Section
+ListBlock -up-o Section
+ListBlock <|.. BulletList
+ListBlock <|.. OrderedList
+
+@enduml
+
+
+@startuml TextBlockDataStructure
+
+!include style.iuml
+!include SysML/bdd.iuml
+
+skinparam class {
+    BackgroundColor<<Gdoc Element>> Wheat
+    BorderColor<<PandocAst>> Tomato
+}
+
+class TextBlock <<Gdoc Element>>
+class Line <<Gdoc Element>>
+class Tag <<Gdoc Element>>
+class Text <<Gdoc Element>>
+class "Plain" as PlainText <<Gdoc Element>>
+class "Code" as CodeText <<Gdoc Element>>
+class "Math" as MathText <<Gdoc Element>>
+class "Image" as ImageText <<Gdoc Element>>
+class "Quoted" as QuotedText <<Gdoc Element>>
+
+class Str <<PandocAst>>
+class Space <<PandocAst>>
+class SoftBreak <<PandocAst>>
+class LineBreak <<PandocAst>>
+class Code <<PandocAst>>
+class Math <<PandocAst>>
+class Image <<PandocAst>>
+class Quoted <<PandocAst>>
+class PandocStr <<PandocAst>>
+
+Line -up-o TextBlock
+LineBreak -left-o Line
+
+Text -up-o Line
+PlainText <|-right- Tag
+
+PandocStr -up-* PlainText
+Code -up-* CodeText
+Math -up-* MathText
+Image -up-* ImageText
+Quoted -up-* QuotedText
+
+
+PlainText -up-|> Text
+CodeText -up-|> Text
+MathText -up-|> Text
+ImageText -up-|> Text
+QuotedText -up-|> Text
+
+Str -up-o PandocStr
+Space -up-o PandocStr
+SoftBreak -up-o PandocStr
+
+note as N1
+  It may contain line breaks, but
+  they are ignored when splitting
+  a text block into lines.
+end note
+
+Image .. N1
+Quoted .. N1
+
+@enduml
+
+
+@startuml GdocObjectStructure
+
+!include style.iuml
+!include SysML/bdd.iuml
+
+skinparam class {
+    BackgroundColor<<Gdoc Element>> Wheat
+    BorderColor<<PandocAst>> Tomato
+}
+
+class Document <<Gdoc Element>>
+
+class "     Section     \n\n" as Section <<Gdoc Element>>
+class TextBlock <<Gdoc Element>>
+class ListBlock <<Gdoc Element>>
+
+class Pandoc <<PandocAst>>
+class BlockList <<PandocAst>>
+class CodeBlock <<PandocAst>>
+class RawBlock <<PandocAst>>
+class Table <<PandocAst>>
+
+Document *-right- Pandoc
+Document -down-|> Section
+Section o-- Section
+Section ..left.. BlockList
+
+Section o.. CodeBlock
+Section o.. RawBlock
+Section o.. Table
+Section ..o Table
+
+Section o-- TextBlock
+
+Section o-- ListBlock
+ListBlock o-- Section
+
+class Line <<Gdoc Element>>
+class Tag <<Gdoc Element>>
+class Text <<Gdoc Element>>
+class "Plain" as PlainText <<Gdoc Element>>
+class "Code" as CodeText <<Gdoc Element>>
+class "Math" as MathText <<Gdoc Element>>
+class "Image" as ImageText <<Gdoc Element>>
+class "Quoted" as QuotedText <<Gdoc Element>>
+
+class Str <<PandocAst>>
+class Space <<PandocAst>>
+class SoftBreak <<PandocAst>>
+class LineBreak <<PandocAst>>
+class Code <<PandocAst>>
+class Math <<PandocAst>>
+class Image <<PandocAst>>
+class Quoted <<PandocAst>>
+class PandocStr <<PandocAst>>
+
+Line -up-o TextBlock
+LineBreak -left-o Line
+Text -up-o Line
+PlainText <|-right- Tag
+
+PandocStr -up-* PlainText
+Code -up-* CodeText
+Math -up-* MathText
+Image -up-* ImageText
+Quoted -up-* QuotedText
+
+
+PlainText -up-|> Text
+CodeText -up-|> Text
+MathText -up-|> Text
+ImageText -up-|> Text
+QuotedText -up-|> Text
+
+Str -up-o PandocStr
+Space -up-o PandocStr
+SoftBreak -up-o PandocStr
+
+@enduml
+
+

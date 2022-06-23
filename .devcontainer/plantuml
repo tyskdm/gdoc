@@ -1,0 +1,10 @@
+#!/bin/bash
+export LANG=ja_JP.UTF-8;
+here=$(dirname $(readlink -f $0))
+iuml=$(dirname $here)/docs/iuml
+if [ ! -f $here/plantuml.jar ]; then
+    echo "ERROR: plantuml.jar does not exist."
+    echo "download it to $here/ from https://plantuml.com/download."
+    exit 1
+fi
+java -Djava.io.tmpdir=/var/tmp -Djava.awt.headless=true -Dplantuml.include.path="$iuml" -jar $here/plantuml.jar -charset UTF-8 ${@}
