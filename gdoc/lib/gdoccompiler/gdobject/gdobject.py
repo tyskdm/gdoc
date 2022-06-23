@@ -1,8 +1,8 @@
 r"""
 GdObject class
 """
-from .gdsymboltable import GdSymbolTable
 from ..gdexception import *
+from .gdsymboltable import GdSymbolTable
 
 
 class GdObject(GdSymbolTable):

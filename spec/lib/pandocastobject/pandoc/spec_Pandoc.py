@@ -18,10 +18,12 @@ The specification of Pandoc class.
 | @Method | \_run        | run multiple subcommands while connecting it with pipes and return the output.
 
 """
-import pytest
 import inspect
 from subprocess import PIPE as _PIPE_
 from subprocess import CalledProcessError
+
+import pytest
+
 from gdoc.lib.pandocastobject.pandoc.pandoc import Pandoc
 
 ## @{ @name \_\_init\_\_(self)

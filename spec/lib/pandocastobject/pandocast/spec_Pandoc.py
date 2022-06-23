@@ -17,8 +17,10 @@ The specification of PandocAst class.
 | @Method | \_\_init\_\_ | creates a new instance.
 
 """
-import pytest
 import inspect
+
+import pytest
+
 from gdoc.lib.pandocastobject.pandocast.blocklist import BlockList
 from gdoc.lib.pandocastobject.pandocast.pandoc import Pandoc
 

@@ -3,9 +3,10 @@ document.py: Document class
 """
 
 import copy
+
+from ..pandocastobject.pandocast import PandocAst
 from .config import DEFAULTS
 from .section import Section
-from ..pandocastobject.pandocast import PandocAst
 
 
 class Document(Section):

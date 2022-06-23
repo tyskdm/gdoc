@@ -2,8 +2,8 @@
 section.py: Section class
 """
 
-from .textblock import TextBlock
 from ..pandocastobject.pandocast.element import Element
+from .textblock import TextBlock
 
 
 class Section(list):

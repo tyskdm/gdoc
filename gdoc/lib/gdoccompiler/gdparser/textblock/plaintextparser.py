@@ -1,4 +1,5 @@
 from gdoc.lib.gdoc.text import Text
+
 from .blocktagparser import parse_BlockTag
 from .inlinetagparser import parse_InlineTag
 

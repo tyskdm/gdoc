@@ -22,10 +22,11 @@ r"""! Software detailed design of 'Element' class written in pytest.
 - [ ] TODO: remove getFirstChild() after replacing it to get_first_child() in all modules.
 
 """
-import pytest
 import inspect
-from gdoc.lib.pandocast.pandocast import Element
 
+import pytest
+
+from gdoc.lib.pandocast.pandocast import Element
 
 ##
 ## @{ @name THIS[__init__] | creates a new instance.

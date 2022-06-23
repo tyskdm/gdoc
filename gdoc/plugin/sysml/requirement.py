@@ -4,6 +4,7 @@
 #
 
 import logging
+
 from ...lib import debug
 from ...lib.gdsymbol import Symbol
 from ...lib.symboltable import Scope

@@ -1,4 +1,5 @@
 from gdoc.lib.pandocastobject.pandocstr import PandocStr
+
 from ..fsm import State, StateMachine
 
 

@@ -1,13 +1,13 @@
 """
 command.py
 """
-import sys
 import json
 import logging
+import sys
+
 from gdoc.lib.pandocast import pandocast
-from ...lib import plugin
-from ...lib import gdom
-from ...lib import debug
+
+from ...lib import debug, gdom, plugin
 from ...lib.pandoc import Pandoc
 
 _LOGGER = logging.getLogger(__name__)

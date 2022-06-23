@@ -17,10 +17,12 @@ The specification of Symbol class.
 | @Method | \_\_init\_\_ | creates a new instance.
 
 """
-import pytest
 import inspect
-from gdoc.lib.gdoccompiler.gdobject.gdsymbol import GdSymbol
+
+import pytest
+
 from gdoc.lib.gdoccompiler.gdexception import *
+from gdoc.lib.gdoccompiler.gdobject.gdsymbol import GdSymbol
 
 ## @{ @name \_\_init\_\_(str \| PandocStr)
 ## [\@spec \_\_init\_\_] creates a new instance.

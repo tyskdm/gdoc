@@ -1,5 +1,5 @@
-import subprocess
 import logging
+import subprocess
 
 _LOGGER = logging.getLogger(__name__)
 

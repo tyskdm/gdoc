@@ -17,11 +17,13 @@ The specification of SymbolTable class.
 | @Method | \_\_init\_\_       | creates a new instance.
 
 """
-from typing import Type
-import pytest
 import inspect
-from gdoc.lib.gdoccompiler.gdobject.gdsymboltable import GdSymbolTable
+from typing import Type
+
+import pytest
+
 from gdoc.lib.gdoccompiler.gdexception import *
+from gdoc.lib.gdoccompiler.gdobject.gdsymboltable import GdSymbolTable
 
 ## @{ @name \_\_init\_\_(str \| PandocStr)
 ## [\@spec \_\_init\_\_] creates a new instance.

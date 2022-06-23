@@ -2,10 +2,11 @@
 command.py
 """
 import json
+
+from gdoc.lib.gdoc.line import Line
+from gdoc.lib.gdoc.text import Text
 from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
 from gdoc.lib.pandocastobject.pandocstr.pandocstr import PandocStr
-from gdoc.lib.gdoc.text import Text
-from gdoc.lib.gdoc.line import Line
 
 
 def setup(subparsers, name, commonOptions):

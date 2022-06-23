@@ -11,7 +11,9 @@ The specification of Inline class.
 
 """
 import json
+
 import pytest
+
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
 

@@ -4,8 +4,8 @@
 #
 
 import logging
-from ... import gdom
-from ... import debug
+
+from ... import debug, gdom
 
 _LOGGER = logging.getLogger(__name__)
 _DEBUG = debug.Debug(_LOGGER)

@@ -4,6 +4,7 @@
 #
 
 import logging
+
 from ...lib import debug
 from ...lib.types.table.hierarchicalDict import HierarchicalDict
 

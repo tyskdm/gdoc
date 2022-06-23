@@ -17,7 +17,8 @@
 
 # from . import gdast
 from gdoc.lib.pandocast import pandocast as gdast
-from .symboltable import SymbolTable, Scope, Symbol
+
+from .symboltable import Scope, Symbol, SymbolTable
 
 
 #

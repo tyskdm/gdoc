@@ -19,9 +19,11 @@ The test specification of Pandoc class.
 
 """
 import json
-import pytest
 from subprocess import PIPE as _PIPE_
 from subprocess import CalledProcessError
+
+import pytest
+
 from gdoc.lib.pandocastobject.pandoc.pandoc import Pandoc
 
 ## @}

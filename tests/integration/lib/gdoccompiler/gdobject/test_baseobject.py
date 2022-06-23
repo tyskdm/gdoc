@@ -11,8 +11,9 @@ The specification of Inline class.
 
 """
 from gdoc.lib.gdoccompiler.gdobject.types import CATEGORY_INFO
-from gdoc.lib.gdoccompiler.gdobject.types.category import Category
 from gdoc.lib.gdoccompiler.gdobject.types.baseobject import BaseObject
+from gdoc.lib.gdoccompiler.gdobject.types.category import Category
+
 
 ## @{ @name Inline
 ## [\@test Inline] creates a new instance.

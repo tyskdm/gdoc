@@ -19,6 +19,7 @@ The specification of Element class.
 
 """
 import pytest
+
 from gdoc.lib.pandocastobject import pandocast
 from gdoc.lib.pandocastobject.pandocast import types
 from gdoc.lib.pandocastobject.pandocast.pandoc import Pandoc

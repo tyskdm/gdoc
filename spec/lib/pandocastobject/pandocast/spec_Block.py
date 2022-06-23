@@ -17,10 +17,12 @@ The specification of Block class.
 | @Method | \_\_init\_\_ | creates a new instance.
 
 """
-import pytest
 import inspect
-from gdoc.lib.pandocastobject.pandocast.element import Element
+
+import pytest
+
 from gdoc.lib.pandocastobject.pandocast.block import Block
+from gdoc.lib.pandocastobject.pandocast.element import Element
 
 ## @{ @name \_\_init\_\_(pan_elem, type_def)
 ## [\@spec \_\_init\_\_] creates a new instance.

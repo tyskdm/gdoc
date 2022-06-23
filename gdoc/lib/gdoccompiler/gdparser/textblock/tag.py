@@ -5,8 +5,10 @@ tag.py: tag class
 from enum import Enum, auto
 
 from click import argument
-from gdoc.lib.pandocastobject.pandocstr import PandocStr
+
 from gdoc.lib.gdoc.text import Text
+from gdoc.lib.pandocastobject.pandocstr import PandocStr
+
 from ...gdexception import *
 
 

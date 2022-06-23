@@ -22,10 +22,11 @@ r"""! Software detailed design of 'InlineList' class written in pytest.
 ### Things to do
 
 """
-import pytest
 import inspect
-from gdoc.lib.pandocast.pandocast import Element, Block, InlineList
 
+import pytest
+
+from gdoc.lib.pandocast.pandocast import Block, Element, InlineList
 
 ##
 ## @{ @name AS[__init__].r1 | creates a new instance.

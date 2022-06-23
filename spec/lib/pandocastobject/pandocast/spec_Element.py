@@ -18,8 +18,10 @@ The specification of Element class.
 | @Method | _add_child   | adds a Element object as a child.
 
 """
-import pytest
 import inspect
+
+import pytest
+
 from gdoc.lib.pandocastobject.pandocast.element import Element
 
 ## @{ @name \_\_init\_\_(self, pan_elem, type_def)

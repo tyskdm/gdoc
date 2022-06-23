@@ -1,9 +1,9 @@
 r"""
 GdSymbolTable class
 """
+import enum
 import json
 import re
-import enum
 from enum import Enum, auto
 
 from ..gdexception import *

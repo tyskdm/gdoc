@@ -2,8 +2,8 @@ r"""
 Document class
 """
 from . import CATEGORY_INFO
-from .category import Category
 from .baseobject import BaseObject
+from .category import Category
 
 
 class Document(BaseObject):

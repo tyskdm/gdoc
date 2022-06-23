@@ -17,8 +17,10 @@ The specification of InlineList class.
 | @Method | \_\_init\_\_ | creates a new instance.
 
 """
-import pytest
 import inspect
+
+import pytest
+
 from gdoc.lib.pandocastobject.pandocast.block import Block
 from gdoc.lib.pandocastobject.pandocast.inlinelist import InlineList
 

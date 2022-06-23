@@ -17,12 +17,13 @@ The specification of Block class.
 | @Method | \_\_init\_\_ | creates a new instance as Constructor
 
 """
+import inspect
 from cmath import exp
 from typing import Type
-import pytest
-import inspect
 
+import pytest
 from pytest_mock import mocker
+
 from gdoc.lib.pandocastobject.pandocstr import PandocStr
 
 ## @{ @name \_\_init\_\_(pan_elem, type_def)

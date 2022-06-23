@@ -3,9 +3,10 @@ section.py: Section class
 """
 
 import copy
+
+from ..pandocastobject.pandocast.element import Element
 from .config import DEFAULTS
 from .line import Line
-from ..pandocastobject.pandocast.element import Element
 
 
 class TextBlock(list):

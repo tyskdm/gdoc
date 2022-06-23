@@ -4,9 +4,9 @@ r"""!
 
 """
 import sys
+
 from .baseobject import BaseObject
 from .importobject import ImportObject
-
 
 CATEGORY_INFO = {
     "name": "",

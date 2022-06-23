@@ -16,10 +16,12 @@ The base class for all gdoc objects except Import and Access.
 | @Method | \_\_init\_\_  | creates a new instance.
 
 """
-import pytest
 import inspect
-from gdoc.lib.gdoccompiler.gdobject.types.category import Category
+
+import pytest
+
 from gdoc.lib.gdoccompiler.gdexception import *
+from gdoc.lib.gdoccompiler.gdobject.types.category import Category
 
 
 @pytest.fixture

@@ -14,6 +14,7 @@
 #                       InlineはInlineを含むことができ、階層化する
 
 import logging
+
 from gdoc.lib import debug
 
 _LOGGER = logging.getLogger(__name__)

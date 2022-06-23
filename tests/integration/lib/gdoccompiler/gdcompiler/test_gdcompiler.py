@@ -10,11 +10,14 @@ Integration Tests of gdParser software items.
 [@import SWDD.SU[Inline] as=THIS]
 
 """
-import pytest, json
+import json
 from unittest import mock
+
+import pytest
+
+from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
-from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
 
 ## @{ @name Inline
 ## [\@test Inline] creates a new instance.

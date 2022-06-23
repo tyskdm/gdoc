@@ -3,8 +3,9 @@ text.py: Text class
 """
 
 from enum import Enum, auto
-from ..pandocastobject.pandocstr import PandocStr
+
 from ..pandocastobject.pandocast.element import Element
+from ..pandocastobject.pandocstr import PandocStr
 
 
 class Text:

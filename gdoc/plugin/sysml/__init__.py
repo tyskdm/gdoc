@@ -1,5 +1,4 @@
-from . import requirement
-from . import block
+from . import block, requirement
 
 exports = {
     "Table": {

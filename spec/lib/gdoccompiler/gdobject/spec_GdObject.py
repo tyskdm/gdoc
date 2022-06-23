@@ -17,11 +17,13 @@ The specification of GdObject class.
 | @Method | \_\_init\_\_  | creates a new instance.
 
 """
-import pytest
 import inspect
+
+import pytest
+
+from gdoc.lib.gdoccompiler.gdexception import *
 from gdoc.lib.gdoccompiler.gdobject.gdobject import GdObject
 from gdoc.lib.gdoccompiler.gdobject.gdsymboltable import GdSymbolTable
-from gdoc.lib.gdoccompiler.gdexception import *
 
 ## @{ @name _set_category(cls, module)
 ## [\@spec _set_category]

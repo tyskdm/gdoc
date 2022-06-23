@@ -2,9 +2,9 @@
 line.py: Line class
 """
 
-from .text import Text
 from ..pandocastobject.pandocast.element import Element
 from ..pandocastobject.pandocstr import PandocStr
+from .text import Text
 
 
 class Line(list):

@@ -11,7 +11,9 @@ The specification of get_info method.
 
 """
 import json
+
 import pytest
+
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
 from gdoc.lib.pandocastobject.pandocstr import PandocStr

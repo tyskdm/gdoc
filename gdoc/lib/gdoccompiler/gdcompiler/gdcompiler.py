@@ -2,11 +2,12 @@ r"""
 Gdoc Compiler class
 """
 import os
-from gdoc.lib.pandocastobject.pandoc import Pandoc
-from gdoc.lib.pandocastobject.pandocast import PandocAst
+
 from gdoc.lib.gdoc.document import Document as GdocDocument
 from gdoc.lib.gdoccompiler.gdobject.types.document import Document as GobjDocument
 from gdoc.lib.gdoccompiler.gdparser.documentparser import parse_Document
+from gdoc.lib.pandocastobject.pandoc import Pandoc
+from gdoc.lib.pandocastobject.pandocast import PandocAst
 
 
 class GdocCompiler:

@@ -1,10 +1,11 @@
 """
 Command line interface module
 """
-import os
-import logging
 import argparse
 import importlib
+import logging
+import os
+
 from . import _CONFIG
 
 

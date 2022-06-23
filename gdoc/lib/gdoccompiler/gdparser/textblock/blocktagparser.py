@@ -1,9 +1,11 @@
 from pytest import skip
+
 from gdoc.lib.pandocastobject.pandocstr import PandocStr
+
 from ...gdexception import *
-from ..fsm import StateMachine, State
-from .tokenizer import Tokenizer
+from ..fsm import State, StateMachine
 from .tag import BlockTag
+from .tokenizer import Tokenizer
 
 
 def parse_BlockTag(pstr: str):

@@ -11,12 +11,14 @@ Integration Tests of gdParser software items.
 
 """
 import json
-import pytest
 from unittest import mock
+
+import pytest
+
 from gdoc.lib.gdoc.document import Document
+from gdoc.lib.gdoccompiler.gdparser.textblock import parse_TextBlock
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
-from gdoc.lib.gdoccompiler.gdparser.textblock import parse_TextBlock
 
 ## @{ @name Inline
 ## [\@test Inline] creates a new instance.

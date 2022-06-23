@@ -1,7 +1,8 @@
-from gdoc.lib.gdoccompiler.gdparser.textblock.tag import BlockTag
 from gdoc.lib.gdoc.textblock import TextBlock
+from gdoc.lib.gdoccompiler.gdparser.textblock.tag import BlockTag
+
 from ...gdobject.types.baseobject import BaseObject
-from ..fsm import StateMachine, State
+from ..fsm import State, StateMachine
 from .lineparser import parse_Line
 
 
