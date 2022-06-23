@@ -5,13 +5,16 @@ tag.py: tag class
 from enum import Enum, auto
 
 from click import argument
-from gdoc.lib.pandocastobject.pandocstr import PandocStr
+
 from gdoc.lib.gdoc.text import Text
+from gdoc.lib.pandocastobject.pandocstr import PandocStr
+
 from ...gdexception import *
 
+
 class Tag(Text):
-    """
-    """
+    """ """
+
     class Type(Enum):
         BLOCK = auto()
         INLINE = auto()
@@ -23,8 +26,8 @@ class Tag(Text):
 
 
 class BlockTag(Tag):
-    """
-    """
+    """ """
+
     def __init__(self, class_info, class_args, class_kwargs, tag_text):
         super().__init__(tag_text, Tag.Type.BLOCK)
 
@@ -57,7 +60,6 @@ class BlockTag(Tag):
 
             self.class_kwargs.append((key, val))
 
-
     def get_object_arguments(self):
         scope = None
         symbol = None
@@ -65,8 +67,8 @@ class BlockTag(Tag):
 
         idx = 0
         c = len(self.class_args)
-        if (c > 0):
-            if self.class_args[idx] in ('+', '-'):
+        if c > 0:
+            if self.class_args[idx] in ("+", "-"):
                 scope = self.class_args[idx]
                 idx += 1
 
@@ -79,7 +81,7 @@ class BlockTag(Tag):
                 symbol = self.class_args[idx]
                 idx += 1
 
-                if symbol[0] in ('+', '-'):
+                if symbol[0] in ("+", "-"):
                     if scope is None:
                         scope = symbol[0]
                         symbol = symbol[1:]
@@ -88,7 +90,6 @@ class BlockTag(Tag):
                         # Scope is duplecated
 
             tag_args = self.class_args[idx:]
-
 
         # def create_object(self, cat_name: str, type_name: str, isref: bool,
         #     scope: str, symbol, name: str =None, type_args: dict ={}) -> "BaseObject":
@@ -115,17 +116,14 @@ class BlockTag(Tag):
         tag_opts = {
             "tag_args": tag_args,
             "tag_kwargs": self.class_kwargs,
-            "tag_text": self.tag_text
+            "tag_text": self.tag_text,
         }
 
         return class_args, tag_opts
 
 
 class InlineTag(Tag):
-    """
-    """
+    """ """
+
     def __init__(self):
         super().__init__(Tag.Type.INLINE)
-
-
-

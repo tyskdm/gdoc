@@ -10,32 +10,38 @@ Integration Tests of gdParser software items.
 [@import SWDD.SU[Inline] as=THIS]
 
 """
-import pytest, json
+import json
 from unittest import mock
+
+import pytest
+
+from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
-from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
 
 ## @{ @name Inline
 ## [\@test Inline] creates a new instance.
 ##
 _data_Inline_1 = {
-    "Case-01: ": ('case_01.md', 'gfm-sourcepos', False),
-    "Case-02: ": ('case_02.md', 'gfm-sourcepos', False)
+    "Case-01: ": ("case_01.md", "gfm-sourcepos", False),
+    "Case-02: ": ("case_02.md", "gfm-sourcepos", False),
 }
-@pytest.mark.parametrize("filename, formattype, html",
-    list(_data_Inline_1.values()), ids=list(_data_Inline_1.keys()))
+
+
+@pytest.mark.parametrize(
+    "filename, formattype, html", list(_data_Inline_1.values()), ids=list(_data_Inline_1.keys())
+)
 def test_GdocCompile_1(mocker: mock, filename, formattype, html):
     r"""
     [@test Inline.1] test Inline elements in actual markdown documents.
     """
-    datadir = '.'.join(__file__.split('.')[:-1]) + '/'  # data directory
+    datadir = ".".join(__file__.split(".")[:-1]) + "/"  # data directory
     filepath = datadir + filename
 
     pandoc_json = Pandoc().get_json(datadir + filename, formattype, html)
     pandoc_ast = PandocAst(pandoc_json)
 
-    expect_json = pandoc_ast.get_first_item().get_content()     # 1st. block
+    expect_json = pandoc_ast.get_first_item().get_content()  # 1st. block
     expect_data = json.loads(expect_json)
 
     # Execution

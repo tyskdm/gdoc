@@ -12,7 +12,7 @@ class BlockList(Block):
     """
 
     def __init__(self, pan_elem, elem_type, type_def, create_element):
-        """ Constructor
+        """Constructor
         @param pan_elem(Dict)
             PandocAST Element
         @param elem_type(Str)

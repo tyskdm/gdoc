@@ -3,11 +3,12 @@ text.py: Text class
 """
 
 from enum import Enum, auto
-from ..pandocastobject.pandocstr import PandocStr
+
 from ..pandocastobject.pandocast.element import Element
+from ..pandocastobject.pandocstr import PandocStr
 
-class Text():
 
+class Text:
     class Type(Enum):
         PLAIN = auto()
         CODE = auto()
@@ -26,7 +27,7 @@ class Text():
             "Quoted": Text.Type.QUOTED,
             "Cite": Text.Type.CITE,
             "RawInline": Text.Type.RAWINLINE,
-            "Note": Text.Type.NOTE
+            "Note": Text.Type.NOTE,
         }
 
         if type(element) is list:
@@ -43,13 +44,12 @@ class Text():
 
             if t in _supported:
                 self.type = _supported[t]
-            
+
             else:
                 raise RuntimeError()
 
         else:
             raise RuntimeError()
-
 
     def get_str(self):
         result = " "
@@ -57,9 +57,8 @@ class Text():
         if self.type is Text.Type.PLAIN:
             result = self.element
         elif self.type is Text.Type.CODE:
-            result = '`' + self.element.get_content() + '`'
+            result = "`" + self.element.get_content() + "`"
         elif self.type is Text.Type.MATH:
-            result = '$' + self.element.get_content() + '$'
+            result = "$" + self.element.get_content() + "$"
 
         return result
-

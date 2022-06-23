@@ -11,8 +11,9 @@ The specification of Inline class.
 
 """
 from gdoc.lib.gdoccompiler.gdobject.types import CATEGORY_INFO
-from gdoc.lib.gdoccompiler.gdobject.types.category import Category
 from gdoc.lib.gdoccompiler.gdobject.types.baseobject import BaseObject
+from gdoc.lib.gdoccompiler.gdobject.types.category import Category
+
 
 ## @{ @name Inline
 ## [\@test Inline] creates a new instance.
@@ -24,8 +25,8 @@ def test_BaseObject_1():
     Category(CATEGORY_INFO)
 
     target = BaseObject("OBJECT", "ID")
-    
-    child = target.create_object(None, "OBJECT", False, '+', "CHILD")
+
+    child = target.create_object(None, "OBJECT", False, "+", "CHILD")
 
     assert target.id == "ID"
     assert child.id == "CHILD"
@@ -35,5 +36,6 @@ def test_BaseObject_1():
 
     assert access.id == "ACCESS"
     assert access.get_parent() is child
+
 
 ## @}

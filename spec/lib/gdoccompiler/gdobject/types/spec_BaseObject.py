@@ -16,8 +16,10 @@ The base class for all gdoc objects except Import and Access.
 | @Method | \_\_init\_\_  | creates a new instance.
 
 """
-import pytest
 import inspect
+
+import pytest
+
 from gdoc.lib.gdoccompiler.gdexception import *
 from gdoc.lib.gdoccompiler.gdobject.gdsymboltable import GdSymbolTable
 from gdoc.lib.gdoccompiler.gdobject.types.baseobject import BaseObject
@@ -41,6 +43,7 @@ def spec___init___1():
     """
     assert inspect.isclass(BaseObject) == True
 
+
 def spec___init___2():
     r"""
     [@spec \_\_init\_\_.2] set attrs with default values.
@@ -50,15 +53,11 @@ def spec___init___2():
 
     assert prop == {
         "": {
-            "scope": '+',
+            "scope": "+",
             "id": "ID",
             "name": None,
             "tags": [],
-            "class": {
-                "category": "",
-                "type": "OBJECT",
-                "version": ""
-            }
+            "class": {"category": "", "type": "OBJECT", "version": ""},
         }
     }
 
@@ -72,4 +71,3 @@ def spec___init___2():
     assert target.class_type == "OBJECT"
     assert target.class_version == ""
     assert target.class_isref is False
-

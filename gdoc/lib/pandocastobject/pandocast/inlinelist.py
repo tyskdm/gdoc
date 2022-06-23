@@ -9,8 +9,9 @@ class InlineList(Block):
     """
     InlineList class of PandocAST Element handler.
     """
+
     def __init__(self, pan_elem, elem_type, type_def, create_element):
-        """ Constructor
+        """Constructor
         @param pan_elem(Dict)
             PandocAST Element
         @param elem_type(Str)
@@ -21,14 +22,14 @@ class InlineList(Block):
             General constructor of pandoc Element types for creating children.
         """
         super().__init__(pan_elem, elem_type, type_def)
-        self.text = ''
+        self.text = ""
 
         if not self.hascontent():
             # HorizontalRule
             self.children = None
-            self.text = type_def['alt']
+            self.text = type_def["alt"]
 
-        elif self.get_content_type() == 'Text':
+        elif self.get_content_type() == "Text":
             #
             # CodeBlock or RawBlock
             #
@@ -48,8 +49,7 @@ class InlineList(Block):
 
             inlines = []
             for element in self.children:
-                if hasattr(element, 'text') and (element.text is not None):
+                if hasattr(element, "text") and (element.text is not None):
                     inlines.append(element.text)
 
-            self.text = type_def['separator'].join(inlines)
-
+            self.text = type_def["separator"].join(inlines)

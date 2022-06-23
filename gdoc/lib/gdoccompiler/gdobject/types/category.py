@@ -1,12 +1,13 @@
 r"""
 Plugin class
 """
-class Category():
-    """
-    """
+
+
+class Category:
+    """ """
+
     def __init__(self, category_info):
-        """
-        """
+        """ """
         self.name = category_info["name"]
         self.version = category_info["version"]
         self.module = category_info["module"]
@@ -17,7 +18,6 @@ class Category():
         for t in set(self.types.values()):
             if hasattr(t, "set_category"):
                 t.set_category(self)
-
 
     def get_type(self, target_type: str, parent_type: str, opts: dict = {}):
         """

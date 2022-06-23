@@ -10,11 +10,11 @@ DOXYOUTDIR  := html
 DOXYXMLDIR  := xml
 PYTESTDIR   := htmlcov
 
-.PHONY: all clean doc doc-clean puml-img puml-clean test test-cov cov spec-clean
+.PHONY: all clean doc doc-clean puml-img puml-clean test test-cov cov cov-clean style
 
 all: clean test puml-img doc
 
-clean: puml-clean doc-clean spec-clean 
+clean: puml-clean doc-clean cov-clean 
 	@py3clean .
 
 #
@@ -67,5 +67,9 @@ test-cov:
 cov:
 	@pytest $(SPECDIR) $(PYTESTFLAGS) --cov $(SRCDIR) --cov-branch --cov-report=html
 
-spec-clean:
+cov-clean:
 	@$(RM) -rf $(PYTESTDIR)
+
+style:
+	isort $(SRCDIR) $(SPECDIR) $(TESTDIR)
+	black $(SRCDIR) $(SPECDIR) $(TESTDIR)

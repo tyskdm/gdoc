@@ -18,8 +18,10 @@ The specification of Element class.
 | @Method | _add_child   | adds a Element object as a child.
 
 """
-import pytest
 import inspect
+
+import pytest
+
 from gdoc.lib.pandocastobject.pandocast.element import Element
 
 ## @{ @name \_\_init\_\_(self, pan_elem, type_def)
@@ -27,11 +29,13 @@ from gdoc.lib.pandocastobject.pandocast.element import Element
 ##
 ___init__ = "dummy for doxygen styling"
 
+
 def spec___init___1():
     r"""
     [@spec \_\_init\_\_.1] `Element` should be a class.
     """
     assert inspect.isclass(Element) == True
+
 
 def spec___init___2():
     r"""
@@ -40,13 +44,14 @@ def spec___init___2():
     _ELEMENT = {}
     _TYPE_DEF = {}
 
-    target = Element(_ELEMENT, 'TYPE', _TYPE_DEF)
+    target = Element(_ELEMENT, "TYPE", _TYPE_DEF)
 
     assert target.pan_element is _ELEMENT
-    assert target.type == 'TYPE'
+    assert target.type == "TYPE"
     assert target.type_def is _TYPE_DEF
     assert target.parent is None
     assert target.children == []
+
 
 def spec___init___3():
     r"""
@@ -57,7 +62,7 @@ def spec___init___3():
     _ELEMENT = {}
 
     with pytest.raises(Exception):
-        Element(_ELEMENT, 'TYPE')
+        Element(_ELEMENT, "TYPE")
 
 
 ## @}
@@ -66,12 +71,13 @@ def spec___init___3():
 ##
 __add_child = "dummy for doxygen styling"
 
+
 def spec__add_child_1():
     r"""
     [\@spec _add_child.1] add a Element object as a child.
     """
-    target = Element({}, 'PARENT', {})
-    child = Element({}, 'CHILD', {})
+    target = Element({}, "PARENT", {})
+    child = Element({}, "CHILD", {})
 
     assert target.children == []
 
@@ -89,21 +95,23 @@ def spec__add_child_1():
 ##
 _next = "dummy for doxygen styling"
 
+
 @pytest.fixture
 def _fixt_next():
-    r"""
-    """
+    r""" """
     parent = Element({}, "PARENT", {})
     parent._add_child(Element({}, "FIRST", {}))
     parent._add_child(Element({}, "SECOND", {}))
     parent._add_child(Element({}, "LAST", {}))
     return parent
 
+
 def spec_next_1(_fixt_next):
     r"""
     [\@spec next.1] returns next element ordered at next to self.
     """
     assert _fixt_next.children[0].next().type == "SECOND"
+
 
 def spec_next_2(_fixt_next):
     r"""
@@ -118,21 +126,23 @@ def spec_next_2(_fixt_next):
 ##
 _prev = "dummy for doxygen styling"
 
+
 @pytest.fixture
 def _fixt_prev():
-    r"""
-    """
+    r""" """
     parent = Element({}, "PARENT", {})
     parent._add_child(Element({}, "FIRST", {}))
     parent._add_child(Element({}, "SECOND", {}))
     parent._add_child(Element({}, "LAST", {}))
     return parent
 
+
 def spec_prev_1(_fixt_prev):
     r"""
     [\@spec prev.1] returns prev element ordered at next to self.
     """
     assert _fixt_prev.children[-1].prev().type == "SECOND"
+
 
 def spec_prev_2(_fixt_prev):
     r"""
@@ -146,15 +156,16 @@ def spec_prev_2(_fixt_prev):
 ## [\@spec get_parent] returns parent element.
 _get_parent = "dummy for doxygen styling"
 
+
 @pytest.fixture
 def _fixt_get_parent():
-    r"""
-    """
+    r""" """
     parent = Element({}, "PARENT", {})
     parent._add_child(Element({}, "FIRST", {}))
     parent._add_child(Element({}, "SECOND", {}))
     parent._add_child(Element({}, "LAST", {}))
     return parent
+
 
 def spec_get_parent_1(_fixt_get_parent):
     r"""
@@ -162,6 +173,7 @@ def spec_get_parent_1(_fixt_get_parent):
     """
     target = _fixt_get_parent
     assert target.children[0].get_parent() is target
+
 
 def spec_get_parent_2(_fixt_get_parent):
     r"""
@@ -176,15 +188,16 @@ def spec_get_parent_2(_fixt_get_parent):
 ## [\@spec get_children] returns new copied list of child elements.
 _get_children = "dummy for doxygen styling"
 
+
 @pytest.fixture
 def _fixt_get_children():
-    r"""
-    """
+    r""" """
     parent = Element({}, "PARENT", {})
     parent._add_child(Element({}, "FIRST", {}))
     parent._add_child(Element({}, "SECOND", {}))
     parent._add_child(Element({}, "LAST", {}))
     return parent
+
 
 def spec_get_children_1(_fixt_get_children):
     r"""
@@ -200,15 +213,16 @@ def spec_get_children_1(_fixt_get_children):
 ## [\@spec get_first_child] returns the first child elements.
 _get_first_child = "dummy for doxygen styling"
 
+
 @pytest.fixture
 def _fixt_get_first_child():
-    r"""
-    """
+    r""" """
     parent = Element({}, "PARENT", {})
     parent._add_child(Element({}, "FIRST", {}))
     parent._add_child(Element({}, "SECOND", {}))
     parent._add_child(Element({}, "LAST", {}))
     return parent
+
 
 def spec_get_first_child_1(_fixt_get_first_child):
     r"""
@@ -217,11 +231,12 @@ def spec_get_first_child_1(_fixt_get_first_child):
     target = _fixt_get_first_child
     assert target.get_first_child() is target.children[0]
 
+
 def spec_get_first_child_2():
     r"""
     [\@Spec get_first_child.2] get_first_child() returns None if child is not exist.
     """
-    target = Element({}, 'TYPE', {})
+    target = Element({}, "TYPE", {})
 
     assert target.get_first_child() is None
 
@@ -231,13 +246,14 @@ def spec_get_first_child_2():
 ## [\@spec get_type] returns element type.
 _get_type = "dummy for doxygen styling"
 
+
 def spec_get_type_1():
     r"""
     [\@Spec get_type.1] get_type() returns element type.
     """
-    target = Element({}, 'TYPE', {})
+    target = Element({}, "TYPE", {})
 
-    assert target.get_type() is 'TYPE'
+    assert target.get_type() is "TYPE"
 
 
 ## @}
@@ -245,110 +261,65 @@ def spec_get_type_1():
 ## [\@spec get_prop] returns a property of the element specified by key string.
 
 _data_get_prop = {
-    "Case: No Content":  (
-        { 't': 'Space' },
-        'Space',
-        {
-            'Space': {
-                'content': None
-            }
-        },
-        [['TEST', None]]
-    ),
+    "Case: No Content": ({"t": "Space"}, "Space", {"Space": {"content": None}}, [["TEST", None]]),
     "Case: No Structure(Dict)": (
-        { 't': 'Str', 'c': 'String' },
-        'Str',
-        {
-            'Str': {
-                'content':  {
-                    'key':  'c',
-                    'type': 'Text'
-                }
-            }
-        },
-        [['TEST', None]]
+        {"t": "Str", "c": "String"},
+        "Str",
+        {"Str": {"content": {"key": "c", "type": "Text"}}},
+        [["TEST", None]],
     ),
     "Case: No Structure(Array)": (
         [],
-        'BlockList',
+        "BlockList",
         {
-            'BlockList':  {
-                'content':  {
-                    'type': '[Block]'
-                }
-            },
+            "BlockList": {"content": {"type": "[Block]"}},
         },
-        [['TEST', None]]
+        [["TEST", None]],
     ),
-    'Case With Structure(Dict)': (
-        { 't': 'RawInline', 'c': ["html", "<!-- HELLO -->"] },
-        'RawInline',
+    "Case With Structure(Dict)": (
+        {"t": "RawInline", "c": ["html", "<!-- HELLO -->"]},
+        "RawInline",
         {
-            'RawInline':  {
-                'content':  {
-                    'key':      'c',
+            "RawInline": {
+                "content": {
+                    "key": "c",
                 },
-                'struct': {
-                    'Format': 0,
-                    'Text': {
-                        'index': 1
-                    }
-                }
+                "struct": {"Format": 0, "Text": {"index": 1}},
             },
         },
-        [
-            ['TEST', None],
-            ['Format', 'html'],
-            ['Text', '<!-- HELLO -->']
-        ]
+        [["TEST", None], ["Format", "html"], ["Text", "<!-- HELLO -->"]],
     ),
-    'Case With Structure(Array)': (
-        ['TERM', 'DESCRIPTION'],
-        'DefinitionItem',
+    "Case With Structure(Array)": (
+        ["TERM", "DESCRIPTION"],
+        "DefinitionItem",
         {
-            'DefinitionItem':  {
-                'content': {'key': None},
-                'struct': {
-                    'Term': 0,
-                    'Description':  {
-                        'index': 1
-                    }
-                }
+            "DefinitionItem": {
+                "content": {"key": None},
+                "struct": {"Term": 0, "Description": {"index": 1}},
             },
         },
-        [
-            ['TEST', None],
-            ['Term', 'TERM'],
-            ['Description', 'DESCRIPTION']
-        ]
+        [["TEST", None], ["Term", "TERM"], ["Description", "DESCRIPTION"]],
     ),
-    'Case With Structure(Pandoc)': (
-        {"pandoc-api-version":[1,22],"meta":{},"blocks":[]},
-        'Pandoc',
+    "Case With Structure(Pandoc)": (
+        {"pandoc-api-version": [1, 22], "meta": {}, "blocks": []},
+        "Pandoc",
         {
-            'Pandoc':  {
+            "Pandoc": {
                 # 'class':  BlockList,
-                'content':  {
-                    'key':      None,
-                    'main':     'blocks',
-                    'type':     '[Block]'
-                },
-                'struct': {
-                    'Version':  'pandoc-api-version',
-                    'Meta':     'meta',
-                    'Blocks':   'blocks'
-                }
+                "content": {"key": None, "main": "blocks", "type": "[Block]"},
+                "struct": {"Version": "pandoc-api-version", "Meta": "meta", "Blocks": "blocks"},
             },
         },
-        [
-            ['Version', [1,22]],
-            ['Meta', {}]
-        ]
-    )
+        [["Version", [1, 22]], ["Meta", {}]],
+    ),
 }
 
-@pytest.mark.parametrize("pan_elem, elem_type, TYPE_DEFS, TESTS",
-                         list(_data_get_prop.values()), ids=list(_data_get_prop.keys()))
+
+@pytest.mark.parametrize(
+    "pan_elem, elem_type, TYPE_DEFS, TESTS",
+    list(_data_get_prop.values()),
+    ids=list(_data_get_prop.keys()),
+)
 def spec_get_prop_1(pan_elem, elem_type, TYPE_DEFS, TESTS):
     r"""
     [\@Spec get_prop.1] get_prop() returns a property of the element specified by key string.
@@ -365,62 +336,39 @@ def spec_get_prop_1(pan_elem, elem_type, TYPE_DEFS, TESTS):
 ## [\@spec get_attr] returns a attrbute of the element specified by key string.
 
 _data_get_attr = {
-    'Case with Attr(Dict)': (
-        { 't': 'CodeBlock', 'c': [['', ['c'], [['ATTR', 'OK']]], 'main()'] },
-        'CodeBlock',
-        {
-            'CodeBlock':  {
-                'content':  {
-                    'key':      'c'
-                },
-                'struct': {
-                    'Attr':     0,
-                    'Text':     1
-                }
-            }
-        },
-        [
-            ['TEST', None],
-            ['ATTR', 'OK'],
-            [('ATTR', 'TEST'), 'OK'],
-            [('TEST', 'ATTR'), 'OK']
-        ]
+    "Case with Attr(Dict)": (
+        {"t": "CodeBlock", "c": [["", ["c"], [["ATTR", "OK"]]], "main()"]},
+        "CodeBlock",
+        {"CodeBlock": {"content": {"key": "c"}, "struct": {"Attr": 0, "Text": 1}}},
+        [["TEST", None], ["ATTR", "OK"], [("ATTR", "TEST"), "OK"], [("TEST", "ATTR"), "OK"]],
     ),
-    'Case with Attr(Array)': (
-        [["", [], [['ATTR', 'OK']]], {"t": "AlignDefault"}, 1, 1,[] ],
-        'Cell',
+    "Case with Attr(Array)": (
+        [["", [], [["ATTR", "OK"]]], {"t": "AlignDefault"}, 1, 1, []],
+        "Cell",
         {
-            'Cell':  {              # Cell Attr Alignment RowSpan ColSpan [Block]
-                'content':  { },
-                'struct': {
-                    'Attr':         0,
-                    'Alignment': {
-                        'offset':   1
+            "Cell": {  # Cell Attr Alignment RowSpan ColSpan [Block]
+                "content": {},
+                "struct": {
+                    "Attr": 0,
+                    "Alignment": {"offset": 1},
+                    "RowSpan": {"offset": 2},
+                    "ColSpan": {
+                        "offset": 3,
                     },
-                    'RowSpan': {
-                        'offset':   2
-                    },
-                    'ColSpan': {
-                        'offset':   3,
-                    },
-                    '[Block]':  {
-                        'offset':   4,
-                        'type':     '[Block]'
-                    }
-                }
+                    "[Block]": {"offset": 4, "type": "[Block]"},
+                },
             }
         },
-        [
-            ['TEST', None],
-            ['ATTR', 'OK'],
-            [('ATTR', 'TEST'), 'OK'],
-            [('TEST', 'ATTR'), 'OK']
-        ]
-    )
+        [["TEST", None], ["ATTR", "OK"], [("ATTR", "TEST"), "OK"], [("TEST", "ATTR"), "OK"]],
+    ),
 }
 
-@pytest.mark.parametrize("pan_elem, elem_type, TYPE_DEFS, TESTS",
-                         list(_data_get_attr.values()), ids=list(_data_get_attr.keys()))
+
+@pytest.mark.parametrize(
+    "pan_elem, elem_type, TYPE_DEFS, TESTS",
+    list(_data_get_attr.values()),
+    ids=list(_data_get_attr.keys()),
+)
 def spec_get_attr_1(pan_elem, elem_type, TYPE_DEFS, TESTS):
     r"""
     [\@Spec get_attr.1] returns a attrbute of the element specified by key string.
@@ -436,84 +384,55 @@ def spec_get_attr_1(pan_elem, elem_type, TYPE_DEFS, TESTS):
 ## [\@spec hascontent] returns True if self has content(s) or False if self is typed but has no content.
 
 _data_hascontent = {
-    "Case: No Content dict":  (
-        { 't': 'Space' },
-        'Space',
-        {
-            'Space': {
-                'content': None
-            }
-        },
-        False
-    ),
+    "Case: No Content dict": ({"t": "Space"}, "Space", {"Space": {"content": None}}, False),
     "Case: Content is None(Dict)": (
-        { 't': 'Str', 'c': 'String' },
-        'Str',
-        {
-            'Str': {
-                'content':  None
-            }
-        },
-        False
+        {"t": "Str", "c": "String"},
+        "Str",
+        {"Str": {"content": None}},
+        False,
     ),
     "Case: Content is None(Array)": (
         [],
-        'BlockList',
+        "BlockList",
         {
-            'BlockList':  {
-                'content':  None
-            },
+            "BlockList": {"content": None},
         },
-        False
+        False,
     ),
     "Case: has Content(Dict)": (
-        { 't': 'Str', 'c': 'String' },
-        'Str',
-        {
-            'Str': {
-                'content':  {
-                    'key':  'c',
-                    'type': 'Text'
-                }
-            }
-        },
-        True
+        {"t": "Str", "c": "String"},
+        "Str",
+        {"Str": {"content": {"key": "c", "type": "Text"}}},
+        True,
     ),
     "Case: has Content(Array)": (
         [],
-        'BlockList',
+        "BlockList",
         {
-            'BlockList':  {
-                'content':  {
-                    'type': '[Block]'
-                }
-            },
+            "BlockList": {"content": {"type": "[Block]"}},
         },
-        True
+        True,
     ),
-    'Case has Content(Pandoc)': (
-        {"pandoc-api-version":[1,22],"meta":{},"blocks":[]},
-        'Pandoc',
+    "Case has Content(Pandoc)": (
+        {"pandoc-api-version": [1, 22], "meta": {}, "blocks": []},
+        "Pandoc",
         {
-            'Pandoc':  {
+            "Pandoc": {
                 # 'class':  BlockList,
-                'content':  {
-                    'key':      None,
-                    'main':     'blocks',
-                    'type':     '[Block]'
-                },
-                'struct': {
-                    'Version':  'pandoc-api-version',
-                    'Meta':     'meta',
-                    'Blocks':   'blocks'
-                }
+                "content": {"key": None, "main": "blocks", "type": "[Block]"},
+                "struct": {"Version": "pandoc-api-version", "Meta": "meta", "Blocks": "blocks"},
             },
         },
-        True
-    )
+        True,
+    ),
 }
 
-@pytest.mark.parametrize("pan_elem, elem_type, TYPE_DEFS, expect", list(_data_hascontent.values()), ids=list(_data_hascontent.keys()))
+
+@pytest.mark.parametrize(
+    "pan_elem, elem_type, TYPE_DEFS, expect",
+    list(_data_hascontent.values()),
+    ids=list(_data_hascontent.keys()),
+)
 def spec_hascontent_1(pan_elem, elem_type, TYPE_DEFS, expect):
     r"""
     [\@Spec hascontent.1] hascontent() returns True if self has content(s) or False if self is typed but has no content.
@@ -528,118 +447,75 @@ def spec_hascontent_1(pan_elem, elem_type, TYPE_DEFS, expect):
 ## [\@spec get_content] returns main content data in the element.
 
 _data_get_content = {
-    "Case: No Content dict":  (
-        { 't': 'Space' },
-        'Space',
-        {
-            'Space': {
-                'content': None
-            }
-        },
-        None
-    ),
+    "Case: No Content dict": ({"t": "Space"}, "Space", {"Space": {"content": None}}, None),
     "Case: has Content(Dict)": (
-        { 't': 'Str', 'c': 'String' },
-        'Str',
-        {
-            'Str': {
-                'content':  {
-                    'key':  'c',
-                    'type': 'Text'
-                }
-            }
-        },
-        'String'
+        {"t": "Str", "c": "String"},
+        "Str",
+        {"Str": {"content": {"key": "c", "type": "Text"}}},
+        "String",
     ),
     "Case: has Content(Array)": (
         [],
-        'BlockList',
+        "BlockList",
         {
-            'BlockList':  {
-                'content':  {
-                    'type': '[Block]'
-                }
-            },
+            "BlockList": {"content": {"type": "[Block]"}},
         },
-        []
+        [],
     ),
     "Case: has Content(Array) with key": (
         [],
-        'BlockList',
+        "BlockList",
         {
-            'BlockList':  {
-                'content':  {
-                    'key':  None,
-                    'type': '[Block]'
-                }
-            },
+            "BlockList": {"content": {"key": None, "type": "[Block]"}},
         },
-        []
+        [],
     ),
     "Case: has Main Content(Dict)": (
-        { 't': 'Code', 'c': [['', [], []], 'CodeString'] },
-        'Code',
+        {"t": "Code", "c": [["", [], []], "CodeString"]},
+        "Code",
         {
-            'Code':  {
+            "Code": {
                 # CodeBlock Attr Text
                 # - Code block (literal) with attributes
-                'content':  {
-                    'key':      'c',
-                    'main':     1,
-                    'type':     'Text'
-                },
-                'struct': {
-                    'Attr':     0,
-                    'Text':     1
-                }
+                "content": {"key": "c", "main": 1, "type": "Text"},
+                "struct": {"Attr": 0, "Text": 1},
             }
         },
-        'CodeString'
+        "CodeString",
     ),
     "Case: has Main Content(Array)": (
-        [['', [], []], '[RowData]'],
-        'Row',
+        [["", [], []], "[RowData]"],
+        "Row",
         {
-            'Row':  {
+            "Row": {
                 # Row Attr [Cell]
                 # A table row.
-                'content':  {
-                    'key':      None,
-                    'main':     1,
-                    'type':     '[Cell]'
-                },
-                'struct': {
-                    'Attr':     0,
-                    'Cells':    1
-                }
+                "content": {"key": None, "main": 1, "type": "[Cell]"},
+                "struct": {"Attr": 0, "Cells": 1},
             }
         },
-        '[RowData]'
+        "[RowData]",
     ),
-    'Case has Main Content(Pandoc)': (
-        {"pandoc-api-version":[1,22],"meta":{},"blocks":"[BLOCK]"},
-        'Pandoc',
+    "Case has Main Content(Pandoc)": (
+        {"pandoc-api-version": [1, 22], "meta": {}, "blocks": "[BLOCK]"},
+        "Pandoc",
         {
-            'Pandoc':  {
+            "Pandoc": {
                 # 'class':  BlockList,
-                'content':  {
-                    'key':      None,
-                    'main':     'blocks',
-                    'type':     '[Block]'
-                },
-                'struct': {
-                    'Version':  'pandoc-api-version',
-                    'Meta':     'meta',
-                    'Blocks':   'blocks'
-                }
+                "content": {"key": None, "main": "blocks", "type": "[Block]"},
+                "struct": {"Version": "pandoc-api-version", "Meta": "meta", "Blocks": "blocks"},
             },
         },
-        "[BLOCK]"
-    )
+        "[BLOCK]",
+    ),
 }
 
-@pytest.mark.parametrize("pan_elem, elem_type, TYPE_DEFS, expect",
-                         list(_data_get_content.values()), ids=list(_data_get_content.keys()))
+
+@pytest.mark.parametrize(
+    "pan_elem, elem_type, TYPE_DEFS, expect",
+    list(_data_get_content.values()),
+    ids=list(_data_get_content.keys()),
+)
 def spec_get_content_1(pan_elem, elem_type, TYPE_DEFS, expect):
     r"""
     [\@Spec get_content.1] get_content() returns main content data in the element.
@@ -654,118 +530,75 @@ def spec_get_content_1(pan_elem, elem_type, TYPE_DEFS, expect):
 ## [\@spec get_content_type] returns type of main content in the element.
 
 _data_get_content_type = {
-    "Case: No Content dict":  (
-        { 't': 'Space' },
-        'Space',
-        {
-            'Space': {
-                'content': None
-            }
-        },
-        None
-    ),
+    "Case: No Content dict": ({"t": "Space"}, "Space", {"Space": {"content": None}}, None),
     "Case: has Content(Dict)": (
-        { 't': 'Str', 'c': 'String' },
-        'Str',
-        {
-            'Str': {
-                'content':  {
-                    'key':  'c',
-                    'type': 'Text'
-                }
-            }
-        },
-        'Text'
+        {"t": "Str", "c": "String"},
+        "Str",
+        {"Str": {"content": {"key": "c", "type": "Text"}}},
+        "Text",
     ),
     "Case: has Content(Array)": (
         [],
-        'BlockList',
+        "BlockList",
         {
-            'BlockList':  {
-                'content':  {
-                    'type': '[Block]'
-                }
-            },
+            "BlockList": {"content": {"type": "[Block]"}},
         },
-        '[Block]'
+        "[Block]",
     ),
     "Case: has Content(Array) with key": (
         [],
-        'BlockList',
+        "BlockList",
         {
-            'BlockList':  {
-                'content':  {
-                    'key':  None,
-                    'type': '[Block]'
-                }
-            },
+            "BlockList": {"content": {"key": None, "type": "[Block]"}},
         },
-        '[Block]'
+        "[Block]",
     ),
     "Case: has Main Content(Dict)": (
-        { 't': 'Code', 'c': [['', [], []], 'CodeString'] },
-        'Code',
+        {"t": "Code", "c": [["", [], []], "CodeString"]},
+        "Code",
         {
-            'Code':  {
+            "Code": {
                 # CodeBlock Attr Text
                 # - Code block (literal) with attributes
-                'content':  {
-                    'key':      'c',
-                    'main':     1,
-                    'type':     'Text'
-                },
-                'struct': {
-                    'Attr':     0,
-                    'Text':     1
-                }
+                "content": {"key": "c", "main": 1, "type": "Text"},
+                "struct": {"Attr": 0, "Text": 1},
             }
         },
-        'Text'
+        "Text",
     ),
     "Case: has Main Content(Array)": (
-        [['', [], []], '[RowData]'],
-        'Row',
+        [["", [], []], "[RowData]"],
+        "Row",
         {
-            'Row':  {
+            "Row": {
                 # Row Attr [Cell]
                 # A table row.
-                'content':  {
-                    'key':      None,
-                    'main':     1,
-                    'type':     '[Cell]'
-                },
-                'struct': {
-                    'Attr':     0,
-                    'Cells':    1
-                }
+                "content": {"key": None, "main": 1, "type": "[Cell]"},
+                "struct": {"Attr": 0, "Cells": 1},
             }
         },
-        '[Cell]'
+        "[Cell]",
     ),
-    'Case has Main Content(Pandoc)': (
-        {"pandoc-api-version":[1,22],"meta":{},"blocks":"[BLOCK]"},
-        'Pandoc',
+    "Case has Main Content(Pandoc)": (
+        {"pandoc-api-version": [1, 22], "meta": {}, "blocks": "[BLOCK]"},
+        "Pandoc",
         {
-            'Pandoc':  {
+            "Pandoc": {
                 # 'class':  BlockList,
-                'content':  {
-                    'key':      None,
-                    'main':     'blocks',
-                    'type':     '[Block]'
-                },
-                'struct': {
-                    'Version':  'pandoc-api-version',
-                    'Meta':     'meta',
-                    'Blocks':   'blocks'
-                }
+                "content": {"key": None, "main": "blocks", "type": "[Block]"},
+                "struct": {"Version": "pandoc-api-version", "Meta": "meta", "Blocks": "blocks"},
             },
         },
-        '[Block]'
-    )
+        "[Block]",
+    ),
 }
 
-@pytest.mark.parametrize("pan_elem, elem_type, TYPE_DEFS, expect",
-                         list(_data_get_content_type.values()), ids=list(_data_get_content_type.keys()))
+
+@pytest.mark.parametrize(
+    "pan_elem, elem_type, TYPE_DEFS, expect",
+    list(_data_get_content_type.values()),
+    ids=list(_data_get_content_type.keys()),
+)
 def spec_get_content_type_1(pan_elem, elem_type, TYPE_DEFS, expect):
     r"""
     [\@Spec get_content_type.1] get_content_type() returns type of main content in the element.
@@ -780,17 +613,16 @@ def spec_get_content_type_1(pan_elem, elem_type, TYPE_DEFS, expect):
 ## [\@spec walk] Walk through all elements of the tree and call out given functions.
 _walk = "dummy for doxygen styling"
 
+
 @pytest.fixture
 def _fixt_walk():
-    r"""
-    """
+    r""" """
     parent = Element({}, "PARENT", {})
     parent._add_child(Element({}, "FIRST", {}))
-    parent._add_child(
-        Element({}, "SECOND", {})._add_child(Element({}, "LAST", {}))
-    )
+    parent._add_child(Element({}, "SECOND", {})._add_child(Element({}, "LAST", {})))
 
     return parent
+
 
 def spec_walk_1(_fixt_walk, mocker):
     r"""
@@ -808,6 +640,7 @@ def spec_walk_1(_fixt_walk, mocker):
     assert args[1] == [(target.children[0], None), {}]
     assert args[2] == [(target.children[1], None), {}]
     assert args[3] == [(target.children[1].children[0], None), {}]
+
 
 def spec_walk_2(_fixt_walk, mocker):
     r"""
@@ -829,6 +662,7 @@ def spec_walk_2(_fixt_walk, mocker):
     assert args[5] == [(target.children[1].children[0], None), {}]
     assert args[6] == [(target.children[1], None), {}]
     assert args[7] == [(target, None), {}]
+
 
 def spec_walk_3(_fixt_walk, mocker):
     r"""
@@ -852,10 +686,12 @@ def spec_walk_3(_fixt_walk, mocker):
     assert args[6] == [(target.children[1], opt), {}]
     assert args[7] == [(target, opt), {}]
 
+
 ## @}
 ## @{ @name get_parent_item(self, ignore=['Div', 'Span'])
 ## [\@spec get_parent_item] returns parent item.
 _get_parent_item = "dummy for doxygen styling"
+
 
 def spec_get_parent_item_1():
     r"""
@@ -869,6 +705,7 @@ def spec_get_parent_item_1():
     target = parent.get_first_child().get_first_child().get_first_child()
 
     assert target.get_parent_item() is parent
+
 
 def spec_get_parent_item_2():
     r"""
@@ -889,10 +726,10 @@ def spec_get_parent_item_2():
 ## [\@spec get_child_items] returns new copied list of child items.
 _get_child_items = "dummy for doxygen styling"
 
+
 @pytest.fixture
 def _fixt_get_child_items():
-    r"""
-    """
+    r""" """
     parent = Element({}, "PARENT", {})
 
     parent._add_child(Element({}, "Div", {}))
@@ -907,6 +744,7 @@ def _fixt_get_child_items():
 
     return parent
 
+
 def spec_get_child_items_1(_fixt_get_child_items):
     r"""
     [\@Spec get_child_items.1] get_child_items() returns list of child items.
@@ -918,29 +756,23 @@ def spec_get_child_items_1(_fixt_get_child_items):
     for item in child_items:
         items.append(item.type)
 
-    assert items == [
-        'Div_CHILD',
-        'Span_Span_CHILD1',
-        'Span_Span_CHILD2',
-        'CHILD'
-    ]
+    assert items == ["Div_CHILD", "Span_Span_CHILD1", "Span_Span_CHILD2", "CHILD"]
+
 
 def spec_get_child_items_2(_fixt_get_child_items):
     r"""
     [\@Spec get_child_items.2] get_child_items() returns **new copied** list of child elements.
     """
     target = _fixt_get_child_items
-    target.children[0].children = None              # "Div".children = None
-    target.children[1].children[0].children = []    # "Span_Span".children = []
+    target.children[0].children = None  # "Div".children = None
+    target.children[1].children[0].children = []  # "Span_Span".children = []
 
     child_items = target.get_child_items()
     items = []
     for item in child_items:
         items.append(item.type)
 
-    assert items == [
-        'CHILD'
-    ]
+    assert items == ["CHILD"]
 
 
 ## @}
@@ -949,10 +781,10 @@ def spec_get_child_items_2(_fixt_get_child_items):
 ##
 _next_item = "dummy for doxygen styling"
 
+
 @pytest.fixture
 def _fixt_next_item():
-    r"""
-    """
+    r""" """
     parent = Element({}, "PARENT", {})
 
     parent._add_child(Element({}, "Div", {}))
@@ -967,18 +799,20 @@ def _fixt_next_item():
 
     return parent
 
+
 def spec_next_item_1(_fixt_next_item):
     r"""
     [\@spec next_item.1] returns next item ordered at next to self.
     """
-    target = _fixt_next_item.children[0].children[0]    # "Div_CHILD"
+    target = _fixt_next_item.children[0].children[0]  # "Div_CHILD"
     assert target.next_item().type == "Span_Span_CHILD1"
+
 
 def spec_next_item_2(_fixt_next_item):
     r"""
     [\@spec next_item.2] returns None if next item is not existent.
     """
-    target = _fixt_next_item.children[1].children[0].children[1]    # "Span_Span_CHILD2"
+    target = _fixt_next_item.children[1].children[0].children[1]  # "Span_Span_CHILD2"
     assert target.next_item() == None
 
 
@@ -988,10 +822,10 @@ def spec_next_item_2(_fixt_next_item):
 ##
 _prev_item = "dummy for doxygen styling"
 
+
 @pytest.fixture
 def _fixt_prev_item():
-    r"""
-    """
+    r""" """
     parent = Element({}, "PARENT", {})
 
     parent._add_child(Element({}, "Div", {}))
@@ -1006,18 +840,20 @@ def _fixt_prev_item():
 
     return parent
 
+
 def spec_prev_item_1(_fixt_prev_item):
     r"""
     [\@spec prev_item.1] returns prev item ordered at next to self.
     """
-    target = _fixt_prev_item.children[2].children[0]    # "Div_CHILD"
+    target = _fixt_prev_item.children[2].children[0]  # "Div_CHILD"
     assert target.prev_item().type == "Span_Span_CHILD2"
+
 
 def spec_prev_item_2(_fixt_prev_item):
     r"""
     [\@spec prev_item.2] returns None if prev item is not existent.
     """
-    target = _fixt_prev_item.children[1].children[0].children[0]    # "Span_Span_CHILD1"
+    target = _fixt_prev_item.children[1].children[0].children[0]  # "Span_Span_CHILD1"
     assert target.prev_item() == None
 
 
@@ -1026,10 +862,10 @@ def spec_prev_item_2(_fixt_prev_item):
 ## [\@spec get_first_item] returns the first child elements.
 _get_first_item = "dummy for doxygen styling"
 
+
 @pytest.fixture
 def _fixt_get_first_item():
-    r"""
-    """
+    r""" """
     parent = Element({}, "PARENT", {})
     parent._add_child(Element({}, "Div", {}))
     parent._add_child(Element({}, "Span", {}))
@@ -1037,45 +873,43 @@ def _fixt_get_first_item():
     parent.children[1]._add_child(Element({}, "Span_CHILD2", {}))
     return parent
 
+
 def spec_get_first_item_1(_fixt_get_first_item):
     r"""
     [\@Spec get_first_item.1] get_first_item() returns the first child item.
     """
-    assert _fixt_get_first_item.get_first_item().type == 'Span_CHILD1'
+    assert _fixt_get_first_item.get_first_item().type == "Span_CHILD1"
+
 
 def spec_get_first_item_2(_fixt_get_first_item):
     r"""
     [\@Spec get_first_item.2] get_first_item() returns None if child is not exist.
     """
-    assert _fixt_get_first_item.children[0].get_first_item() is None    # "Div"
+    assert _fixt_get_first_item.children[0].get_first_item() is None  # "Div"
 
-    _fixt_get_first_item.children[1].children[0].children = None    # "Span_CHILD1"
+    _fixt_get_first_item.children[1].children[0].children = None  # "Span_CHILD1"
     assert _fixt_get_first_item.children[1].children[0].get_first_item() is None
+
 
 ## @}
 ## @{ @name walk_items(self, action, post_action=None, opt=None, ignore=['Div', 'Span'])
 ## [\@spec walk_items] Walk through all items of the tree and call out given functions.
 _walk_items = "dummy for doxygen styling"
 
+
 @pytest.fixture
 def _fixt_walk_items():
-    r"""
-    """
+    r""" """
     parent = Element({}, "PARENT", {})
-    parent._add_child(
-        Element({}, "Div", {})._add_child(
-            Element({}, "FIRST", {})
-        )
-    )
+    parent._add_child(Element({}, "Div", {})._add_child(Element({}, "FIRST", {})))
     parent._add_child(
         Element({}, "SECOND", {})._add_child(
-            Element({}, "Span", {})._add_child(
-                Element({}, "LAST", {})
-            )
+            Element({}, "Span", {})._add_child(Element({}, "LAST", {}))
         )
     )
 
     return parent
+
 
 def spec_walk_items_1(_fixt_walk_items, mocker):
     r"""
@@ -1090,9 +924,10 @@ def spec_walk_items_1(_fixt_walk_items, mocker):
 
     assert action_mock.call_count == 4
     assert args[0] == [(target, None), {}]
-    assert args[1] == [(target.children[0].children[0], None), {}]              # First
-    assert args[2] == [(target.children[1], None), {}]                          # Second
+    assert args[1] == [(target.children[0].children[0], None), {}]  # First
+    assert args[2] == [(target.children[1], None), {}]  # Second
     assert args[3] == [(target.children[1].children[0].children[0], None), {}]  # Last
+
 
 def spec_walk_items_2(_fixt_walk_items, mocker):
     r"""
@@ -1114,6 +949,7 @@ def spec_walk_items_2(_fixt_walk_items, mocker):
     assert args[5] == [(target.children[1].children[0].children[0], None), {}]
     assert args[6] == [(target.children[1], None), {}]
     assert args[7] == [(target, None), {}]
+
 
 def spec_walk_items_3(_fixt_walk_items, mocker):
     r"""
@@ -1137,6 +973,7 @@ def spec_walk_items_3(_fixt_walk_items, mocker):
     assert args[6] == [(target.children[1], opt), {}]
     assert args[7] == [(target, opt), {}]
 
+
 def spec_walk_items_4(_fixt_walk_items, mocker):
     r"""
     [\@Spec walk_items.4] doesn't call if self.type in ignore_list.
@@ -1149,6 +986,7 @@ def spec_walk_items_4(_fixt_walk_items, mocker):
     args = action_mock.call_args_list
 
     assert action_mock.call_count == 1
-    assert args[0] == [(target.children[0], None), {}]      # First
+    assert args[0] == [(target.children[0], None), {}]  # First
+
 
 ## @}

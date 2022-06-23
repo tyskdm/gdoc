@@ -22,10 +22,11 @@ r"""! Software detailed design of 'Inline' class written in pytest.
 ### Things to do
 
 """
-import pytest
 import inspect
-from gdoc.lib.pandocast.pandocast import Element, Inline
 
+import pytest
+
+from gdoc.lib.pandocast.pandocast import Element, Inline
 
 ##
 ## @{ @name AS[__init__].r1 | creates a new instance.
@@ -37,47 +38,37 @@ def spec___init___r1_1():
 
 
 data___init___r1_2 = {
-    "Case: No Content":  (
-        { 't': 'Space' },
-        'Space'
-    ),
-    "Case: No Structure(Dict)": (
-        { 't': 'Str', 'c': 'String' },
-        'Str'
-    ),
+    "Case: No Content": ({"t": "Space"}, "Space"),
+    "Case: No Structure(Dict)": ({"t": "Str", "c": "String"}, "Str"),
 }
 
-@pytest.mark.parametrize("element, type", list(data___init___r1_2.values()), ids=list(data___init___r1_2.keys()))
+
+@pytest.mark.parametrize(
+    "element, type", list(data___init___r1_2.values()), ids=list(data___init___r1_2.keys())
+)
 ## [\@spec __init___r1_2] | def __init__(self, pan_elem, elem_type, parent=None):
 def spec___init___r1_2(element, type):
 
     target = Inline(element, type)
 
-    assert isinstance(target, Inline) 
+    assert isinstance(target, Inline)
     assert isinstance(target, Element)
 
 
-
 data___init___r1_3 = {
-    "Case: No Content":  (
-        { 't': 'Space' },
-        'Space',
-        ' '
-    ),
-    "Case: No Structure": (
-        { 't': 'Str', 'c': 'String' },
-        'Str',
-        'String'
-    ),
+    "Case: No Content": ({"t": "Space"}, "Space", " "),
+    "Case: No Structure": ({"t": "Str", "c": "String"}, "Str", "String"),
     "Case: With Structure(Nested)": (
-        {'t': 'Strong', 'c': [{'t': 'Str', 'c': 'Strong'}, {'t': 'Str', 'c': 'String'}]},
-        'Strong',
-        'StrongString'
+        {"t": "Strong", "c": [{"t": "Str", "c": "Strong"}, {"t": "Str", "c": "String"}]},
+        "Strong",
+        "StrongString",
     ),
 }
 
 
-@pytest.mark.parametrize("element, type, expect", list(data___init___r1_3.values()), ids=list(data___init___r1_3.keys()))
+@pytest.mark.parametrize(
+    "element, type, expect", list(data___init___r1_3.values()), ids=list(data___init___r1_3.keys())
+)
 ## [\@spec __init___r1_3] | def __init__(self, pan_elem, elem_type, parent=None):
 def spec___init___r1_3(element, type, expect):
 

@@ -22,10 +22,11 @@ r"""! Software detailed design of 'Element' class written in pytest.
 - [ ] TODO: remove getFirstChild() after replacing it to get_first_child() in all modules.
 
 """
-import pytest
 import inspect
-from gdoc.lib.pandocast.pandocast import Element
 
+import pytest
+
+from gdoc.lib.pandocast.pandocast import Element
 
 ##
 ## @{ @name THIS[__init__] | creates a new instance.
@@ -40,10 +41,10 @@ def spec___init___1():
 def spec___init___2():
     element = {}
 
-    target = Element(element, 'TYPE', type_def={})
+    target = Element(element, "TYPE", type_def={})
 
     assert target.pan_element is element
-    assert target.type == 'TYPE'
+    assert target.type == "TYPE"
     assert target.parent is None
     assert target.children == []
 
@@ -62,8 +63,8 @@ def spec___init___3():
 
 ## [\@spec _append_child_1] | append a Element object as a child.
 def spec__append_child_1():
-    target = Element({}, 'PARENT', type_def={})
-    child = Element({}, 'CHILD', type_def={})
+    target = Element({}, "PARENT", type_def={})
+    child = Element({}, "CHILD", type_def={})
     target._append_child(child)
 
     assert target.children[0] is child
@@ -72,6 +73,7 @@ def spec__append_child_1():
 
 ## @}
 
+
 @pytest.fixture
 def fixture_Element():
     parent = Element({}, "PARENT", type_def={})
@@ -79,6 +81,7 @@ def fixture_Element():
     parent._append_child(Element({}, "SECOND", type_def={}))
     parent._append_child(Element({}, "LAST", type_def={}))
     return parent
+
 
 ##
 ## @{ @name RQ.r1.1 | next() returns an element ordered at next to self.
@@ -146,7 +149,7 @@ def spec_Element_r1_5_1(fixture_Element):
 ## [\@Spec Element_r1_5_2] get_first_child() returns None if child is not exist.
 def spec_Element_r1_5_2():
 
-    target = Element({}, 'TYPE', type_def={})
+    target = Element({}, "TYPE", type_def={})
 
     assert target.get_first_child() is None
 
@@ -158,9 +161,9 @@ def spec_Element_r1_5_2():
 ## [\@Spec Element_r1_6_1] get_type() returns element type.
 def spec_Element_r1_6_1():
 
-    target = Element({}, 'TYPE', type_def={})
+    target = Element({}, "TYPE", type_def={})
 
-    assert target.get_type() is 'TYPE'
+    assert target.get_type() is "TYPE"
 
 
 ## @}
@@ -168,87 +171,53 @@ def spec_Element_r1_6_1():
 ## -------------------------------------------------------------------------
 
 data_Element_r1_7 = {
-    "Case: No Content":  (
-        { 't': 'Space' },
-        'Space',
-        {
-            'Space': {
-                'content': None
-            }
-        },
-        [['TEST', None]]
-    ),
+    "Case: No Content": ({"t": "Space"}, "Space", {"Space": {"content": None}}, [["TEST", None]]),
     "Case: No Structure(Dict)": (
-        { 't': 'Str', 'c': 'String' },
-        'Str',
-        {
-            'Str': {
-                'content':  {
-                    'key':  'c',
-                    'type': 'Text'
-                }
-            }
-        },
-        [['TEST', None]]
+        {"t": "Str", "c": "String"},
+        "Str",
+        {"Str": {"content": {"key": "c", "type": "Text"}}},
+        [["TEST", None]],
     ),
     "Case: No Structure(Array)": (
         [],
-        'BlockList',
+        "BlockList",
         {
-            'BlockList':  {
-                'content':  {
-                    'type': '[Block]'
-                }
-            },
+            "BlockList": {"content": {"type": "[Block]"}},
         },
-        [['TEST', None]]
+        [["TEST", None]],
     ),
-    'Case With Structure(Dict)': (
-        { 't': 'RawInline', 'c': ["html", "<!-- HELLO -->"] },
-        'RawInline',
+    "Case With Structure(Dict)": (
+        {"t": "RawInline", "c": ["html", "<!-- HELLO -->"]},
+        "RawInline",
         {
-            'RawInline':  {
-                'content':  {
-                    'key':      'c',
+            "RawInline": {
+                "content": {
+                    "key": "c",
                 },
-                'struct': {
-                    'Format': 0,
-                    'Text': {
-                        'index': 1
-                    }
-                }
+                "struct": {"Format": 0, "Text": {"index": 1}},
             },
         },
-        [
-            ['TEST', None],
-            ['Format', 'html'],
-            ['Text', '<!-- HELLO -->']
-        ]
+        [["TEST", None], ["Format", "html"], ["Text", "<!-- HELLO -->"]],
     ),
-    'Case With Structure(Array)': (
-        ['TERM', 'DESCRIPTION'],
-        'DefinitionItem',
+    "Case With Structure(Array)": (
+        ["TERM", "DESCRIPTION"],
+        "DefinitionItem",
         {
-            'DefinitionItem':  {
-                'content': {'key': None},
-                'struct': {
-                    'Term': 0,
-                    'Description':  {
-                        'index': 1
-                    }
-                }
+            "DefinitionItem": {
+                "content": {"key": None},
+                "struct": {"Term": 0, "Description": {"index": 1}},
             },
         },
-        [
-            ['TEST', None],
-            ['Term', 'TERM'],
-            ['Description', 'DESCRIPTION']
-        ]
-    )
+        [["TEST", None], ["Term", "TERM"], ["Description", "DESCRIPTION"]],
+    ),
 }
 
 
-@pytest.mark.parametrize("element, type, TYPES, test", list(data_Element_r1_7.values()), ids=list(data_Element_r1_7.keys()))
+@pytest.mark.parametrize(
+    "element, type, TYPES, test",
+    list(data_Element_r1_7.values()),
+    ids=list(data_Element_r1_7.keys()),
+)
 ## [\@Spec Element_r1_7_1] get_prop() returns a property of the element.
 def spec_Element_r1_7_1(element, type, TYPES, test):
 
@@ -263,62 +232,39 @@ def spec_Element_r1_7_1(element, type, TYPES, test):
 ## -------------------------------------------------------------------------
 
 data_Element_r1_8 = {
-
-    'Case with Attr(Dict)': (
-        { 't': 'CodeBlock', 'c': [['', ['c'], [['ATTR', 'OK']]], 'main()'] },
-        'CodeBlock',
-        {
-            'CodeBlock':  {
-                'content':  {
-                    'key':      'c'
-                },
-                'struct': {
-                    'Attr':     0,
-                    'Text':     1
-                }
-            }
-        },
-        [
-            ['TEST', None],
-            ['ATTR', 'OK'],
-            [('ATTR', 'TEST'), 'OK'],
-            [('TEST', 'ATTR'), 'OK']
-        ]
+    "Case with Attr(Dict)": (
+        {"t": "CodeBlock", "c": [["", ["c"], [["ATTR", "OK"]]], "main()"]},
+        "CodeBlock",
+        {"CodeBlock": {"content": {"key": "c"}, "struct": {"Attr": 0, "Text": 1}}},
+        [["TEST", None], ["ATTR", "OK"], [("ATTR", "TEST"), "OK"], [("TEST", "ATTR"), "OK"]],
     ),
-    'Case with Attr(Array)': (
-        [["", [], [['ATTR', 'OK']]], {"t": "AlignDefault"}, 1, 1,[] ],
-        'Cell',
+    "Case with Attr(Array)": (
+        [["", [], [["ATTR", "OK"]]], {"t": "AlignDefault"}, 1, 1, []],
+        "Cell",
         {
-            'Cell':  {              # Cell Attr Alignment RowSpan ColSpan [Block]
-                'content':  { },
-                'struct': {
-                    'Attr':         0,
-                    'Alignment': {
-                        'offset':   1
+            "Cell": {  # Cell Attr Alignment RowSpan ColSpan [Block]
+                "content": {},
+                "struct": {
+                    "Attr": 0,
+                    "Alignment": {"offset": 1},
+                    "RowSpan": {"offset": 2},
+                    "ColSpan": {
+                        "offset": 3,
                     },
-                    'RowSpan': {
-                        'offset':   2
-                    },
-                    'ColSpan': {
-                        'offset':   3,
-                    },
-                    '[Block]':  {
-                        'offset':   4,
-                        'type':     '[Block]'
-                    }
-                }
+                    "[Block]": {"offset": 4, "type": "[Block]"},
+                },
             }
         },
-        [
-            ['TEST', None],
-            ['ATTR', 'OK'],
-            [('ATTR', 'TEST'), 'OK'],
-            [('TEST', 'ATTR'), 'OK']
-        ]
-    )
+        [["TEST", None], ["ATTR", "OK"], [("ATTR", "TEST"), "OK"], [("TEST", "ATTR"), "OK"]],
+    ),
 }
 
-@pytest.mark.parametrize("element, type, TYPES, test", list(data_Element_r1_8.values()), ids=list(data_Element_r1_8.keys()))
+
+@pytest.mark.parametrize(
+    "element, type, TYPES, test",
+    list(data_Element_r1_8.values()),
+    ids=list(data_Element_r1_8.keys()),
+)
 ## [\@Spec Element_r1_8_1] get_attr() returns a attrbute of the element.
 def spec_Element_r1_8_1(element, type, TYPES, test):
 
@@ -333,64 +279,43 @@ def spec_Element_r1_8_1(element, type, TYPES, test):
 ## --------------------------------------------------------------------------------------------------------------------------
 
 data_Element_r1_9 = {
-    "Case: No Content dict":  (
-        { 't': 'Space' },
-        'Space',
-        {
-            'Space': {
-                'content': None
-            }
-        },
-        False
-    ),
+    "Case: No Content dict": ({"t": "Space"}, "Space", {"Space": {"content": None}}, False),
     "Case: Content is None(Dict)": (
-        { 't': 'Str', 'c': 'String' },
-        'Str',
-        {
-            'Str': {
-                'content':  None
-            }
-        },
-        False
+        {"t": "Str", "c": "String"},
+        "Str",
+        {"Str": {"content": None}},
+        False,
     ),
     "Case: Content is None(Array)": (
         [],
-        'BlockList',
+        "BlockList",
         {
-            'BlockList':  {
-                'content':  None
-            },
+            "BlockList": {"content": None},
         },
-        False
+        False,
     ),
     "Case: has Content(Dict)": (
-        { 't': 'Str', 'c': 'String' },
-        'Str',
-        {
-            'Str': {
-                'content':  {
-                    'key':  'c',
-                    'type': 'Text'
-                }
-            }
-        },
-        True
+        {"t": "Str", "c": "String"},
+        "Str",
+        {"Str": {"content": {"key": "c", "type": "Text"}}},
+        True,
     ),
     "Case: has Content(Array)": (
         [],
-        'BlockList',
+        "BlockList",
         {
-            'BlockList':  {
-                'content':  {
-                    'type': '[Block]'
-                }
-            },
+            "BlockList": {"content": {"type": "[Block]"}},
         },
-        True
-    )
+        True,
+    ),
 }
 
-@pytest.mark.parametrize("element, type, TYPES, expect", list(data_Element_r1_9.values()), ids=list(data_Element_r1_9.keys()))
+
+@pytest.mark.parametrize(
+    "element, type, TYPES, expect",
+    list(data_Element_r1_9.values()),
+    ids=list(data_Element_r1_9.keys()),
+)
 ## [\@Spec Element_r1_9_1] hascontent() returns True if self has content(s) or False if self is typed but has no content.
 def spec_Element_r1_9_1(element, type, TYPES, expect):
 
@@ -405,98 +330,63 @@ def spec_Element_r1_9_1(element, type, TYPES, expect):
 
 
 data_Element_r1_10 = {
-    "Case: No Content dict":  (
-        { 't': 'Space' },
-        'Space',
-        {
-            'Space': {
-                'content': None
-            }
-        },
-        None
-    ),
+    "Case: No Content dict": ({"t": "Space"}, "Space", {"Space": {"content": None}}, None),
     "Case: has Content(Dict)": (
-        { 't': 'Str', 'c': 'String' },
-        'Str',
-        {
-            'Str': {
-                'content':  {
-                    'key':  'c',
-                    'type': 'Text'
-                }
-            }
-        },
-        'String'
+        {"t": "Str", "c": "String"},
+        "Str",
+        {"Str": {"content": {"key": "c", "type": "Text"}}},
+        "String",
     ),
     "Case: has Content(Array)": (
         [],
-        'BlockList',
+        "BlockList",
         {
-            'BlockList':  {
-                'content':  {
-                    'type': '[Block]'
-                }
-            },
+            "BlockList": {"content": {"type": "[Block]"}},
         },
-        []
+        [],
     ),
     "Case: has Content(Array) with key": (
         [],
-        'BlockList',
+        "BlockList",
         {
-            'BlockList':  {
-                'content':  {
-                    'key':  None,
-                    'type': '[Block]'
-                }
-            },
+            "BlockList": {"content": {"key": None, "type": "[Block]"}},
         },
-        []
+        [],
     ),
     "Case: has Main Content(Dict)": (
-        { 't': 'Code', 'c': [['', [], []], 'CodeString'] },
-        'Code',
+        {"t": "Code", "c": [["", [], []], "CodeString"]},
+        "Code",
         {
-            'Code':  {
+            "Code": {
                 # CodeBlock Attr Text
                 # - Code block (literal) with attributes
-                'content':  {
-                    'key':      'c',
-                    'main':     1,
-                    'type':     'Text'
-                },
-                'struct': {
-                    'Attr':     0,
-                    'Text':     1
-                }
+                "content": {"key": "c", "main": 1, "type": "Text"},
+                "struct": {"Attr": 0, "Text": 1},
             }
         },
-        'CodeString'
+        "CodeString",
     ),
     "Case: has Main Content(Array)": (
-        [['', [], []], '[RowData]'],
-        'Row',
+        [["", [], []], "[RowData]"],
+        "Row",
         {
-            'Row':  {
+            "Row": {
                 # Row Attr [Cell]
                 # A table row.
-                'content':  {
-                    'key':      None,
-                    'main':     1,
-                    'type':     '[Cell]'
-                },
-                'struct': {
-                    'Attr':     0,
-                    'Cells':    1
-                }
+                "content": {"key": None, "main": 1, "type": "[Cell]"},
+                "struct": {"Attr": 0, "Cells": 1},
             }
         },
-        '[RowData]'
-    )
+        "[RowData]",
+    ),
 }
 
 
-@pytest.mark.parametrize("element, type, TYPES, expect", list(data_Element_r1_10.values()), ids=list(data_Element_r1_10.keys()))
+@pytest.mark.parametrize(
+    "element, type, TYPES, expect",
+    list(data_Element_r1_10.values()),
+    ids=list(data_Element_r1_10.keys()),
+)
 ## [\@Spec Element_r1_10_1] get_content() returns content data in the element.
 def spec_Element_r1_10_1(element, type, TYPES, expect):
 
@@ -511,97 +401,63 @@ def spec_Element_r1_10_1(element, type, TYPES, expect):
 
 
 data_Element_r1_10 = {
-    "Case: No Content dict":  (
-        { 't': 'Space' },
-        'Space',
-        {
-            'Space': {
-                'content': None
-            }
-        },
-        None
-    ),
+    "Case: No Content dict": ({"t": "Space"}, "Space", {"Space": {"content": None}}, None),
     "Case: has Content(Dict)": (
-        { 't': 'Str', 'c': 'String' },
-        'Str',
-        {
-            'Str': {
-                'content':  {
-                    'key':  'c',
-                    'type': 'Text'
-                }
-            }
-        },
-        'Text'
+        {"t": "Str", "c": "String"},
+        "Str",
+        {"Str": {"content": {"key": "c", "type": "Text"}}},
+        "Text",
     ),
     "Case: has Content(Array)": (
         [],
-        'BlockList',
+        "BlockList",
         {
-            'BlockList':  {
-                'content':  {
-                    'type': '[Block]'
-                }
-            },
+            "BlockList": {"content": {"type": "[Block]"}},
         },
-        '[Block]'
+        "[Block]",
     ),
     "Case: has Content(Array) with key": (
         [],
-        'BlockList',
+        "BlockList",
         {
-            'BlockList':  {
-                'content':  {
-                    'key':  None,
-                    'type': '[Block]'
-                }
-            },
+            "BlockList": {"content": {"key": None, "type": "[Block]"}},
         },
-        '[Block]'
+        "[Block]",
     ),
     "Case: has Main Content(Dict)": (
-        { 't': 'Code', 'c': [['', [], []], 'CodeString'] },
-        'Code',
+        {"t": "Code", "c": [["", [], []], "CodeString"]},
+        "Code",
         {
-            'Code':  {
+            "Code": {
                 # CodeBlock Attr Text
                 # - Code block (literal) with attributes
-                'content':  {
-                    'key':      'c',
-                    'main':     1,
-                    'type':     'Text'
-                },
-                'struct': {
-                    'Attr':     0,
-                    'Text':     1
-                }
+                "content": {"key": "c", "main": 1, "type": "Text"},
+                "struct": {"Attr": 0, "Text": 1},
             }
         },
-        'Text'
+        "Text",
     ),
     "Case: has Main Content(Array)": (
-        [['', [], []], '[RowData]'],
-        'Row',
+        [["", [], []], "[RowData]"],
+        "Row",
         {
-            'Row':  {
+            "Row": {
                 # Row Attr [Cell]
                 # A table row.
-                'content':  {
-                    'key':      None,
-                    'main':     1,
-                    'type':     '[Cell]'
-                },
-                'struct': {
-                    'Attr':     0,
-                    'Cells':    1
-                }
+                "content": {"key": None, "main": 1, "type": "[Cell]"},
+                "struct": {"Attr": 0, "Cells": 1},
             }
         },
-        '[Cell]'
-    )
+        "[Cell]",
+    ),
 }
 
-@pytest.mark.parametrize("element, type, TYPES, expect", list(data_Element_r1_10.values()), ids=list(data_Element_r1_10.keys()))
+
+@pytest.mark.parametrize(
+    "element, type, TYPES, expect",
+    list(data_Element_r1_10.values()),
+    ids=list(data_Element_r1_10.keys()),
+)
 ## [\@Spec Element_r1_11_1] get_content_type() returns type of main content in the element.
 def spec_Element_r1_11_1(element, type, TYPES, expect):
 

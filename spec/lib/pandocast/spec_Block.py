@@ -22,10 +22,11 @@ r"""! Software detailed design of 'Block' class written in pytest.
 ### Things to do
 
 """
-import pytest
 import inspect
-from gdoc.lib.pandocast.pandocast import Element, Block
 
+import pytest
+
+from gdoc.lib.pandocast.pandocast import Block, Element
 
 ##
 ## @{ @name AS[__init__].r1 | creates a new instance.
@@ -37,17 +38,14 @@ def spec___init___r1_1():
 
 
 data___init___r1_2 = {
-    "Case: No Content":  (
-        { 't': 'Space' },
-        'Space'
-    ),
-    "Case: No Structure(Dict)": (
-        { 't': 'Str', 'c': 'String' },
-        'Str'
-    ),
+    "Case: No Content": ({"t": "Space"}, "Space"),
+    "Case: No Structure(Dict)": ({"t": "Str", "c": "String"}, "Str"),
 }
 
-@pytest.mark.parametrize("element, type", list(data___init___r1_2.values()), ids=list(data___init___r1_2.keys()))
+
+@pytest.mark.parametrize(
+    "element, type", list(data___init___r1_2.values()), ids=list(data___init___r1_2.keys())
+)
 ## [\@spec __init___r1_2] | def __init__(self, pan_elem, elem_type, parent=None):
 def spec___init___r1_2(element, type):
 

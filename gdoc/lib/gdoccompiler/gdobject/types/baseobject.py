@@ -8,10 +8,11 @@ from ..gdsymbol import GdSymbol
 from ..gdsymboltable import GdSymbolTable
 from .category import Category
 
+
 class BaseObject(GdObject):
-    """
-    """
-    def __init__(self, typename, id, *, scope='+', name=None, tags=[], ref=None, type_args={}):
+    """ """
+
+    def __init__(self, typename, id, *, scope="+", name=None, tags=[], ref=None, type_args={}):
         if type(typename) is GdSymbolTable.Type:
             _type = typename
             typename = typename.name
@@ -23,7 +24,7 @@ class BaseObject(GdObject):
                 _type = GdSymbolTable.Type.REFERENCE
 
         if scope is None:
-            scope = '+'
+            scope = "+"
         super().__init__(id, scope=scope, name=name, tags=tags, _type=_type)
 
         cat = self.__class__.get_category()
@@ -35,26 +36,33 @@ class BaseObject(GdObject):
             self.class_version = ""
 
         self.class_type = typename
-        self[""].update({
-            "class": {
-                "category": self.class_category,
-                "type": self.class_type,
-                "version": self.class_version
+        self[""].update(
+            {
+                "class": {
+                    "category": self.class_category,
+                    "type": self.class_type,
+                    "version": self.class_version,
+                }
             }
-        })
+        )
         if ref is not None:
             self.class_isref = True
-            self[""]["class"]["ref"] = {
-                "object_path": ref
-            }
+            self[""]["class"]["ref"] = {"object_path": ref}
         else:
             self.class_isref = False
 
         self.update(type_args)
 
-
-    def create_object(self, cat_name: str, type_name: str, isref: bool,
-                        scope: str, symbol, name: str =None, type_args: dict ={}) -> "BaseObject":
+    def create_object(
+        self,
+        cat_name: str,
+        type_name: str,
+        isref: bool,
+        scope: str,
+        symbol,
+        name: str = None,
+        type_args: dict = {},
+    ) -> "BaseObject":
         r"""
         To avoid consuming the keyword argument namespace, required
         arguments are received in tuples as positional arguments.
@@ -90,10 +98,10 @@ class BaseObject(GdObject):
             p = self.get_parent()
             while len(symbols) > 0:
                 s = symbols.pop()
-                if s.startwith('*'):    #name
+                if s.startwith("*"):  # name
                     if p.name != s[1:]:
                         raise GdocRuntimeError()
-                else:                   #id
+                else:  # id
                     if p.id != s:
                         raise GdocRuntimeError()
 
@@ -108,8 +116,9 @@ class BaseObject(GdObject):
             obj = obj.get_parent()
 
         if constructor is not None:
-            child = constructor(type_name, id, scope=scope, name=name,
-                                tags=tags, ref=ref, type_args=type_args)
+            child = constructor(
+                type_name, id, scope=scope, name=name, tags=tags, ref=ref, type_args=type_args
+            )
 
         else:
             raise GdocTypeError("Class not found")
@@ -118,10 +127,8 @@ class BaseObject(GdObject):
 
         return child
 
-
     def __get_constructor(self, cat_name: str = None, type_name: str = ""):
-        """
-        """
+        """ """
         constructor = None
         class_name = None
 
@@ -129,9 +136,6 @@ class BaseObject(GdObject):
             cat = self.__class__.get_category()
 
         if type(cat) is Category:
-            class_name, constructor = cat.get_type(
-                                          type_name, self.class_type
-                                      )
+            class_name, constructor = cat.get_type(type_name, self.class_type)
 
         return class_name, constructor
-

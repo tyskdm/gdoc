@@ -4,26 +4,17 @@ r"""!
 
 """
 import sys
+
 from .baseobject import BaseObject
 from .importobject import ImportObject
 
-
 CATEGORY_INFO = {
-    "name":     "",
-    "version":  "",
-    "module":   sys.modules[__name__],
-    "types": {
-        "OBJECT": BaseObject,
-        "IMPORT": ImportObject,
-        "ACCESS": ImportObject
-    },
+    "name": "",
+    "version": "",
+    "module": sys.modules[__name__],
+    "types": {"OBJECT": BaseObject, "IMPORT": ImportObject, "ACCESS": ImportObject},
     "aliases": {
         # "OBJ": "OBJECT"
     },
-    "defaults": {
-        "": "OBJECT",
-        "OBJECT": "OBJECT",
-        "DOCUMENT": "OBJECT"
-    }
+    "defaults": {"": "OBJECT", "OBJECT": "OBJECT", "DOCUMENT": "OBJECT"},
 }
-

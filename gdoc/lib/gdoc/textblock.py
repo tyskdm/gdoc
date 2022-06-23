@@ -3,13 +3,15 @@ section.py: Section class
 """
 
 import copy
+
+from ..pandocastobject.pandocast.element import Element
 from .config import DEFAULTS
 from .line import Line
-from ..pandocastobject.pandocast.element import Element
+
 
 class TextBlock(list):
-    """
-    """
+    """ """
+
     def __init__(self, textblock=None, opts={}):
         super().__init__()
         self.__element = textblock
