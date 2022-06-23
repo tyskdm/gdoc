@@ -27,12 +27,14 @@ from gdoc.lib.pandocastobject.pandocast.block import Block
 ##
 ___init__ = "dummy for doxygen styling"
 
+
 def spec___init___1():
     r"""
     [@spec \_\_init\_\_.1] `Block` should be a class that inherits from an element.
     """
     assert inspect.isclass(Block) == True
     assert issubclass(Block, Element)
+
 
 def spec___init___2():
     r"""
@@ -41,10 +43,10 @@ def spec___init___2():
     _ELEMENT = {}
     _TYPE_DEF = {}
 
-    target = Block(_ELEMENT, 'TYPE', _TYPE_DEF)
+    target = Block(_ELEMENT, "TYPE", _TYPE_DEF)
 
     assert target.pan_element is _ELEMENT
-    assert target.type == 'TYPE'
+    assert target.type == "TYPE"
     assert target.type_def is _TYPE_DEF
     assert target.parent is None
     assert target.children == []

@@ -8,14 +8,14 @@ from gdoc.lib.gdoc.document import Document as GdocDocument
 from gdoc.lib.gdoccompiler.gdobject.types.document import Document as GobjDocument
 from gdoc.lib.gdoccompiler.gdparser.documentparser import parse_Document
 
+
 class GdocCompiler:
-    """
-    """
+    """ """
+
     def __init__(self) -> None:
         pass
 
-
-    def compile(self, filepath: str, option:dict={}):
+    def compile(self, filepath: str, option: dict = {}):
         """
         1. fileの存在確認
         2. ./_gdoc_/filename.past.json の存在確認

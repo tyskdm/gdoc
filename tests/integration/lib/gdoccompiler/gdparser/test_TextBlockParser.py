@@ -22,22 +22,25 @@ from gdoc.lib.gdoccompiler.gdparser.textblock import parse_TextBlock
 ## [\@test Inline] creates a new instance.
 ##
 _data_Inline_1 = {
-    "Case-01: ": ('case_01.md', 'gfm-sourcepos', False),
-    "Case-02: ": ('case_02.md', 'gfm-sourcepos', False)
+    "Case-01: ": ("case_01.md", "gfm-sourcepos", False),
+    "Case-02: ": ("case_02.md", "gfm-sourcepos", False),
 }
-@pytest.mark.parametrize("filename, formattype, html",
-    list(_data_Inline_1.values()), ids=list(_data_Inline_1.keys()))
+
+
+@pytest.mark.parametrize(
+    "filename, formattype, html", list(_data_Inline_1.values()), ids=list(_data_Inline_1.keys())
+)
 def test_gdParser_1(mocker: mock, filename, formattype, html):
     r"""
     [@test Inline.1] test Inline elements in actual markdown documents.
     """
-    datadir = '.'.join(__file__.split('.')[:-1]) + '/'  # data directory
+    datadir = ".".join(__file__.split(".")[:-1]) + "/"  # data directory
     pandoc_json = Pandoc().get_json(datadir + filename, formattype, html)
     pandoc_ast = PandocAst(pandoc_json)
 
-    expect_json = pandoc_ast.get_first_item().get_content()     # 1st. block
+    expect_json = pandoc_ast.get_first_item().get_content()  # 1st. block
     expect_data = json.loads(expect_json)
-    target_data = Document(pandoc_ast)[1]   # 2nd. block
+    target_data = Document(pandoc_ast)[1]  # 2nd. block
 
     # Mock
     gdobject = mocker.MagicMock(["create_object"])
@@ -50,16 +53,16 @@ def test_gdParser_1(mocker: mock, filename, formattype, html):
     args = gdobject.create_object.call_args_list[0][0]
     kwargs = gdobject.create_object.call_args_list[0][1]
 
-    assert len(args) == len(expect_data['args'])
-    for i in range(len(expect_data['args'])):
-        if type(expect_data['args'][i]) is str:
-            assert str(args[i]) == expect_data['args'][i]
+    assert len(args) == len(expect_data["args"])
+    for i in range(len(expect_data["args"])):
+        if type(expect_data["args"][i]) is str:
+            assert str(args[i]) == expect_data["args"][i]
         else:
-            assert args[i] == expect_data['args'][i]
+            assert args[i] == expect_data["args"][i]
 
     assert len(kwargs) == 1
-    assert 'type_args' in kwargs
-    assert _assert_kwargs(kwargs['type_args'], expect_data['type_args'])
+    assert "type_args" in kwargs
+    assert _assert_kwargs(kwargs["type_args"], expect_data["type_args"])
 
 
 def _assert_kwargs(actual, expected):

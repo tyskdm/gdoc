@@ -7,8 +7,8 @@ from ..pandocastobject.pandocast.element import Element
 
 
 class Section(list):
-    """
-    """
+    """ """
+
     def __init__(self, iterable=[], level=0, opts={}):
         super().__init__(iterable)
         self.level = level
@@ -21,23 +21,21 @@ class Section(list):
             block = self[i]
             block_type = block.get_type()
 
-            if ((block_type == "Header") and 
-                (not (self.level > 0 and i ==0))):
+            if (block_type == "Header") and (not (self.level > 0 and i == 0)):
 
                 lv = block.get_prop("Level")
-                if (self.level > 0):
-                    if ((lv < self.level) or 
-                        ((i > 0) and (lv == self.level))):
+                if self.level > 0:
+                    if (lv < self.level) or ((i > 0) and (lv == self.level)):
 
                         raise RuntimeError()
-
 
                 sublevel = lv
                 subend = i + 1
                 while subend < len(self):
                     subblock: Element = self[subend]
-                    if ((subblock.get_type() == "Header") and
-                        (lv := subblock.get_prop("Level")) <= sublevel):
+                    if (subblock.get_type() == "Header") and (
+                        lv := subblock.get_prop("Level")
+                    ) <= sublevel:
                         break
                     subend += 1
 
@@ -52,7 +50,6 @@ class Section(list):
             #     self[i] = BlockClassTypes(self[i])
 
             i += 1
-
 
     def __getitem__(self, index):
         result = super().__getitem__(index)

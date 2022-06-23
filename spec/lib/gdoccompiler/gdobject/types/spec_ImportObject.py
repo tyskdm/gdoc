@@ -40,6 +40,7 @@ def spec___init___1():
     """
     assert inspect.isclass(ImportObject) == True
 
+
 def spec___init___2():
     r"""
     [@spec \_\_init\_\_.2] set attrs with default values.
@@ -48,15 +49,11 @@ def spec___init___2():
 
     assert target._GdObject__properties == {
         "": {
-            "scope": '+',
+            "scope": "+",
             "id": "ID",
             "name": None,
             "tags": [],
-            "class": {
-                "category": "",
-                "type": "IMPORT",
-                "version": ""
-            }
+            "class": {"category": "", "type": "IMPORT", "version": ""},
         }
     }
     assert target.scope == "+"
@@ -79,15 +76,11 @@ def spec___init___3():
 
     assert target._GdObject__properties == {
         "": {
-            "scope": '-',
+            "scope": "-",
             "id": "ID",
             "name": None,
             "tags": [],
-            "class": {
-                "category": "",
-                "type": "ACCESS",
-                "version": ""
-            }
+            "class": {"category": "", "type": "ACCESS", "version": ""},
         }
     }
     assert target.scope == "-"
@@ -100,4 +93,3 @@ def spec___init___3():
     assert target.class_type == "ACCESS"
     assert target.class_version == ""
     assert target.class_isref is False
-

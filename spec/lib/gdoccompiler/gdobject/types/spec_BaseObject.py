@@ -41,6 +41,7 @@ def spec___init___1():
     """
     assert inspect.isclass(BaseObject) == True
 
+
 def spec___init___2():
     r"""
     [@spec \_\_init\_\_.2] set attrs with default values.
@@ -50,15 +51,11 @@ def spec___init___2():
 
     assert prop == {
         "": {
-            "scope": '+',
+            "scope": "+",
             "id": "ID",
             "name": None,
             "tags": [],
-            "class": {
-                "category": "",
-                "type": "OBJECT",
-                "version": ""
-            }
+            "class": {"category": "", "type": "OBJECT", "version": ""},
         }
     }
 
@@ -72,4 +69,3 @@ def spec___init___2():
     assert target.class_type == "OBJECT"
     assert target.class_version == ""
     assert target.class_isref is False
-

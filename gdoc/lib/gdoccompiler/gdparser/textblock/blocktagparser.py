@@ -25,14 +25,14 @@ def detect_BlockTag(pstr: str):
     tagpos = None
     tokens = None
 
-    start = str(pstr).find('[@')
+    start = str(pstr).find("[@")
     while start >= 0:
         tokenizer = Tokenizer().start()
 
         tokenizer.on_entry()
         for i, c in enumerate(pstr[start:]):
             if tokenizer.on_event(c) is None:
-                tagpos = slice(start, start + i + 1)    # 1 = len(']')
+                tagpos = slice(start, start + i + 1)  # 1 = len(']')
                 break
 
         result = tokenizer.on_exit()
@@ -40,7 +40,7 @@ def detect_BlockTag(pstr: str):
             tokens = result
             break
 
-        start = str(pstr).find('[@', start + 2)   # 2 = len('[@')
+        start = str(pstr).find("[@", start + 2)  # 2 = len('[@')
 
     return tagpos, tokens
 
@@ -70,18 +70,18 @@ def create_BlockTag(tokens, tag_text):
 
 
 def parse_ClassInfo(token: PandocStr):
-    class_info = [None, None, False]        # ( category, type, is_referrence )
+    class_info = [None, None, False]  # ( category, type, is_referrence )
 
-    if (i := str(token).find(':')) >= 0:
+    if (i := str(token).find(":")) >= 0:
         class_info[0] = token[:i]
-        class_info[1] = token[i+1:]
+        class_info[1] = token[i + 1 :]
 
-        if str(class_info[1]).find(':') >= 0:
+        if str(class_info[1]).find(":") >= 0:
             raise GdocSyntaxError()
     else:
         class_info[1] = token[:]
 
-    if str(class_info[1]).endswith('&'):
+    if str(class_info[1]).endswith("&"):
         class_info[2] = class_info[1][-1]
         class_info[1] = class_info[1][:-1]
 
@@ -91,6 +91,7 @@ def parse_ClassInfo(token: PandocStr):
 #
 # Argument Parser
 #
+
 
 def parse_Arguments(tokens):
     """
@@ -104,7 +105,7 @@ def parse_Arguments(tokens):
     for e in elements:
         parser.on_event(e)
 
-    parser.on_event(None)   # EOL
+    parser.on_event(None)  # EOL
 
     return parser.on_exit()
 
@@ -128,6 +129,7 @@ class ArgumentParser(StateMachine):
     L-value = Key
     R-value = Value
     """
+
     def __init__(self, name: str = None) -> None:
         super().__init__(name)
         self.add_state(_Idle("Idle"), None)
@@ -135,21 +137,17 @@ class ArgumentParser(StateMachine):
         self.add_state(_AfterKey("AfterKey"), None)
         self.add_state(_Value("Value"), "Idle")
 
-
     def start(self, param=None):
         self.key = []
         self.args = []
         self.kwargs = []
         return super().start((self.key, self.args, self.kwargs))
 
-
     def on_entry(self, event=None):
         return super().on_entry(event)
 
-
     def on_event(self, token):
         return super().on_event(token)
-
 
     def on_exit(self):
         super().on_exit()
@@ -157,13 +155,13 @@ class ArgumentParser(StateMachine):
 
 
 class _Idle(State):
-    """
-    """
+    """ """
+
     def on_entry(self, element=None):
         self.comma = False
         next = self
 
-        if element == ',':
+        if element == ",":
             self.comma = True
 
         elif element is not None:
@@ -171,14 +169,13 @@ class _Idle(State):
 
         return next
 
-
     def on_event(self, element):
         next = self
 
-        if element in (' ', None):
+        if element in (" ", None):
             skip
 
-        elif element == ',':
+        elif element == ",":
             if self.comma is False:
                 self.comma = True
             else:
@@ -194,17 +191,15 @@ class _Idle(State):
 
 
 class _Key(State):
-    """
-    """
+    """ """
+
     def start(self, param):
         self.key, self.args, self.kwargs = param
-
 
     def on_entry(self, element):
         self.key.clear()
         self.key += element
         return self
-
 
     def on_event(self, element):
         next = self
@@ -223,12 +218,11 @@ class _Key(State):
 
 
 class _AfterKey(State):
-    """
-    """
+    """ """
+
     def start(self, param):
         self.key, self.args, self.kwargs = param
         return
-
 
     def on_entry(self, element=None):
         next = self
@@ -237,15 +231,14 @@ class _AfterKey(State):
 
         return next
 
-
     def on_event(self, element):
         next = self
         kwargs: bool = len(self.kwargs) > 0
 
-        if element == ' ':
+        if element == " ":
             skip
 
-        elif element == '=':
+        elif element == "=":
             next = "Value"
 
         elif element is None:
@@ -263,12 +256,11 @@ class _AfterKey(State):
 
 
 class _Value(State):
-    """
-    """
+    """ """
+
     def start(self, param):
         self.key, _, self.kwargs = param
         return
-
 
     def on_entry(self, element=None):
         self.value = []
@@ -277,7 +269,6 @@ class _Value(State):
             self.value += element
 
         return self
-
 
     def on_event(self, element):
         next = self
@@ -294,7 +285,6 @@ class _Value(State):
                 next = (None, element)
 
         return next
-
 
     def on_exit(self):
         self.kwargs.append((self.key[:], self.value[:]))
@@ -320,35 +310,31 @@ def detect_parentheses(tokens):
 
 
 class ParenthesesDetector(StateMachine):
-    """
-    """
+    """ """
+
     def __init__(self, name: str = None) -> None:
         super().__init__(name)
         self.add_state(_Main("Main"), None)
         self.add_state(_Parentheses("Parentheses"), "Main")
 
-
     def start(self, param):
         self.elements = param
         return super().start(self.elements)
 
-
     def on_entry(self, event=None):
         return super().on_entry(event)
-
 
     def on_exit(self):
         super().on_exit()
 
 
 class _Main(State):
-    """
-    """
+    """ """
+
     def start(self, elements: list):
         self.elements = elements
         self.word = []
         self.bcount = 0
-
 
     def on_entry(self, event=None):
         next = self
@@ -359,17 +345,16 @@ class _Main(State):
 
         return next
 
-
     def on_event(self, token):
         next = self
 
-        if token == '(':
+        if token == "(":
             next = ("Parentheses", token)
 
-        elif token == ')':
+        elif token == ")":
             raise GdocSyntaxError()
 
-        elif Tokenizer.is_word(token) or (token[0] in ('"', '[', ']')):
+        elif Tokenizer.is_word(token) or (token[0] in ('"', "[", "]")):
             self.word.append(token)
 
         else:
@@ -378,10 +363,8 @@ class _Main(State):
 
         return next
 
-
     def on_exit(self):
         self._flush_word_buff()
-
 
     def _flush_word_buff(self):
         if len(self.word) > 0:
@@ -391,28 +374,26 @@ class _Main(State):
 
 
 class _Parentheses(State):
-    """
-    """
+    """ """
+
     def start(self, elements: list):
         self.elements = elements
         self.tokens = []
         self.bcount = 0
 
-
     def on_entry(self, token):
-        self.tokens.append(token)         # always it's '('.
+        self.tokens.append(token)  # always it's '('.
         self.bcount = 0
         return self
-
 
     def on_event(self, token):
         next = self
 
         self.tokens.append(token)
-        if token == '(':
+        if token == "(":
             self.bcount += 1
 
-        elif token == ')':
+        elif token == ")":
             if self.bcount > 0:
                 self.bcount -= 1
             else:
@@ -420,10 +401,7 @@ class _Parentheses(State):
 
         return next
 
-
     def on_exit(self):
         self.elements.append(self.tokens)
         """
         """
-
-

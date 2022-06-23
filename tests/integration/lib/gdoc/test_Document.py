@@ -22,20 +22,23 @@ from gdoc.lib.gdoc.document import Document
 ## [\@test Inline] creates a new instance.
 ##
 _data_Inline_1 = {
-    "Case-01: ": ('case_01.md', 'gfm-sourcepos', False),
-    "Case-02: ": ('case_02.md', 'gfm-sourcepos', False)
+    "Case-01: ": ("case_01.md", "gfm-sourcepos", False),
+    "Case-02: ": ("case_02.md", "gfm-sourcepos", False),
 }
-@pytest.mark.parametrize("filename, formattype, html",
-    list(_data_Inline_1.values()), ids=list(_data_Inline_1.keys()))
+
+
+@pytest.mark.parametrize(
+    "filename, formattype, html", list(_data_Inline_1.values()), ids=list(_data_Inline_1.keys())
+)
 def test_gdParser_1(mocker: mock, filename, formattype, html):
     r"""
     [@test Inline.1] test Inline elements in actual markdown documents.
     """
-    datadir = '.'.join(__file__.split('.')[:-1]) + '/'  # data directory
+    datadir = ".".join(__file__.split(".")[:-1]) + "/"  # data directory
     pandoc_json = Pandoc().get_json(datadir + filename, formattype, html)
     pandoc_ast = PandocAst(pandoc_json)
 
-    expect_json = pandoc_ast.get_first_item().get_content()     # 1st. block
+    expect_json = pandoc_ast.get_first_item().get_content()  # 1st. block
     expect_data = json.loads(expect_json)
 
     # Execution

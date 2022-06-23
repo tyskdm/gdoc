@@ -4,7 +4,4 @@ r"""!
 
 """
 
-_CONFIG = {
-    'version': '0.1.1',
-    'app_path': 'app'
-}
+_CONFIG = {"version": "0.1.1", "app_path": "app"}

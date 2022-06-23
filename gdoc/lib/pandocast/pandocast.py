@@ -21,7 +21,6 @@ _DEBUG = debug.Debug(_LOGGER)
 
 
 class Element:
-
     def __init__(self, pan_elem, elem_type, *, type_def=None):
         self.pan_element = pan_elem
         self.type = elem_type
@@ -30,11 +29,9 @@ class Element:
         self.children = []
         self.source = _SourcePos(self)
 
-
     def _append_child(self, child):
         child.parent = self
         self.children.append(child)
-
 
     def next(self):
         next = None
@@ -46,7 +43,6 @@ class Element:
 
         return next
 
-
     def prev(self):
         prev = None
 
@@ -57,15 +53,12 @@ class Element:
 
         return prev
 
-
     def get_parent(self):
 
         return self.parent
 
-
     def get_children(self):
         return self.children[:]
-
 
     def get_first_child(self):
         child = None
@@ -75,89 +68,85 @@ class Element:
 
         return child
 
-
     def getFirstChild(self):
         return self.get_first_child()
 
-
     def get_type(self):
         return self.type
-
 
     def get_prop(self, name):
         TYPEDEF = self.type_def
         property = None
 
-        if ('content' in TYPEDEF) and (TYPEDEF['content'] is not None):
+        if ("content" in TYPEDEF) and (TYPEDEF["content"] is not None):
             element = self.pan_element
 
-            if ('key' in TYPEDEF['content']) and (TYPEDEF['content']['key'] is not None):
-                element = element[TYPEDEF['content']['key']]
+            if ("key" in TYPEDEF["content"]) and (TYPEDEF["content"]["key"] is not None):
+                element = element[TYPEDEF["content"]["key"]]
 
-            if ('struct' in TYPEDEF) and (TYPEDEF['struct'] is not None) and (name in TYPEDEF['struct']):
-                index = TYPEDEF['struct'][name]
+            if (
+                ("struct" in TYPEDEF)
+                and (TYPEDEF["struct"] is not None)
+                and (name in TYPEDEF["struct"])
+            ):
+                index = TYPEDEF["struct"][name]
 
                 if isinstance(index, dict):
-                    index = index['index']
+                    index = index["index"]
 
                 property = element[index]
 
         return property
 
-
     def getProp(self, name):
         return self.get_prop(name)
-
 
     def get_attr(self, name):
         attr = None
 
-        attr_obj = self.get_prop('Attr')
+        attr_obj = self.get_prop("Attr")
 
         if attr_obj is not None:
             for item in attr_obj[2]:
-                if ((isinstance(name, str) and (item[0] == name)) or
-                    (isinstance(name, tuple) and (item[0] in name))):
+                if (isinstance(name, str) and (item[0] == name)) or (
+                    isinstance(name, tuple) and (item[0] in name)
+                ):
                     attr = item[1]
                     break
 
         return attr
 
-
     def hascontent(self):
         TYPEDEF = self.type_def
 
-        hascontent = (('content' in TYPEDEF) and (TYPEDEF['content'] is not None))
+        hascontent = ("content" in TYPEDEF) and (TYPEDEF["content"] is not None)
 
         return hascontent
-
 
     def get_content(self):
         TYPEDEF = self.type_def
         content = None
 
         if self.hascontent():
-            if ('key' in TYPEDEF['content']) and (TYPEDEF['content']['key'] is not None):
-                content = self.pan_element[TYPEDEF['content']['key']]
+            if ("key" in TYPEDEF["content"]) and (TYPEDEF["content"]["key"] is not None):
+                content = self.pan_element[TYPEDEF["content"]["key"]]
             else:
                 content = self.pan_element
 
-            if ('main' in TYPEDEF['content']) and (TYPEDEF['content']['main'] is not None):
-                content = content[TYPEDEF['content']['main']]
+            if ("main" in TYPEDEF["content"]) and (TYPEDEF["content"]["main"] is not None):
+                content = content[TYPEDEF["content"]["main"]]
 
         return content
-
 
     def get_content_type(self):
         TYPEDEF = self.type_def
         content_type = None
 
         if self.hascontent():
-            if ('type' in TYPEDEF['content']):
-                content_type = TYPEDEF['content']['type']
+            if "type" in TYPEDEF["content"]:
+                content_type = TYPEDEF["content"]["type"]
 
         return content_type
-
 
     def walk(self, action, post_action=None, target=None):
         #
@@ -174,30 +163,27 @@ class Element:
         if post_action is not None:
             post_action(element, self)
 
-
     @classmethod
-    def create_element(cls, elem, elem_type=''):
+    def create_element(cls, elem, elem_type=""):
 
-        elem_type = elem_type or elem['t']
+        elem_type = elem_type or elem["t"]
 
-        gdoc_elem = _PANDOC_TYPES[elem_type]['class'](elem, elem_type)
+        gdoc_elem = _PANDOC_TYPES[elem_type]["class"](elem, elem_type)
 
         return gdoc_elem
 
 
 class _SourcePos:
-
     def __init__(self, elem):
-        self.position = elem.get_attr(('pos', 'data-pos'))
+        self.position = elem.get_attr(("pos", "data-pos"))
 
 
 class Inline(Element):
-
     def __init__(self, pan_elem, elem_type, parent=None):
         super().__init__(pan_elem, elem_type)
-        self.text = ''
+        self.text = ""
 
-        _DEBUG.print(elem_type + '（Inline）')
+        _DEBUG.print(elem_type + "（Inline）")
         _DEBUG.indent()
 
         if not self.hascontent():
@@ -207,13 +193,9 @@ class Inline(Element):
             self.children = None
 
             # 暫定。config.jsonから読み込むようにする。
-            self.text = {
-                'Space': ' ',
-                'SoftBreak': ' ',
-                'LineBreak': '\n'
-            }[elem_type]
+            self.text = {"Space": " ", "SoftBreak": " ", "LineBreak": "\n"}[elem_type]
 
-        elif self.get_content_type() == 'Text':
+        elif self.get_content_type() == "Text":
             #
             # In Inline context, 'Text' is a text string
             #
@@ -230,7 +212,7 @@ class Inline(Element):
                 self._append_child(Element.create_element(element))
 
             for element in self.children:
-                if hasattr(element, 'text') and (element.text is not None):
+                if hasattr(element, "text") and (element.text is not None):
                     self.text += element.text
 
         _DEBUG.undent()
@@ -242,27 +224,25 @@ class Block(Element):
 
 
 class BlockList(Block):
-
     def __init__(self, pan_elem, elem_type, parent=None):
         super().__init__(pan_elem, elem_type)
 
-        _DEBUG.print(elem_type + '（BlockList）')
+        _DEBUG.print(elem_type + "（BlockList）")
         _DEBUG.indent()
 
         contents = self.get_content()
-        type = 'ListItem' if self.get_content_type() == '[[Block]]' else ''
+        type = "ListItem" if self.get_content_type() == "[[Block]]" else ""
 
         for item in contents:
             self._append_child(Element.create_element(item, type))
 
         _DEBUG.undent()
 
-
     def getFirstLine(self):
-        line = ''
+        line = ""
         child = self.get_first_child()
 
-        if child.type == 'ListItem':
+        if child.type == "ListItem":
             child = child.get_first_child()
 
         if isinstance(child, InlineList):
@@ -272,12 +252,11 @@ class BlockList(Block):
 
 
 class InlineList(Block):
-
     def __init__(self, pan_elem, elem_type, parent=None):
         super().__init__(pan_elem, elem_type)
         self.text = []
 
-        _DEBUG.print(elem_type + '（InlineList）')
+        _DEBUG.print(elem_type + "（InlineList）")
         _DEBUG.indent()
 
         if not self.hascontent():
@@ -285,37 +264,36 @@ class InlineList(Block):
             self.children = None
             self.text = None
 
-        elif self.get_content_type() == 'Text':
+        elif self.get_content_type() == "Text":
             #
             # In LineBlock context, 'Text' is a list of lines.
             #
             self.children = None
 
             panContent = self.get_content()
-            self.text = panContent.split('\n')
+            self.text = panContent.split("\n")
 
         else:
             contents = self.get_content()
-            type = 'InlineList' if self.get_content_type() == '[[Inline]]' else ''
+            type = "InlineList" if self.get_content_type() == "[[Inline]]" else ""
 
             for item in contents:
                 self._append_child(Element.create_element(item, type))
 
-            lines = ''
+            lines = ""
             for element in self.children:
-                if hasattr(element, 'text') and (element.text is not None):
+                if hasattr(element, "text") and (element.text is not None):
                     lines += element.text
 
-            self.text = lines.split('\n')
+            self.text = lines.split("\n")
 
         if self.text is not None:
-            _DEBUG.puts('-----\n' + '\n'.join(self.text) + '\n-----\n')
+            _DEBUG.puts("-----\n" + "\n".join(self.text) + "\n-----\n")
 
         _DEBUG.undent()
 
-
     def getFirstLine(self):
-        line = ''
+        line = ""
 
         if isinstance(self.text, list):
             line = self.text[0]
@@ -330,16 +308,16 @@ class DefinitionList(Block):
     def __init__(self, pan_elem, elem_type):
         super().__init__(pan_elem, elem_type)
 
-        _DEBUG.print(elem_type + '（DefinitionList）')
+        _DEBUG.print(elem_type + "（DefinitionList）")
         _DEBUG.indent()
 
-        if self.get_type() == 'DefinitionList':
+        if self.get_type() == "DefinitionList":
             # 初入、DL全体。
             # DefinitionList [([Inline], [[Block]])]
             contents = self.get_content()
 
             for content in contents:
-                self._append_child(Element.create_element(content, 'DefinitionItem'))
+                self._append_child(Element.create_element(content, "DefinitionItem"))
 
         else:
             # 再入、DLの各項目。
@@ -347,12 +325,12 @@ class DefinitionList(Block):
             contents = pan_elem
 
             # [Inline]
-            self._append_child(Element.create_element(contents[0], 'InlineList'))
+            self._append_child(Element.create_element(contents[0], "InlineList"))
 
             # [[Block]]
             for content in contents[1]:
                 # [Block]
-                self._append_child(Element.create_element(content, 'BlockList'))
+                self._append_child(Element.create_element(content, "BlockList"))
 
         _DEBUG.undent()
 
@@ -363,39 +341,39 @@ class Table(Block):
     def __init__(self, pan_elem, elem_type):
         super().__init__(pan_elem, elem_type)
 
-        _DEBUG.print(elem_type + '（Table）')
+        _DEBUG.print(elem_type + "（Table）")
         _DEBUG.indent()
 
-        self.numTableColumns = 0            # Num of Columns of Table
-        self.numHeaderRows = 0              # Num of Rows of Header
-        self.numBodys = 0                   # Num of Bodys of Table (NOT Rows. Each Body includes Rows)
-        self.numBodyRows = []               # Num of Rows of each Body
-        self.numRowHeaderColumns = []       # Num of Columns of RowHeader of each Body
-        self.numFooterRows = 0              # Num of Rows of Footer
-        self.numTableRows = 0               # Num of Rows of Table
-                                            #   = numHeaderRows + sum(numBodyRows) + numFooterRows
-        self.cells = []                     # Cell index table
+        self.numTableColumns = 0  # Num of Columns of Table
+        self.numHeaderRows = 0  # Num of Rows of Header
+        self.numBodys = 0  # Num of Bodys of Table (NOT Rows. Each Body includes Rows)
+        self.numBodyRows = []  # Num of Rows of each Body
+        self.numRowHeaderColumns = []  # Num of Columns of RowHeader of each Body
+        self.numFooterRows = 0  # Num of Rows of Footer
+        self.numTableRows = 0  # Num of Rows of Table
+        #   = numHeaderRows + sum(numBodyRows) + numFooterRows
+        self.cells = []  # Cell index table
 
         # Step.1: get num of table columns from len([ColSpec])
-        self.numTableColumns = len(self.get_prop('[ColSpec]'))
+        self.numTableColumns = len(self.get_prop("[ColSpec]"))
 
         # Step.2: Header
-        table_head = TableRowList(self.get_prop('TableHead'), 'TableHead')
+        table_head = TableRowList(self.get_prop("TableHead"), "TableHead")
         self._append_child(table_head)
         self.numHeaderRows = table_head.num_rows
 
         # Step.3: Bodys = [ ( RowHeads, Rows ) ]
-        table_bodys = self.get_prop('[TableBody]')
+        table_bodys = self.get_prop("[TableBody]")
         self.numBodys = len(table_bodys)
 
         for table_body in table_bodys:
-            body = TableBody(table_body, 'TableBody')
+            body = TableBody(table_body, "TableBody")
             self._append_child(body)
             self.numBodyRows.append(body.num_rows)
-            self.numRowHeaderColumns.append(body.get_prop('RowHeadColumns'))
+            self.numRowHeaderColumns.append(body.get_prop("RowHeadColumns"))
 
         # Step.4: Footer
-        table_foot = TableRowList(self.get_prop('TableFoot'), 'TableFoot')
+        table_foot = TableRowList(self.get_prop("TableFoot"), "TableFoot")
         self._append_child(table_foot)
         self.numFooterRows = table_foot.num_rows
 
@@ -404,7 +382,6 @@ class Table(Block):
         self._create_cell_index()
 
         _DEBUG.undent()
-
 
     def _create_cell_index(self):
         # Step.1: Header
@@ -416,11 +393,11 @@ class Table(Block):
         # Step.2: Bodys = [ ( RowHeads, Rows ) ]
         child = child.next()
 
-        while child.type == 'TableBody':
+        while child.type == "TableBody":
             # Body = ( RowHeads, Rows )
             row_heads = child.get_first_child()
             rows = row_heads.next()
-            hashead = (child.get_prop('RowHeadColumns') > 0)
+            hashead = child.get_prop("RowHeadColumns") > 0
 
             # cells of a row = concatenate rowhead and row.
             for index in range(rows.num_rows):
@@ -437,51 +414,46 @@ class Table(Block):
         for row in rows:
             self.cells.append(row.children[:])
 
-
     def getFirstLine(self):
         line = self.cells[0][0].getFirstLine()
         return line
 
-
     def getRow(self, r):
-        return self.cells[r-1]
-
+        return self.cells[r - 1]
 
     def getCell(self, r, c):
-        cell = self.cells[r-1][c-1]
+        cell = self.cells[r - 1][c - 1]
         return cell
 
 
 class TableRowList(Element):
-
     def __init__(self, pan_elem, elem_type, parent=None):
         super().__init__(pan_elem, elem_type)
 
-        _DEBUG.print(elem_type + '（TableRowList）')
+        _DEBUG.print(elem_type + "（TableRowList）")
         _DEBUG.indent()
 
         rows = self.get_content()
         self.num_rows = len(rows)
 
         for row in rows:
-            self._append_child(TableRow(row, 'Row'))
+            self._append_child(TableRow(row, "Row"))
 
         _DEBUG.undent()
 
 
 class TableBody(Element):
-
     def __init__(self, pan_elem, elem_type, parent=None):
         super().__init__(pan_elem, elem_type)
 
-        _DEBUG.print(elem_type + '（TableBody）')
+        _DEBUG.print(elem_type + "（TableBody）")
         _DEBUG.indent()
 
-        rows = self.get_prop('RowHeads')
-        self._append_child(TableRowList(rows, 'Rows'))
+        rows = self.get_prop("RowHeads")
+        self._append_child(TableRowList(rows, "Rows"))
 
-        rows = self.get_prop('Rows')
-        self._append_child(TableRowList(rows, 'Rows'))
+        rows = self.get_prop("Rows")
+        self._append_child(TableRowList(rows, "Rows"))
 
         self.num_rows = len(rows)
 
@@ -489,20 +461,18 @@ class TableBody(Element):
 
 
 class TableRow(Element):
-
-    def __init__(self, pan_elem, elem_type='Row', parent=None):
+    def __init__(self, pan_elem, elem_type="Row", parent=None):
         super().__init__(pan_elem, elem_type)
 
-        _DEBUG.print(elem_type + '（TableRow）')
+        _DEBUG.print(elem_type + "（TableRow）")
         _DEBUG.indent()
 
         contents = self.get_content()
 
         for content in contents:
-            self._append_child(TableCell(content, 'Cell'))
+            self._append_child(TableCell(content, "Cell"))
 
         _DEBUG.undent()
-
 
     def getFirstLine(self):
         firstCell = self.getFirstChild()
@@ -510,10 +480,8 @@ class TableRow(Element):
 
         return line
 
-
     def getCell(self, c):
-        return self.children[c-1]
-
+        return self.children[c - 1]
 
     def hasContent(self, start=1, end=-1):
         if end == -1:
@@ -527,15 +495,14 @@ class TableRow(Element):
 
 
 class TableCell(Element):
-
     def __init__(self, pan_elem, elem_type, parent=None):
         super().__init__(pan_elem, elem_type)
 
-        _DEBUG.print(elem_type + '（TableCell）')
+        _DEBUG.print(elem_type + "（TableCell）")
         _DEBUG.indent()
 
-        self.rowSpan = self.get_prop('RowSpan')
-        self.colSpan = self.get_prop('ColSpan')
+        self.rowSpan = self.get_prop("RowSpan")
+        self.colSpan = self.get_prop("ColSpan")
 
         blocks = self.get_content()
         for block in blocks:
@@ -543,9 +510,8 @@ class TableCell(Element):
 
         _DEBUG.undent()
 
-
     def getFirstLine(self):
-        line = ''
+        line = ""
         block = self.get_first_child()
 
         if isinstance(block, InlineList):
@@ -553,14 +519,12 @@ class TableCell(Element):
 
         return line
 
-
     def isEmpty(self):
         empty = len(self.children) == 0
         return empty
 
 
 class PandocAst(Element):
-
     def __init__(self, pandoc_ast):
         """
         与えられた PandocAst オブジェクトに対して、以下を行う。
@@ -573,7 +537,7 @@ class PandocAst(Element):
             ・ ブロックエレメントの種類を減らした、シンプルなデータモデルを提供する
             ・ 元文書の装飾やデータタイプ情報にアクセスできる手段を提供する
         """
-        super().__init__(pandoc_ast, 'Pandoc')
+        super().__init__(pandoc_ast, "Pandoc")
 
         contents = self.get_content()
 
@@ -583,9 +547,8 @@ class PandocAst(Element):
         # Step 2: Remove wrapper 'div'/'span' which contains only one block or is an only child.
         self.walk(self._remove_wrapper)
 
-
     def _remove_wrapper(self, elem, root):
-        if elem.type in ['Div', 'Span']:
+        if elem.type in ["Div", "Span"]:
 
             if len(elem.children) == 0:
                 self._remove_elem(elem)
@@ -606,7 +569,6 @@ class PandocAst(Element):
                     if elem.parent.source.position is None:
                         elem.parent.source.position = elem.source.position
                     self._remove_elem(elem)
-
 
     def _remove_elem(self, elem):
         index = elem.parent.children.index(elem)
@@ -633,537 +595,343 @@ _PANDOC_TYPES = {
     #
     # Gdoc additional types
     #
-    'BlockList':  {
+    "BlockList": {
         # [Block]   is not BlockList object, just an Array of Blocks.
         #           It means BlockList doesn't have 't' and 'c' elements.
-        'class':  BlockList,
-        'content':  {
-            'key':      None,
-            'type':     '[Block]'
-        },
-        'struct': None
+        "class": BlockList,
+        "content": {"key": None, "type": "[Block]"},
+        "struct": None,
     },
-    'InlineList':  {
+    "InlineList": {
         # [Inline]  is not InlineList object, just an Array of Inlines.
         #           It means InlineList doesn't have 't' and 'c' elements.
-        'class':  InlineList,
-        'content':  {
-            'key':      None,
-            'type':     '[Inline]'
-        },
-        'struct': None
+        "class": InlineList,
+        "content": {"key": None, "type": "[Inline]"},
+        "struct": None,
     },
-    'ListItem':  {
+    "ListItem": {
         # [Block]   is not ListItem object, just an Array of Blocks.
         #           It means ListItem doesn't have 't' and 'c' elements.
-        'class':  BlockList,
-        'content':  {
-            'key':      None,
-            'type':     '[Block]'
-        },
-        'struct': None
+        "class": BlockList,
+        "content": {"key": None, "type": "[Block]"},
+        "struct": None,
     },
-    'DefinitionItem':  {
+    "DefinitionItem": {
         # ([Inline], [[Block]]) is not List, Item(=Term+Definitions).
-        'class':  DefinitionList,
-        'content':  {
-            'key':      None
+        "class": DefinitionList,
+        "content": {
+            "key": None
             # 'type':     [ '[Inline]', '[[Block]]' ]
         },
-        'struct': None
+        "struct": None,
     },
     #
     # Pandoc
     #
-    'Pandoc':  {
+    "Pandoc": {
         # Pandoc Meta [Block]
-        'class':  BlockList,
-        'content':  {
-            'key':      None,
-            'main':     'blocks',
-            'type':     '[Block]'
-        },
-        'struct': {
-            'Version':  'pandoc-api-version',
-            'Meta':     'meta',
-            'Blocks':   'blocks'
-        }
+        "class": BlockList,
+        "content": {"key": None, "main": "blocks", "type": "[Block]"},
+        "struct": {"Version": "pandoc-api-version", "Meta": "meta", "Blocks": "blocks"},
     },
     #
     # Blocks
     #
-    'Plain':  {
+    "Plain": {
         # Plain [Inline]
         # - Plain text, not a paragraph
-        'class':  InlineList,
-        'content':  {
-            'key':      'c',
-            'type':     '[Inline]'
-        },
-        'struct': None
+        "class": InlineList,
+        "content": {"key": "c", "type": "[Inline]"},
+        "struct": None,
     },
-    'Para':  {
+    "Para": {
         # Para [Inline]
         # - Paragraph
-        'class':  InlineList,
-        'content':  {
-            'key':      'c',
-            'type':     '[Inline]'
-        },
-        'struct': None
+        "class": InlineList,
+        "content": {"key": "c", "type": "[Inline]"},
+        "struct": None,
     },
-    'LineBlock':  {
+    "LineBlock": {
         # LineBlock [[Inline]]
         # - Multiple non-breaking lines
-        'class':  InlineList,
-        'content':  {
-            'key':      'c',
-            'type':     '[[Inline]]'
-        },
-        'struct': None
+        "class": InlineList,
+        "content": {"key": "c", "type": "[[Inline]]"},
+        "struct": None,
     },
-    'CodeBlock':  {
+    "CodeBlock": {
         # CodeBlock Attr Text
         # - Code block (literal) with attributes
-        'class':  InlineList,
-        'content':  {
-            'key':      'c',
-            'type':     'Text'
-        },
-        'struct': {
-            'Attr':     0,
-            'Text':     1
-        }
+        "class": InlineList,
+        "content": {"key": "c", "type": "Text"},
+        "struct": {"Attr": 0, "Text": 1},
     },
-    'RawBlock':  {
+    "RawBlock": {
         # RawBlock Format Text
         # - Raw block
-        'class':  InlineList,
-        'content':  {
-            'key':      'c',
-            'main':     1,
-            'type':     'Text'
-        },
-        'struct': {
-            'Format':   0,
-            'Text':     1
-        }
+        "class": InlineList,
+        "content": {"key": "c", "main": 1, "type": "Text"},
+        "struct": {"Format": 0, "Text": 1},
     },
-    'BlockQuote':  {
+    "BlockQuote": {
         # BlockQuote [Block]
         # - Block quote (list of blocks)
-        'class':  BlockList,
-        'content':  {
-            'key':      'c',
-            'type':     '[Block]'
-        },
-        'struct': None
+        "class": BlockList,
+        "content": {"key": "c", "type": "[Block]"},
+        "struct": None,
     },
-    'OrderedList':  {
+    "OrderedList": {
         # OrderedList ListAttributes [[Block]]
         # - Ordered list (attributes and a list of items, each a list of blocks)
-        'class':  BlockList,
-        'content':  {
-            'key':      'c',
-            'main':     1,
-            'type':     '[[Block]]'
-        },
-        'struct': {
-            'ListAttributes':   0,
-            'ListItems':        1
-        }
+        "class": BlockList,
+        "content": {"key": "c", "main": 1, "type": "[[Block]]"},
+        "struct": {"ListAttributes": 0, "ListItems": 1},
     },
-    'BulletList':  {
+    "BulletList": {
         # BulletList [[Block]]
         # - Bullet list (list of items, each a list of blocks)
-        'class':  BlockList,
-        'content':  {
-            'key':      'c',
-            'type':     '[[Block]]'
-        },
-        'struct': None
+        "class": BlockList,
+        "content": {"key": "c", "type": "[[Block]]"},
+        "struct": None,
     },
-    'DefinitionList':  {
+    "DefinitionList": {
         # DefinitionList [([Inline], [[Block]])]
         # - Definition list. Each list item is a pair consisting of a term (a list of inlines) and one or more definitions (each a list of blocks)
-        'class':  DefinitionList,
-        'content':  {
-            'key':      'c',
-            'type':     '[([Inline], [[Block]])]'
-        },
-        'struct': None
+        "class": DefinitionList,
+        "content": {"key": "c", "type": "[([Inline], [[Block]])]"},
+        "struct": None,
     },
-    'Header':  {
+    "Header": {
         # Header Int Attr [Inline]
         # - Header - level (integer) and text (inlines)
-        'class':  InlineList,
-        'content':  {
-            'key':      'c',
-            'main':     2,
-            'type':     '[Inline]'
-        },
-        'struct': {
-            'Level':    0,
-            'Attr':     1,
-            '[Inline]': 2
-        }
+        "class": InlineList,
+        "content": {"key": "c", "main": 2, "type": "[Inline]"},
+        "struct": {"Level": 0, "Attr": 1, "[Inline]": 2},
     },
-    'HorizontalRule':  {
+    "HorizontalRule": {
         # HorizontalRule
         # - Horizontal rule
-        'class':  InlineList
+        "class": InlineList
     },
-    'Table':  {
+    "Table": {
         # Table Attr Caption [ColSpec] TableHead [TableBody] TableFoot
         # - Table, with attributes, caption, optional short caption, column alignments and widths (required), table head, table bodies, and table foot
-        'class':  Table,
-        'content':  {
-            'key':      'c',
-            'main':     None
+        "class": Table,
+        "content": {"key": "c", "main": None},
+        "struct": {
+            "Attr": 0,
+            "Caption": 1,
+            "[ColSpec]": 2,
+            "TableHead": 3,
+            "[TableBody]": 4,  # TableBody*s*
+            "TableFoot": 5,
         },
-        'struct': {
-            'Attr':         0,
-            'Caption':      1,
-            '[ColSpec]':    2,
-            'TableHead':    3,
-            '[TableBody]':  4,      # TableBody*s*
-            'TableFoot':    5
-        }
     },
-    'Div':  {
+    "Div": {
         # Div Attr [Block]
         # - Generic block container with attributes
-        'class':  BlockList,
-        'content':  {
-            'key':      'c',
-            'main':     1,
-            'type':     '[Block]'
-        },
-        'struct': {
-            'Attr':     0,
-            '[Block]':  1
-        }
+        "class": BlockList,
+        "content": {"key": "c", "main": 1, "type": "[Block]"},
+        "struct": {"Attr": 0, "[Block]": 1},
     },
-    'Null':  {
+    "Null": {
         # Null
         # - Nothing
     },
     #
     # Inlines
     #
-    'Str':  {
+    "Str": {
         # Str Text
         # Text (string)
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'type':     'Text'
-        },
-        'struct': None
+        "class": Inline,
+        "content": {"key": "c", "type": "Text"},
+        "struct": None,
     },
-    'Emph':  {
+    "Emph": {
         # Emph [Inline]
         # Emphasized text (list of inlines)
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'type':     '[Inline]'
-        },
-        'struct': None
+        "class": Inline,
+        "content": {"key": "c", "type": "[Inline]"},
+        "struct": None,
     },
-    'Underline':  {
+    "Underline": {
         # Underline [Inline]
         # Underlined text (list of inlines)
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'type':     '[Inline]'
-        },
-        'struct': None
+        "class": Inline,
+        "content": {"key": "c", "type": "[Inline]"},
+        "struct": None,
     },
-    'Strong':  {
+    "Strong": {
         # Strong [Inline]
         # Strongly emphasized text (list of inlines)
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'type':     '[Inline]'
-        },
-        'struct': None
+        "class": Inline,
+        "content": {"key": "c", "type": "[Inline]"},
+        "struct": None,
     },
-    'Strikeout':  {
+    "Strikeout": {
         # Strikeout [Inline]
         # Strikeout text (list of inlines)
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'type':     '[Inline]'
-        },
-        'struct': None
+        "class": Inline,
+        "content": {"key": "c", "type": "[Inline]"},
+        "struct": None,
     },
-    'Superscript':  {
+    "Superscript": {
         # Superscript [Inline]
         # Superscripted text (list of inlines)
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'type':     '[Inline]'
-        },
-        'struct': None
+        "class": Inline,
+        "content": {"key": "c", "type": "[Inline]"},
+        "struct": None,
     },
-    'Subscript':  {
+    "Subscript": {
         # Subscript [Inline]
         # Subscripted text (list of inlines)
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'type':     '[Inline]'
-        },
-        'struct': None
+        "class": Inline,
+        "content": {"key": "c", "type": "[Inline]"},
+        "struct": None,
     },
-    'SmallCaps':  {
+    "SmallCaps": {
         # SmallCaps [Inline]
         # Small caps text (list of inlines)
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'type':     '[Inline]'
-        },
-        'struct': None
+        "class": Inline,
+        "content": {"key": "c", "type": "[Inline]"},
+        "struct": None,
     },
-    'Quoted':  {
+    "Quoted": {
         # Quoted QuoteType [Inline]
         # Quoted text (list of inlines)
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'main':     1,
-            'type':     '[Inline]'
-        },
-        'struct': {
-            'QuotedType':   0,
-            'Inlines':      1
-        }
+        "class": Inline,
+        "content": {"key": "c", "main": 1, "type": "[Inline]"},
+        "struct": {"QuotedType": 0, "Inlines": 1},
     },
-    'Cite':  {
+    "Cite": {
         # Cite [Citation] [Inline]
         # Citation (list of inlines)
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'main':     1,
-            'type':     '[Inline]'
-        },
-        'struct': {
-            'Citation': 0,
-            'Inlines':  1
-        }
+        "class": Inline,
+        "content": {"key": "c", "main": 1, "type": "[Inline]"},
+        "struct": {"Citation": 0, "Inlines": 1},
     },
-    'Code':  {
+    "Code": {
         # Code Attr Text
         # Inline code (literal)
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'main':     1,
-            'type':     'Text'
-        },
-        'struct': {
-            'Attr':     0,
-            'Text':     1
-        }
+        "class": Inline,
+        "content": {"key": "c", "main": 1, "type": "Text"},
+        "struct": {"Attr": 0, "Text": 1},
     },
-    'Space':  {
+    "Space": {
         # Space
         # Inter-word space
-        'class':  Inline
+        "class": Inline
     },
-    'SoftBreak':  {
+    "SoftBreak": {
         # SoftBreak
         # Soft line break
-        'class':  Inline
+        "class": Inline
     },
-    'LineBreak':  {
+    "LineBreak": {
         # LineBreak
         # Hard line break
-        'class':  Inline
+        "class": Inline
     },
-    'Math':  {
+    "Math": {
         # Math MathType Text
         # TeX math (literal)
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'main':     1,
-            'type':     'Text'
-        },
-        'struct': {
-            'MathType': 0,
-            'Text':     1
-        }
+        "class": Inline,
+        "content": {"key": "c", "main": 1, "type": "Text"},
+        "struct": {"MathType": 0, "Text": 1},
     },
-    'RawInline':  {
+    "RawInline": {
         # RawInline Format Text
         # Raw inline
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'main':     1,
-            'type':     'Text'
-        },
-        'struct': {
-            'Format':   0,
-            'Text':     1
-        }
+        "class": Inline,
+        "content": {"key": "c", "main": 1, "type": "Text"},
+        "struct": {"Format": 0, "Text": 1},
     },
-    'Link':  {
+    "Link": {
         # Link Attr [Inline] Target
         # Hyperlink: alt text (list of inlines), target
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'main':     1,
-            'type':     '[Inline]'
-        },
-        'struct': {
-            'Attr':     0,
-            'Inlines':  1,
-            'Target':   2
-        }
+        "class": Inline,
+        "content": {"key": "c", "main": 1, "type": "[Inline]"},
+        "struct": {"Attr": 0, "Inlines": 1, "Target": 2},
     },
-    'Image':  {
+    "Image": {
         # Image Attr [Inline] Target
         # Image: alt text (list of inlines), target
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'main':     1,
-            'type':     '[Inline]'
-        },
-        'struct': {
-            'Attr':     0,
-            'Inlines':  1,
-            'Taget':    2
-        }
+        "class": Inline,
+        "content": {"key": "c", "main": 1, "type": "[Inline]"},
+        "struct": {"Attr": 0, "Inlines": 1, "Taget": 2},
     },
-    'Note':  {
+    "Note": {
         # Note [Block]
         # Footnote or endnote
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'type':     '[Block]'
-        },
-        'struct': None
+        "class": Inline,
+        "content": {"key": "c", "type": "[Block]"},
+        "struct": None,
     },
-    'Span':  {
+    "Span": {
         # Span Attr [Inline]
         # Generic inline container with attributes
-        'class':  Inline,
-        'content':  {
-            'key':      'c',
-            'main':     1,
-            'type':     '[Inline]'
-        },
-        'struct': {
-            'Attr':     0,
-            'Inlines':  1
-        }
+        "class": Inline,
+        "content": {"key": "c", "main": 1, "type": "[Inline]"},
+        "struct": {"Attr": 0, "Inlines": 1},
     },
     #
     # OtherTypes
     #
-    'TableHead':  {
+    "TableHead": {
         # TableHead Attr [Row]
         # The head of a table.
-        'class':  TableRowList,
-        'content':  {
-            'key':      None,
-            'main':     1,
-            'type':     '[Row]'
-        },
-        'struct': {
-            'Attr':     0,
-            'Rows':     1
-        }
+        "class": TableRowList,
+        "content": {"key": None, "main": 1, "type": "[Row]"},
+        "struct": {"Attr": 0, "Rows": 1},
     },
-    'TableBody':  {
+    "TableBody": {
         # TableBody Attr RowHeadColumns [Row] [Row]
         # A body of a table, with an intermediate head, intermediate body,
         # and the specified number of row header columns in the intermediate body.
-        'class':  TableBody,
-        'content':  {
-            'key':      None
+        "class": TableBody,
+        "content": {"key": None},
+        "struct": {
+            "Attr": 0,
+            "RowHeadColumns": 1,
+            "RowHeads": {"index": 2, "type": "[Row]"},
+            "Rows": {"index": 3, "type": "[Row]"},
         },
-        'struct': {
-            'Attr':             0,
-            'RowHeadColumns':   1,
-            'RowHeads': {
-                'index':       2,
-                'type':         '[Row]'
-            },
-            'Rows': {
-                'index':       3,
-                'type':         '[Row]'
-            },
-        }
     },
-    'TableFoot':  {
+    "TableFoot": {
         # TableFoot Attr [Row]
         # The foot of a table.
-        'class':  TableRowList,
-        'content':  {
-            'key':      None,
-            'main':     1,
-            'type':     '[Row]'
-        },
-        'struct': {
-            'Attr':     0,
-            'Rows':     1
-        }
+        "class": TableRowList,
+        "content": {"key": None, "main": 1, "type": "[Row]"},
+        "struct": {"Attr": 0, "Rows": 1},
     },
-    'Rows':  {
+    "Rows": {
         # Row Attr [Cell]
         # A table row.
-        'class':  TableRowList,
-        'content':  {
-            'key':      None,
-            'type':     '[Row]'
-        },
-        'struct':       None
+        "class": TableRowList,
+        "content": {"key": None, "type": "[Row]"},
+        "struct": None,
     },
-    'Row':  {
+    "Row": {
         # Row Attr [Cell]
         # A table row.
-        'class':  TableRow,
-        'content':  {
-            'key':      None,
-            'main':     1,
-            'type':     '[Cell]'
-        },
-        'struct': {
+        "class": TableRow,
+        "content": {"key": None, "main": 1, "type": "[Cell]"},
+        "struct": {
             # 'Attr':     0,    Commented out because of issue about handling Rows in Table.
-            'Cells':    1
-        }
+            "Cells": 1
+        },
     },
-    'Cell':  {
+    "Cell": {
         # Cell Attr Alignment RowSpan ColSpan [Block]
         # A table cell.
-        'class':  TableCell,
-        'content':  {
-            'key':      None,
-            'main':     4,
-            'type':     '[Block]'
+        "class": TableCell,
+        "content": {"key": None, "main": 4, "type": "[Block]"},
+        "struct": {
+            "Attr": 0,
+            "Alignment": 1,
+            "RowSpan": 2,
+            "ColSpan": 3,
+            "[Block]": {"index": 4, "type": "[Block]"},
         },
-        'struct': {
-            'Attr':         0,
-            'Alignment':    1,
-            'RowSpan':      2,
-            'ColSpan':      3,
-            '[Block]':  {
-                'index':   4,
-                'type':     '[Block]'
-            }
-        }
-    }
+    },
 }

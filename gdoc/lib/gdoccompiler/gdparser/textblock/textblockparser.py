@@ -16,8 +16,8 @@ def parse_TextBlock(textblock: TextBlock, gdobject, opts={}):
 
 
 class TextBlockParser(State):
-    """
-    """
+    """ """
+
     def __init__(self, name: str = None) -> None:
         super().__init__(name or __class__.__name__)
 
@@ -27,11 +27,9 @@ class TextBlockParser(State):
         self.following_text = None
         self.block_tag = None
 
-
     def start(self, param):
         self.__gdobject: BaseObject = param
         return self
-
 
     def on_event(self, line):
 
@@ -48,12 +46,11 @@ class TextBlockParser(State):
                 self.preceding_lines.append(parsed_line)
             else:
                 self.preceding_text = parsed_line[:i]
-                self.following_text = parsed_line[i+1:]
+                self.following_text = parsed_line[i + 1 :]
         else:
             self.following_lines.append(parsed_line)
 
         return self
-
 
     def on_exit(self):
         super().on_exit()
@@ -65,7 +62,6 @@ class TextBlockParser(State):
 
         return child
 
-
     def _create_objects(self, tag_args, tag_opts):
         """
         1. The following text of btag will be used as the name. \
@@ -76,12 +72,14 @@ class TextBlockParser(State):
         4. If the text contains inline tags, add the properties specified by the tags
            without deleting from content of text property.
         """
-        tag_opts.update({
-            "preceding_lines": self.preceding_lines,
-            "following_lines": self.following_lines,
-            "preceding_text": self.preceding_text,
-            "following_text": self.following_text
-        })
+        tag_opts.update(
+            {
+                "preceding_lines": self.preceding_lines,
+                "following_lines": self.following_lines,
+                "preceding_text": self.preceding_text,
+                "following_text": self.following_text,
+            }
+        )
 
         name = tag_opts["following_text"].get_str()
         for i in range(len(name)):
@@ -89,7 +87,7 @@ class TextBlockParser(State):
                 break
         name = name[i:]
         for i in range(len(name)):
-            if not str(name[-1-i]).isspace():
+            if not str(name[-1 - i]).isspace():
                 break
         if i > 0:
             name = name[:-i]
@@ -98,7 +96,7 @@ class TextBlockParser(State):
 
         pretext = tag_opts["preceding_text"].get_str()
         for i in range(len(pretext)):
-            if not str(pretext[-1-i]).isspace():
+            if not str(pretext[-1 - i]).isspace():
                 break
         if i > 0:
             pretext = pretext[:-i]
@@ -107,33 +105,32 @@ class TextBlockParser(State):
         hyphen = None
         for i in range(len(pretext)):
             if hyphen is None:
-                if pretext[-1-i] == '-':
-                    hyphen = '-'
+                if pretext[-1 - i] == "-":
+                    hyphen = "-"
                 else:
                     break
 
-            elif hyphen == '-':
-                if pretext[-1-i] == '-':
+            elif hyphen == "-":
+                if pretext[-1 - i] == "-":
                     continue
-                elif str(pretext[-1-i]).isspace():
-                    hyphen == ' '
+                elif str(pretext[-1 - i]).isspace():
+                    hyphen == " "
                 else:
                     break
 
-            elif hyphen == ' ':
-                if str(pretext[-1-i]).isspace():
+            elif hyphen == " ":
+                if str(pretext[-1 - i]).isspace():
                     continue
                 else:
                     break
 
-        if hyphen == ' ':
+        if hyphen == " ":
             text = tag_opts["preceding_lines"][:]
             text.append(pretext[:-i])
         else:
             text = tag_opts["following_lines"][:]
 
         if text:
-            tag_opts["properties"] = { "text": text }
+            tag_opts["properties"] = {"text": text}
 
-        return self.__gdobject.create_object(*tag_args, type_args = tag_opts)
-
+        return self.__gdobject.create_object(*tag_args, type_args=tag_opts)

@@ -21,14 +21,14 @@ def setup(subparsers, name, commonOptions):
     global __subcommand__
     __subcommand__ = name
 
-    parser = subparsers.add_parser(__subcommand__, parents=[commonOptions], help='show trace tree')
+    parser = subparsers.add_parser(__subcommand__, parents=[commonOptions], help="show trace tree")
     parser.set_defaults(func=run)
-    parser.add_argument('id', help='target id to trace')
-    parser.add_argument('filePath', help='display a square of a given number', nargs='*')
-    parser.add_argument('--upper', help='enable print debug information.', type=int, default=1)
-    parser.add_argument('--lower', help='enable print debug information.', type=int, default=1)
-    parser.add_argument('--long', action='store_true', help='enable print debug information.')
-    parser.add_argument('--verbose', action='store_true', help='enable print debug information.')
+    parser.add_argument("id", help="target id to trace")
+    parser.add_argument("filePath", help="display a square of a given number", nargs="*")
+    parser.add_argument("--upper", help="enable print debug information.", type=int, default=1)
+    parser.add_argument("--lower", help="enable print debug information.", type=int, default=1)
+    parser.add_argument("--long", action="store_true", help="enable print debug information.")
+    parser.add_argument("--verbose", action="store_true", help="enable print debug information.")
 
 
 def run(args):
@@ -40,8 +40,8 @@ def run(args):
     #
     if len(args.filePath) > 0:
 
-        if args.filePath[0].endswith('.json'):
-            with open(args.filePath[0], 'r', encoding='UTF-8') as f:
+        if args.filePath[0].endswith(".json"):
+            with open(args.filePath[0], "r", encoding="UTF-8") as f:
                 pandoc = json.load(f)
 
         else:
@@ -55,7 +55,7 @@ def run(args):
         pandoc = json.load(sys.stdin)
 
     else:
-        print(__subcommand__ + ': error: Missing pandocfile ( [-d / --pandocfile] is required)')
+        print(__subcommand__ + ": error: Missing pandocfile ( [-d / --pandocfile] is required)")
         sys.exit(1)
 
     gdoc = pandocast.PandocAst(pandoc)
@@ -64,14 +64,14 @@ def run(args):
     ghost = gdom.GdocObjectModel(gdoc, types)
     ghost.walk(_link)
 
-    filename = args.filePath[0] if len(args.filePath) > 0 else ''
+    filename = args.filePath[0] if len(args.filePath) > 0 else ""
     items = ghost.symbolTable.search(args.id)
     for item in items:
         _treeView(item, args.upper, args.lower, filename)
 
 
 def _link(element):
-    if hasattr(element, 'link') and callable(element.link):
+    if hasattr(element, "link") and callable(element.link):
         element.link()
 
 
@@ -80,18 +80,18 @@ def _treeView(item, upper, lower, filename):
     indent = 0
 
     # LinkTo(Upper)
-    branches = _retrieve(item, 'to', upper)
-    lines = _format(branches, 'to', '')
+    branches = _retrieve(item, "to", upper)
+    lines = _format(branches, "to", "")
 
     # TargetItem
     lines.append(_getItemInfo(item))
 
     # LinkFrom(Lower)
-    branches = _retrieve(item, 'from', lower)
-    lines += _format(branches, 'from', '')
+    branches = _retrieve(item, "from", lower)
+    lines += _format(branches, "from", "")
 
     for line in lines:
-        lineString = filename + ':  ' + line
+        lineString = filename + ":  " + line
         print(lineString)
 
 
@@ -103,9 +103,9 @@ def _retrieve(item, dir, limit):
             branches[childType] = []
 
             for linkItem in item.link[dir][childType]:
-                branches[childType].append({'info': _getItemInfo(linkItem), 'children': {}})
+                branches[childType].append({"info": _getItemInfo(linkItem), "children": {}})
                 if (limit > 1) or (limit < 0):
-                    branches[childType][-1]['children'] = _retrieve(linkItem, dir, limit-1)
+                    branches[childType][-1]["children"] = _retrieve(linkItem, dir, limit - 1)
 
     return branches
 
@@ -113,59 +113,57 @@ def _retrieve(item, dir, limit):
 def _format(branches, dir, leadString):
     lines = []
     indent = 0
-    indentString = ''
-    ANGLE = '┌' if dir == 'to' else '└'
+    indentString = ""
+    ANGLE = "┌" if dir == "to" else "└"
 
     c = len(branches)
     for childTyp in branches:
         c -= 1
         if c > 0:
-            line = leadString + '├  '
-            nextString = leadString + '│   '
+            line = leadString + "├  "
+            nextString = leadString + "│   "
         else:
-            line = leadString + ANGLE + '  '
-            nextString = leadString + '    '
+            line = leadString + ANGLE + "  "
+            nextString = leadString + "    "
 
-        line += '@' + childTyp
+        line += "@" + childTyp
         lines.append(line)
 
         i = len(branches[childTyp])
         for item in branches[childTyp]:
             i -= 1
             if i > 0:
-                line = nextString + '├  '
-                childString = nextString + '│  '
+                line = nextString + "├  "
+                childString = nextString + "│  "
             else:
-                line = nextString + ANGLE + '  '
-                childString = nextString + '   '
+                line = nextString + ANGLE + "  "
+                childString = nextString + "   "
 
-            line += item['info']
+            line += item["info"]
             lines.append(line)
-            lines += _format(item['children'], dir, childString)
+            lines += _format(item["children"], dir, childString)
 
-    if dir == 'to':
+    if dir == "to":
         lines.reverse()
 
     return lines
 
 
 def _getItemInfo(item):
-    lineString = 'SysML.Reqt '
+    lineString = "SysML.Reqt "
 
     if isinstance(item, str):
-        lineString += item + ' - [NOT FOUND]' 
+        lineString += item + " - [NOT FOUND]"
 
     else:
-        lineString += item.symboltable.fullId + '.' + item.id
+        lineString += item.symboltable.fullId + "." + item.id
 
-        if hasattr(item, 'tags') and (len(item.tags) > 0):
-            lineString += '(' + ','.join(item.tags) + ')'
+        if hasattr(item, "tags") and (len(item.tags) > 0):
+            lineString += "(" + ",".join(item.tags) + ")"
 
         if item.name is not None:
-            lineString += ' - ' + item.name
+            lineString += " - " + item.name
 
         # lineString +=  ' : ' + item.text
 
     return lineString
-
-

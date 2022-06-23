@@ -21,10 +21,11 @@ import inspect
 from gdoc.lib.gdoccompiler.gdobject.types.category import Category
 from gdoc.lib.gdoccompiler.gdexception import *
 
+
 @pytest.fixture
 def _TEST_CLASS():
-    r"""
-    """
+    r""" """
+
     class TEST_CLASS:
         @classmethod
         def set_category(cls, module):
@@ -42,11 +43,13 @@ def _TEST_CLASS():
 ##
 ___init__ = "dummy for doxygen styling"
 
+
 def spec___init___1():
     r"""
     [@spec \_\_init\_\_.1] `Symbol` should be a class.
     """
     assert inspect.isclass(Category) == True
+
 
 def spec___init___2(_TEST_CLASS):
     r"""
@@ -54,18 +57,14 @@ def spec___init___2(_TEST_CLASS):
     """
 
     CATEGORY_INFO = {
-        "name":     "@NAME",
-        "version":  "@VERSION",
-        "module":   "@MODULE",
+        "name": "@NAME",
+        "version": "@VERSION",
+        "module": "@MODULE",
         "types": {
             "TEST": _TEST_CLASS,
         },
-        "aliases": {
-            "ALIAS": "TEST"
-        },
-        "defaults": {
-            "DEFAULT": "TEST"
-        }
+        "aliases": {"ALIAS": "TEST"},
+        "defaults": {"DEFAULT": "TEST"},
     }
     target = Category(CATEGORY_INFO)
 
@@ -82,6 +81,7 @@ def spec___init___3(_TEST_CLASS):
     [@spec \_\_init\_\_.2] set props with default values.
     """
     from gdoc.lib.gdoccompiler.gdobject.types import CATEGORY_INFO
+
     target = Category(CATEGORY_INFO)
 
     assert target.name == ""
@@ -92,220 +92,191 @@ def spec___init___3(_TEST_CLASS):
 ## [\@spec get_type] get object class by name.
 ##
 _get_type_1 = {
-#   id: (
-#       category_info : {key: val,...}
-#       kwargs: {target_type, parent_type, opts}
-#       expected: {
-#           'type_name':
-#           'constructor':
-#       }
-#   )
-    "Case: Simple(1/)":  (
+    #   id: (
+    #       category_info : {key: val,...}
+    #       kwargs: {target_type, parent_type, opts}
+    #       expected: {
+    #           'type_name':
+    #           'constructor':
+    #       }
+    #   )
+    "Case: Simple(1/)": (
         # category_info : {key: val,...}
         {
-            "name":"@NAME", "version":"@VERSION", "module":"@MODULE",
-            "types": { "TARGET": None },    # None will be replaced with _TEST_CLASS
+            "name": "@NAME",
+            "version": "@VERSION",
+            "module": "@MODULE",
+            "types": {"TARGET": None},  # None will be replaced with _TEST_CLASS
             "aliases": {},
-            "defaults": {}
+            "defaults": {},
         },
         # kwargs: {target_type, parent_type, opts}
-        {"target_type":"TARGET", "parent_type":""},
-        {   # expected
-            'constructor': (not None),
-            'type_name': "TARGET"
-        }
+        {"target_type": "TARGET", "parent_type": ""},
+        {"constructor": (not None), "type_name": "TARGET"},  # expected
     ),
-    "Case: Simple(2/) - NotFound":  (
+    "Case: Simple(2/) - NotFound": (
         # category_info : {key: val,...}
         {
-            "name":"@NAME", "version":"@VERSION", "module":"@MODULE",
-            "types": { "TARGET": None },    # None will be replaced with _TEST_CLASS
+            "name": "@NAME",
+            "version": "@VERSION",
+            "module": "@MODULE",
+            "types": {"TARGET": None},  # None will be replaced with _TEST_CLASS
             "aliases": {},
-            "defaults": {}
+            "defaults": {},
         },
         # kwargs: {target_type, parent_type, opts}
-        {"target_type":"NOT_EXIST", "parent_type":""},
-        {   # expected
-            'constructor': None,
-            'type_name': ""
-        }
+        {"target_type": "NOT_EXIST", "parent_type": ""},
+        {"constructor": None, "type_name": ""},  # expected
     ),
-    "Case: Aliase(1/)":  (
+    "Case: Aliase(1/)": (
         # category_info : {key: val,...}
         {
-            "name":"@NAME", "version":"@VERSION", "module":"@MODULE",
+            "name": "@NAME",
+            "version": "@VERSION",
+            "module": "@MODULE",
             "types": {
                 "TARGET": None,
-                "ALIAS":  "THIS IS NOT CORRECT CLASS"
-            },    # None will be replaced with _TEST_CLASS
-            "aliases": {
-                "ALIAS": "TARGET"
-            },
-            "defaults": {}
+                "ALIAS": "THIS IS NOT CORRECT CLASS",
+            },  # None will be replaced with _TEST_CLASS
+            "aliases": {"ALIAS": "TARGET"},
+            "defaults": {},
         },
         # kwargs: {target_type, parent_type, opts}
-        {"target_type":"ALIAS", "parent_type":""},
-        {   # expected
-            'constructor': (not None),
-            'type_name': "TARGET"
-        }
+        {"target_type": "ALIAS", "parent_type": ""},
+        {"constructor": (not None), "type_name": "TARGET"},  # expected
     ),
-    "Case: Aliase(2/) - NotFound":  (
+    "Case: Aliase(2/) - NotFound": (
         # category_info : {key: val,...}
         {
-            "name":"@NAME", "version":"@VERSION", "module":"@MODULE",
-            "types": { "TARGET": None },    # None will be replaced with _TEST_CLASS
-            "aliases": {
-                "ALIAS": "TARGET"
-            },
-            "defaults": {}
+            "name": "@NAME",
+            "version": "@VERSION",
+            "module": "@MODULE",
+            "types": {"TARGET": None},  # None will be replaced with _TEST_CLASS
+            "aliases": {"ALIAS": "TARGET"},
+            "defaults": {},
         },
         # kwargs: {target_type, parent_type, opts}
-        {"target_type":"NOT_EXIST", "parent_type":""},
-        {   # expected
-            'constructor': None,
-            'type_name': "TARGET"
-        }
+        {"target_type": "NOT_EXIST", "parent_type": ""},
+        {"constructor": None, "type_name": "TARGET"},  # expected
     ),
-    "Case: Default(1/)":  (
+    "Case: Default(1/)": (
         # category_info : {key: val,...}
         {
-            "name":"@NAME", "version":"@VERSION", "module":"@MODULE",
-            "types": { "TARGET": None },    # None will be replaced with _TEST_CLASS
+            "name": "@NAME",
+            "version": "@VERSION",
+            "module": "@MODULE",
+            "types": {"TARGET": None},  # None will be replaced with _TEST_CLASS
             "aliases": {},
-            "defaults": {
-                "PARENT": "TARGET"
-            },
+            "defaults": {"PARENT": "TARGET"},
         },
         # kwargs: {target_type, parent_type, opts}
-        {"target_type":"", "parent_type":"PARENT"},
-        {   # expected
-            'constructor': (not None),
-            'type_name': "TARGET"
-        }
+        {"target_type": "", "parent_type": "PARENT"},
+        {"constructor": (not None), "type_name": "TARGET"},  # expected
     ),
-    "Case: Default(2/)":  (
+    "Case: Default(2/)": (
         # category_info : {key: val,...}
         {
-            "name":"@NAME", "version":"@VERSION", "module":"@MODULE",
-            "types": { "TARGET": None },    # None will be replaced with _TEST_CLASS
-            "aliases": {
-                "ALIAS": "TARGET"
-            },
-            "defaults": {
-                "PARENT": "ALIAS"
-            },
+            "name": "@NAME",
+            "version": "@VERSION",
+            "module": "@MODULE",
+            "types": {"TARGET": None},  # None will be replaced with _TEST_CLASS
+            "aliases": {"ALIAS": "TARGET"},
+            "defaults": {"PARENT": "ALIAS"},
         },
         # kwargs: {target_type, parent_type, opts}
-        {"target_type":"", "parent_type":"PARENT"},
-        {   # expected
-            'constructor': (not None),
-            'type_name': "TARGET"
-        }
+        {"target_type": "", "parent_type": "PARENT"},
+        {"constructor": (not None), "type_name": "TARGET"},  # expected
     ),
-    "Case: Default(3/) - NotFound":  (
+    "Case: Default(3/) - NotFound": (
         # category_info : {key: val,...}
         {
-            "name":"@NAME", "version":"@VERSION", "module":"@MODULE",
-            "types": { "TARGET": None },    # None will be replaced with _TEST_CLASS
-            "aliases": {
-                "ALIAS": "TARGET"
-            },
-            "defaults": {
-                "PARENT": "ALIAS"
-            },
+            "name": "@NAME",
+            "version": "@VERSION",
+            "module": "@MODULE",
+            "types": {"TARGET": None},  # None will be replaced with _TEST_CLASS
+            "aliases": {"ALIAS": "TARGET"},
+            "defaults": {"PARENT": "ALIAS"},
         },
         # kwargs: {target_type, parent_type, opts}
-        {"target_type":"", "parent_type":"NOT_EXIST"},
-        {   # expected
-            'constructor': None,
-            'type_name': ""
-        }
+        {"target_type": "", "parent_type": "NOT_EXIST"},
+        {"constructor": None, "type_name": ""},  # expected
     ),
-    "Case: Opts-Aliase(1/)":  (
+    "Case: Opts-Aliase(1/)": (
         # category_info : {key: val,...}
         {
-            "name":"@NAME", "version":"@VERSION", "module":"@MODULE",
+            "name": "@NAME",
+            "version": "@VERSION",
+            "module": "@MODULE",
             "types": {
                 "TARGET": None,
-                "ALIAS":  "THIS IS NOT CORRECT CLASS"
-            },    # None will be replaced with _TEST_CLASS
-            "aliases": { "ALIAS": "NOT_EXIST" },
-            "defaults": {}
+                "ALIAS": "THIS IS NOT CORRECT CLASS",
+            },  # None will be replaced with _TEST_CLASS
+            "aliases": {"ALIAS": "NOT_EXIST"},
+            "defaults": {},
         },
         # kwargs: {target_type, parent_type, opts}
-        {"target_type":"ALIAS", "parent_type":"", "opts":{
-            "aliases": { "ALIAS": "TARGET" }
-        }},
-        {   # expected
-            'constructor': (not None),
-            'type_name': "TARGET"
-        }
+        {"target_type": "ALIAS", "parent_type": "", "opts": {"aliases": {"ALIAS": "TARGET"}}},
+        {"constructor": (not None), "type_name": "TARGET"},  # expected
     ),
-    "Case: Opts-Aliase(2/)":  (
+    "Case: Opts-Aliase(2/)": (
         # category_info : {key: val,...}
         {
-            "name":"@NAME", "version":"@VERSION", "module":"@MODULE",
+            "name": "@NAME",
+            "version": "@VERSION",
+            "module": "@MODULE",
             "types": {
                 "TARGET": None,
-                "ALIAS":  "THIS IS NOT CORRECT CLASS"
-            },    # None will be replaced with _TEST_CLASS
-            "aliases": { "ALIAS": "TARGET" },
-            "defaults": {}
+                "ALIAS": "THIS IS NOT CORRECT CLASS",
+            },  # None will be replaced with _TEST_CLASS
+            "aliases": {"ALIAS": "TARGET"},
+            "defaults": {},
         },
         # kwargs: {target_type, parent_type, opts}
-        {"target_type":"ALIAS-ALIAS", "parent_type":"", "opts":{
-            "aliases": { "ALIAS-ALIAS": "ALIAS" }
-        }},
-        {   # expected
-            'constructor': (not None),
-            'type_name': "TARGET"
-        }
+        {
+            "target_type": "ALIAS-ALIAS",
+            "parent_type": "",
+            "opts": {"aliases": {"ALIAS-ALIAS": "ALIAS"}},
+        },
+        {"constructor": (not None), "type_name": "TARGET"},  # expected
     ),
-    "Case: Opts-Default(1/)":  (
+    "Case: Opts-Default(1/)": (
         # category_info : {key: val,...}
         {
-            "name":"@NAME", "version":"@VERSION", "module":"@MODULE",
-            "types": { "TARGET": None },    # None will be replaced with _TEST_CLASS
+            "name": "@NAME",
+            "version": "@VERSION",
+            "module": "@MODULE",
+            "types": {"TARGET": None},  # None will be replaced with _TEST_CLASS
             "aliases": {},
-            "defaults": {
-                "PARENT": "NOT_EXIST"
-            },
+            "defaults": {"PARENT": "NOT_EXIST"},
         },
         # kwargs: {target_type, parent_type, opts}
-        {"target_type":"", "parent_type":"PARENT", "opts":{
-            "defaults": { "PARENT": "TARGET" }
-        }},
-        {   # expected
-            'constructor': (not None),
-            'type_name': "TARGET"
-        }
+        {"target_type": "", "parent_type": "PARENT", "opts": {"defaults": {"PARENT": "TARGET"}}},
+        {"constructor": (not None), "type_name": "TARGET"},  # expected
     ),
-    "Case: Opts-Default(2/)":  (
+    "Case: Opts-Default(2/)": (
         # category_info : {key: val,...}
         {
-            "name":"@NAME", "version":"@VERSION", "module":"@MODULE",
-            "types": { "TARGET": None },    # None will be replaced with _TEST_CLASS
-            "aliases": {
-                "ALIAS": "TARGET"
-            },
-            "defaults": {
-                "PARENT": "NOT_EXIST"
-            },
+            "name": "@NAME",
+            "version": "@VERSION",
+            "module": "@MODULE",
+            "types": {"TARGET": None},  # None will be replaced with _TEST_CLASS
+            "aliases": {"ALIAS": "TARGET"},
+            "defaults": {"PARENT": "NOT_EXIST"},
         },
         # kwargs: {target_type, parent_type, opts}
-        {"target_type":"", "parent_type":"PARENT", "opts":{
-            "aliases": { "ALIAS-ALIAS": "ALIAS" },
-            "defaults": { "PARENT": "ALIAS-ALIAS" }
-        }},
-        {   # expected
-            'constructor': (not None),
-            'type_name': "TARGET"
-        }
+        {
+            "target_type": "",
+            "parent_type": "PARENT",
+            "opts": {"aliases": {"ALIAS-ALIAS": "ALIAS"}, "defaults": {"PARENT": "ALIAS-ALIAS"}},
+        },
+        {"constructor": (not None), "type_name": "TARGET"},  # expected
     ),
 }
-@pytest.mark.parametrize("category_info, kwargs, expected",
-    list(_get_type_1.values()), ids=list(_get_type_1.keys()))
+
+
+@pytest.mark.parametrize(
+    "category_info, kwargs, expected", list(_get_type_1.values()), ids=list(_get_type_1.keys())
+)
 def spec_get_type_1(mocker, _TEST_CLASS, category_info, kwargs, expected):
     r"""
     [\@spec get_type.1] run child_ids with NO-ERROR.
@@ -327,4 +298,3 @@ def spec_get_type_1(mocker, _TEST_CLASS, category_info, kwargs, expected):
     #
     else:
         assert constructor is None
-

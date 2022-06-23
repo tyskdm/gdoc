@@ -5,30 +5,28 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Pandoc:
-
     def __init__(self) -> None:
         pass
-
 
     def run(self, file, fromType=None):
         commands = []
 
         if fromType is None:
-            if (file.split('.')[-1]) == 'md':
-                cmd = 'pandoc -f gfm+sourcepos -t html'.split()
+            if (file.split(".")[-1]) == "md":
+                cmd = "pandoc -f gfm+sourcepos -t html".split()
                 cmd.append(file)
                 commands.append(cmd)
 
-                cmd = 'pandoc -f html -t json'.split()
+                cmd = "pandoc -f html -t json".split()
                 commands.append(cmd)
 
             else:
-                cmd = 'pandoc -t json'.split()
+                cmd = "pandoc -t json".split()
                 cmd.append(file)
                 commands.append(cmd)
 
         else:
-            cmd = 'pandoc -t json -f'.split()
+            cmd = "pandoc -t json -f".split()
             cmd.append(fromType)
             cmd.append(file)
             commands.append(cmd)
@@ -39,7 +37,9 @@ class Pandoc:
             procs.append(ps)
 
             if len(commands) > 1:
-                with subprocess.Popen(commands[1], stdin=procs[0].stdout, stdout=subprocess.PIPE) as ps:
+                with subprocess.Popen(
+                    commands[1], stdin=procs[0].stdout, stdout=subprocess.PIPE
+                ) as ps:
                     procs.append(ps)
                     output = procs[-1].communicate()[0]
                     procs[0].communicate()
@@ -52,5 +52,5 @@ class Pandoc:
                 if procs[0].returncode != 0:
                     # should raise
                     output = None
- 
+
         return output

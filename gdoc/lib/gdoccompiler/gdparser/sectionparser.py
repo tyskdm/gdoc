@@ -2,9 +2,9 @@ from gdoc.lib.gdoc.section import Section
 from gdoc.lib.gdoc.textblock import TextBlock
 from .textblock.textblockparser import parse_TextBlock
 
+
 def parse_Section(section: Section, gdobject, opts={}):
-    """
-    """
+    """ """
     context_object = gdobject
     num_blocks = len(section)
     i = 0
@@ -24,4 +24,3 @@ def parse_Section(section: Section, gdobject, opts={}):
                 parse_Section(section[i], context_object)
 
             i += 1
-

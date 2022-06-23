@@ -2,15 +2,13 @@
 fsm.py: Finite State Machine
 """
 
-class State():
 
-    def __init__(self, name : str=None) -> None:
+class State:
+    def __init__(self, name: str = None) -> None:
         self.name = name or __class__.__name__
 
-
     def start(self, param=None):
-        return self     # `self` for chaining
-
+        return self  # `self` for chaining
 
     def on_entry(self, event=None):
         # continue      --> self
@@ -21,7 +19,6 @@ class State():
         #               --> None or (None, result)
         return self
 
-
     def on_event(self, event):
         # continue      --> self
         # re-entry      --> (self, event)
@@ -30,24 +27,20 @@ class State():
         #               --> None or (None, result)
         return self
 
-
     def on_exit(self):
         return
-
 
     def stop(self):
         return
 
 
 class StateMachine(State):
-
-    def __init__(self, name : str=None) -> None:
+    def __init__(self, name: str = None) -> None:
         super().__init__(name or __class__.__name__)
 
         self.__state_list = []
         self.__next_state = {}
-        self.__current_state : State = None
-
+        self.__current_state: State = None
 
     def add_state(self, state, next=None):
         if isinstance(state, State):
@@ -55,11 +48,10 @@ class StateMachine(State):
             self.__next_state[state] = next
         else:
             raise TypeError(
-                'state to add should be State or StateMachine(not "'
-                + type(state).__name__ + '")')
+                'state to add should be State or StateMachine(not "' + type(state).__name__ + '")'
+            )
 
-        return self     # `self` for chaining
-
+        return self  # `self` for chaining
 
     def start(self, param=None):
         self.__current_state = self.__state_list[0]
@@ -67,8 +59,7 @@ class StateMachine(State):
         for state in self.__state_list:
             state.start(param)
 
-        return self     # `self` for chaining
-
+        return self  # `self` for chaining
 
     def on_entry(self, event=None):
         # continue      --> self
@@ -79,11 +70,10 @@ class StateMachine(State):
         #               --> None or (None, result)
         if self.__current_state is None:
             # Not yet started.
-            raise RuntimeError('StateMachine ' + self.name + ' is stopped / not started.')
+            raise RuntimeError("StateMachine " + self.name + " is stopped / not started.")
 
         next = self.__current_state.on_entry(event)
         return self.__move_to(next)
-
 
     def on_event(self, event):
         # continue      --> self
@@ -93,16 +83,14 @@ class StateMachine(State):
         #               --> None or (None, result)
         if self.__current_state is None:
             # Not yet started.
-            raise RuntimeError('StateMachine ' + self.name + ' is stopped / not started.')
+            raise RuntimeError("StateMachine " + self.name + " is stopped / not started.")
 
         next = self.__current_state.on_event(event)
         return self.__move_to(next)
 
-
     def on_exit(self):
         if self.__current_state is not None:
             self.__current_state.on_exit()
-
 
     def stop(self):
         #
@@ -113,7 +101,6 @@ class StateMachine(State):
 
         self.__current_state = None
 
-
     def __move_to(self, next):
         # continue      --> self
         # re-entry      --> (self, event)
@@ -122,7 +109,7 @@ class StateMachine(State):
         #               --> None or (None, result)
         if next is self.__current_state:
             # continue
-            next = self     # `self` is __current_state for parent state
+            next = self  # `self` is __current_state for parent state
 
         else:
             self.__current_state.on_exit()
@@ -152,7 +139,7 @@ class StateMachine(State):
                     next = self.__move_to(next)
 
                 # else:
-                # if self.current_state is None(Not found), 
+                # if self.current_state is None(Not found),
                 # return the unfound state to upper layer.
                 # next = next or (next, event)
 
@@ -172,6 +159,6 @@ class StateMachine(State):
                     break
 
         elif next is not None:
-            raise RuntimeError('Returned next state is not State')
+            raise RuntimeError("Returned next state is not State")
 
         return state

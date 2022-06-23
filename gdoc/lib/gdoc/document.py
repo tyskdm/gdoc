@@ -7,10 +7,11 @@ from .config import DEFAULTS
 from .section import Section
 from ..pandocastobject.pandocast import PandocAst
 
+
 class Document(Section):
-    """
-    """
-    def __init__(self, pandoc: PandocAst = None, opts = {}):
+    """ """
+
+    def __init__(self, pandoc: PandocAst = None, opts={}):
         self.__opts = copy.deepcopy(DEFAULTS)
         self.__opts.update(opts)
 
@@ -18,4 +19,3 @@ class Document(Section):
         kwargs = {"ignore": ignore} if ignore is not None else {}
         blocks = pandoc.get_child_items(**kwargs)
         super().__init__(blocks, opts=self.__opts)
-

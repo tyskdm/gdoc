@@ -15,15 +15,17 @@ def setup(subparsers, name, commonOptions):
     global __subcommand__
     __subcommand__ = name
 
-    parser = subparsers.add_parser(__subcommand__, parents=[commonOptions],
-        help='Compile a markdown file to a gdoc object file.')
+    parser = subparsers.add_parser(
+        __subcommand__,
+        parents=[commonOptions],
+        help="Compile a markdown file to a gdoc object file.",
+    )
     parser.set_defaults(func=run)
-    parser.add_argument('filepath',
-        help='target source file', nargs='+')
-    parser.add_argument('-f', '--filetype',
-        help='Input filetype(to be specified for pandoc)')
-    parser.add_argument('--html', action='store_true',
-        help='Interprete HTML tags when parsing markdown.')
+    parser.add_argument("filepath", help="target source file", nargs="+")
+    parser.add_argument("-f", "--filetype", help="Input filetype(to be specified for pandoc)")
+    parser.add_argument(
+        "--html", action="store_true", help="Interprete HTML tags when parsing markdown."
+    )
 
 
 def run(args):
@@ -62,7 +64,7 @@ def _cast_to_str(prop):
         elif isinstance(prop[key], (Text, Line)):
             prop[key] = str(prop[key].get_str())
 
-        elif isinstance(prop[key],(dict, list)):
+        elif isinstance(prop[key], (dict, list)):
             prop[key] = _cast_to_str(prop[key])
 
     return prop

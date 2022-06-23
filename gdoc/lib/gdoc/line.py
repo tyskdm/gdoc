@@ -6,9 +6,10 @@ from .text import Text
 from ..pandocastobject.pandocast.element import Element
 from ..pandocastobject.pandocstr import PandocStr
 
+
 class Line(list):
-    """
-    """
+    """ """
+
     def __init__(self, inlines=[], eol=None, opts={}):
         super().__init__()  # init as an empty list
         self.eol = eol
@@ -40,13 +41,11 @@ class Line(list):
         if len(plaintext) > 0:
             self.append(Text(PandocStr(plaintext)))
 
-
     def append(self, item) -> None:
         if not isinstance(item, Text):
             raise TypeError()
 
         return super().append(item)
-
 
     def get_str(self):
         result = ""
@@ -55,7 +54,6 @@ class Line(list):
             result = result + text.get_str()
 
         return result
-
 
     def __getitem__(self, index):
         result = super().__getitem__(index)

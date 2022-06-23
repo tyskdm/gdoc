@@ -27,11 +27,13 @@ from gdoc.lib.gdoccompiler.gdexception import *
 ##
 ___init__ = "dummy for doxygen styling"
 
+
 def spec___init___1():
     r"""
     [@spec \_\_init\_\_.1] `Symbol` should be a class.
     """
     assert inspect.isclass(GdSymbol) == True
+
 
 def spec___init___2():
     r"""
@@ -42,8 +44,8 @@ def spec___init___2():
 
     assert target._GdSymbol__symbol_str == SYMBOL
 
-    assert target._GdSymbol__symbols == ['parent', '*self', 'child']
-    assert target._GdSymbol__tags == ['S', '#123']
+    assert target._GdSymbol__symbols == ["parent", "*self", "child"]
+    assert target._GdSymbol__tags == ["S", "#123"]
 
 
 ## @}
@@ -85,7 +87,7 @@ def spec_get_symbols_1():
     SYMBOL = "parent[self].child(S, #123)"
     target = GdSymbol(SYMBOL)
 
-    assert target.get_symbols() == ['parent', '*self', 'child']
+    assert target.get_symbols() == ["parent", "*self", "child"]
     assert target.get_symbols() is not target._GdSymbol__symbols
 
 
@@ -96,7 +98,7 @@ def spec_get_symbols_2():
     SYMBOL = "id"
     target = GdSymbol(SYMBOL)
 
-    assert target.get_symbols() == ['id']
+    assert target.get_symbols() == ["id"]
     assert target.get_symbols() is not target._GdSymbol__symbols
 
 
@@ -149,7 +151,7 @@ def spec_get_tags_1():
     SYMBOL = "parent[self].child(S, #123)"
     target = GdSymbol(SYMBOL)
 
-    assert target.get_tags() == ['S', '#123']
+    assert target.get_tags() == ["S", "#123"]
     assert target.get_tags() is not target._GdSymbol__tags
 
 
@@ -229,372 +231,311 @@ def spec_is_valid_id_2():
 ## |         | @param        | in symbol : str \| PandocStr
 ## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 __split_symbol_1 = {
-#   id: (
-#       symbolstr,
-#       expected: {
-#           Exception,
-#           symbols,
-#           tags
-#       }
-#   )
-    "Case: id (1/)":  (
+    #   id: (
+    #       symbolstr,
+    #       expected: {
+    #           Exception,
+    #           symbols,
+    #           tags
+    #       }
+    #   )
+    "Case: id (1/)": (
         # symbolstr,
-        'A',
-        {   # expected
-            'Exception': None,
-            'symbols': ['A'],
-            'tags': []
-        }
+        "A",
+        {"Exception": None, "symbols": ["A"], "tags": []},  # expected
     ),
-    "Case: id (2/)":  (
+    "Case: id (2/)": (
         # symbolstr,
-        'A.B.3',
-        {   # expected
-            'Exception': None,
-            'symbols': ['A', 'B', '3'],
-            'tags': []
-        }
+        "A.B.3",
+        {"Exception": None, "symbols": ["A", "B", "3"], "tags": []},  # expected
     ),
-    "Case: id (3/)":  (
+    "Case: id (3/)": (
         # symbolstr,
-        ' A.2 ',
-        {   # expected
-            'Exception': None,
-            'symbols': ['A', '2'],
-            'tags': []
-        }
+        " A.2 ",
+        {"Exception": None, "symbols": ["A", "2"], "tags": []},  # expected
     ),
-    "ErrCase: id (1/)":  (
+    "ErrCase: id (1/)": (
         # symbolstr,
-        '#AA',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid character in identifier", 1),
-            'symbols': [],
-            'tags': []
-        }
+        "#AA",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid character in identifier", 1),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: id (2/)":  (
+    "ErrCase: id (2/)": (
         # symbolstr,
-        '1#B',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid character in identifier", 2),
-            'symbols': [],
-            'tags': []
-        }
+        "1#B",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid character in identifier", 2),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: id (3/)":  (
+    "ErrCase: id (3/)": (
         # symbolstr,
-        ' 1.C#C',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid character in identifier", 5),
-            'symbols': [],
-            'tags': []
-        }
+        " 1.C#C",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid character in identifier", 5),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: id (4/)":  (
+    "ErrCase: id (4/)": (
         # symbolstr,
-        ' D.D# ',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid character in identifier", 5),
-            'symbols': [],
-            'tags': []
-        }
+        " D.D# ",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid character in identifier", 5),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "Case: name (1/)":  (
+    "Case: name (1/)": (
         # symbolstr,
-        '[A].B[C]',
-        {   # expected
-            'Exception': None,
-            'symbols': ['*A', 'B', '*C'],
-            'tags': []
-        }
+        "[A].B[C]",
+        {"Exception": None, "symbols": ["*A", "B", "*C"], "tags": []},  # expected
     ),
-    "Case: name (2/)":  (
+    "Case: name (2/)": (
         # symbolstr,
         r'["A"][ " B " ]["##"]',
-        {   # expected
-            'Exception': None,
-            'symbols': ["*A", "* B ", "*##"],
-            'tags': []
-        }
+        {"Exception": None, "symbols": ["*A", "* B ", "*##"], "tags": []},  # expected
     ),
-    "Case: name (3/)":  (
+    "Case: name (3/)": (
         # symbolstr,
         r'["A\"A"][ "B\"][\"C" ]',
-        {   # expected
-            'Exception': None,
-            'symbols': ['*A"A', '*B"]["C'],
-            'tags': []
-        }
+        {"Exception": None, "symbols": ['*A"A', '*B"]["C'], "tags": []},  # expected
     ),
-    "ErrCase: name (1/)":  (
+    "ErrCase: name (1/)": (
         # symbolstr,
-        ' [A][B#] ',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid character in non-quoted name", 7),
-            'symbols': [],
-            'tags': []
-        }
+        " [A][B#] ",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid character in non-quoted name", 7),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: name (2/)":  (
+    "ErrCase: name (2/)": (
         # symbolstr,
         '["A"B]',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid syntax", 5),
-            'symbols': [],
-            'tags': []
-        }
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid syntax", 5),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: name (3/)":  (
+    "ErrCase: name (3/)": (
         # symbolstr,
         '["A\\"][B] ',
-        {   # expected
-            'Exception': (GdocSyntaxError, "EOS while scanning string literal", 9),
-            'symbols': [],
-            'tags': []
-        }
+        {  # expected
+            "Exception": (GdocSyntaxError, "EOS while scanning string literal", 9),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: name (4/)":  (
+    "ErrCase: name (4/)": (
         # symbolstr,
-        ' [B C] ',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid syntax", 5),
-            'symbols': [],
-            'tags': []
-        }
+        " [B C] ",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid syntax", 5),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: mixed (1/)":  (
+    "ErrCase: mixed (1/)": (
         # symbolstr,
         '[A].B["C" D] ',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid syntax", 11),
-            'symbols': [],
-            'tags': []
-        }
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid syntax", 11),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "Case: tag (1/)":  (
+    "Case: tag (1/)": (
         # symbolstr,
-        '()',
-        {   # expected
-            'Exception': None,
-            'symbols': [],
-            'tags': []
-        }
+        "()",
+        {"Exception": None, "symbols": [], "tags": []},  # expected
     ),
-    "Case: tag (2/)":  (
+    "Case: tag (2/)": (
         # symbolstr,
-        '( )',
-        {   # expected
-            'Exception': None,
-            'symbols': [],
-            'tags': []
-        }
+        "( )",
+        {"Exception": None, "symbols": [], "tags": []},  # expected
     ),
-    "Case: tag (3/)":  (
+    "Case: tag (3/)": (
         # symbolstr,
-        '(A)',
-        {   # expected
-            'Exception': None,
-            'symbols': [],
-            'tags': ['A']
-        }
+        "(A)",
+        {"Exception": None, "symbols": [], "tags": ["A"]},  # expected
     ),
-    "Case: tag (4/)":  (
+    "Case: tag (4/)": (
         # symbolstr,
-        '( A )',
-        {   # expected
-            'Exception': None,
-            'symbols': [],
-            'tags': ['A']
-        }
+        "( A )",
+        {"Exception": None, "symbols": [], "tags": ["A"]},  # expected
     ),
-    "Case: tag (5)":  (
+    "Case: tag (5)": (
         # symbolstr,
-        '(#123)',
-        {   # expected
-            'Exception': None,
-            'symbols': [],
-            'tags': ['#123']
-        }
+        "(#123)",
+        {"Exception": None, "symbols": [], "tags": ["#123"]},  # expected
     ),
-    "Case: tag (6/)":  (
+    "Case: tag (6/)": (
         # symbolstr,
-        '(S #123)',
-        {   # expected
-            'Exception': None,
-            'symbols': [],
-            'tags': ['S', '#123']
-        }
+        "(S #123)",
+        {"Exception": None, "symbols": [], "tags": ["S", "#123"]},  # expected
     ),
-    "Case: tag (7/)":  (
+    "Case: tag (7/)": (
         # symbolstr,
-        '(S,#123)',
-        {   # expected
-            'Exception': None,
-            'symbols': [],
-            'tags': ['S', '#123']
-        }
+        "(S,#123)",
+        {"Exception": None, "symbols": [], "tags": ["S", "#123"]},  # expected
     ),
-    "Case: tag (8/)":  (
+    "Case: tag (8/)": (
         # symbolstr,
-        '(S, #123)',
-        {   # expected
-            'Exception': None,
-            'symbols': [],
-            'tags': ['S', '#123']
-        }
+        "(S, #123)",
+        {"Exception": None, "symbols": [], "tags": ["S", "#123"]},  # expected
     ),
-    "Case: tag (9/)":  (
+    "Case: tag (9/)": (
         # symbolstr,
-        '(S ,#123)',
-        {   # expected
-            'Exception': None,
-            'symbols': [],
-            'tags': ['S', '#123']
-        }
+        "(S ,#123)",
+        {"Exception": None, "symbols": [], "tags": ["S", "#123"]},  # expected
     ),
-    "Case: tag (10/)":  (
+    "Case: tag (10/)": (
         # symbolstr,
-        '(S , #123)',
-        {   # expected
-            'Exception': None,
-            'symbols': [],
-            'tags': ['S', '#123']
-        }
+        "(S , #123)",
+        {"Exception": None, "symbols": [], "tags": ["S", "#123"]},  # expected
     ),
-    "Case: tag chars (1/)":  (
+    "Case: tag chars (1/)": (
         # symbolstr,
-        '(AB12, 12AB, #AB, 12, #12, #)',
-        {   # expected
-            'Exception': None,
-            'symbols': [],
-            'tags': ['AB12', '12AB', '#AB', '12', '#12', '#']
-        }
+        "(AB12, 12AB, #AB, 12, #12, #)",
+        {  # expected
+            "Exception": None,
+            "symbols": [],
+            "tags": ["AB12", "12AB", "#AB", "12", "#12", "#"],
+        },
     ),
     #
     # '#' is allowed only at the beginning of tag.
     #
-    "ErrCase: tag chars (1/)":  (
-        '(A#B)',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid character in tag", 3),
-            'symbols': [],
-            'tags': []
-        }
+    "ErrCase: tag chars (1/)": (
+        "(A#B)",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid character in tag", 3),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: tag chars (2/)":  (
-        '(A, B#, C)',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid character in tag", 6),
-            'symbols': [],
-            'tags': []
-        }
+    "ErrCase: tag chars (2/)": (
+        "(A, B#, C)",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid character in tag", 6),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: tag chars (3/)":  (
-        '(A, #B#)',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid character in tag", 7),
-            'symbols': [],
-            'tags': []
-        }
+    "ErrCase: tag chars (3/)": (
+        "(A, #B#)",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid character in tag", 7),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: tag chars (4/)":  (
-        '(A, ##)',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid character in tag", 6),
-            'symbols': [],
-            'tags': []
-        }
+    "ErrCase: tag chars (4/)": (
+        "(A, ##)",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid character in tag", 6),
+            "symbols": [],
+            "tags": [],
+        },
     ),
     #
     # Invalid syntax
     #
-    "ErrCase: tag error (1/)":  (
-        '( , )',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid syntax", 3),
-            'symbols': [],
-            'tags': []
-        }
+    "ErrCase: tag error (1/)": (
+        "( , )",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid syntax", 3),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: tag error (2/)":  (
-        '(S, )',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid syntax", 5),
-            'symbols': [],
-            'tags': []
-        }
+    "ErrCase: tag error (2/)": (
+        "(S, )",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid syntax", 5),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: tag error (3/)":  (
-        '(S, , #123)',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid syntax", 5),
-            'symbols': [],
-            'tags': []
-        }
+    "ErrCase: tag error (3/)": (
+        "(S, , #123)",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid syntax", 5),
+            "symbols": [],
+            "tags": [],
+        },
     ),
     #
     # Mixed Invalid syntax
     #
-    "ErrCase: Mixed error (1/)":  (
-        'A[B]C',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid syntax", 5),
-            'symbols': [],
-            'tags': []
-        }
+    "ErrCase: Mixed error (1/)": (
+        "A[B]C",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid syntax", 5),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: Mixed error (2/)":  (     # Is it OK that column = 2?
-        'A(S, #123',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid syntax", 2),
-            'symbols': [],
-            'tags': []
-        }
+    "ErrCase: Mixed error (2/)": (  # Is it OK that column = 2?
+        "A(S, #123",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid syntax", 2),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: Mixed error (3/)":  (     # Is it OK that column = 2?
-        'A(B,C).D',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid syntax", 2),
-            'symbols': [],
-            'tags': []
-        }
+    "ErrCase: Mixed error (3/)": (  # Is it OK that column = 2?
+        "A(B,C).D",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid syntax", 2),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: Mixed error (4/)":  (
-        'A..',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid syntax", 3),
-            'symbols': [],
-            'tags': []
-        }
+    "ErrCase: Mixed error (4/)": (
+        "A..",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid syntax", 3),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: Mixed error (5/)":  (
-        'A.',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid syntax", 2),
-            'symbols': [],
-            'tags': []
-        }
+    "ErrCase: Mixed error (5/)": (
+        "A.",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid syntax", 2),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: Mixed error (6/)":  (
-        'A.[B]',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid syntax", 3),
-            'symbols': [],
-            'tags': []
-        }
+    "ErrCase: Mixed error (6/)": (
+        "A.[B]",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid syntax", 3),
+            "symbols": [],
+            "tags": [],
+        },
     ),
-    "ErrCase: Mixed error (7/)":  (
-        '.A',
-        {   # expected
-            'Exception': (GdocSyntaxError, "invalid syntax", 1),
-            'symbols': [],
-            'tags': []
-        }
-    )
+    "ErrCase: Mixed error (7/)": (
+        ".A",
+        {  # expected
+            "Exception": (GdocSyntaxError, "invalid syntax", 1),
+            "symbols": [],
+            "tags": [],
+        },
+    ),
 }
-@pytest.mark.parametrize("symbolstr, expected",
-    list(__split_symbol_1.values()), ids=list(__split_symbol_1.keys()))
+
+
+@pytest.mark.parametrize(
+    "symbolstr, expected", list(__split_symbol_1.values()), ids=list(__split_symbol_1.keys())
+)
 def spec__split_symbol_1(mocker, symbolstr, expected):
     r"""
     [\@spec _run.1] run symbolstr with NO-ERROR.
@@ -631,204 +572,163 @@ def spec__split_symbol_1(mocker, symbolstr, expected):
 ## |         | @param        | in symbol : str \| PandocStr
 ## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 __get_namestr_1 = {
-#   id: (
-#       symbolstr,
-#       expected: {
-#           Exception,
-#           namestr,
-#           length
-#       }
-#   )
-    "Case: not-Quoted (1/)":  (
+    #   id: (
+    #       symbolstr,
+    #       expected: {
+    #           Exception,
+    #           namestr,
+    #           length
+    #       }
+    #   )
+    "Case: not-Quoted (1/)": (
         # symbolstr,
-        '[A]',
-        {   # expected
-            'Exception': None,
-            'namestr': 'A',
-            'length': 3
-        }
+        "[A]",
+        {"Exception": None, "namestr": "A", "length": 3},  # expected
     ),
-    "Case: not-Quoted (2/)":  (
+    "Case: not-Quoted (2/)": (
         # symbolstr,
-        '[A].NextId',
-        {   # expected
-            'Exception': None,
-            'namestr': 'A',
-            'length': 3
-        }
+        "[A].NextId",
+        {"Exception": None, "namestr": "A", "length": 3},  # expected
     ),
-    "Case: not-Quoted (3/)":  (
+    "Case: not-Quoted (3/)": (
         # symbolstr,
-        '[ A ]',
-        {   # expected
-            'Exception': None,
-            'namestr': 'A',
-            'length': 5
-        }
+        "[ A ]",
+        {"Exception": None, "namestr": "A", "length": 5},  # expected
     ),
-    "Case: not-Quoted (4/)":  (
+    "Case: not-Quoted (4/)": (
         # symbolstr,
-        '[ A# ]',
-        {   # expected
-            'Exception': None,
-            'namestr': 'A#',
-            'length': 6
-        }
+        "[ A# ]",
+        {"Exception": None, "namestr": "A#", "length": 6},  # expected
     ),
-    "ErrorCase: not-Quoted (1/)":  (
+    "ErrorCase: not-Quoted (1/)": (
         # symbolstr,
-        '[A A]',
-        {   # expected
+        "[A A]",
+        {  # expected
             # - index start with 0
-            'Exception': (GdocSyntaxError, "invalid syntax", 3)
-        }
+            "Exception": (GdocSyntaxError, "invalid syntax", 3)
+        },
     ),
-    "ErrorCase: not-Quoted (2/)":  (
+    "ErrorCase: not-Quoted (2/)": (
         # symbolstr,
-        '[A',
-        {   # expected
+        "[A",
+        {  # expected
             # - index start with 0
-            'Exception': (GdocSyntaxError, "EOS while scanning name string", 1)
-        }
+            "Exception": (GdocSyntaxError, "EOS while scanning name string", 1)
+        },
     ),
-    "ErrorCase: not-Quoted (3/)":  (
+    "ErrorCase: not-Quoted (3/)": (
         # symbolstr,
-        '[A ',
-        {   # expected
+        "[A ",
+        {  # expected
             # - index start with 0
-            'Exception': (GdocSyntaxError, "EOS while scanning name string", 2)
-        }
+            "Exception": (GdocSyntaxError, "EOS while scanning name string", 2)
+        },
     ),
-    "Case: Quoted (1/)":  (
+    "Case: Quoted (1/)": (
         # symbolstr,
         '["A"]',
-        {   # expected
-            'Exception': None,
-            'namestr': '"A"',
-            'length': 5
-        }
+        {"Exception": None, "namestr": '"A"', "length": 5},  # expected
     ),
-    "Case: Quoted (2/)":  (
+    "Case: Quoted (2/)": (
         # symbolstr,
         '["A"][Next]',
-        {   # expected
-            'Exception': None,
-            'namestr': '"A"',
-            'length': 5
-        }
+        {"Exception": None, "namestr": '"A"', "length": 5},  # expected
     ),
-    "Case: Quoted (3/)":  (
+    "Case: Quoted (3/)": (
         # symbolstr,
         '[ " A " ]',
-        {   # expected
-            'Exception': None,
-            'namestr': '" A "',
-            'length': 9
-        }
+        {"Exception": None, "namestr": '" A "', "length": 9},  # expected
     ),
-    "Case: Quoted (4/)":  (
+    "Case: Quoted (4/)": (
         # symbolstr,
         '[ " \\" " ]',
-        {   # expected
-            'Exception': None,
-            'namestr': '" " "',
-            'length': 10
-        }
+        {"Exception": None, "namestr": '" " "', "length": 10},  # expected
     ),
-    "Case: Quoted (5/)":  (
+    "Case: Quoted (5/)": (
         # symbolstr,
         '[ " \\\\ " ]',
-        {   # expected
-            'Exception': None,
-            'namestr': '" \\ "',
-            'length': 10
-        }
+        {"Exception": None, "namestr": '" \\ "', "length": 10},  # expected
     ),
-    "Case: Quoted (6/)":  (
+    "Case: Quoted (6/)": (
         # symbolstr,
         '[ "A\\"][\\"B" ]',
-        {   # expected
-            'Exception': None,
-            'namestr': '"A"]["B"',
-            'length': 14
-        }
+        {"Exception": None, "namestr": '"A"]["B"', "length": 14},  # expected
     ),
-    "ErrorCase: Quoted (1/)":  (
+    "ErrorCase: Quoted (1/)": (
         # symbolstr,
         '["A" B]',
-        {   # expected
+        {  # expected
             # - index start with 0
-            'Exception': (GdocSyntaxError, "invalid syntax", 5)
-        }
+            "Exception": (GdocSyntaxError, "invalid syntax", 5)
+        },
     ),
-    "ErrorCase: Quoted (2/)":  (
+    "ErrorCase: Quoted (2/)": (
         # symbolstr,
         '["A]',
-        {   # expected
+        {  # expected
             # - index start with 0
-            'Exception': (GdocSyntaxError, "EOS while scanning string literal", 3)
-        }
+            "Exception": (GdocSyntaxError, "EOS while scanning string literal", 3)
+        },
     ),
-    "ErrorCase: Quoted (3/)":  (
+    "ErrorCase: Quoted (3/)": (
         # symbolstr,
         '["A\\"]',
-        {   # expected
+        {  # expected
             # - index start with 0
-            'Exception': (GdocSyntaxError, "EOS while scanning string literal", 5)
-        }
+            "Exception": (GdocSyntaxError, "EOS while scanning string literal", 5)
+        },
     ),
-    "ErrorCase: Quoted (4/)":  (
+    "ErrorCase: Quoted (4/)": (
         # symbolstr,
         '["A\\]',
-        {   # expected
+        {  # expected
             # - index start with 0
-            'Exception': (GdocSyntaxError, "EOS while scanning string literal", 4)
-        }
+            "Exception": (GdocSyntaxError, "EOS while scanning string literal", 4)
+        },
     ),
-    "ErrorCase: Quoted (5/)":  (
+    "ErrorCase: Quoted (5/)": (
         # symbolstr,
         '["A\\',
-        {   # expected
+        {  # expected
             # - index start with 0
-            'Exception': (GdocSyntaxError, "EOS while scanning string literal", 3)
-        }
+            "Exception": (GdocSyntaxError, "EOS while scanning string literal", 3)
+        },
     ),
-    "Case: Empty (1/)":  (
+    "Case: Empty (1/)": (
         # symbolstr,
         '[""]',
-        {   # expected
-            'Exception': None,
-            'namestr': '""',
-            'length': 4
-        }
+        {"Exception": None, "namestr": '""', "length": 4},  # expected
     ),
-    "ErrorCase: Empty (1/)":  (
+    "ErrorCase: Empty (1/)": (
         # symbolstr,
-        '[ ]',
-        {   # expected
+        "[ ]",
+        {  # expected
             # - index start with 0
-            'Exception': (GdocSyntaxError, "invalid syntax", 2)
-        }
+            "Exception": (GdocSyntaxError, "invalid syntax", 2)
+        },
     ),
-    "ErrorCase: Empty (2/)":  (
+    "ErrorCase: Empty (2/)": (
         # symbolstr,
-        '[',
-        {   # expected
+        "[",
+        {  # expected
             # - index start with 0
-            'Exception': (GdocSyntaxError, "EOS while scanning name string", 0)
-        }
+            "Exception": (GdocSyntaxError, "EOS while scanning name string", 0)
+        },
     ),
-    "ErrorCase: Empty (3/)":  (
+    "ErrorCase: Empty (3/)": (
         # symbolstr,
-        '[ ',
-        {   # expected
+        "[ ",
+        {  # expected
             # - index start with 0
-            'Exception': (GdocSyntaxError, "EOS while scanning name string", 1)
-        }
+            "Exception": (GdocSyntaxError, "EOS while scanning name string", 1)
+        },
     ),
 }
-@pytest.mark.parametrize("symbolstr, expected",
-    list(__get_namestr_1.values()), ids=list(__get_namestr_1.keys()))
+
+
+@pytest.mark.parametrize(
+    "symbolstr, expected", list(__get_namestr_1.values()), ids=list(__get_namestr_1.keys())
+)
 def spec__get_namestr_1(mocker, symbolstr, expected):
     r"""
     [\@spec _run.1] run symbolstr with NO-ERROR.
@@ -855,4 +755,3 @@ def spec__get_namestr_1(mocker, symbolstr, expected):
         assert exc_info.value.lineno is None
         assert exc_info.value.offset == expected["Exception"][2]
         assert exc_info.value.text == symbolstr
-
