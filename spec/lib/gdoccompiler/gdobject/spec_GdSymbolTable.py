@@ -65,7 +65,7 @@ def spec___init___2():
     assert target.tags == []
     assert target._GdSymbolTable__type == GdSymbolTable.Type.OBJECT
     assert target._GdSymbolTable__parent is None
-    assert target._GdSymbolTable__children == {}
+    assert target._GdSymbolTable__idlist == {}
     assert target._GdSymbolTable__namelist == {}
     assert target._GdSymbolTable__link_to is None
     assert target._GdSymbolTable__link_from == []
@@ -323,11 +323,11 @@ def spec_add_child_1():
     parent.add_child(child)
 
     assert parent._GdSymbolTable__parent is None
-    assert len(parent._GdSymbolTable__children) == 1
-    assert parent._GdSymbolTable__children["CHILD"] is child
+    assert len(parent._GdSymbolTable__idlist) == 1
+    assert parent._GdSymbolTable__idlist["CHILD"] is child
 
     assert child._GdSymbolTable__parent is parent
-    assert child._GdSymbolTable__children == {}
+    assert child._GdSymbolTable__idlist == {}
 
 
 # # @}
@@ -431,7 +431,7 @@ def spec_add_child_2(mocker, parent, child_ids, expected):
         for kwargs in child_ids:
             parent.add_child(GdSymbolTable(**kwargs))
 
-        assert set(parent._GdSymbolTable__children.keys()) == expected["IDs"]
+        assert set(parent._GdSymbolTable__idlist.keys()) == expected["IDs"]
 
     #
     # Error case
@@ -466,13 +466,13 @@ def spec___add_reference_1():
     parent._GdSymbolTable__add_reference(child)
 
     assert parent._GdSymbolTable__parent is None
-    assert len(parent._GdSymbolTable__children) == 1
-    assert type(parent._GdSymbolTable__children["&CHILD"]) == list
-    assert len(parent._GdSymbolTable__children["&CHILD"]) == 1
-    assert parent._GdSymbolTable__children["&CHILD"][0] is child
+    assert len(parent._GdSymbolTable__idlist) == 1
+    assert type(parent._GdSymbolTable__idlist["&CHILD"]) == list
+    assert len(parent._GdSymbolTable__idlist["&CHILD"]) == 1
+    assert parent._GdSymbolTable__idlist["&CHILD"][0] is child
 
     assert child._GdSymbolTable__parent is parent
-    assert child._GdSymbolTable__children == {}
+    assert child._GdSymbolTable__idlist == {}
 
 
 # # @}
@@ -541,8 +541,8 @@ def spec___add_reference_2(mocker, child_ids, expected):
             parent._GdSymbolTable__add_reference(GdSymbolTable(id))
 
         for id in expected["IDs"]:
-            assert type(parent._GdSymbolTable__children[id[0]]) == list
-            assert len(parent._GdSymbolTable__children[id[0]]) == id[1]
+            assert type(parent._GdSymbolTable__idlist[id[0]]) == list
+            assert len(parent._GdSymbolTable__idlist[id[0]]) == id[1]
 
     #
     # Error case
@@ -558,7 +558,7 @@ def spec___add_reference_2(mocker, child_ids, expected):
 
 
 # # @}
-# # @{ @name get_parent(cls, symbol)
+# # @{ @name get_parent()
 # # [\@spec get_parent] returns splited symbols and tags.
 # #
 # # | @Method | get_parent      | returns splited symbols and tags.

@@ -63,7 +63,7 @@ class GdSymbolTable:
 
         self.__type = _type
         self.__parent = None
-        self.__children = {}
+        self.__idlist = {}
         self.__namelist = {}
         self.__cache = []
         self.__link_to = None
@@ -90,11 +90,11 @@ class GdSymbolTable:
             elif child.id in (".", ":"):
                 raise GdocIdError('invalid id "' + child.id + '"')
 
-            elif child.id in self.__children:
+            elif child.id in self.__idlist:
                 raise GdocIdError('duplicate id "' + child.id + '"')
 
             child.__parent = self
-            self.__children[child.id] = child
+            self.__idlist[child.id] = child
             if child.name is not None:
                 self.__namelist[child.name] = child
 
@@ -110,11 +110,11 @@ class GdSymbolTable:
             raise GdocIdError('invalid id "' + child.id + '"')
 
         ref_id = "&" + child.id
-        if ref_id not in self.__children:
-            self.__children[ref_id] = []
+        if ref_id not in self.__idlist:
+            self.__idlist[ref_id] = []
 
         child.__parent = self
-        self.__children[ref_id].append(child)
+        self.__idlist[ref_id].append(child)
 
     def get_parent(self):
         """split symbol string to ids or names and tags.
@@ -147,8 +147,8 @@ class GdSymbolTable:
         parents = self.__get_linkto_target().__get_linkfrom_list()
 
         for parent in parents:
-            if id in parent.__children:
-                child = parent.__children[id]
+            if id in parent.__idlist:
+                child = parent.__idlist[id]
                 break
 
         return child
@@ -176,9 +176,9 @@ class GdSymbolTable:
         """
         children = []
 
-        for id in self.__children:
+        for id in self.__idlist:
             if not id.startswith("&"):
-                children.append(self.__children[id])
+                children.append(self.__idlist[id])
 
         return children
 
@@ -189,9 +189,9 @@ class GdSymbolTable:
         """
         references = []
 
-        for id in self.__children:
+        for id in self.__idlist:
             if id.startswith("&"):
-                references += self.__children[id]
+                references += self.__idlist[id]
 
         return references
 
