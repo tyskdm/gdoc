@@ -1,12 +1,9 @@
 r"""
 GdSymbolTable class
 """
-import enum
-import json
-import re
 from enum import Enum, auto
 
-from ..gdexception import *
+from ..gdexception import GdocIdError, GdocRuntimeError, GdocTypeError
 
 
 class GdSymbolTable:
@@ -27,20 +24,32 @@ class GdSymbolTable:
         @param symbol : str | PandocStr
         @return (list(str), list(str))
         """
-        if id.startswith("&"):
+        if id is None:
+            pass
+
+        elif id == "":
+            raise GdocIdError('invalid id ""')
+
+        elif id.startswith("&"):
             raise GdocIdError('invalid id "' + id + '"')
 
         elif id in (".", ":"):
             raise GdocIdError('invalid id "' + id + '"')
 
         elif scope not in ("+", "-"):
-            raise GdocRuntimeError('invalid access modifiers "' + scope + '"')
+            raise GdocRuntimeError('invalid access modifier "' + scope + '"')
 
         elif type(tags) is not list:
             raise TypeError("can only add a list as a tags")
 
         elif type(_type) is not GdSymbolTable.Type:
             raise TypeError("can only set GdSymbolTable.Type")
+
+        elif (name is not None) and (name == ""):
+            raise GdocIdError('invalid name ""')
+
+        if (id is None) and (name is None):
+            raise GdocIdError("At least one of the id or name is required")
 
         if _type is GdSymbolTable.Type.IMPORT:
             scope = "+"

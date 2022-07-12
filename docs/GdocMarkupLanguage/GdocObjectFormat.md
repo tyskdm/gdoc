@@ -1,34 +1,152 @@
-# Gdoc Object Format
+# Gdoc Object
 
-***@Summary:***  \
-文書から抽出される情報はすべてオブジェクトであり、そのオブジェクトは相互の親子関係とプロパティを持つ。
-Objectはそれぞれ短いidを持つが、自分自身のidと先祖のidを'.'で連結した長いidを用いて他名前空間のオブジェクトへアクセスすることができる。
-Gdoc Objectの基本コンセプトは、この親子関係とidによる名前解決、プロパティである。  \
-またアプリケーションのニーズに基づいてGdObjectを継承した個別のクラスが導出される。
-Classは、カテゴリとそのカテゴリに属するオブジェクトタイプにより特定される。
+gdoc gathers information from documents tagged with gdoc markup language and generates structured objects.
+gdoc subcommands reference that structured objects to provide user applications.
+This structured object is called Gdoc Object.
+
+This document describes the structure of Gdoc Object, name resolution rules, and inter-object links.
 
 ## \[@#\] TABLE OF CONTENTS<!-- omit in toc -->
 
-- [1. Symbol](#1-symbol)
-- [2. Types](#2-types)
-  - [2.1. Object](#21-object)
-  - [2.2. Document](#22-document)
-    - [2.2.1. フォルダ・拡張子解決順序](#221-フォルダ拡張子解決順序)
-    - [2.2.2. `__gdcache__`](#222-__gdcache__)
-  - [2.3. Package](#23-package)
-    - [2.3.1. Packageとは](#231-packageとは)
-    - [2.3.2. ターゲットDocumentの指定について](#232-ターゲットdocumentの指定について)
-      - [2.3.2.1. ターゲットとしてのDocumentを指定する](#2321-ターゲットとしてのdocumentを指定する)
-      - [2.3.2.2. コンテキストとしてのDocument集合](#2322-コンテキストとしてのdocument集合)
-    - [2.3.3. 言い方としては](#233-言い方としては)
-    - [2.3.4. 相対参照と外部ライブラリ](#234-相対参照と外部ライブラリ)
-- [3. Link](#3-link)
-  - [3.1. リンクとは](#31-リンクとは)
-  - [3.2. リンク手順](#32-リンク手順)
-    - [3.2.2. Linking References (Internal Link)](#322-linking-references-internal-link)
-    - [3.2.3. Linking Import/Access (Internal and External Link)](#323-linking-importaccess-internal-and-external-link)
+<details> <summary>memo</summary>
 
-## 1. Symbol
+1. Id and Name
+
+   Gdoc Objects have an id and can have a name.
+
+2. Namespace
+   1. Symboltable
+
+      Each Gdoc Object has a symbol table and provides a namespace for its child objects.
+      The symbol table manages both id and name and provides a means of referencing Gdoc Object by them.
+
+   2. Long id
+
+   3. Scope
+
+      The symbol table can specify either private or public scopes for each object.
+
+3. Name Resolution
+
+   The symbol table in Each Gdoc Object
+
+4. Properties
+   1. Key and Value
+      1. Key
+      2. Value
+         - Arrays an array
+         - Basic types
+           - String
+           - PandocStr
+         - User-specific types
+   2. Hierarchical Keys
+
+5. Export and Import
+   - Exporting to json
+   - Importing from json
+
+</details>
+
+- [1. BASIC CONCEPTS OF GDOC OBJECT](#1-basic-concepts-of-gdoc-object)
+  - [1.1. Data Structure](#11-data-structure)
+  - [1.2. Expoting and Importing Json](#12-expoting-and-importing-json)
+- [2. ID AND NAME](#2-id-and-name)
+- [3. Types](#3-types)
+  - [3.1. Object](#31-object)
+  - [3.2. Document](#32-document)
+    - [3.2.1. フォルダ・拡張子解決順序](#321-フォルダ拡張子解決順序)
+    - [3.2.2. `__gdcache__`](#322-__gdcache__)
+  - [3.3. Package](#33-package)
+    - [3.3.1. Packageとは](#331-packageとは)
+    - [3.3.2. ターゲットDocumentの指定について](#332-ターゲットdocumentの指定について)
+      - [3.3.2.1. ターゲットとしてのDocumentを指定する](#3321-ターゲットとしてのdocumentを指定する)
+      - [3.3.2.2. コンテキストとしてのDocument集合](#3322-コンテキストとしてのdocument集合)
+    - [3.3.3. 言い方としては](#333-言い方としては)
+    - [3.3.4. 相対参照と外部ライブラリ](#334-相対参照と外部ライブラリ)
+- [4. Link](#4-link)
+  - [4.1. リンクとは](#41-リンクとは)
+  - [4.2. リンク手順](#42-リンク手順)
+    - [4.2.1. Linking References (Internal Link)](#421-linking-references-internal-link)
+    - [4.2.2. Linking Import/Access (Internal and External Link)](#422-linking-importaccess-internal-and-external-link)
+
+## 1. BASIC CONCEPTS OF GDOC OBJECT
+
+### 1.1. Data Structure
+
+1. Id and Name
+
+   - A Gdoc object has an Id or Name or both of them.
+
+2. Parent-Child Relationship
+
+   - Gdoc objects have mutual parent-child relationships.
+   - Each Gdoc object has a symbol table and provides a namespace for child objects.
+   - The symbol table provides means of referencing other objects in the same namespace or other related namespaces by long symbol.
+
+3. Properties
+
+   Properties are hierarchical key/value pairs, but are different from dictionary.
+
+   1. A key can have it's values and child keys at the same time.
+
+   2. The type of the value is by default String or gdoc.String type that contains source mapping info and String.
+
+   3. Values are always one-dimensional arrays by default, and multiple values can be set for a single key.
+
+### 1.2. Expoting and Importing Json
+
+Gdoc Objects are always able to export to and import from JSON strings.
+
+- A gdoc object needs 3 namespaces while exporting to JSON.
+  1. attributes (id, name, class info)
+  2. properties
+  3. children (with id / with no id)
+
+```json
+{
+   // attrs and props
+   ".": {
+      "": {                         // attrs
+         "id":   [l, c, "idstr"],
+         "name": [l, c, "namestr"],
+         "class": {}
+      },
+                                    // props
+      "note": {
+         "":  ["note text"],
+         "1": ["note.1 text"],
+         "2": [[l, c, "note.2 text"]]
+      }
+   },
+
+   // children with no id
+   "": [
+      {}, {}
+   ],
+
+   // children with id
+   "c1": {
+      // attrs and props
+      ".": {
+         "": {                      // attrs
+            "id": "c1",
+            "name": "name string"
+         },
+                                    // props
+         "trace": {
+            "": [[l, c, "true"]],
+            "copy": [[l, c, "src1"], [l, c, "src2"]],
+            "deribe": [[l, c, "parent"]]
+         }
+      }
+      // no child
+   }
+}
+```
+
+## 2. ID AND NAME
+
+A Gdoc object has an Id or Name or both of them.
 
 <div align=center>
 
@@ -39,7 +157,7 @@ Classは、カテゴリとそのカテゴリに属するオブジェクトタイ
 </div>
 <br>
 
-## 2. Types
+## 3. Types
 
 - object
 
@@ -47,7 +165,7 @@ Classは、カテゴリとそのカテゴリに属するオブジェクトタイ
 
 - package
 
-### 2.1. Object
+### 3.1. Object
 
 <div align=center>
 
@@ -58,19 +176,19 @@ Classは、カテゴリとそのカテゴリに属するオブジェクトタイ
 </div>
 <br>
 
-### 2.2. Document
+### 3.2. Document
 
 GDML形式で記述された文書ファイル。
 
 ファイルとして存在する場合と、index.mdを含むフォルダとして存在する場合とがある。
 
-#### 2.2.1. フォルダ・拡張子解決順序
+#### 3.2.1. フォルダ・拡張子解決順序
 
-#### 2.2.2. `__gdcache__`
+#### 3.2.2. `__gdcache__`
 
-### 2.3. Package
+### 3.3. Package
 
-#### 2.3.1. Packageとは
+#### 3.3.1. Packageとは
 
 Packageには２つの意味がある。
 
@@ -119,16 +237,16 @@ Packageには２つの意味がある。
 
 - 結果的に、パッケージの階層ツリーが生成される。（ディレクトリツリーと必ずしも一致しない）
 
-#### 2.3.2. ターゲットDocumentの指定について
+#### 3.3.2. ターゲットDocumentの指定について
 
-##### 2.3.2.1. ターゲットとしてのDocumentを指定する
+##### 3.3.2.1. ターゲットとしてのDocumentを指定する
 
 1. １つ以上のDocumentを指定して、Lintなどの対象にしたい場合
 2. ディレクトリを指定して、そこに含まれるDocumentをLintなどの対象にしたい場合
 
 - LinkCheckは、範囲を指定する必要があるのでここでは対象ケースとならない。
 
-##### 2.3.2.2. コンテキストとしてのDocument集合
+##### 3.3.2.2. コンテキストとしてのDocument集合
 
 1. trace実行時に、ターゲットidを探す範囲
 2. listサブコマンドで明示したパッケージ名からidを検索する \
@@ -144,7 +262,7 @@ Packageには２つの意味がある。
   2. userのホームフォルダあるいはルートディレクトリに到達してなお見つからなかった場合には、エラーとする。
      カレントディレクトリを採用する案もあるが、.gdconfig を見つけたかどうかが曖昧になるのではないか。
 
-#### 2.3.3. 言い方としては
+#### 3.3.3. 言い方としては
 
 1. 対象文書/範囲文書はオプションで指定してください。
 2. .gdocconfig が存在する場合は省略可能です。
@@ -152,7 +270,7 @@ Packageには２つの意味がある。
 
 - [ ] ターゲットとなるDocumentは全数コンパイルされるが、ライブラリ（相対パスではない指定がなされたDocuemnt）はimportにより必要になった場合にのみコンパイルされる。
 
-#### 2.3.4. 相対参照と外部ライブラリ
+#### 3.3.4. 相対参照と外部ライブラリ
 
 - サーチパスから探す自プロジェクト外部のパッケージは、`from="path/to/package"`とし、
 - 自プロジェクトのパッケージは、`from="./path/to/package`と相対パス記法を使うプラクティスとする。\
@@ -161,9 +279,9 @@ Packageには２つの意味がある。
   - 相対でないときはサーチパスしかみないことにする。
 
 
-## 3. Link
+## 4. Link
 
-### 3.1. リンクとは
+### 4.1. リンクとは
 
 Gdocの参照には、型指定に＆を付記した参照と、Import/Accessによる参照とがある。
 
@@ -173,9 +291,9 @@ Gdocの参照には、型指定に＆を付記した参照と、Import/Accessに
 
 ある要件のトレーサビリティリンク先を確認するなどのリンク作業もあるが、これはResolveを使用して行うアプリケーションレベルの作業である。
 
-### 3.2. リンク手順
+### 4.2. リンク手順
 
-#### 3.2.2. Linking References (Internal Link)
+#### 4.2.1. Linking References (Internal Link)
 
 1. List up all references.
 
@@ -241,7 +359,7 @@ Gdocの参照には、型指定に＆を付記した参照と、Import/Accessに
       -> &A(ROOT.A.B.A) -> B  
       -> &B(ROOT.B.A.B) -> A
 
-#### 3.2.3. Linking Import/Access (Internal and External Link)
+#### 4.2.2. Linking Import/Access (Internal and External Link)
 
 > [@import Core.FR]
 > [@import SWAD.Core]

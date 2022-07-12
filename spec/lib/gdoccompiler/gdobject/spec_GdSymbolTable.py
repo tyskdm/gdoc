@@ -13,29 +13,42 @@ The specification of SymbolTable class.
 
 | @Class& | Name | Description |
 | ------- | ---- | ----------- |
-| THIS    | GdSymbolTable      | provides util methods for symbol strings.
+| THIS    | GdSymbolTable      | Symbol table to reference objects by id and name
 | @Method | \_\_init\_\_       | creates a new instance.
+|         | @param             | in id: id string
+|         | @param             | in scope: access modifier
+|         | @param             | in name: name string
+|         | @param             | in tags: tag list
+|         | @param             | in _type: GdObject type
 
 """
 import inspect
-from typing import Type
 
 import pytest
 
-from gdoc.lib.gdoccompiler.gdexception import *
+from gdoc.lib.gdoccompiler.gdexception import GdocIdError, GdocRuntimeError, GdocTypeError
 from gdoc.lib.gdoccompiler.gdobject.gdsymboltable import GdSymbolTable
 
-## @{ @name \_\_init\_\_(str \| PandocStr)
-## [\@spec \_\_init\_\_] creates a new instance.
-##
-___init__ = "dummy for doxygen styling"
+# # @{ @name \_\_init\_\_(str \| PandocStr)
+# # [\@spec \_\_init\_\_] creates a new instance.
+# # | @Method | \_\_init\_\_       | creates a new instance.
+# # |         | @param             | in id: id string
+# # |         | @param             | in scope: access modifier
+# # |         | @param             | in name: name string
+# # |         | @param             | in tags: tag list
+# # |         | @param             | in _type: GdObject type
+# #
+___init___1 = "dummy for doxygen styling"
 
 
 def spec___init___1():
     r"""
-    [@spec \_\_init\_\_.1] `Symbol` should be a class.
+    [@spec \_\_init\_\_.1] `GdSymbolTable` should be a class.
     """
-    assert inspect.isclass(GdSymbolTable) == True
+    assert inspect.isclass(GdSymbolTable) is True
+
+
+___init___2 = "dummy for doxygen styling"
 
 
 def spec___init___2():
@@ -48,24 +61,17 @@ def spec___init___2():
 
     assert target.scope == "+"
     assert target.id == TEST_ID
-    assert target.name == None
+    assert target.name is None
     assert target.tags == []
     assert target._GdSymbolTable__type == GdSymbolTable.Type.OBJECT
-    assert target._GdSymbolTable__parent == None
+    assert target._GdSymbolTable__parent is None
     assert target._GdSymbolTable__children == {}
     assert target._GdSymbolTable__namelist == {}
-    assert target._GdSymbolTable__link_to == None
+    assert target._GdSymbolTable__link_to is None
     assert target._GdSymbolTable__link_from == []
     assert target._GdSymbolTable__cache == []
 
 
-## @}
-## @{ @name __init__(cls, symbol)
-## [\@spec __init__] returns splited symbols and tags.
-##
-## | @Method | __init__      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 ___init___3 = {
     #   id: (
     #       kwargs,
@@ -74,56 +80,97 @@ ___init___3 = {
     #           attrs
     #       }
     #   )
+    #
+    # Case: id - Should check if id is valid.
+    #   Valid ids: Characters allowed as python symbols.
+    #   Invalid ids: ".", ":", start with "&", etc
+    #
     "Case: id (1/)": (
         # kwargs,
         {"id": "A"},
-        {"Exception": None, "attrs": ("A", "+", None, [], GdSymbolTable.Type.OBJECT)},  # expected
+        {"Exception": None, "attrs": ("A", "+", None, [], GdSymbolTable.Type.OBJECT)},
     ),
     "Case: id (2/)": (
         # kwargs,
         {"id": "&A"},
-        {"Exception": (GdocIdError, 'invalid id "&A"')},  # expected
+        # expected
+        {"Exception": (GdocIdError, 'invalid id "&A"')},
     ),
     "Case: id (3/)": (
         # kwargs,
         {"id": "."},
-        {"Exception": (GdocIdError, 'invalid id "."')},  # expected
+        # expected
+        {"Exception": (GdocIdError, 'invalid id "."')},
     ),
     "Case: id (4/)": (
         # kwargs,
         {"id": ":"},
-        {"Exception": (GdocIdError, 'invalid id ":"')},  # expected
+        # expected
+        {"Exception": (GdocIdError, 'invalid id ":"')},
     ),
+    "Case: id (5/)": (
+        # kwargs,
+        {"id": ""},
+        # expected
+        {"Exception": (GdocIdError, 'invalid id ""')},
+    ),
+    #
+    # Case: scope - Should check if scope is valid.
+    #   Valid scope: "+", "-"
+    #   Invalid scope: "#", "~", or other charcters.
+    #
     "Case: scope (1/)": (
         # kwargs,
         {"id": "A", "scope": "-"},
-        {"Exception": None, "attrs": ("A", "-", None, [], GdSymbolTable.Type.OBJECT)},  # expected
+        # expected
+        {"Exception": None, "attrs": ("A", "-", None, [], GdSymbolTable.Type.OBJECT)},
     ),
     "Case: scope (2/)": (
         # kwargs,
         {"id": "A", "scope": "+"},
-        {"Exception": None, "attrs": ("A", "+", None, [], GdSymbolTable.Type.OBJECT)},  # expected
+        # expected
+        {"Exception": None, "attrs": ("A", "+", None, [], GdSymbolTable.Type.OBJECT)},
     ),
     "Case: scope (3/)": (
         # kwargs,
         {"id": "A", "scope": "#"},
-        {"Exception": (GdocRuntimeError, 'invalid access modifiers "#"')},  # expected
+        # expected
+        {"Exception": (GdocRuntimeError, 'invalid access modifier "#"')},
     ),
     "Case: scope (4/)": (
         # kwargs,
         {"id": "A", "scope": "~"},
-        {"Exception": (GdocRuntimeError, 'invalid access modifiers "~"')},  # expected
+        # expected
+        {"Exception": (GdocRuntimeError, 'invalid access modifier "~"')},
     ),
     "Case: scope (5/)": (
         # kwargs,
         {"id": "A", "scope": "A"},
-        {"Exception": (GdocRuntimeError, 'invalid access modifiers "A"')},  # expected
+        # expected
+        {"Exception": (GdocRuntimeError, 'invalid access modifier "A"')},
     ),
+    #
+    # Case: name - Should check if name is valid.
+    #   Valid name: Any string of length 1 or longer.
+    #   Invalid name: ""
+    #
     "Case: name (1/)": (
         # kwargs,
         {"id": "A", "name": "ABC"},
-        {"Exception": None, "attrs": ("A", "+", "ABC", [], GdSymbolTable.Type.OBJECT)},  # expected
+        # expected
+        {"Exception": None, "attrs": ("A", "+", "ABC", [], GdSymbolTable.Type.OBJECT)},
     ),
+    "Case: name (2/)": (
+        # kwargs,
+        {"id": "A", "name": ""},
+        # expected
+        {"Exception": (GdocIdError, 'invalid name ""')},
+    ),
+    #
+    # Case: id - Should check if tag is valid.
+    #   Valid tag: List of tag strings
+    #   Invalid tag: Bare string,...
+    #
     "Case: tags (1/)": (
         # kwargs,
         {"id": "A", "tags": ["ABC"]},
@@ -135,12 +182,18 @@ ___init___3 = {
     "Case: tags (2/)": (
         # kwargs,
         {"id": "A", "tags": "A"},
-        {"Exception": (TypeError, "can only add a list as a tag")},  # expected
+        # expected
+        {"Exception": (TypeError, "can only add a list as a tag")},
     ),
+    #
+    # Case: id - Should check if _type is valid.
+    #   Valid _type: Enum GdSymbolTable.Type
+    #
     "Case: type (1/)": (
         # kwargs,
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},
-        {"Exception": None, "attrs": ("A", "+", None, [], GdSymbolTable.Type.OBJECT)},  # expected
+        # expected
+        {"Exception": None, "attrs": ("A", "+", None, [], GdSymbolTable.Type.OBJECT)},
     ),
     "Case: type (2/)": (
         # kwargs,
@@ -153,27 +206,68 @@ ___init___3 = {
     "Case: type (3/)": (
         # kwargs,
         {"id": "A", "_type": GdSymbolTable.Type.IMPORT},
-        {"Exception": None, "attrs": ("A", "+", None, [], GdSymbolTable.Type.IMPORT)},  # expected
+        # expected
+        {"Exception": None, "attrs": ("A", "+", None, [], GdSymbolTable.Type.IMPORT)},
     ),
     "Case: type (4/)": (
         # kwargs,
         {"id": "A", "scope": "-", "_type": GdSymbolTable.Type.IMPORT},
-        {"Exception": None, "attrs": ("A", "+", None, [], GdSymbolTable.Type.IMPORT)},  # expected
+        # expected
+        {"Exception": None, "attrs": ("A", "+", None, [], GdSymbolTable.Type.IMPORT)},
     ),
     "Case: type (5/)": (
         # kwargs,
         {"id": "A", "_type": GdSymbolTable.Type.ACCESS},
-        {"Exception": None, "attrs": ("A", "-", None, [], GdSymbolTable.Type.ACCESS)},  # expected
+        # expected
+        {"Exception": None, "attrs": ("A", "-", None, [], GdSymbolTable.Type.ACCESS)},
     ),
     "Case: type (6/)": (
         # kwargs,
         {"id": "A", "scope": "+", "_type": GdSymbolTable.Type.ACCESS},
-        {"Exception": None, "attrs": ("A", "-", None, [], GdSymbolTable.Type.ACCESS)},  # expected
+        # expected
+        {"Exception": None, "attrs": ("A", "-", None, [], GdSymbolTable.Type.ACCESS)},
     ),
     "Case: type (7/)": (
         # kwargs,
         {"id": "A", "_type": "A"},
-        {"Exception": (TypeError, "can only set GdSymbolTable.Type")},  # expected
+        # expected
+        {"Exception": (TypeError, "can only set GdSymbolTable.Type")},
+    ),
+    #
+    # Case: Combination of id and name
+    #   1. GdObject should have an id or name or both of them.
+    #   2. Should raise Error if neither id nor name is specified.
+    #   3. When name is specified, id can be "" or not speified.
+    #
+    "Case: Combination (1/)": (
+        # kwargs,
+        {"id": "ID", "name": "NAME"},
+        # expected
+        {"Exception": None, "attrs": ("ID", "+", "NAME", [], GdSymbolTable.Type.OBJECT)},
+    ),
+    "Case: Combination (2/)": (
+        # kwargs,
+        {"id": "ID"},
+        # expected
+        {"Exception": None, "attrs": ("ID", "+", None, [], GdSymbolTable.Type.OBJECT)},
+    ),
+    "Case: Combination (3/)": (
+        # kwargs,
+        {"id": None, "name": "NAME"},
+        # expected
+        {"Exception": None, "attrs": (None, "+", "NAME", [], GdSymbolTable.Type.OBJECT)},
+    ),
+    "Case: Combination (4/)": (
+        # kwargs,
+        {"id": None},
+        # expected
+        {"Exception": (GdocIdError, "At least one of the id or name is required")},
+    ),
+    "Case: Combination (5/)": (
+        # kwargs,
+        {"id": None, "name": None},
+        # expected
+        {"Exception": (GdocIdError, "At least one of the id or name is required")},
     ),
 }
 
@@ -183,7 +277,7 @@ ___init___3 = {
 )
 def spec___init___3(mocker, kwargs, expected):
     r"""
-    [\@spec _run.1] run child_ids with NO-ERROR.
+    [@spec \_\_init\_\_.3] `GdSymbolTable` should check if arguments are valid.
     """
     #
     # Normal case
@@ -210,13 +304,12 @@ def spec___init___3(mocker, kwargs, expected):
         assert exc_info.match(expected["Exception"][1])
 
 
-## @}
-## @{ @name add_child(cls, symbol)
-## [\@spec add_child] returns splited symbols and tags.
-##
-## | @Method | add_child      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name add_child(self, child: GdSymbolTable)
+# # [\@spec add_child] adds child into symbol table.
+# #
+# # | @Method | add_child     | adds child into symbol table.
+# # |         | @param        | in child : GdSymbolTable
 _add_child_1 = "dummy for doxygen styling"
 
 
@@ -237,13 +330,13 @@ def spec_add_child_1():
     assert child._GdSymbolTable__children == {}
 
 
-## @}
-## @{ @name add_child(cls, symbol)
-## [\@spec add_child] returns splited symbols and tags.
-##
-## | @Method | add_child      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name add_child(cls, symbol)
+# # [\@spec add_child] returns splited symbols and tags.
+# #
+# # | @Method | add_child      | returns splited symbols and tags.
+# # |         | @param        | in symbol : str \| PandocStr
+# # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 _add_child_2 = {
     #   id: (
     #       parent,
@@ -256,67 +349,67 @@ _add_child_2 = {
     "Case: id (1/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
         [{"id": "A"}],  # child_ids,
-        {"Exception": None, "IDs": {"A"}},  # expected
+        {"Exception": None, "IDs": {"A"}},
     ),
     "Case: id (2/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
         [{"id": "A"}, {"id": "B"}],  # child_ids,
-        {"Exception": None, "IDs": {"A", "B"}},  # expected
+        {"Exception": None, "IDs": {"A", "B"}},
     ),
     "ErrCase: id (1/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
         [{"id": "A"}, {"id": "A"}],  # child_ids,
-        {"Exception": (GdocIdError, 'duplicate id "A"'), "IDs": {}},  # expected
+        {"Exception": (GdocIdError, 'duplicate id "A"'), "IDs": {}},
     ),
     "ErrCase: id (2/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
         [{"id": "&A"}],  # child_ids,
-        {"Exception": (GdocIdError, 'invalid id "&A"'), "IDs": {}},  # expected
+        {"Exception": (GdocIdError, 'invalid id "&A"'), "IDs": {}},
     ),
     "ErrCase: id (3/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
         [{"id": ":"}],  # child_ids,
-        {"Exception": (GdocIdError, 'invalid id ":"'), "IDs": {}},  # expected
+        {"Exception": (GdocIdError, 'invalid id ":"'), "IDs": {}},
     ),
     "ErrCase: id (4/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
         [{"id": "."}],  # child_ids,
-        {"Exception": (GdocIdError, 'invalid id "."'), "IDs": {}},  # expected
+        {"Exception": (GdocIdError, 'invalid id "."'), "IDs": {}},
     ),
     "Case: type (1/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
         [{"id": "A", "_type": GdSymbolTable.Type.OBJECT}],  # child_ids,
-        {"Exception": None, "IDs": {"A"}},  # expected
+        {"Exception": None, "IDs": {"A"}},
     ),
     "Case: type (2/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
         [{"id": "A", "_type": GdSymbolTable.Type.IMPORT}],  # child_ids,
-        {"Exception": None, "IDs": {"A"}},  # expected
+        {"Exception": None, "IDs": {"A"}},
     ),
     "Case: type (3/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
         [{"id": "A", "_type": GdSymbolTable.Type.ACCESS}],  # child_ids,
-        {"Exception": None, "IDs": {"A"}},  # expected
+        {"Exception": None, "IDs": {"A"}},
     ),
     "Case: type (4/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
         [{"id": "A", "_type": GdSymbolTable.Type.REFERENCE}],  # child_ids,
-        {"Exception": None, "IDs": {"&A"}},  # expected
+        {"Exception": None, "IDs": {"&A"}},
     ),
     "Case: parent type (1/)": (
         {"id": "A", "_type": GdSymbolTable.Type.REFERENCE},  # parent,
         [{"id": "A"}],  # child_ids,
-        {"Exception": None, "IDs": {"A"}},  # expected
+        {"Exception": None, "IDs": {"A"}},
     ),
     "ErrorCase: parent type (1/): Import can not have children": (
         {"id": "A", "_type": GdSymbolTable.Type.IMPORT},  # parent,
         [{"id": "A"}],  # child_ids,
-        {"Exception": (GdocTypeError, "'Import' type cannot have children"), "IDs": {}},  # expected
+        {"Exception": (GdocTypeError, "'Import' type cannot have children"), "IDs": {}},
     ),
     "ErrorCase: parent type (2/): Import can not have children": (
         {"id": "A", "_type": GdSymbolTable.Type.ACCESS},  # parent,
         [{"id": "A"}],  # child_ids,
-        {"Exception": (GdocTypeError, "'Access' type cannot have children"), "IDs": {}},  # expected
+        {"Exception": (GdocTypeError, "'Access' type cannot have children"), "IDs": {}},
     ),
 }
 
@@ -353,13 +446,13 @@ def spec_add_child_2(mocker, parent, child_ids, expected):
         assert exc_info.match(expected["Exception"][1])
 
 
-## @}
-## @{ @name __add_reference(cls, symbol)
-## [\@spec __add_reference] returns splited symbols and tags.
-##
-## | @Method | __add_reference      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name __add_reference(cls, symbol)
+# # [\@spec __add_reference] returns splited symbols and tags.
+# #
+# # | @Method | __add_reference      | returns splited symbols and tags.
+# # |         | @param        | in symbol : str \| PandocStr
+# # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 ___add_reference_1 = "dummy for doxygen styling"
 
 
@@ -382,13 +475,13 @@ def spec___add_reference_1():
     assert child._GdSymbolTable__children == {}
 
 
-## @}
-## @{ @name __add_reference(cls, symbol)
-## [\@spec __add_reference] returns splited symbols and tags.
-##
-## | @Method | __add_reference      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name __add_reference(cls, symbol)
+# # [\@spec __add_reference] returns splited symbols and tags.
+# #
+# # | @Method | __add_reference      | returns splited symbols and tags.
+# # |         | @param        | in symbol : str \| PandocStr
+# # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 ___add_reference_2 = {
     #   id: (
     #       child_ids,
@@ -400,32 +493,32 @@ ___add_reference_2 = {
     "Case: id (1/)": (
         # child_ids,
         ["A"],
-        {"Exception": None, "IDs": [("&A", 1)]},  # expected
+        {"Exception": None, "IDs": [("&A", 1)]},
     ),
     "Case: id (2/)": (
         # child_ids,
         ["A", "A"],
-        {"Exception": None, "IDs": [("&A", 2)]},  # expected
+        {"Exception": None, "IDs": [("&A", 2)]},
     ),
     "Case: id (3/)": (
         # child_ids,
         ["A", "B", "B"],
-        {"Exception": None, "IDs": [("&A", 1), ("&B", 2)]},  # expected
+        {"Exception": None, "IDs": [("&A", 1), ("&B", 2)]},
     ),
     "ErrCase: id (1/)": (
         # child_ids,
         ["&A"],
-        {"Exception": (GdocIdError, r"invalid id \"\S+\""), "IDs": {}},  # expected
+        {"Exception": (GdocIdError, r"invalid id \"\S+\""), "IDs": {}},
     ),
     "ErrCase: id (2/)": (
         # child_ids,
         [":"],
-        {"Exception": (GdocIdError, r"invalid id \"\S+\""), "IDs": {}},  # expected
+        {"Exception": (GdocIdError, r"invalid id \"\S+\""), "IDs": {}},
     ),
     "ErrCase: id (3/)": (
         # child_ids,
         ["."],
-        {"Exception": (GdocIdError, r"invalid id \"\S+\""), "IDs": {}},  # expected
+        {"Exception": (GdocIdError, r"invalid id \"\S+\""), "IDs": {}},
     ),
 }
 
@@ -464,13 +557,13 @@ def spec___add_reference_2(mocker, child_ids, expected):
         assert exc_info.match(expected["Exception"][1])
 
 
-## @}
-## @{ @name get_parent(cls, symbol)
-## [\@spec get_parent] returns splited symbols and tags.
-##
-## | @Method | get_parent      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name get_parent(cls, symbol)
+# # [\@spec get_parent] returns splited symbols and tags.
+# #
+# # | @Method | get_parent      | returns splited symbols and tags.
+# # |         | @param        | in symbol : str \| PandocStr
+# # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 _get_parent_1 = "dummy for doxygen styling"
 
 
@@ -487,13 +580,13 @@ def spec_get_parent_1():
     assert parent.get_parent() is None
 
 
-## @}
-## @{ @name __get_children(cls, symbol)
-## [\@spec __get_children] returns splited symbols and tags.
-##
-## | @Method | __get_children      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name __get_children(cls, symbol)
+# # [\@spec __get_children] returns splited symbols and tags.
+# #
+# # | @Method | __get_children      | returns splited symbols and tags.
+# # |         | @param        | in symbol : str \| PandocStr
+# # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 ___get_children_1 = {
     #   id: (
     #       child_ids: [(id, type),...],
@@ -504,7 +597,7 @@ ___get_children_1 = {
     "Case: (1/)": (
         # child_ids:
         [],
-        {"children": []},  # expected
+        {"children": []},
     ),
     "Case: (2/)": (
         # child_ids:
@@ -512,7 +605,7 @@ ___get_children_1 = {
             ("A", GdSymbolTable.Type.OBJECT),
             ("C", GdSymbolTable.Type.OBJECT),
         ],
-        {"children": ["A", "C"]},  # expected
+        {"children": ["A", "C"]},
     ),
     "Case: (3/)": (
         # child_ids:
@@ -520,7 +613,7 @@ ___get_children_1 = {
             ("B", GdSymbolTable.Type.REFERENCE),
             ("D", GdSymbolTable.Type.REFERENCE),
         ],
-        {"children": []},  # expected
+        {"children": []},
     ),
     "Case: (4/)": (
         # child_ids:
@@ -530,7 +623,7 @@ ___get_children_1 = {
             ("C", GdSymbolTable.Type.OBJECT),
             ("D", GdSymbolTable.Type.REFERENCE),
         ],
-        {"children": ["A", "C"]},  # expected
+        {"children": ["A", "C"]},
     ),
 }
 
@@ -554,13 +647,13 @@ def spec___get_children_1(mocker, child_ids, expected):
         assert children[i].id == expected["children"][i]
 
 
-## @}
-## @{ @name __get_refenrences(cls, symbol)
-## [\@spec __get_references] returns splited symbols and tags.
-##
-## | @Method | __get_references    | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name __get_refenrences(cls, symbol)
+# # [\@spec __get_references] returns splited symbols and tags.
+# #
+# # | @Method | __get_references    | returns splited symbols and tags.
+# # |         | @param        | in symbol : str \| PandocStr
+# # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 ___get_references_1 = {
     #   id: (
     #       child_ids: [(id, type),...],
@@ -571,7 +664,7 @@ ___get_references_1 = {
     "Case: (1/)": (
         # child_ids:
         [],
-        {"children": []},  # expected
+        {"children": []},
     ),
     "Case: (2/)": (
         # child_ids:
@@ -579,7 +672,7 @@ ___get_references_1 = {
             ("A", GdSymbolTable.Type.OBJECT),
             ("C", GdSymbolTable.Type.OBJECT),
         ],
-        {"children": []},  # expected
+        {"children": []},
     ),
     "Case: (3/)": (
         # child_ids:
@@ -587,7 +680,7 @@ ___get_references_1 = {
             ("B", GdSymbolTable.Type.REFERENCE),
             ("D", GdSymbolTable.Type.REFERENCE),
         ],
-        {"children": ["B", "D"]},  # expected
+        {"children": ["B", "D"]},
     ),
     "Case: (4/)": (
         # child_ids:
@@ -597,7 +690,7 @@ ___get_references_1 = {
             ("C", GdSymbolTable.Type.OBJECT),
             ("D", GdSymbolTable.Type.REFERENCE),
         ],
-        {"children": ["B", "D"]},  # expected
+        {"children": ["B", "D"]},
     ),
 }
 
@@ -621,13 +714,13 @@ def spec___get_references_1(mocker, child_ids, expected):
         assert children[i].id == expected["children"][i]
 
 
-## @}
-## @{ @name get_children(cls, symbol)
-## [\@spec get_children] returns splited symbols and tags.
-##
-## | @Method | get_children      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name get_children(cls, symbol)
+# # [\@spec get_children] returns splited symbols and tags.
+# #
+# # | @Method | get_children      | returns splited symbols and tags.
+# # |         | @param        | in symbol : str \| PandocStr
+# # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 _get_children_1 = {
     #   id: (
     #       objects,
@@ -642,7 +735,7 @@ _get_children_1 = {
             [],
             [{"id": "A", "_type": GdSymbolTable.Type.OBJECT}],
         ],
-        {"children": ["A"]},  # expected
+        {"children": ["A"]},
     ),
     "Case: (2/)": (
         # objects,
@@ -662,7 +755,7 @@ _get_children_1 = {
             ],
             [],
         ],
-        {"children": ["A", "B"]},  # expected
+        {"children": ["A", "B"]},
     ),
     "Case: (3/)": (
         # objects,
@@ -677,7 +770,7 @@ _get_children_1 = {
             ],
             [{"id": "B", "_type": GdSymbolTable.Type.OBJECT}],
         ],
-        {"children": ["A", "B"]},  # expected
+        {"children": ["A", "B"]},
     ),
     "Case: (4/)": (
         # objects,
@@ -692,7 +785,7 @@ _get_children_1 = {
             ],
             [],
         ],
-        {"children": []},  # expected
+        {"children": []},
     ),
 }
 
@@ -730,13 +823,13 @@ def spec_get_children_1(mocker, objects, expected):
     assert set(children) == set(expected["children"])
 
 
-## @}
-## @{ @name unidir_link_to(cls, symbol)
-## [\@spec unidir_link_to] returns splited symbols and tags.
-##
-## | @Method | unidir_link_to      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name unidir_link_to(cls, symbol)
+# # [\@spec unidir_link_to] returns splited symbols and tags.
+# #
+# # | @Method | unidir_link_to      | returns splited symbols and tags.
+# # |         | @param        | in symbol : str \| PandocStr
+# # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 _unidir_link_to_1 = {
     #   id: (
     #       child_ids,
@@ -878,13 +971,13 @@ def spec_unidir_link_to_1(mocker, child_ids, expected):
         assert exc_info.match(expected["Exception"][1])
 
 
-## @}
-## @{ @name bidir_link_to(cls, symbol)
-## [\@spec bidir_link_to] returns splited symbols and tags.
-##
-## | @Method | bidir_link_to      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name bidir_link_to(cls, symbol)
+# # [\@spec bidir_link_to] returns splited symbols and tags.
+# #
+# # | @Method | bidir_link_to      | returns splited symbols and tags.
+# # |         | @param        | in symbol : str \| PandocStr
+# # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 _bidir_link_to_1 = {
     #   id: (
     #       child_ids,
@@ -996,13 +1089,13 @@ def spec_bidir_link_to_1(mocker, child_ids, expected):
         assert exc_info.match(expected["Exception"][1])
 
 
-## @}
-## @{ @name __get_linkto_target(cls, symbol)
-## [\@spec __get_linkto_target] returns splited symbols and tags.
-##
-## | @Method | __get_linkto_target      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name __get_linkto_target(cls, symbol)
+# # [\@spec __get_linkto_target] returns splited symbols and tags.
+# #
+# # | @Method | __get_linkto_target      | returns splited symbols and tags.
+# # |         | @param        | in symbol : str \| PandocStr
+# # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 ___get_linkto_target_1 = {
     #   id: (
     #       objects,
@@ -1016,7 +1109,7 @@ ___get_linkto_target_1 = {
             {"id": "TARGET", "_type": GdSymbolTable.Type.OBJECT},
             {"id": "A", "_type": GdSymbolTable.Type.REFERENCE},
         ],
-        {"TargetId": "TARGET"},  # expected
+        {"TargetId": "TARGET"},
     ),
     "Case: (2/)": (
         # objects,
@@ -1025,12 +1118,12 @@ ___get_linkto_target_1 = {
             {"id": "A", "_type": GdSymbolTable.Type.REFERENCE},
             {"id": "B", "_type": GdSymbolTable.Type.REFERENCE},
         ],
-        {"TargetId": "TARGET"},  # expected
+        {"TargetId": "TARGET"},
     ),
     "Case: (3/)": (
         # objects,
         [{"id": "A", "_type": GdSymbolTable.Type.REFERENCE}],
-        {"TargetId": None},  # expected
+        {"TargetId": None},
     ),
     "Case: (4/)": (
         # objects,
@@ -1038,7 +1131,7 @@ ___get_linkto_target_1 = {
             {"id": "A", "_type": GdSymbolTable.Type.REFERENCE},
             {"id": "B", "_type": GdSymbolTable.Type.REFERENCE},
         ],
-        {"TargetId": None},  # expected
+        {"TargetId": None},
     ),
 }
 
@@ -1068,13 +1161,13 @@ def spec___get_linkto_target_1(mocker, objects, expected):
         assert target.id == expected["TargetId"]
 
 
-## @}
-## @{ @name __get_linkfrom_list(cls, symbol)
-## [\@spec __get_linkfrom_list] returns splited symbols and tags.
-##
-## | @Method | __get_linkfrom_list      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name __get_linkfrom_list(cls, symbol)
+# # [\@spec __get_linkfrom_list] returns splited symbols and tags.
+# #
+# # | @Method | __get_linkfrom_list      | returns splited symbols and tags.
+# # |         | @param        | in symbol : str \| PandocStr
+# # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 ___get_linkfrom_list_1 = {
     #   id: (
     #       objects,
@@ -1088,7 +1181,7 @@ ___get_linkfrom_list_1 = {
             {"id": "TARGET", "_type": GdSymbolTable.Type.OBJECT},
             [[{"id": "A", "_type": GdSymbolTable.Type.REFERENCE}, []]],
         ],
-        {"children": ["TARGET", "A"]},  # expected
+        {"children": ["TARGET", "A"]},
     ),
     "Case: (2/)": (
         # objects,
@@ -1099,7 +1192,7 @@ ___get_linkfrom_list_1 = {
                 [{"id": "B", "_type": GdSymbolTable.Type.REFERENCE}, []],
             ],
         ],
-        {"children": ["TARGET", "A", "B"]},  # expected
+        {"children": ["TARGET", "A", "B"]},
     ),
     "Case: (3/)": (
         # objects,
@@ -1112,7 +1205,7 @@ ___get_linkfrom_list_1 = {
                 ]
             ],
         ],
-        {"children": ["TARGET", "A", "B"]},  # expected
+        {"children": ["TARGET", "A", "B"]},
     ),
     "Case: (4/)": (
         # objects,
@@ -1126,7 +1219,7 @@ ___get_linkfrom_list_1 = {
                 [{"id": "C", "_type": GdSymbolTable.Type.REFERENCE}, []],
             ],
         ],
-        {"children": ["TARGET", "A", "B", "C"]},  # expected
+        {"children": ["TARGET", "A", "B", "C"]},
     ),
     "Case: (5/)": (
         # objects,
@@ -1152,12 +1245,12 @@ ___get_linkfrom_list_1 = {
                 [{"id": "G", "_type": GdSymbolTable.Type.REFERENCE}, []],
             ],
         ],
-        {"children": ["TARGET", "A", "B", "C", "D", "E", "F", "G"]},  # expected
+        {"children": ["TARGET", "A", "B", "C", "D", "E", "F", "G"]},
     ),
     "Case: (6/)": (
         # objects,
         [{"id": "TARGET", "_type": GdSymbolTable.Type.OBJECT}, []],
-        {"children": ["TARGET"]},  # expected
+        {"children": ["TARGET"]},
     ),
 }
 
@@ -1189,13 +1282,13 @@ def spec___get_linkfrom_list_1(mocker, objects, expected):
     assert set(children) == set(expected["children"])
 
 
-## @}
-## @{ @name get_child(cls, symbol)
-## [\@spec get_child] returns splited symbols and tags.
-##
-## | @Method | get_child      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name get_child(cls, symbol)
+# # [\@spec get_child] returns splited symbols and tags.
+# #
+# # | @Method | get_child      | returns splited symbols and tags.
+# # |         | @param        | in symbol : str \| PandocStr
+# # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 _get_child_1 = {
     #   id: (
     #       objects,
@@ -1210,7 +1303,7 @@ _get_child_1 = {
             [],
             [{"id": "TARGET", "_type": GdSymbolTable.Type.OBJECT}],
         ],
-        {"TARGET": True},  # expected
+        {"TARGET": True},
     ),
     "Case: (2/)": (
         # objects,
@@ -1230,7 +1323,7 @@ _get_child_1 = {
             ],
             [],
         ],
-        {"TARGET": True},  # expected
+        {"TARGET": True},
     ),
     "Case: (3/)": (
         # objects,
@@ -1245,7 +1338,7 @@ _get_child_1 = {
             ],
             [{"id": "TARGET", "_type": GdSymbolTable.Type.OBJECT}],
         ],
-        {"TARGET": True},  # expected
+        {"TARGET": True},
     ),
     "Case: (4/)": (
         # objects,
@@ -1260,7 +1353,7 @@ _get_child_1 = {
             ],
             [{"id": "C", "_type": GdSymbolTable.Type.OBJECT}],
         ],
-        {"TARGET": None},  # expected
+        {"TARGET": None},
     ),
 }
 
@@ -1310,13 +1403,13 @@ def spec_get_child_1(mocker, objects, expected):
         assert target is TARGET
 
 
-## @}
-## @{ @name get_child_by_name(cls, symbol)
-## [\@spec get_child_by_name] returns splited symbols and tags.
-##
-## | @Method | get_child_by_name      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name get_child_by_name(cls, symbol)
+# # [\@spec get_child_by_name] returns splited symbols and tags.
+# #
+# # | @Method | get_child_by_name      | returns splited symbols and tags.
+# # |         | @param        | in symbol : str \| PandocStr
+# # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 _get_child_by_name_1 = {
     #   id: (
     #       objects,
@@ -1327,61 +1420,67 @@ _get_child_by_name_1 = {
     "Case: (1/)": (
         # objects,
         [
-            {"id": "START", "name": "", "_type": GdSymbolTable.Type.OBJECT},
+            {"id": "START", "name": None, "_type": GdSymbolTable.Type.OBJECT},
             [],
             [{"id": "TARGET", "name": "TARGET", "_type": GdSymbolTable.Type.OBJECT}],
         ],
-        {"TARGET": True},  # expected
+        {"TARGET": True},
     ),
     "Case: (2/)": (
         # objects,
         [
-            {"id": "ROOT", "name": "", "_type": GdSymbolTable.Type.OBJECT},
+            {"id": "ROOT", "name": None, "_type": GdSymbolTable.Type.OBJECT},
             [
                 [
-                    {"id": "START", "name": "", "_type": GdSymbolTable.Type.REFERENCE},
+                    {"id": "START", "name": None, "_type": GdSymbolTable.Type.REFERENCE},
                     [],
-                    [{"id": "A", "name": "", "_type": GdSymbolTable.Type.OBJECT}],
+                    [{"id": "A", "name": None, "_type": GdSymbolTable.Type.OBJECT}],
                 ],
                 [
-                    {"id": "C", "name": "", "_type": GdSymbolTable.Type.REFERENCE},
+                    {"id": "C", "name": None, "_type": GdSymbolTable.Type.REFERENCE},
                     [],
                     [{"id": "TARGET", "name": "TARGET", "_type": GdSymbolTable.Type.OBJECT}],
                 ],
             ],
             [],
         ],
-        {"TARGET": True},  # expected
+        {"TARGET": True},
     ),
     "Case: (3/)": (
         # objects,
         [
-            {"id": "ROOT", "name": "", "_type": GdSymbolTable.Type.OBJECT},
+            {"id": "ROOT", "name": None, "_type": GdSymbolTable.Type.OBJECT},
             [
                 [
-                    {"id": "A", "name": "", "_type": GdSymbolTable.Type.REFERENCE},
-                    [[{"id": "START", "name": "", "_type": GdSymbolTable.Type.REFERENCE}, [], []]],
-                    [{"id": "B", "name": "", "_type": GdSymbolTable.Type.OBJECT}],
+                    {"id": "A", "name": None, "_type": GdSymbolTable.Type.REFERENCE},
+                    [
+                        [
+                            {"id": "START", "name": None, "_type": GdSymbolTable.Type.REFERENCE},
+                            [],
+                            [],
+                        ]
+                    ],
+                    [{"id": "B", "name": None, "_type": GdSymbolTable.Type.OBJECT}],
                 ]
             ],
             [{"id": "TARGET", "name": "TARGET", "_type": GdSymbolTable.Type.OBJECT}],
         ],
-        {"TARGET": True},  # expected
+        {"TARGET": True},
     ),
     "Case: (4/)": (
         # objects,
         [
-            {"id": "ROOT", "name": "", "_type": GdSymbolTable.Type.OBJECT},
+            {"id": "ROOT", "name": None, "_type": GdSymbolTable.Type.OBJECT},
             [
                 [
-                    {"id": "START", "name": "", "_type": GdSymbolTable.Type.REFERENCE},
-                    [[{"id": "A", "name": "", "_type": GdSymbolTable.Type.REFERENCE}, [], []]],
-                    [{"id": "B", "name": "", "_type": GdSymbolTable.Type.OBJECT}],
+                    {"id": "START", "name": None, "_type": GdSymbolTable.Type.REFERENCE},
+                    [[{"id": "A", "name": None, "_type": GdSymbolTable.Type.REFERENCE}, [], []]],
+                    [{"id": "B", "name": None, "_type": GdSymbolTable.Type.OBJECT}],
                 ]
             ],
-            [{"id": "C", "name": "", "_type": GdSymbolTable.Type.OBJECT}],
+            [{"id": "C", "name": None, "_type": GdSymbolTable.Type.OBJECT}],
         ],
-        {"TARGET": None},  # expected
+        {"TARGET": None},
     ),
 }
 
@@ -1431,13 +1530,13 @@ def spec_get_child_by_name_1(mocker, objects, expected):
         assert target is TARGET
 
 
-## @}
-## @{ @name resolve(cls, symbol)
-## [\@spec resolve] returns splited symbols and tags.
-##
-## | @Method | resolve      | returns splited symbols and tags.
-## |         | @param        | in symbol : str \| PandocStr
-## |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
+# # @}
+# # @{ @name resolve(cls, symbol)
+# # [\@spec resolve] returns splited symbols and tags.
+# #
+# # | @Method | resolve      | returns splited symbols and tags.
+# # |         | @param        | in symbol : str \| PandocStr
+# # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 _resolve_1 = {
     #   id: (
     #       objects,
@@ -1451,42 +1550,42 @@ _resolve_1 = {
         [{"id": "START", "name": "Start"}, [[{"id": "TARGET", "name": "Target"}, []]]],
         # symbols,
         ["TARGET"],
-        {"TARGET": True},  # expected
+        {"TARGET": True},
     ),
     "Case: Parent-Child (2/)": (
         # objects,
         [{"id": "START", "name": "Start"}, [[{"id": "TARGET", "name": "Target"}, []]]],
         # symbols,
         ["*Target"],
-        {"TARGET": True},  # expected
+        {"TARGET": True},
     ),
     "Case: Parent-Child (3/)": (
         # objects,
         [{"id": "START", "name": "Start"}, [[{"id": "TARGET", "name": "Target"}, []]]],
         # symbols,
         ["START", "TARGET"],
-        {"TARGET": True},  # expected
+        {"TARGET": True},
     ),
     "Case: Parent-Child (4/)": (
         # objects,
         [{"id": "START", "name": "Start"}, [[{"id": "TARGET", "name": "Target"}, []]]],
         # symbols,
         ["START", "*Target"],
-        {"TARGET": True},  # expected
+        {"TARGET": True},
     ),
     "Case: Parent-Child (5/)": (
         # objects,
         [{"id": "START", "name": "Start"}, [[{"id": "TARGET", "name": "Target"}, []]]],
         # symbols,
         ["*Start", "TARGET"],
-        {"TARGET": True},  # expected
+        {"TARGET": True},
     ),
     "Case: Parent-Child (6/)": (
         # objects,
         [{"id": "START", "name": "Start"}, [[{"id": "TARGET", "name": "Target"}, []]]],
         # symbols,
         ["*Start", "*Target"],
-        {"TARGET": True},  # expected
+        {"TARGET": True},
     ),
     "Case: Layered (1/)": (
         # objects,
@@ -1499,7 +1598,7 @@ _resolve_1 = {
         ],
         # symbols,
         ["ROOT", "B", "*Target"],
-        {"TARGET": True},  # expected
+        {"TARGET": True},
     ),
     "Case: Layered (2/)": (
         # objects,
@@ -1511,7 +1610,7 @@ _resolve_1 = {
         ],
         # symbols,
         ["*Target"],
-        {"TARGET": True},  # expected
+        {"TARGET": True},
     ),
     "ErrorCase: (1/)": (
         # objects,
@@ -1524,7 +1623,7 @@ _resolve_1 = {
         ],
         # symbols,
         ["NONE", "B", "*Target"],
-        {"TARGET": 0},  # expected
+        {"TARGET": 0},
     ),
     "ErrorCase: (2/)": (
         # objects,
@@ -1537,7 +1636,7 @@ _resolve_1 = {
         ],
         # symbols,
         ["ROOT", "NONE", "*Target"],
-        {"TARGET": 1},  # expected
+        {"TARGET": 1},
     ),
     "ErrorCase: (3/)": (
         # objects,
@@ -1550,7 +1649,7 @@ _resolve_1 = {
         ],
         # symbols,
         ["ROOT", "B", "NONE"],
-        {"TARGET": 2},  # expected
+        {"TARGET": 2},
     ),
 }
 
