@@ -1,16 +1,20 @@
 r"""
 GdSymbol class
 """
-import json
 import re
 
-from ..gdexception import *
+from ..gdexception import GdocSyntaxError
 
 
 class GdSymbol:
     """
     ;
     """
+
+    IS_NAME_STR = "@"
+    # "@" is a character not allowed in id.
+    # Set it at the beginning of a string to indicate that
+    # the string is not an id, i.e., a name.
 
     def __init__(self, symbol):
         """ """
@@ -20,7 +24,7 @@ class GdSymbol:
 
     def is_id(self):
         """ """
-        return not self.__symbols[-1].startswith("*")
+        return not self.__symbols[-1].startswith(GdSymbol.IS_NAME_STR)
 
     def get_symbols(self):
         """ """
@@ -31,7 +35,7 @@ class GdSymbol:
         symbol_str = ""
 
         for s in self.__symbols:
-            if s.startswith("*"):
+            if s.startswith(GdSymbol.IS_NAME_STR):
                 symbol_str += "[" + s[1:] + "]"
             elif symbol_str != "":
                 symbol_str += "." + s
@@ -118,7 +122,7 @@ class GdSymbol:
                             # column + i + len('[')
                         )
 
-                symbols.append("*" + name)
+                symbols.append(GdSymbol.IS_NAME_STR + name)
 
             elif s := cls._IDENTIFIER.match(target):
                 identifier = s.group(cls._IDENTIFIER_INDEX)

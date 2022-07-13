@@ -46,7 +46,7 @@ def spec___init___2():
 
     assert target._GdSymbol__symbol_str == SYMBOL
 
-    assert target._GdSymbol__symbols == ["parent", "*self", "child"]
+    assert target._GdSymbol__symbols == ["parent", f"{GdSymbol.IS_NAME_STR}self", "child"]
     assert target._GdSymbol__tags == ["S", "#123"]
 
 
@@ -89,7 +89,7 @@ def spec_get_symbols_1():
     SYMBOL = "parent[self].child(S, #123)"
     target = GdSymbol(SYMBOL)
 
-    assert target.get_symbols() == ["parent", "*self", "child"]
+    assert target.get_symbols() == ["parent", f"{GdSymbol.IS_NAME_STR}self", "child"]
     assert target.get_symbols() is not target._GdSymbol__symbols
 
 
@@ -295,17 +295,33 @@ __split_symbol_1 = {
     "Case: name (1/)": (
         # symbolstr,
         "[A].B[C]",
-        {"Exception": None, "symbols": ["*A", "B", "*C"], "tags": []},  # expected
+        {
+            "Exception": None,
+            "symbols": [f"{GdSymbol.IS_NAME_STR}A", "B", f"{GdSymbol.IS_NAME_STR}C"],
+            "tags": [],
+        },  # expected
     ),
     "Case: name (2/)": (
         # symbolstr,
         r'["A"][ " B " ]["##"]',
-        {"Exception": None, "symbols": ["*A", "* B ", "*##"], "tags": []},  # expected
+        {
+            "Exception": None,
+            "symbols": [
+                f"{GdSymbol.IS_NAME_STR}A",
+                f"{GdSymbol.IS_NAME_STR} B ",
+                f"{GdSymbol.IS_NAME_STR}##",
+            ],
+            "tags": [],
+        },  # expected
     ),
     "Case: name (3/)": (
         # symbolstr,
         r'["A\"A"][ "B\"][\"C" ]',
-        {"Exception": None, "symbols": ['*A"A', '*B"]["C'], "tags": []},  # expected
+        {
+            "Exception": None,
+            "symbols": [f'{GdSymbol.IS_NAME_STR}A"A', f'{GdSymbol.IS_NAME_STR}B"]["C'],
+            "tags": [],
+        },  # expected
     ),
     "ErrCase: name (1/)": (
         # symbolstr,

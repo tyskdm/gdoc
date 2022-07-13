@@ -27,6 +27,7 @@ import inspect
 import pytest
 
 from gdoc.lib.gdoccompiler.gdexception import GdocIdError, GdocRuntimeError, GdocTypeError
+from gdoc.lib.gdoccompiler.gdobject.gdsymbol import GdSymbol
 from gdoc.lib.gdoccompiler.gdobject.gdsymboltable import GdSymbolTable
 
 # # @{ @name \_\_init\_\_(str \| PandocStr)
@@ -65,6 +66,8 @@ def spec___init___2():
     assert target.tags == []
     assert target._GdSymbolTable__type == GdSymbolTable.Type.OBJECT
     assert target._GdSymbolTable__parent is None
+    assert target._GdSymbolTable__children == []
+    assert target._GdSymbolTable__references == []
     assert target._GdSymbolTable__idlist == {}
     assert target._GdSymbolTable__namelist == {}
     assert target._GdSymbolTable__link_to is None
@@ -83,7 +86,8 @@ ___init___3 = {
     #
     # Case: id - Should check if id is valid.
     #   Valid ids: Characters allowed as python symbols.
-    #   Invalid ids: ".", ":", start with "&", etc
+    #   Invalid ids: "" and the str starts with GdSymbol.IS_NAME_STR,
+    #   which indicates the string is a name.
     #
     "Case: id (1/)": (
         # kwargs,
@@ -92,23 +96,11 @@ ___init___3 = {
     ),
     "Case: id (2/)": (
         # kwargs,
-        {"id": "&A"},
+        {"id": f"{GdSymbol.IS_NAME_STR}A"},
         # expected
-        {"Exception": (GdocIdError, 'invalid id "&A"')},
+        {"Exception": (GdocIdError, f'invalid id "{GdSymbol.IS_NAME_STR}A"')},
     ),
     "Case: id (3/)": (
-        # kwargs,
-        {"id": "."},
-        # expected
-        {"Exception": (GdocIdError, 'invalid id "."')},
-    ),
-    "Case: id (4/)": (
-        # kwargs,
-        {"id": ":"},
-        # expected
-        {"Exception": (GdocIdError, 'invalid id ":"')},
-    ),
-    "Case: id (5/)": (
         # kwargs,
         {"id": ""},
         # expected
@@ -183,7 +175,7 @@ ___init___3 = {
         # kwargs,
         {"id": "A", "tags": "A"},
         # expected
-        {"Exception": (TypeError, "can only add a list as a tag")},
+        {"Exception": (TypeError, "only a list can be added as tags")},
     ),
     #
     # Case: id - Should check if _type is valid.
@@ -231,7 +223,7 @@ ___init___3 = {
         # kwargs,
         {"id": "A", "_type": "A"},
         # expected
-        {"Exception": (TypeError, "can only set GdSymbolTable.Type")},
+        {"Exception": (TypeError, "only GdSymbolTable.Type can be set")},
     ),
     #
     # Case: Combination of id and name
@@ -261,13 +253,13 @@ ___init___3 = {
         # kwargs,
         {"id": None},
         # expected
-        {"Exception": (GdocIdError, "At least one of the id or name is required")},
+        {"Exception": (GdocIdError, "at least one of the id or name is required")},
     ),
     "Case: Combination (5/)": (
         # kwargs,
         {"id": None, "name": None},
         # expected
-        {"Exception": (GdocIdError, "At least one of the id or name is required")},
+        {"Exception": (GdocIdError, "at least one of the id or name is required")},
     ),
 }
 
@@ -323,6 +315,8 @@ def spec_add_child_1():
     parent.add_child(child)
 
     assert parent._GdSymbolTable__parent is None
+    assert len(parent._GdSymbolTable__children) == 1
+    assert parent._GdSymbolTable__children[0] is child
     assert len(parent._GdSymbolTable__idlist) == 1
     assert parent._GdSymbolTable__idlist["CHILD"] is child
 
@@ -340,86 +334,90 @@ def spec_add_child_1():
 _add_child_2 = {
     #   id: (
     #       parent,
-    #       child_ids,
+    #       children,
     #       expected: {
     #           Exception,
-    #           IDs
+    #           IDs,
+    #           NAMEs
     #       }
     #   )
     "Case: id (1/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
-        [{"id": "A"}],  # child_ids,
-        {"Exception": None, "IDs": {"A"}},
+        [{"id": "A"}],  # children,
+        {"Exception": None, "IDs": {"A"}, "NAMEs": set()},
     ),
     "Case: id (2/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
-        [{"id": "A"}, {"id": "B"}],  # child_ids,
-        {"Exception": None, "IDs": {"A", "B"}},
+        [{"id": "A"}, {"id": "B"}],  # children,
+        {"Exception": None, "IDs": {"A", "B"}, "NAMEs": set()},
     ),
     "ErrCase: id (1/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
-        [{"id": "A"}, {"id": "A"}],  # child_ids,
-        {"Exception": (GdocIdError, 'duplicate id "A"'), "IDs": {}},
+        [{"id": "A"}, {"id": "A"}],  # children,
+        {"Exception": (GdocIdError, 'duplicate id "A"'), "IDs": set(), "NAMEs": set()},
     ),
-    "ErrCase: id (2/)": (
+    "Case: name (1/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
-        [{"id": "&A"}],  # child_ids,
-        {"Exception": (GdocIdError, 'invalid id "&A"'), "IDs": {}},
+        [{"id": None, "name": "A"}],  # children,
+        {"Exception": None, "IDs": set(), "NAMEs": {"A"}},
     ),
-    "ErrCase: id (3/)": (
+    "Case: name (2/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
-        [{"id": ":"}],  # child_ids,
-        {"Exception": (GdocIdError, 'invalid id ":"'), "IDs": {}},
+        [{"id": None, "name": "A"}, {"id": None, "name": "B"}],  # children,
+        {"Exception": None, "IDs": set(), "NAMEs": {"A", "B"}},
     ),
-    "ErrCase: id (4/)": (
+    "ErrCase: name (1/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
-        [{"id": "."}],  # child_ids,
-        {"Exception": (GdocIdError, 'invalid id "."'), "IDs": {}},
+        [{"id": None, "name": "A"}, {"id": None, "name": "A"}],  # children,
+        {"Exception": (GdocIdError, 'duplicate name "A"'), "IDs": set(), "NAMEs": set()},
     ),
     "Case: type (1/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
-        [{"id": "A", "_type": GdSymbolTable.Type.OBJECT}],  # child_ids,
-        {"Exception": None, "IDs": {"A"}},
+        [{"id": "A", "_type": GdSymbolTable.Type.OBJECT}],  # children,
+        {"Exception": None, "IDs": {"A"}, "NAMEs": set()},
     ),
     "Case: type (2/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
-        [{"id": "A", "_type": GdSymbolTable.Type.IMPORT}],  # child_ids,
-        {"Exception": None, "IDs": {"A"}},
+        [{"id": "A", "_type": GdSymbolTable.Type.IMPORT}],  # children,
+        {"Exception": None, "IDs": {"A"}, "NAMEs": set()},
     ),
     "Case: type (3/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
-        [{"id": "A", "_type": GdSymbolTable.Type.ACCESS}],  # child_ids,
-        {"Exception": None, "IDs": {"A"}},
-    ),
-    "Case: type (4/)": (
-        {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
-        [{"id": "A", "_type": GdSymbolTable.Type.REFERENCE}],  # child_ids,
-        {"Exception": None, "IDs": {"&A"}},
+        [{"id": "A", "_type": GdSymbolTable.Type.ACCESS}],  # children,
+        {"Exception": None, "IDs": {"A"}, "NAMEs": set()},
     ),
     "Case: parent type (1/)": (
         {"id": "A", "_type": GdSymbolTable.Type.REFERENCE},  # parent,
-        [{"id": "A"}],  # child_ids,
-        {"Exception": None, "IDs": {"A"}},
+        [{"id": "A"}],  # children,
+        {"Exception": None, "IDs": {"A"}, "NAMEs": set()},
     ),
     "ErrorCase: parent type (1/): Import can not have children": (
         {"id": "A", "_type": GdSymbolTable.Type.IMPORT},  # parent,
-        [{"id": "A"}],  # child_ids,
-        {"Exception": (GdocTypeError, "'Import' type cannot have children"), "IDs": {}},
+        [{"id": "A"}],  # children,
+        {
+            "Exception": (GdocTypeError, "'Import' type cannot have children"),
+            "IDs": set(),
+            "NAMEs": set(),
+        },
     ),
     "ErrorCase: parent type (2/): Import can not have children": (
         {"id": "A", "_type": GdSymbolTable.Type.ACCESS},  # parent,
-        [{"id": "A"}],  # child_ids,
-        {"Exception": (GdocTypeError, "'Access' type cannot have children"), "IDs": {}},
+        [{"id": "A"}],  # children,
+        {
+            "Exception": (GdocTypeError, "'Access' type cannot have children"),
+            "IDs": set(),
+            "NAMEs": set(),
+        },
     ),
 }
 
 
 @pytest.mark.parametrize(
-    "parent, child_ids, expected", list(_add_child_2.values()), ids=list(_add_child_2.keys())
+    "parent, children, expected", list(_add_child_2.values()), ids=list(_add_child_2.keys())
 )
-def spec_add_child_2(mocker, parent, child_ids, expected):
+def spec_add_child_2(mocker, parent, children, expected):
     r"""
-    [\@spec _run.1] run child_ids with NO-ERROR.
+    [\@spec _run.1] run children with NO-ERROR.
     """
     #
     # Normal case
@@ -428,19 +426,20 @@ def spec_add_child_2(mocker, parent, child_ids, expected):
 
     if expected["Exception"] is None:
 
-        for kwargs in child_ids:
+        for kwargs in children:
             parent.add_child(GdSymbolTable(**kwargs))
 
+        assert len(parent._GdSymbolTable__children) == len(children)
         assert set(parent._GdSymbolTable__idlist.keys()) == expected["IDs"]
+        assert set(parent._GdSymbolTable__namelist.keys()) == expected["NAMEs"]
 
     #
     # Error case
     #
     else:
         with pytest.raises(expected["Exception"][0]) as exc_info:
-            for kwargs in child_ids:
-                child = GdSymbolTable("id")
-                child.id = kwargs["id"]
+            for kwargs in children:
+                child = GdSymbolTable(**kwargs)
                 parent.add_child(child)
 
         assert exc_info.match(expected["Exception"][1])
@@ -461,18 +460,16 @@ def spec___add_reference_1():
     [\@spec __add_reference.1]
     """
     parent = GdSymbolTable("PARENT")
-    child = GdSymbolTable("CHILD")
+    child = GdSymbolTable("CHILD", _type=GdSymbolTable.Type.REFERENCE)
 
-    parent._GdSymbolTable__add_reference(child)
+    parent.add_child(child)
 
     assert parent._GdSymbolTable__parent is None
-    assert len(parent._GdSymbolTable__idlist) == 1
-    assert type(parent._GdSymbolTable__idlist["&CHILD"]) == list
-    assert len(parent._GdSymbolTable__idlist["&CHILD"]) == 1
-    assert parent._GdSymbolTable__idlist["&CHILD"][0] is child
+    assert len(parent._GdSymbolTable__references) == 1
+    assert parent._GdSymbolTable__references[0] is child
+    assert len(parent._GdSymbolTable__children) == 0
 
     assert child._GdSymbolTable__parent is parent
-    assert child._GdSymbolTable__idlist == {}
 
 
 # # @}
@@ -484,49 +481,41 @@ def spec___add_reference_1():
 # # |         | @param        | out : ([str \| PandcStr], [str \| PandcStr])
 ___add_reference_2 = {
     #   id: (
-    #       child_ids,
+    #       children,
     #       expected: {
     #           Exception,
     #           IDs
     #       }
     #   )
     "Case: id (1/)": (
-        # child_ids,
-        ["A"],
-        {"Exception": None, "IDs": [("&A", 1)]},
+        # children,
+        [{"id": "A", "_type": GdSymbolTable.Type.REFERENCE}],
+        {"Exception": None, "NumRefs": 1},
     ),
     "Case: id (2/)": (
-        # child_ids,
-        ["A", "A"],
-        {"Exception": None, "IDs": [("&A", 2)]},
+        # children,
+        [
+            {"id": "A", "_type": GdSymbolTable.Type.REFERENCE},
+            {"id": "A", "_type": GdSymbolTable.Type.REFERENCE},
+        ],
+        {"Exception": None, "NumRefs": 2},
     ),
     "Case: id (3/)": (
-        # child_ids,
-        ["A", "B", "B"],
-        {"Exception": None, "IDs": [("&A", 1), ("&B", 2)]},
-    ),
-    "ErrCase: id (1/)": (
-        # child_ids,
-        ["&A"],
-        {"Exception": (GdocIdError, r"invalid id \"\S+\""), "IDs": {}},
-    ),
-    "ErrCase: id (2/)": (
-        # child_ids,
-        [":"],
-        {"Exception": (GdocIdError, r"invalid id \"\S+\""), "IDs": {}},
-    ),
-    "ErrCase: id (3/)": (
-        # child_ids,
-        ["."],
-        {"Exception": (GdocIdError, r"invalid id \"\S+\""), "IDs": {}},
+        # children,
+        [
+            {"id": "A", "_type": GdSymbolTable.Type.REFERENCE},
+            {"id": "B", "_type": GdSymbolTable.Type.REFERENCE},
+            {"id": "B", "_type": GdSymbolTable.Type.REFERENCE},
+        ],
+        {"Exception": None, "NumRefs": 3},
     ),
 }
 
 
 @pytest.mark.parametrize(
-    "child_ids, expected", list(___add_reference_2.values()), ids=list(___add_reference_2.keys())
+    "children, expected", list(___add_reference_2.values()), ids=list(___add_reference_2.keys())
 )
-def spec___add_reference_2(mocker, child_ids, expected):
+def spec___add_reference_2(mocker, children, expected):
     r"""
     [\@spec _run.1] run child_ids with NO-ERROR.
     """
@@ -537,22 +526,19 @@ def spec___add_reference_2(mocker, child_ids, expected):
 
     if expected["Exception"] is None:
 
-        for id in child_ids:
-            parent._GdSymbolTable__add_reference(GdSymbolTable(id))
+        for child in children:
+            parent.add_child(GdSymbolTable(**child))
 
-        for id in expected["IDs"]:
-            assert type(parent._GdSymbolTable__idlist[id[0]]) == list
-            assert len(parent._GdSymbolTable__idlist[id[0]]) == id[1]
+        assert len(parent._GdSymbolTable__references) == expected["NumRefs"]
+        assert len(parent._GdSymbolTable__children) == 0
 
     #
     # Error case
     #
     else:
         with pytest.raises(expected["Exception"][0]) as exc_info:
-            for id in child_ids:
-                child = GdSymbolTable("id")
-                child.id = id
-                parent._GdSymbolTable__add_reference(child)
+            for id in children:
+                parent.add_child(GdSymbolTable(**id))
 
         assert exc_info.match(expected["Exception"][1])
 
@@ -664,7 +650,7 @@ ___get_references_1 = {
     "Case: (1/)": (
         # child_ids:
         [],
-        {"children": []},
+        {"children": 0},
     ),
     "Case: (2/)": (
         # child_ids:
@@ -672,7 +658,7 @@ ___get_references_1 = {
             ("A", GdSymbolTable.Type.OBJECT),
             ("C", GdSymbolTable.Type.OBJECT),
         ],
-        {"children": []},
+        {"children": 0},
     ),
     "Case: (3/)": (
         # child_ids:
@@ -680,7 +666,7 @@ ___get_references_1 = {
             ("B", GdSymbolTable.Type.REFERENCE),
             ("D", GdSymbolTable.Type.REFERENCE),
         ],
-        {"children": ["B", "D"]},
+        {"children": 2},
     ),
     "Case: (4/)": (
         # child_ids:
@@ -690,7 +676,7 @@ ___get_references_1 = {
             ("C", GdSymbolTable.Type.OBJECT),
             ("D", GdSymbolTable.Type.REFERENCE),
         ],
-        {"children": ["B", "D"]},
+        {"children": 2},
     ),
 }
 
@@ -707,11 +693,9 @@ def spec___get_references_1(mocker, child_ids, expected):
     for id in child_ids:
         parent.add_child(GdSymbolTable(id=id[0], _type=id[1]))
 
-    children = parent._GdSymbolTable__get_references()
+    references = parent._GdSymbolTable__get_references()
 
-    assert len(children) == len(expected["children"])
-    for i in range(len(expected["children"])):
-        assert children[i].id == expected["children"][i]
+    assert len(references) == expected["children"]
 
 
 # # @}
