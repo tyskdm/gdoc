@@ -227,3 +227,7 @@ Python `str` is inherited from Abstract Base Class, `Sequence`.
 |              | @param         | out : str
 | @Method      | `__iadd__`     | (self, other) : self += other
 |              | @param         | in pString : PandocStr
+| @Method      | `startswith`   | (prefix[, start[, end]]) -> bool
+|              | @param         | in prefix : str \| PandocStr
+| @Method      | `endswith`     | (suffix[, start[, end]]) -> bool
+|              | @param         | in suffix : str \| PandocStr

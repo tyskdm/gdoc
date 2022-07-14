@@ -336,6 +336,14 @@ class PandocStr:
 
         return self
 
+    def startswith(self, *args, **kwargs):
+
+        return self._text.startswith(*args, **kwargs)
+
+    def endswith(self, *args, **kwargs):
+
+        return self._text.endswith(*args, **kwargs)
+
     def _create_items_list(self, items=None, start: int = 0, stop: int = None):
         """Constructor
         @param items : [Str] | None

@@ -29,6 +29,8 @@ import pytest
 from gdoc.lib.gdoccompiler.gdexception import GdocIdError, GdocRuntimeError, GdocTypeError
 from gdoc.lib.gdoccompiler.gdobject.gdsymbol import GdSymbol
 from gdoc.lib.gdoccompiler.gdobject.gdsymboltable import GdSymbolTable
+from gdoc.lib.pandocastobject.pandocast.types import create_element
+from gdoc.lib.pandocastobject.pandocstr import PandocStr
 
 # # @{ @name \_\_init\_\_(str \| PandocStr)
 # # [\@spec \_\_init\_\_] creates a new instance.
@@ -159,9 +161,9 @@ ___init___3 = {
         {"Exception": (GdocIdError, 'invalid name ""')},
     ),
     #
-    # Case: id - Should check if tag is valid.
-    #   Valid tag: List of tag strings
-    #   Invalid tag: Bare string,...
+    # Case: tags - Should check if tags is valid.
+    #   Valid tags: List of tag strings
+    #   Invalid tags: Bare string,...
     #
     "Case: tags (1/)": (
         # kwargs,
@@ -178,7 +180,7 @@ ___init___3 = {
         {"Exception": (TypeError, "only a list can be added as tags")},
     ),
     #
-    # Case: id - Should check if _type is valid.
+    # Case: type - Should check if _type is valid.
     #   Valid _type: Enum GdSymbolTable.Type
     #
     "Case: type (1/)": (
@@ -341,6 +343,9 @@ _add_child_2 = {
     #           NAMEs
     #       }
     #   )
+    #
+    # Case: id - Should check if id is unique.
+    #
     "Case: id (1/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
         [{"id": "A"}],  # children,
@@ -356,6 +361,32 @@ _add_child_2 = {
         [{"id": "A"}, {"id": "A"}],  # children,
         {"Exception": (GdocIdError, 'duplicate id "A"'), "IDs": set(), "NAMEs": set()},
     ),
+    #
+    # Case: p_id - Should check if id(PandocStr) is unique.
+    #
+    "Case: p_id (1/)": (
+        {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
+        [{"id": {"t": "Str", "c": "A"}}],  # children,
+        {"Exception": None, "IDs": {"A"}, "NAMEs": set()},
+    ),
+    "Case: p_id (2/)": (
+        {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
+        [{"id": {"t": "Str", "c": "A"}}, {"id": {"t": "Str", "c": "B"}}],  # children,
+        {"Exception": None, "IDs": {"A", "B"}, "NAMEs": set()},
+    ),
+    "ErrCase: p_id (1/)": (
+        {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
+        [{"id": {"t": "Str", "c": "A"}}, {"id": {"t": "Str", "c": "A"}}],  # children,
+        {"Exception": (GdocIdError, 'duplicate id "A"'), "IDs": set(), "NAMEs": set()},
+    ),
+    "ErrCase: c_id (1/)": (
+        {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
+        [{"id": "A"}, {"id": {"t": "Str", "c": "A"}}],  # children,
+        {"Exception": (GdocIdError, 'duplicate id "A"'), "IDs": set(), "NAMEs": set()},
+    ),
+    #
+    # Case: name - Should check name is unique.
+    #
     "Case: name (1/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
         [{"id": None, "name": "A"}],  # children,
@@ -371,6 +402,38 @@ _add_child_2 = {
         [{"id": None, "name": "A"}, {"id": None, "name": "A"}],  # children,
         {"Exception": (GdocIdError, 'duplicate name "A"'), "IDs": set(), "NAMEs": set()},
     ),
+    #
+    # Case: name - Should check name(PandocStr) is unique.
+    #
+    "Case: p_name (1/)": (
+        {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
+        [{"id": None, "name": {"t": "Str", "c": "A"}}],  # children,
+        {"Exception": None, "IDs": set(), "NAMEs": {"A"}},
+    ),
+    "Case: p_name (2/)": (
+        {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
+        [
+            {"id": None, "name": {"t": "Str", "c": "A"}},
+            {"id": None, "name": {"t": "Str", "c": "B"}},
+        ],  # children,
+        {"Exception": None, "IDs": set(), "NAMEs": {"A", "B"}},
+    ),
+    "ErrCase: p_name (1/)": (
+        {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
+        [
+            {"id": None, "name": {"t": "Str", "c": "A"}},
+            {"id": None, "name": {"t": "Str", "c": "A"}},
+        ],  # children,
+        {"Exception": (GdocIdError, 'duplicate name "A"'), "IDs": set(), "NAMEs": set()},
+    ),
+    "ErrCase: c_name (1/)": (
+        {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
+        [{"id": None, "name": "A"}, {"id": None, "name": {"t": "Str", "c": "A"}}],  # children,
+        {"Exception": (GdocIdError, 'duplicate name "A"'), "IDs": set(), "NAMEs": set()},
+    ),
+    #
+    # Case: type - Should check type is valid
+    #
     "Case: type (1/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
         [{"id": "A", "_type": GdSymbolTable.Type.OBJECT}],  # children,
@@ -426,7 +489,14 @@ def spec_add_child_2(mocker, parent, children, expected):
 
     if expected["Exception"] is None:
 
-        for kwargs in children:
+        for args in children:
+            kwargs = {}
+            for key in args:
+                if type(args[key]) is dict:
+                    kwargs[key] = PandocStr([create_element(args[key])])
+                else:
+                    kwargs[key] = args[key]
+
             parent.add_child(GdSymbolTable(**kwargs))
 
         assert len(parent._GdSymbolTable__children) == len(children)
@@ -438,9 +508,15 @@ def spec_add_child_2(mocker, parent, children, expected):
     #
     else:
         with pytest.raises(expected["Exception"][0]) as exc_info:
-            for kwargs in children:
-                child = GdSymbolTable(**kwargs)
-                parent.add_child(child)
+            for args in children:
+                kwargs = {}
+                for key in args:
+                    if type(args[key]) is dict:
+                        kwargs[key] = PandocStr([create_element(args[key])])
+                    else:
+                        kwargs[key] = args[key]
+
+                parent.add_child(GdSymbolTable(**kwargs))
 
         assert exc_info.match(expected["Exception"][1])
 

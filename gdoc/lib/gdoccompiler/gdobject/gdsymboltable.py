@@ -85,14 +85,14 @@ class GdSymbolTable:
             child.__parent = self
 
             if child.id is not None:
-                if child.id in self.__idlist:
+                if str(child.id) in self.__idlist:
                     raise GdocIdError('duplicate id "' + child.id + '"')
-                self.__idlist[child.id] = child
+                self.__idlist[str(child.id)] = child
 
             if child.name is not None:
-                if child.name in self.__namelist:
+                if str(child.name) in self.__namelist:
                     raise GdocIdError('duplicate name "' + child.name + '"')
-                self.__namelist[child.name] = child
+                self.__namelist[str(child.name)] = child
 
             self.__children.append(child)
 
