@@ -295,7 +295,7 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
 | @class&  | Name | Description |
 | :------: | ---- | ----------- |
-| c2       | GdSymbolTable    | Symbol string
+| c2       | GdSymbolTable  | Symbol table to reference objects by id and name.
 | @Method  | get_parent     |
 | @Method  | add_child      | `def add_child(self, child)`
 |          | @param         | in child : GdSymbolTable
