@@ -4,8 +4,9 @@ text.py: Text class
 
 from enum import Enum, auto
 
-from ..pandocastobject.pandocast.element import Element
-from ..pandocastobject.pandocstr import PandocStr
+from gdoc.lib.pandocastobject.pandocast.element import Element
+
+from .string import String
 
 
 class Text:
@@ -31,10 +32,10 @@ class Text:
         }
 
         if type(element) is list:
-            self.element = PandocStr(element)
+            self.element = String(element)
             self.type = Text.Type.PLAIN
 
-        elif type(element) is PandocStr:
+        elif type(element) is String:
             self.element = element
             self.type = Text.Type.PLAIN
 

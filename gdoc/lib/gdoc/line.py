@@ -2,8 +2,9 @@
 line.py: Line class
 """
 
-from ..pandocastobject.pandocast.element import Element
-from ..pandocastobject.pandocstr import PandocStr
+from gdoc.lib.pandocastobject.pandocast.element import Element
+
+from .string import String
 from .text import Text
 
 
@@ -30,7 +31,7 @@ class Line(list):
 
                 else:
                     if len(plaintext) > 0:
-                        self.append(Text(PandocStr(plaintext)))
+                        self.append(Text(String(plaintext)))
                         plaintext = []
 
                     self.append(Text(item), opts)
@@ -39,7 +40,7 @@ class Line(list):
                 raise RuntimeError()
 
         if len(plaintext) > 0:
-            self.append(Text(PandocStr(plaintext)))
+            self.append(Text(String(plaintext)))
 
     def append(self, item) -> None:
         if not isinstance(item, Text):

@@ -6,8 +6,7 @@ from enum import Enum, auto
 
 from click import argument
 
-from gdoc.lib.gdoc.text import Text
-from gdoc.lib.pandocastobject.pandocstr import PandocStr
+from gdoc.lib.gdoc import String, Text
 
 from ...gdexception import *
 
@@ -37,7 +36,7 @@ class BlockTag(Tag):
         self.class_args = []
         for arg in class_args:
             if type(arg) is list:
-                pstr = PandocStr()
+                pstr = String()
                 for a in arg:
                     pstr += a
                 arg = pstr
@@ -47,13 +46,13 @@ class BlockTag(Tag):
         for kwarg in class_kwargs:
             key, val = kwarg
             if type(key) is list:
-                pstr = PandocStr()
+                pstr = String()
                 for k in key:
                     pstr += k
                 key = pstr
 
             if type(val) is list:
-                pstr = PandocStr()
+                pstr = String()
                 for v in val:
                     pstr += v
                 val = pstr

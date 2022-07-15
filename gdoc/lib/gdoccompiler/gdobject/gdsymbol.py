@@ -92,8 +92,8 @@ class GdSymbol:
 
         T.B.D. : Error handling
         """
-        symbol = str(symbolstr).strip()
-        column = str(symbolstr).index(symbol) + 1  # Column is starting from 1.
+        symbol = symbolstr.strip()
+        column = symbolstr.index(symbol) + 1  # Column is starting from 1.
 
         if not symbol.startswith(("[", "(")):
             target = "." + symbol

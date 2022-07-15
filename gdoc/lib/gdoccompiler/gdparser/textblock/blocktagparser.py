@@ -1,6 +1,6 @@
 from pytest import skip
 
-from gdoc.lib.pandocastobject.pandocstr import PandocStr
+from gdoc.lib.gdoc import String
 
 from ...gdexception import *
 from ..fsm import State, StateMachine
@@ -27,7 +27,7 @@ def detect_BlockTag(pstr: str):
     tagpos = None
     tokens = None
 
-    start = str(pstr).find("[@")
+    start = pstr.find("[@")
     while start >= 0:
         tokenizer = Tokenizer().start()
 
@@ -42,7 +42,7 @@ def detect_BlockTag(pstr: str):
             tokens = result
             break
 
-        start = str(pstr).find("[@", start + 2)  # 2 = len('[@')
+        start = pstr.find("[@", start + 2)  # 2 = len('[@')
 
     return tagpos, tokens
 
@@ -71,19 +71,19 @@ def create_BlockTag(tokens, tag_text):
     return tag
 
 
-def parse_ClassInfo(token: PandocStr):
+def parse_ClassInfo(token: String):
     class_info = [None, None, False]  # ( category, type, is_referrence )
 
-    if (i := str(token).find(":")) >= 0:
+    if (i := token.find(":")) >= 0:
         class_info[0] = token[:i]
         class_info[1] = token[i + 1 :]
 
-        if str(class_info[1]).find(":") >= 0:
+        if class_info[1].find(":") >= 0:
             raise GdocSyntaxError()
     else:
         class_info[1] = token[:]
 
-    if str(class_info[1]).endswith("&"):
+    if class_info[1].endswith("&"):
         class_info[2] = class_info[1][-1]
         class_info[1] = class_info[1][:-1]
 

@@ -4,9 +4,9 @@ command.py
 import json
 
 from gdoc.lib.gdoc.line import Line
+from gdoc.lib.gdoc.string import String
 from gdoc.lib.gdoc.text import Text
 from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
-from gdoc.lib.pandocastobject.pandocstr.pandocstr import PandocStr
 
 
 def setup(subparsers, name, commonOptions):
@@ -59,7 +59,7 @@ def _cast_to_str(prop):
         keys = range(len(prop))
 
     for key in keys:
-        if isinstance(prop[key], PandocStr):
+        if isinstance(prop[key], String):
             prop[key] = str(prop[key])
 
         elif isinstance(prop[key], (Text, Line)):
