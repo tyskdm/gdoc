@@ -1,5 +1,6 @@
-from gdoc.lib.gdoc.text import Text
+from gdoc.lib.gdoc import create_element
 from gdoc.lib.gdoc.string import String
+from gdoc.lib.gdoc.text import Text
 
 from .blocktagparser import parse_BlockTag
 from .inlinetagparser import parse_InlineTag
@@ -30,12 +31,12 @@ def parse_PlainText(text: Text):
 
         if inline_tag is not None:
             if len(text := preceding_text[: tagpos.start]) > 0:
-                precedings.append(Text.create_element(text))
+                precedings.append(create_element(text))
             precedings.append(inline_tag)
             preceding_text = preceding_text[tagpos.stop :]
 
         else:
-            # precedings.append(Text.create_element(preceding_text))
+            # precedings.append(create_element(preceding_text))
             precedings.append(String(preceding_text))
             preceding_text = None
 
@@ -45,12 +46,12 @@ def parse_PlainText(text: Text):
 
         if inline_tag is not None:
             if len(text := following_text[: tagpos.start]) > 0:
-                followings.append(Text.create_element(text))
+                followings.append(create_element(text))
             followings.append(inline_tag)
             following_text = following_text[tagpos.stop :]
 
         else:
-            # followings.append(Text.create_element(following_text))
+            # followings.append(create_element(following_text))
             followings.append(String(following_text))
             following_text = None
 

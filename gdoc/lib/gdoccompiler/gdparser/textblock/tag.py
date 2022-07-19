@@ -4,14 +4,12 @@ tag.py: tag class
 
 from enum import Enum, auto
 
-from click import argument
-
-from gdoc.lib.gdoc import String, Text
+from gdoc.lib.gdoc import String
 
 from ...gdexception import *
 
 
-class Tag(Text):
+class Tag(String):
     """ """
 
     class Type(Enum):
@@ -19,11 +17,7 @@ class Tag(Text):
         INLINE = auto()
 
     def __init__(self, element, tag_type):
-        etype = None
-        if isinstance(element, String):
-            etype = Text.Type.PLAIN
-        super().__init__(element, etype)
-
+        self.element = element
         self.tag_type = tag_type
 
 

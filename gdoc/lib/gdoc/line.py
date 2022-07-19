@@ -4,6 +4,7 @@ line.py: Line class
 
 from gdoc.lib.pandocastobject.pandocast.element import Element
 
+from .create_element import create_element
 from .string import String
 from .text import Text
 
@@ -31,21 +32,25 @@ class Line(list):
 
                 else:
                     if len(plaintext) > 0:
-                        # self.append(Text.create_element(String(plaintext)))
                         self.append(String(plaintext))
                         plaintext = []
 
-                    self.append(Text.create_element(item), opts)
+                    e = create_element(item)
+                    if e is not None:
+                        self.append(e, opts)
+                    else:
+                        # Not yet supported element types
+                        pass
 
             else:
                 raise RuntimeError()
 
         if len(plaintext) > 0:
-            # self.append(Text.create_element(String(plaintext)))
             self.append(String(plaintext))
 
     def append(self, item) -> None:
-        if not isinstance(item, (Text, String)):
+        # if not isinstance(item, (Text, String)):
+        if not isinstance(item, Text):
             raise TypeError()
 
         return super().append(item)

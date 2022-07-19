@@ -1,59 +1,26 @@
 """
-text.py: Text class
+text.py: Text abstract base class
 """
 
-from enum import Enum, auto
-
-from gdoc.lib.pandocastobject.pandocast.element import Element
+from abc import ABCMeta, abstractmethod
 
 
-class Text:
-    class Type(Enum):
-        PLAIN = auto()
-        CODE = auto()
-        MATH = auto()
-        IMAGE = auto()
-        QUOTED = auto()
-        CITE = auto()
-        RAWINLINE = auto()
-        NOTE = auto()
+class Text(metaclass=ABCMeta):
+    @abstractmethod
+    def get_str(self) -> str:
+        """
+        Returns the content str with decorations removed, used as the value of Gdoc objects.
+        ex.
+        - "**BOLD** _italic_ ~~Strikeout~~" --> "BOLD italic "
+        - Code("some code") --> "`some code`" <-- added surrounding char "`"
+        """
+        raise NotImplementedError()
 
-    @classmethod
-    def create_element(cls, element):
-        _supported = {
-            "Code": Text.Type.CODE,
-            "Math": Text.Type.MATH,
-            "Image": Text.Type.IMAGE,
-            "Quoted": Text.Type.QUOTED,
-            "Cite": Text.Type.CITE,
-            "RawInline": Text.Type.RAWINLINE,
-            "Note": Text.Type.NOTE,
-        }
-
-        etype = None
-
-        if isinstance(element, Element):
-            cls.element = element
-            t = element.get_type()
-
-            if t in _supported:
-                etype = _supported[t]
-
-            else:
-                raise RuntimeError()
-
-        else:
-            raise RuntimeError()
-
-        return Text(element, etype)
-
-    def __init__(self, element, etype):
-
-        if etype is None:
-            etype = Text.create_element(element).type
-
-        self.element = element
-        self.type = etype
-
-    def get_str(self):
-        return self.element
+    # @abstractmethod
+    # def get_text(self) -> str:
+    #     """
+    #     Returns the text data contained the element.
+    #     ex.
+    #     - Code("some code") --> "some code" <-- original text data
+    #     """
+    #     raise NotImplementedError()
