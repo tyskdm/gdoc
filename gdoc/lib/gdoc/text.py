@@ -6,8 +6,6 @@ from enum import Enum, auto
 
 from gdoc.lib.pandocastobject.pandocast.element import Element
 
-from .string import String
-
 
 class Text:
     class Type(Enum):
@@ -34,10 +32,7 @@ class Text:
 
         etype = None
 
-        if type(element) is String:
-            etype = Text.Type.PLAIN
-
-        elif isinstance(element, Element):
+        if isinstance(element, Element):
             cls.element = element
             t = element.get_type()
 

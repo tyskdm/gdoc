@@ -5,8 +5,10 @@ string.py: String class
 from gdoc.lib.pandocastobject.pandocast import PandocAst
 from gdoc.lib.pandocastobject.pandocstr import PandocStr
 
+from .text import Text
 
-class String(PandocStr):
+
+class String(PandocStr, Text):
     def __init__(self, items=None, start: int = 0, stop: int = None):
         if isinstance(items, PandocStr):
             super().__init__()

@@ -19,7 +19,10 @@ class Tag(Text):
         INLINE = auto()
 
     def __init__(self, element, tag_type):
-        super().__init__(element, None)
+        etype = None
+        if isinstance(element, String):
+            etype = Text.Type.PLAIN
+        super().__init__(element, etype)
 
         self.tag_type = tag_type
 

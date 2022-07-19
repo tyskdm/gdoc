@@ -31,7 +31,8 @@ class Line(list):
 
                 else:
                     if len(plaintext) > 0:
-                        self.append(Text.create_element(String(plaintext)))
+                        # self.append(Text.create_element(String(plaintext)))
+                        self.append(String(plaintext))
                         plaintext = []
 
                     self.append(Text.create_element(item), opts)
@@ -40,10 +41,11 @@ class Line(list):
                 raise RuntimeError()
 
         if len(plaintext) > 0:
-            self.append(Text.create_element(String(plaintext)))
+            # self.append(Text.create_element(String(plaintext)))
+            self.append(String(plaintext))
 
     def append(self, item) -> None:
-        if not isinstance(item, Text):
+        if not isinstance(item, (Text, String)):
             raise TypeError()
 
         return super().append(item)
