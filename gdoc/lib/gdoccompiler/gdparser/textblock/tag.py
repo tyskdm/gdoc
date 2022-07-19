@@ -4,12 +4,13 @@ tag.py: tag class
 
 from enum import Enum, auto
 
-from gdoc.lib.gdoc import String
+from gdoc.lib.gdoc.string import String
+from gdoc.lib.gdoc.textstring import TextString
 
 from ...gdexception import *
 
 
-class Tag(String):
+class Tag(TextString):
     """ """
 
     class Type(Enum):
