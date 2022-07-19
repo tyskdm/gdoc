@@ -20,7 +20,8 @@ class Text:
         RAWINLINE = auto()
         NOTE = auto()
 
-    def __init__(self, element):
+    @classmethod
+    def create_element(cls, element):
         _supported = {
             "Code": Text.Type.CODE,
             "Math": Text.Type.MATH,
@@ -31,20 +32,17 @@ class Text:
             "Note": Text.Type.NOTE,
         }
 
-        if type(element) is list:
-            self.element = String(element)
-            self.type = Text.Type.PLAIN
+        etype = None
 
-        elif type(element) is String:
-            self.element = element
-            self.type = Text.Type.PLAIN
+        if type(element) is String:
+            etype = Text.Type.PLAIN
 
         elif isinstance(element, Element):
-            self.element = element
+            cls.element = element
             t = element.get_type()
 
             if t in _supported:
-                self.type = _supported[t]
+                etype = _supported[t]
 
             else:
                 raise RuntimeError()
@@ -52,14 +50,15 @@ class Text:
         else:
             raise RuntimeError()
 
+        return Text(element, etype)
+
+    def __init__(self, element, etype):
+
+        if etype is None:
+            etype = Text.create_element(element).type
+
+        self.element = element
+        self.type = etype
+
     def get_str(self):
-        result = " "
-
-        if self.type is Text.Type.PLAIN:
-            result = self.element
-        elif self.type is Text.Type.CODE:
-            result = "`" + self.element.get_content() + "`"
-        elif self.type is Text.Type.MATH:
-            result = "$" + self.element.get_content() + "$"
-
-        return result
+        return self.element

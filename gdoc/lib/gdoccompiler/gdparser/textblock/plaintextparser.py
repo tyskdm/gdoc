@@ -28,12 +28,12 @@ def parse_PlainText(text: Text):
 
         if inline_tag is not None:
             if len(text := preceding_text[: tagpos.start]) > 0:
-                precedings.append(Text(text))
+                precedings.append(Text.create_element(text))
             precedings.append(inline_tag)
             preceding_text = preceding_text[tagpos.stop :]
 
         else:
-            precedings.append(Text(preceding_text))
+            precedings.append(Text.create_element(preceding_text))
             preceding_text = None
 
     followings = []
@@ -42,12 +42,12 @@ def parse_PlainText(text: Text):
 
         if inline_tag is not None:
             if len(text := following_text[: tagpos.start]) > 0:
-                followings.append(Text(text))
+                followings.append(Text.create_element(text))
             followings.append(inline_tag)
             following_text = following_text[tagpos.stop :]
 
         else:
-            followings.append(Text(following_text))
+            followings.append(Text.create_element(following_text))
             following_text = None
 
     return precedings + block_tag + followings
