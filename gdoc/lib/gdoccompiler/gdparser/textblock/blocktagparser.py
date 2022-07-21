@@ -1,5 +1,3 @@
-from pytest import skip
-
 from gdoc.lib.gdoc import String
 
 from ...gdexception import *
@@ -20,7 +18,7 @@ def parse_BlockTag(pstr: str):
         """
         tag = create_BlockTag(tokens[1:-1], pstr[tagpos])
 
-    return tagpos, tag
+    return tag, tagpos
 
 
 def detect_BlockTag(pstr: str):
@@ -175,7 +173,7 @@ class _Idle(State):
         next = self
 
         if element in (" ", None):
-            skip
+            pass
 
         elif element == ",":
             if self.comma is False:
@@ -238,7 +236,7 @@ class _AfterKey(State):
         kwargs: bool = len(self.kwargs) > 0
 
         if element == " ":
-            skip
+            pass
 
         elif element == "=":
             next = "Value"
@@ -279,7 +277,7 @@ class _Value(State):
             self.value += element
 
         elif element is None:
-            skip
+            pass
             # todo: if value is empty, rase error.
 
         else:

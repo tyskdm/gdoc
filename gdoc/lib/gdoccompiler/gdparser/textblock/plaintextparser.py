@@ -15,7 +15,7 @@ def parse_PlainText(text: Text):
     following_text = None
     block_tag = None
 
-    tagpos, block_tag = parse_BlockTag(pstr)
+    block_tag, tagpos = parse_BlockTag(pstr)
     if block_tag is not None:
         preceding_text = text if len(text := pstr[: tagpos.start]) else None
         following_text = text if len(text := pstr[tagpos.stop :]) else None
