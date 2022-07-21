@@ -26,3 +26,6 @@ class TextString(list, Text):
             result = TextString(result)
 
         return result
+
+    def __add__(self, *args, **kwargs) -> "TextString":
+        return TextString(super().__add__(*args, **kwargs))
