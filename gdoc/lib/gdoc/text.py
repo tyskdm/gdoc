@@ -2,10 +2,10 @@
 text.py: Text abstract base class
 """
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 
-class Text(metaclass=ABCMeta):
+class Text(ABC):
     @abstractmethod
     def get_str(self) -> str:
         """
