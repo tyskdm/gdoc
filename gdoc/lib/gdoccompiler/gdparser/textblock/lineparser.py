@@ -1,4 +1,5 @@
 from gdoc.lib.gdoc.line import Line
+from gdoc.lib.gdoc.string import String
 from gdoc.lib.gdoc.text import Text
 
 from ..fsm import State, StateMachine
@@ -31,7 +32,7 @@ class LineParser(State):
         self.line_elements.clear()
 
     def on_event(self, text: Text):
-        if text.type == Text.Type.PLAIN:
+        if isinstance(text, String):
             self.line_elements += parse_PlainText(text)
 
         else:

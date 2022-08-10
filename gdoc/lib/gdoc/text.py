@@ -1,65 +1,26 @@
 """
-text.py: Text class
+text.py: Text abstract base class
 """
 
-from enum import Enum, auto
-
-from gdoc.lib.pandocastobject.pandocast.element import Element
-
-from .string import String
+from abc import ABC, abstractmethod
 
 
-class Text:
-    class Type(Enum):
-        PLAIN = auto()
-        CODE = auto()
-        MATH = auto()
-        IMAGE = auto()
-        QUOTED = auto()
-        CITE = auto()
-        RAWINLINE = auto()
-        NOTE = auto()
+class Text(ABC):
+    @abstractmethod
+    def get_str(self) -> str:
+        """
+        Returns the content str with decorations removed, used as the value of Gdoc objects.
+        ex.
+        - "**BOLD** _italic_ ~~Strikeout~~" --> "BOLD italic "
+        - Code("some code") --> "`some code`" <-- added surrounding char "`"
+        """
+        raise NotImplementedError()
 
-    def __init__(self, element):
-        _supported = {
-            "Code": Text.Type.CODE,
-            "Math": Text.Type.MATH,
-            "Image": Text.Type.IMAGE,
-            "Quoted": Text.Type.QUOTED,
-            "Cite": Text.Type.CITE,
-            "RawInline": Text.Type.RAWINLINE,
-            "Note": Text.Type.NOTE,
-        }
-
-        if type(element) is list:
-            self.element = String(element)
-            self.type = Text.Type.PLAIN
-
-        elif type(element) is String:
-            self.element = element
-            self.type = Text.Type.PLAIN
-
-        elif isinstance(element, Element):
-            self.element = element
-            t = element.get_type()
-
-            if t in _supported:
-                self.type = _supported[t]
-
-            else:
-                raise RuntimeError()
-
-        else:
-            raise RuntimeError()
-
-    def get_str(self):
-        result = " "
-
-        if self.type is Text.Type.PLAIN:
-            result = self.element
-        elif self.type is Text.Type.CODE:
-            result = "`" + self.element.get_content() + "`"
-        elif self.type is Text.Type.MATH:
-            result = "$" + self.element.get_content() + "$"
-
-        return result
+    # @abstractmethod
+    # def get_text(self) -> str:
+    #     """
+    #     Returns the text data contained the element.
+    #     ex.
+    #     - Code("some code") --> "some code" <-- original text data
+    #     """
+    #     raise NotImplementedError()
