@@ -4,15 +4,13 @@ tag.py: tag class
 
 from enum import Enum, auto
 
-from click import argument
-
-from gdoc.lib.gdoc.text import Text
-from gdoc.lib.pandocastobject.pandocstr import PandocStr
+from gdoc.lib.gdoc.string import String
+from gdoc.lib.gdoc.textstring import TextString
 
 from ...gdexception import *
 
 
-class Tag(Text):
+class Tag(TextString):
     """ """
 
     class Type(Enum):
@@ -20,8 +18,7 @@ class Tag(Text):
         INLINE = auto()
 
     def __init__(self, element, tag_type):
-        super().__init__(element)
-
+        self.element = element
         self.tag_type = tag_type
 
 
@@ -37,7 +34,7 @@ class BlockTag(Tag):
         self.class_args = []
         for arg in class_args:
             if type(arg) is list:
-                pstr = PandocStr()
+                pstr = String()
                 for a in arg:
                     pstr += a
                 arg = pstr
@@ -47,13 +44,13 @@ class BlockTag(Tag):
         for kwarg in class_kwargs:
             key, val = kwarg
             if type(key) is list:
-                pstr = PandocStr()
+                pstr = String()
                 for k in key:
                     pstr += k
                 key = pstr
 
             if type(val) is list:
-                pstr = PandocStr()
+                pstr = String()
                 for v in val:
                     pstr += v
                 val = pstr

@@ -278,7 +278,7 @@ class PandocStr:
         """
         new_pandoc_str = None
 
-        if type(s) is PandocStr:
+        if isinstance(s, PandocStr):
             new_pandoc_str = self[:]
             opr_str = s[:]
             new_pandoc_str._join_items(opr_str._items, opr_str._text, opr_str._len)
@@ -302,7 +302,7 @@ class PandocStr:
         """
         new_pandoc_str = None
 
-        if type(s) is PandocStr:
+        if isinstance(s, PandocStr):
             new_pandoc_str = s[:]
             opr_str = self[:]
             new_pandoc_str._join_items(opr_str._items, opr_str._text, opr_str._len)
@@ -325,7 +325,7 @@ class PandocStr:
         @return PandocStr | str
         """
 
-        if type(s) is PandocStr:
+        if isinstance(s, PandocStr):
             opr_str = s[:]
             self._join_items(opr_str._items, opr_str._text, opr_str._len)
 
@@ -335,6 +335,26 @@ class PandocStr:
             )
 
         return self
+
+    def startswith(self, *args, **kwargs):
+
+        return self._text.startswith(*args, **kwargs)
+
+    def endswith(self, *args, **kwargs):
+
+        return self._text.endswith(*args, **kwargs)
+
+    def strip(self, *args, **kwargs) -> "PandocStr":
+        word = self._text.strip(*args, **kwargs)
+        start = self.index(word)
+        stop = start + len(word)
+        return self[start:stop]
+
+    def find(self, *args, **kwargs) -> int:
+        return self._text.find(*args, **kwargs)
+
+    def isspace(self) -> bool:
+        return self._text.isspace()
 
     def _create_items_list(self, items=None, start: int = 0, stop: int = None):
         """Constructor

@@ -1,4 +1,4 @@
-from gdoc.lib.pandocastobject.pandocstr import PandocStr
+from gdoc.lib.gdoc import String
 
 from ..fsm import State, StateMachine
 
@@ -65,7 +65,7 @@ class _Char(State):
     def on_entry(self, event=None):
         next = self
 
-        self.word = PandocStr()  # Empty string
+        self.word = String()  # Empty string
         if event:
             next = self.on_event(event)
 
@@ -102,7 +102,7 @@ class _Char(State):
         if len(self.word) > 0:
             # Flush buffer
             self.tokens.append(self.word)
-            self.word = PandocStr()  # Empty string
+            self.word = String()  # Empty string
 
 
 class _String(State):

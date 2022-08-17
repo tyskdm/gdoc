@@ -41,6 +41,8 @@ class PandocAst(Pandoc):
         """
         super().__init__(pan_elem, "Pandoc", _ELEMENT_TYPES["Pandoc"], create_element)
 
+    create_element = create_element
+
 
 # Text.Pandoc.Definition
 # Definition of Pandoc data structure for format-neutral representation of documents.

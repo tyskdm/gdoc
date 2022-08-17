@@ -2,12 +2,15 @@
 line.py: Line class
 """
 
-from ..pandocastobject.pandocast.element import Element
-from ..pandocastobject.pandocstr import PandocStr
+from gdoc.lib.pandocastobject.pandocast.element import Element
+
+from .create_element import create_element
+from .string import String
 from .text import Text
+from .textstring import TextString
 
 
-class Line(list):
+class Line(TextString):
     """ """
 
     def __init__(self, inlines=[], eol=None, opts={}):
@@ -30,35 +33,18 @@ class Line(list):
 
                 else:
                     if len(plaintext) > 0:
-                        self.append(Text(PandocStr(plaintext)))
+                        self.append(String(plaintext))
                         plaintext = []
 
-                    self.append(Text(item), opts)
+                    e = create_element(item)
+                    if e is not None:
+                        self.append(e, opts)
+                    else:
+                        # Not yet supported element types
+                        pass
 
             else:
                 raise RuntimeError()
 
         if len(plaintext) > 0:
-            self.append(Text(PandocStr(plaintext)))
-
-    def append(self, item) -> None:
-        if not isinstance(item, Text):
-            raise TypeError()
-
-        return super().append(item)
-
-    def get_str(self):
-        result = ""
-
-        for text in self:
-            result = result + text.get_str()
-
-        return result
-
-    def __getitem__(self, index):
-        result = super().__getitem__(index)
-        if type(index) is slice:
-            eol = self.eol if len(self) == len(result) else None
-            result = Line(result, eol, self.__opts)
-
-        return result
+            self.append(String(plaintext))

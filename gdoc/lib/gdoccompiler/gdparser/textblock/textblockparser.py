@@ -84,11 +84,11 @@ class TextBlockParser(State):
 
         name = tag_opts["following_text"].get_str()
         for i in range(len(name)):
-            if not str(name[i]).isspace():
+            if not name[i].isspace():
                 break
         name = name[i:]
         for i in range(len(name)):
-            if not str(name[-1 - i]).isspace():
+            if not name[-1 - i].isspace():
                 break
         if i > 0:
             name = name[:-i]
@@ -97,7 +97,7 @@ class TextBlockParser(State):
 
         pretext = tag_opts["preceding_text"].get_str()
         for i in range(len(pretext)):
-            if not str(pretext[-1 - i]).isspace():
+            if not pretext[-1 - i].isspace():
                 break
         if i > 0:
             pretext = pretext[:-i]
@@ -114,13 +114,13 @@ class TextBlockParser(State):
             elif hyphen == "-":
                 if pretext[-1 - i] == "-":
                     continue
-                elif str(pretext[-1 - i]).isspace():
+                elif pretext[-1 - i].isspace():
                     hyphen == " "
                 else:
                     break
 
             elif hyphen == " ":
-                if str(pretext[-1 - i]).isspace():
+                if pretext[-1 - i].isspace():
                     continue
                 else:
                     break

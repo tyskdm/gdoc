@@ -1,12 +1,10 @@
 r"""
 GdSymbolTable class
 """
-import enum
-import json
-import re
 from enum import Enum, auto
 
-from ..gdexception import *
+from ..gdexception import GdocIdError, GdocRuntimeError, GdocTypeError
+from .gdsymbol import GdSymbol
 
 
 class GdSymbolTable:
@@ -27,20 +25,26 @@ class GdSymbolTable:
         @param symbol : str | PandocStr
         @return (list(str), list(str))
         """
-        if id.startswith("&"):
-            raise GdocIdError('invalid id "' + id + '"')
+        if (id is not None) and (id == ""):
+            raise GdocIdError('invalid id ""')
 
-        elif id in (".", ":"):
+        elif (id is not None) and id.startswith(GdSymbol.IS_NAME_STR):
             raise GdocIdError('invalid id "' + id + '"')
 
         elif scope not in ("+", "-"):
-            raise GdocRuntimeError('invalid access modifiers "' + scope + '"')
+            raise GdocRuntimeError('invalid access modifier "' + scope + '"')
 
         elif type(tags) is not list:
-            raise TypeError("can only add a list as a tags")
+            raise TypeError("only a list can be added as tags")
 
         elif type(_type) is not GdSymbolTable.Type:
-            raise TypeError("can only set GdSymbolTable.Type")
+            raise TypeError("only GdSymbolTable.Type can be set")
+
+        elif (name is not None) and (name == ""):
+            raise GdocIdError('invalid name ""')
+
+        if (id is None) and (name is None):
+            raise GdocIdError("at least one of the id or name is required")
 
         if _type is GdSymbolTable.Type.IMPORT:
             scope = "+"
@@ -54,7 +58,9 @@ class GdSymbolTable:
 
         self.__type = _type
         self.__parent = None
-        self.__children = {}
+        self.__children = []
+        self.__references = []
+        self.__idlist = {}
         self.__namelist = {}
         self.__cache = []
         self.__link_to = None
@@ -72,40 +78,23 @@ class GdSymbolTable:
             raise GdocTypeError("'Access' type cannot have children")
 
         elif child.__type is GdSymbolTable.Type.REFERENCE:
-            self.__add_reference(child)
+            self.__references.append(child)
+            child.__parent = self
 
         else:
-            if child.id.startswith("&"):
-                raise GdocIdError('invalid id "' + child.id + '"')
-
-            elif child.id in (".", ":"):
-                raise GdocIdError('invalid id "' + child.id + '"')
-
-            elif child.id in self.__children:
-                raise GdocIdError('duplicate id "' + child.id + '"')
-
             child.__parent = self
-            self.__children[child.id] = child
+
+            if child.id is not None:
+                if str(child.id) in self.__idlist:
+                    raise GdocIdError('duplicate id "' + child.id + '"')
+                self.__idlist[str(child.id)] = child
+
             if child.name is not None:
-                self.__namelist[child.name] = child
+                if str(child.name) in self.__namelist:
+                    raise GdocIdError('duplicate name "' + child.name + '"')
+                self.__namelist[str(child.name)] = child
 
-    def __add_reference(self, child: "GdSymbolTable"):
-        """split symbol string to ids or names and tags.
-        @param symbol : str | PandocStr
-        @return (list(str), list(str))
-        """
-        if child.id.startswith("&"):
-            raise GdocIdError('invalid id "' + child.id + '"')
-
-        elif child.id in (".", ":"):
-            raise GdocIdError('invalid id "' + child.id + '"')
-
-        ref_id = "&" + child.id
-        if ref_id not in self.__children:
-            self.__children[ref_id] = []
-
-        child.__parent = self
-        self.__children[ref_id].append(child)
+            self.__children.append(child)
 
     def get_parent(self):
         """split symbol string to ids or names and tags.
@@ -138,8 +127,8 @@ class GdSymbolTable:
         parents = self.__get_linkto_target().__get_linkfrom_list()
 
         for parent in parents:
-            if id in parent.__children:
-                child = parent.__children[id]
+            if id in parent.__idlist:
+                child = parent.__idlist[id]
                 break
 
         return child
@@ -165,26 +154,14 @@ class GdSymbolTable:
         @param symbol : str | PandocStr
         @return (list(str), list(str))
         """
-        children = []
-
-        for id in self.__children:
-            if not id.startswith("&"):
-                children.append(self.__children[id])
-
-        return children
+        return self.__children[:]
 
     def __get_references(self):
         """split symbol string to ids or names and tags.
         @param symbol : str | PandocStr
         @return (list(str), list(str))
         """
-        references = []
-
-        for id in self.__children:
-            if id.startswith("&"):
-                references += self.__children[id]
-
-        return references
+        return self.__references[:]
 
     def resolve(self, symbols):
         """split symbol string to ids or names and tags.

@@ -61,7 +61,7 @@ class Table <<PandocAst>>
 class BulletList <<PandocAst>>
 class OrderedList <<PandocAst>>
 
-Document *-right- Pandoc
+Document o-right- Pandoc
 Document -down-|> Section
 Section o-- Section
 Section ..left.. BlockList
@@ -98,8 +98,9 @@ skinparam class {
 class TextBlock <<Gdoc Element>>
 class Line <<Gdoc Element>>
 class Tag <<Gdoc Element>>
+class TextString <<Gdoc Element>>
 class Text <<Gdoc Element>>
-class "Plain" as PlainText <<Gdoc Element>>
+class String <<Gdoc Element>>
 class "Code" as CodeText <<Gdoc Element>>
 class "Math" as MathText <<Gdoc Element>>
 class "Image" as ImageText <<Gdoc Element>>
@@ -116,23 +117,26 @@ class Quoted <<PandocAst>>
 class PandocStr <<PandocAst>>
 
 Line -up-o TextBlock
+Line -down-|> TextString
+
 LineBreak -left-o Line
 
-Text -up-o Line
-PlainText <|-right- Tag
+TextString -down-|> Text
+Text -up-o TextString
 
-PandocStr -up-* PlainText
+TextString <|-right- Tag
+
+PandocStr -up-* String
 Code -up-* CodeText
 Math -up-* MathText
 Image -up-* ImageText
 Quoted -up-* QuotedText
 
-
-PlainText -up-|> Text
+String -up-|> Text
 CodeText -up-|> Text
 MathText -up-|> Text
-ImageText -up-|> Text
-QuotedText -up-|> Text
+ImageText --up-|> TextString
+QuotedText --up-|> TextString
 
 Str -up-o PandocStr
 Space -up-o PandocStr
@@ -172,7 +176,7 @@ class CodeBlock <<PandocAst>>
 class RawBlock <<PandocAst>>
 class Table <<PandocAst>>
 
-Document *-right- Pandoc
+Document o-right- Pandoc
 Document -down-|> Section
 Section o-- Section
 Section ..left.. BlockList
@@ -189,8 +193,9 @@ ListBlock o-- Section
 
 class Line <<Gdoc Element>>
 class Tag <<Gdoc Element>>
+class TextString <<Gdoc Element>>
 class Text <<Gdoc Element>>
-class "Plain" as PlainText <<Gdoc Element>>
+class String <<Gdoc Element>>
 class "Code" as CodeText <<Gdoc Element>>
 class "Math" as MathText <<Gdoc Element>>
 class "Image" as ImageText <<Gdoc Element>>
@@ -207,22 +212,26 @@ class Quoted <<PandocAst>>
 class PandocStr <<PandocAst>>
 
 Line -up-o TextBlock
-LineBreak -left-o Line
-Text -up-o Line
-PlainText <|-right- Tag
+Line -down-|> TextString
 
-PandocStr -up-* PlainText
+LineBreak -left-o Line
+
+TextString -down-|> Text
+Text -up-o TextString
+
+TextString <|-right- Tag
+
+PandocStr -up-* String
 Code -up-* CodeText
 Math -up-* MathText
 Image -up-* ImageText
 Quoted -up-* QuotedText
 
-
-PlainText -up-|> Text
+String -up-|> Text
 CodeText -up-|> Text
 MathText -up-|> Text
-ImageText -up-|> Text
-QuotedText -up-|> Text
+ImageText --up-|> TextString
+QuotedText --up-|> TextString
 
 Str -up-o PandocStr
 Space -up-o PandocStr
