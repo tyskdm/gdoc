@@ -1,6 +1,6 @@
 # gdoc
 
-A Ghost documentation support tool.
+A tool to process information in GDML(GDoc Markup Language) documents.
 
 ## 1. Version and Stability
 
@@ -12,17 +12,59 @@ A Ghost documentation support tool.
 
 ## 2. Motivation
 
-1. I wanted to write a software documents that looks like the following document.
+1. I want to write software documents like follows.
 
    - [Gdoc Architectural Design](./docs/ArchitecturalDesign/ArchitecturalDesign.md)
    - [PandocAST Detailed Design](./docs/ArchitecturalDesign/pandocAstObject/PandocAst.md)
 
-   And want to extract design information from documents and use it.
-   for example, to display traceability information. \
-   --> try: [4.1. Sample](#41-sample)
+   And to extract design information from documents and use it. \
+   for example, to display traceability information.
 
-2. Or, just using markdown files as data store and to extract json(dict) data from it.
+   ```sh
+   $ gdoc trace --lower 3 OC3 docs/sample_ProjectManagement.md
+   docs/sample_ProjectManagement.md:      ┌  SysML.Reqt AS.RA.PM.MAN3 - Project Management
+   docs/sample_ProjectManagement.md:  ┌  @refine
+   docs/sample_ProjectManagement.md:  │   ┌  SysML.Reqt ASPICE.3.1.MAN3.OC3 - [NOT FOUND]
+   docs/sample_ProjectManagement.md:  ├  @copy
+   docs/sample_ProjectManagement.md:  SysML.Reqt AS.RA.PM.OC3 - Outcome3: the activities and resources necessary to complete the work are sized and estimated;
+   docs/sample_ProjectManagement.md:  └  @deriveReqt
+   docs/sample_ProjectManagement.md:      ├  SysML.Reqt AS.RA.PM.BP4 - Define, monitor and adjust project activities.
+   docs/sample_ProjectManagement.md:      │  └  @deriveReqt
+   docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP4.1
+   docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP4.2
+   docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP4.3
+   docs/sample_ProjectManagement.md:      │      └  SysML.Reqt AS.RA.PM.BP4.4
+   docs/sample_ProjectManagement.md:      ├  SysML.Reqt AS.RA.PM.BP5 - Define, monitor and adjust project estimates and resources.
+   docs/sample_ProjectManagement.md:      │  └  @deriveReqt
+   docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP5.1
+   docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP5.2
+   docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP5.3
+   docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP5.4
+   docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP5.5
+   docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP5.6
+   docs/sample_ProjectManagement.md:      │      └  SysML.Reqt AS.RA.PM.BP5.7
+   docs/sample_ProjectManagement.md:      ├  SysML.Reqt AS.RA.PM.BP6 - Ensure required skills, knowledge, and experience.
+   docs/sample_ProjectManagement.md:      │  └  @deriveReqt
+   docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP6.1
+   docs/sample_ProjectManagement.md:      │      └  SysML.Reqt AS.RA.PM.BP6.2
+   docs/sample_ProjectManagement.md:      ├  SysML.Reqt AS.RA.PM.BP8 - Define, monitor and adjust project schedule.
+   docs/sample_ProjectManagement.md:      │  └  @deriveReqt
+   docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP8.1
+   docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP8.2
+   docs/sample_ProjectManagement.md:      │      ├  SysML.Reqt AS.RA.PM.BP8.3
+   docs/sample_ProjectManagement.md:      │      └  SysML.Reqt AS.RA.PM.BP8.4
+   docs/sample_ProjectManagement.md:      └  SysML.Reqt AS.RA.PM.BP9 - Ensure consistency.
+   docs/sample_ProjectManagement.md:         └  @deriveReqt
+   docs/sample_ProjectManagement.md:             ├  SysML.Reqt AS.RA.PM.BP9.1
+   docs/sample_ProjectManagement.md:             ├  SysML.Reqt AS.RA.PM.BP9.2
+   docs/sample_ProjectManagement.md:             └  SysML.Reqt AS.RA.PM.BP9.3
+   ```
 
+   <br>
+
+2. Or, to create multi-purpose annotated documents with gdoc markup tags.
+
+<br>
 
 ## 3. Requirements
 
