@@ -15,7 +15,7 @@ class Line(TextString):
 
     def __init__(self, inlines=[], eol=None, opts={}):
         super().__init__()  # init as an empty list
-        self.eol = eol
+        self.eol = None if eol is None else String([eol])
         self.__opts = opts  # not yet copy() / copy.deepcopy()
         # self.__opts = copy.deepcopy(DEFAULTS).update(opts)
 
