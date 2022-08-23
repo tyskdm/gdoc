@@ -16,6 +16,7 @@ from unittest import mock
 import pytest
 
 from gdoc.lib.gdoc.document import Document
+from gdoc.lib.gdoc.textstring import TextString
 from gdoc.lib.gdoccompiler.gdparser.textblock import parse_TextBlock
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
@@ -23,16 +24,18 @@ from gdoc.lib.pandocastobject.pandocast import PandocAst
 ## @{ @name Inline
 ## [\@test Inline] creates a new instance.
 ##
-_data_Inline_1 = {
+_data_parse_TextBlock_1 = {
     "Case-01: ": ("case_01.md", "gfm-sourcepos", False),
     "Case-02: ": ("case_02.md", "gfm-sourcepos", False),
 }
 
 
 @pytest.mark.parametrize(
-    "filename, formattype, html", list(_data_Inline_1.values()), ids=list(_data_Inline_1.keys())
+    "filename, formattype, html",
+    list(_data_parse_TextBlock_1.values()),
+    ids=list(_data_parse_TextBlock_1.keys()),
 )
-def test_gdParser_1(mocker: mock, filename, formattype, html):
+def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
     r"""
     [@test Inline.1] test Inline elements in actual markdown documents.
     """
@@ -58,7 +61,12 @@ def test_gdParser_1(mocker: mock, filename, formattype, html):
     assert len(args) == len(expect_data["args"])
     for i in range(len(expect_data["args"])):
         if type(expect_data["args"][i]) is str:
-            assert str(args[i]) == expect_data["args"][i]
+            actual = None
+            if type(args[i]) is TextString:
+                actual = args[i].get_str()
+            else:
+                actual = str(args[i])
+            assert actual == expect_data["args"][i]
         else:
             assert args[i] == expect_data["args"][i]
 
