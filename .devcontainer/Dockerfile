@@ -49,9 +49,9 @@ USER $USERNAME
 
 # python and pip
 ENV PYTHONUNBUFFERED=1 \
-PYTHONDONTWRITEBYTECODE=1 \
-PATH="/home/${USERNAME}/.local/bin:$PATH"
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/home/${USERNAME}/.local/bin:$PATH"
 
 # poetry
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python - && \
-    $HOME/.poetry/bin/poetry config virtualenvs.create false
+RUN curl -sSL https://install.python-poetry.org | python3 - && \
+    poetry config virtualenvs.in-project true
