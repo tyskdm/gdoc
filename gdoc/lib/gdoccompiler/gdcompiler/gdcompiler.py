@@ -34,7 +34,7 @@ class GdocCompiler:
         pandoc_json = Pandoc().get_json(filepath, "gfm+sourcepos", False)
         pandoc_ast = PandocAst(pandoc_json)
         gdoc = GdocDocument(pandoc_ast)
-        gobj = GobjDocument("id", filepath)
+        gobj = GobjDocument(None, filepath)
 
         parse_Document(gdoc, gobj)
 

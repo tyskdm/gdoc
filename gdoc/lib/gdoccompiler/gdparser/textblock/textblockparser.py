@@ -134,4 +134,6 @@ class TextBlockParser(State):
         if text:
             tag_opts["properties"] = {"text": text}
 
+        tag_args[4] = tag_args[4].get_str()  # tag_args[4] = symbol
+
         return self.__gdobject.create_object(*tag_args, type_args=tag_opts)
