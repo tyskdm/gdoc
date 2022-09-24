@@ -136,7 +136,7 @@ class PandocStr:
         """
         return self._len
 
-    def __getitem__(self, index: int or slice = 0):
+    def __getitem__(self, index=0):
         """Constructor
         @param index : int | slice
         @return output : PandocStr

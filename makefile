@@ -9,6 +9,7 @@ DOXYGENDIR  := doxy
 DOXYOUTDIR  := html
 DOXYXMLDIR  := xml
 PYTESTDIR   := htmlcov
+MKDOCSDIR   := site
 
 .PHONY: all clean doc doc-clean puml-img puml-clean test test-cov cov cov-clean style
 
@@ -16,6 +17,7 @@ all: clean test puml-img doc
 
 clean: puml-clean doc-clean cov-clean 
 	@py3clean .
+	@$(RM) -rf $(MKDOCSDIR)
 
 #
 # Doxygen
