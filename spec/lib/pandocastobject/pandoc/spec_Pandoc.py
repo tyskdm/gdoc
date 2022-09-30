@@ -70,7 +70,9 @@ _data__run_1 = {
     #   )
     "Case: One commandline": (
         ["command line 1"],  # commandlines,
-        [(0, [b"STDOUT"], [b"STDERR"])],  # popen: [(returncode, [b'stdout'], [b'stderr'])],
+        [
+            (0, [b"STDOUT"], [b"STDERR"])
+        ],  # popen: [(returncode, [b'stdout'], [b'stderr'])],
         {  # expected
             "output": b"STDOUT",
             "popen": {
@@ -96,8 +98,14 @@ _data__run_1 = {
             "popen": {
                 "call_count": 2,
                 "args": [
-                    [(["cmd", "1"],), {"stdin": None, "stdout": _PIPE_, "stderr": _PIPE_}],
-                    [(["cmd", "2"],), {"stdin": [b"STDOUT1"], "stdout": _PIPE_, "stderr": _PIPE_}],
+                    [
+                        (["cmd", "1"],),
+                        {"stdin": None, "stdout": _PIPE_, "stderr": _PIPE_},
+                    ],
+                    [
+                        (["cmd", "2"],),
+                        {"stdin": [b"STDOUT1"], "stdout": _PIPE_, "stderr": _PIPE_},
+                    ],
                 ],
             },
             "wait": {"call_count": 2, "args": [[(), {}], [(), {}]]},
@@ -115,9 +123,18 @@ _data__run_1 = {
             "popen": {
                 "call_count": 3,
                 "args": [
-                    [(["cmd", "1"],), {"stdin": None, "stdout": _PIPE_, "stderr": _PIPE_}],
-                    [(["cmd", "2"],), {"stdin": [b"STDOUT1"], "stdout": _PIPE_, "stderr": _PIPE_}],
-                    [(["cmd", "3"],), {"stdin": [b"STDOUT2"], "stdout": _PIPE_, "stderr": _PIPE_}],
+                    [
+                        (["cmd", "1"],),
+                        {"stdin": None, "stdout": _PIPE_, "stderr": _PIPE_},
+                    ],
+                    [
+                        (["cmd", "2"],),
+                        {"stdin": [b"STDOUT1"], "stdout": _PIPE_, "stderr": _PIPE_},
+                    ],
+                    [
+                        (["cmd", "3"],),
+                        {"stdin": [b"STDOUT2"], "stdout": _PIPE_, "stderr": _PIPE_},
+                    ],
                 ],
             },
             "wait": {"call_count": 3, "args": [[(), {}], [(), {}], [(), {}]]},
@@ -127,7 +144,9 @@ _data__run_1 = {
 
 
 @pytest.mark.parametrize(
-    "commandlines, popen, expected", list(_data__run_1.values()), ids=list(_data__run_1.keys())
+    "commandlines, popen, expected",
+    list(_data__run_1.values()),
+    ids=list(_data__run_1.keys()),
 )
 def spec__run_1(mocker, commandlines, popen, expected):
     r"""
@@ -200,7 +219,9 @@ _data__run_2 = {
     #   )
     "Case: One commandline": (
         ["command line 1"],  # commandlines,
-        [(1, [b"STDOUT"], [b"STDERR"])],  # popen: [(returncode, [b'stdout'], [b'stderr'])],
+        [
+            (1, [b"STDOUT"], [b"STDERR"])
+        ],  # popen: [(returncode, [b'stdout'], [b'stderr'])],
         {  # expected
             "excinfo": {
                 "returncode": 1,
@@ -245,7 +266,9 @@ _data__run_2 = {
 
 
 @pytest.mark.parametrize(
-    "commandlines, popen, expected", list(_data__run_2.values()), ids=list(_data__run_2.keys())
+    "commandlines, popen, expected",
+    list(_data__run_2.values()),
+    ids=list(_data__run_2.keys()),
 )
 def spec__run_2(mocker, commandlines, popen, expected):
     r"""
@@ -387,7 +410,9 @@ _data_get_version_1 = {
 
 
 @pytest.mark.parametrize(
-    "stdout, expected", list(_data_get_version_1.values()), ids=list(_data_get_version_1.keys())
+    "stdout, expected",
+    list(_data_get_version_1.values()),
+    ids=list(_data_get_version_1.keys()),
 )
 def spec_get_version_1(mocker, stdout, expected):
     r"""
@@ -448,7 +473,10 @@ _data_get_json_1 = {
         ["TEST.MD", None, None],
         ["pandoc TEST.MD -f gfm+sourcepos -t html", "pandoc -f html -t json"],
     ),
-    "Case: .rst with default arguments": (["TEST.rst", None, None], ["pandoc TEST.rst -t json"]),
+    "Case: .rst with default arguments": (
+        ["TEST.rst", None, None],
+        ["pandoc TEST.rst -t json"],
+    ),
     "Case: Long path with default arguments": (
         ["/path/to/TEST.rst", None, None],
         ["pandoc /path/to/TEST.rst -t json"],

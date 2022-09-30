@@ -21,7 +21,9 @@ def setup(subparsers, name, commonOptions):
     global __subcommand__
     __subcommand__ = name
 
-    parser = subparsers.add_parser(__subcommand__, parents=[commonOptions], help="dump Gdoc object")
+    parser = subparsers.add_parser(
+        __subcommand__, parents=[commonOptions], help="dump Gdoc object"
+    )
     parser.set_defaults(func=run)
     parser.add_argument("-p", "--pandocfile", help="path to pandoc AST file.")
     parser.add_argument("-i", "--id", help="id to find and dump.")
@@ -51,7 +53,10 @@ def run(args):
         pandoc = json.load(sys.stdin)
 
     else:
-        print(__subcommand__ + ": error: Missing pandocfile ( [-d / --pandocfile] is required)")
+        print(
+            __subcommand__
+            + ": error: Missing pandocfile ( [-d / --pandocfile] is required)"
+        )
         sys.exit(1)
 
     gdoc = pandocast.PandocAst(pandoc)

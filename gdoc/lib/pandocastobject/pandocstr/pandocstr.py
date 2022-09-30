@@ -331,7 +331,9 @@ class PandocStr:
 
         else:
             raise TypeError(
-                'can only concatenate PandocStr (not "' + s.__class__.__name__ + '") to PandocStr'
+                'can only concatenate PandocStr (not "'
+                + s.__class__.__name__
+                + '") to PandocStr'
             )
 
         return self

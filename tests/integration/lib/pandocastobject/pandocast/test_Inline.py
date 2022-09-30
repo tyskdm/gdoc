@@ -44,7 +44,11 @@ def _test_PandocAst_structure(target, expected):
 ## [\@test Inline] creates a new instance.
 ##
 _data_Inline_1 = {
-    "Case #1: Supported types by gfm.": ("case_1.md", "gfm-sourcepos+tex_math_dollars", False),
+    "Case #1: Supported types by gfm.": (
+        "case_1.md",
+        "gfm-sourcepos+tex_math_dollars",
+        False,
+    ),
     # gfm supports Str, Emph, Strong, Strikeout, Code, Softbreak,
     # LineBlreak, RawInline, Link, Image, Math.
     "Case #2: Supported types by docx.": ("case_2.docx", "docx", False),
@@ -55,7 +59,9 @@ _data_Inline_1 = {
 
 
 @pytest.mark.parametrize(
-    "filename, formattype, html", list(_data_Inline_1.values()), ids=list(_data_Inline_1.keys())
+    "filename, formattype, html",
+    list(_data_Inline_1.values()),
+    ids=list(_data_Inline_1.keys()),
 )
 def test_Inline_1(filename, formattype, html):
     r"""
@@ -99,7 +105,9 @@ def test_Inline_3():
     """
     datadir = ".".join(__file__.split(".")[:-1]) + "/"  # data directory
 
-    pandoc_json = Pandoc().get_json(datadir + "case_4_RawInline.md", "gfm+sourcepos", False)
+    pandoc_json = Pandoc().get_json(
+        datadir + "case_4_RawInline.md", "gfm+sourcepos", False
+    )
     pandoc_ast = PandocAst(pandoc_json)
     target = pandoc_ast.get_first_item().get_child_items()
 
@@ -120,16 +128,24 @@ def test_Inline_4():
     """
     datadir = ".".join(__file__.split(".")[:-1]) + "/"  # data directory
 
-    pandoc_json = Pandoc().get_json(datadir + "case_5_Link_Image.md", "gfm+sourcepos", False)
+    pandoc_json = Pandoc().get_json(
+        datadir + "case_5_Link_Image.md", "gfm+sourcepos", False
+    )
     pandoc_ast = PandocAst(pandoc_json)
     link = pandoc_ast.get_first_item().get_first_item()
     image = pandoc_ast.get_first_item().get_child_items()[3]
 
     # data-pos = "/.../test_Inline/case_3_Code.md@1:1-1:11"
-    assert link.get_attr("data-pos").split("@")[-1] == link.get_child_items()[0].get_content()
+    assert (
+        link.get_attr("data-pos").split("@")[-1]
+        == link.get_child_items()[0].get_content()
+    )
     assert link.get_prop("Target")[0] == link.get_child_items()[2].get_content()
 
-    assert image.get_attr("data-pos").split("@")[-1] == image.get_child_items()[0].get_content()
+    assert (
+        image.get_attr("data-pos").split("@")[-1]
+        == image.get_child_items()[0].get_content()
+    )
     assert image.get_prop("Target")[0] == image.get_child_items()[2].get_content()
 
 

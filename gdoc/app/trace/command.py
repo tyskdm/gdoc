@@ -21,14 +21,24 @@ def setup(subparsers, name, commonOptions):
     global __subcommand__
     __subcommand__ = name
 
-    parser = subparsers.add_parser(__subcommand__, parents=[commonOptions], help="show trace tree")
+    parser = subparsers.add_parser(
+        __subcommand__, parents=[commonOptions], help="show trace tree"
+    )
     parser.set_defaults(func=run)
     parser.add_argument("id", help="target id to trace")
     parser.add_argument("filePath", help="display a square of a given number", nargs="*")
-    parser.add_argument("--upper", help="enable print debug information.", type=int, default=1)
-    parser.add_argument("--lower", help="enable print debug information.", type=int, default=1)
-    parser.add_argument("--long", action="store_true", help="enable print debug information.")
-    parser.add_argument("--verbose", action="store_true", help="enable print debug information.")
+    parser.add_argument(
+        "--upper", help="enable print debug information.", type=int, default=1
+    )
+    parser.add_argument(
+        "--lower", help="enable print debug information.", type=int, default=1
+    )
+    parser.add_argument(
+        "--long", action="store_true", help="enable print debug information."
+    )
+    parser.add_argument(
+        "--verbose", action="store_true", help="enable print debug information."
+    )
 
 
 def run(args):
@@ -55,7 +65,10 @@ def run(args):
         pandoc = json.load(sys.stdin)
 
     else:
-        print(__subcommand__ + ": error: Missing pandocfile ( [-d / --pandocfile] is required)")
+        print(
+            __subcommand__
+            + ": error: Missing pandocfile ( [-d / --pandocfile] is required)"
+        )
         sys.exit(1)
 
     gdoc = pandocast.PandocAst(pandoc)
@@ -103,9 +116,13 @@ def _retrieve(item, dir, limit):
             branches[childType] = []
 
             for linkItem in item.link[dir][childType]:
-                branches[childType].append({"info": _getItemInfo(linkItem), "children": {}})
+                branches[childType].append(
+                    {"info": _getItemInfo(linkItem), "children": {}}
+                )
                 if (limit > 1) or (limit < 0):
-                    branches[childType][-1]["children"] = _retrieve(linkItem, dir, limit - 1)
+                    branches[childType][-1]["children"] = _retrieve(
+                        linkItem, dir, limit - 1
+                    )
 
     return branches
 

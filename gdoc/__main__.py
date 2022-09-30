@@ -17,17 +17,21 @@ def main():
     parser.add_argument("-v", "--version", action="store_true", help="show version")
 
     common = argparse.ArgumentParser(add_help=False)
-    common.add_argument("--debug", nargs="*", help="module path to output logger.debug().")
+    common.add_argument(
+        "--debug", nargs="*", help="module path to output logger.debug()."
+    )
 
     subparsers = parser.add_subparsers(title="commands")
 
     here = os.path.dirname(__file__)
     files = os.listdir(os.path.join(here, _CONFIG["app_path"]))
     for file in files:
-        if os.path.isdir(os.path.join(here, _CONFIG["app_path"], file)) and (file != "__pycache__"):
-            importlib.import_module(__package__ + "." + _CONFIG["app_path"] + "." + file).setup(
-                subparsers, file, common
-            )
+        if os.path.isdir(os.path.join(here, _CONFIG["app_path"], file)) and (
+            file != "__pycache__"
+        ):
+            importlib.import_module(
+                __package__ + "." + _CONFIG["app_path"] + "." + file
+            ).setup(subparsers, file, common)
 
     args = parser.parse_args()
 

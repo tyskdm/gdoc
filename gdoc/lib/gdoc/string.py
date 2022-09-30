@@ -17,7 +17,9 @@ class String(PandocStr, Text):
             self += items[start:stop]
 
         elif type(items) is str:
-            super().__init__([PandocAst.create_element({"t": "Str", "c": items})], start, stop)
+            super().__init__(
+                [PandocAst.create_element({"t": "Str", "c": items})], start, stop
+            )
 
         else:
             super().__init__(items, start, stop)

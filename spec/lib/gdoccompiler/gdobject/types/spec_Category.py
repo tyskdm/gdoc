@@ -217,7 +217,11 @@ _get_type_1 = {
             "defaults": {},
         },
         # kwargs: {target_type, parent_type, opts}
-        {"target_type": "ALIAS", "parent_type": "", "opts": {"aliases": {"ALIAS": "TARGET"}}},
+        {
+            "target_type": "ALIAS",
+            "parent_type": "",
+            "opts": {"aliases": {"ALIAS": "TARGET"}},
+        },
         {"constructor": (not None), "type_name": "TARGET"},  # expected
     ),
     "Case: Opts-Aliase(2/)": (
@@ -252,7 +256,11 @@ _get_type_1 = {
             "defaults": {"PARENT": "NOT_EXIST"},
         },
         # kwargs: {target_type, parent_type, opts}
-        {"target_type": "", "parent_type": "PARENT", "opts": {"defaults": {"PARENT": "TARGET"}}},
+        {
+            "target_type": "",
+            "parent_type": "PARENT",
+            "opts": {"defaults": {"PARENT": "TARGET"}},
+        },
         {"constructor": (not None), "type_name": "TARGET"},  # expected
     ),
     "Case: Opts-Default(2/)": (
@@ -269,7 +277,10 @@ _get_type_1 = {
         {
             "target_type": "",
             "parent_type": "PARENT",
-            "opts": {"aliases": {"ALIAS-ALIAS": "ALIAS"}, "defaults": {"PARENT": "ALIAS-ALIAS"}},
+            "opts": {
+                "aliases": {"ALIAS-ALIAS": "ALIAS"},
+                "defaults": {"PARENT": "ALIAS-ALIAS"},
+            },
         },
         {"constructor": (not None), "type_name": "TARGET"},  # expected
     ),
@@ -277,7 +288,9 @@ _get_type_1 = {
 
 
 @pytest.mark.parametrize(
-    "category_info, kwargs, expected", list(_get_type_1.values()), ids=list(_get_type_1.keys())
+    "category_info, kwargs, expected",
+    list(_get_type_1.values()),
+    ids=list(_get_type_1.keys()),
 )
 def spec_get_type_1(mocker, _TEST_CLASS, category_info, kwargs, expected):
     r"""

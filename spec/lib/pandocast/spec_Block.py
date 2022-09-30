@@ -44,7 +44,9 @@ data___init___r1_2 = {
 
 
 @pytest.mark.parametrize(
-    "element, type", list(data___init___r1_2.values()), ids=list(data___init___r1_2.keys())
+    "element, type",
+    list(data___init___r1_2.values()),
+    ids=list(data___init___r1_2.keys()),
 )
 ## [\@spec __init___r1_2] | def __init__(self, pan_elem, elem_type, parent=None):
 def spec___init___r1_2(element, type):

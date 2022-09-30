@@ -206,7 +206,7 @@ When it finds a tag in the document, gdocComiler generates an object with class 
 
 <div align=center>
 
-[![](./_puml_/ArchitecturalDesign/Gdoc_CreateObject_Sequence.png)](./ArchitecturalDesign.puml)  \
+[![Creating an object](./_puml_/ArchitecturalDesign/Gdoc_CreateObject_Sequence.png)](./ArchitecturalDesign.puml)  \
   \
 [@fig 3.4\] Creating an object
 
@@ -325,7 +325,7 @@ The followings are some of the usecases by application subcommands.
 
 <div align=center>
 
-[![](./_puml_/ArchitecturalDesign/gdocPackageInternalBlocks.png)](./ArchitecturalDesign.puml)  \
+[![gdocPackage Internal Blocks](./_puml_/ArchitecturalDesign/gdocPackageInternalBlocks.png)](./ArchitecturalDesign.puml)  \
   \
 [@fig 4.1.1\] gdocPackage Internal Blocks
 
@@ -383,7 +383,7 @@ The build sequence is shown in the figure below.
 
 <div align=center>
 
-[![](./_puml_/ArchitecturalDesign/gdocPackage_Build_Sequence.png)](./ArchitecturalDesign.puml)  \
+[![gdocPackage Build sequence](./_puml_/ArchitecturalDesign/gdocPackage_Build_Sequence.png)](./ArchitecturalDesign.puml)  \
   \
 [@fig 4.1.2\] gdocPackage Build sequence
 </div>
@@ -394,7 +394,7 @@ The Link sequence is shown in the figure below.
 
 <div align=center>
 
-[![](./_puml_/ArchitecturalDesign/gdocPackage_Lint_Sequence.png)](./ArchitecturalDesign.puml)  \
+[![gdocPackage Build sequence](./_puml_/ArchitecturalDesign/gdocPackage_Lint_Sequence.png)](./ArchitecturalDesign.puml)  \
   \
 [@fig 4.1.2\] gdocPackage Build sequence
 </div>
@@ -458,7 +458,7 @@ The requirements given to THIS are as follows.
 
 <div align=center>
 
-[![](./_puml_/ArchitecturalDesign/gdocCompilerInternalBlocks.png)](./ArchitecturalDesign.puml)  \
+[![gdocCompiler Internal Blocks](./_puml_/ArchitecturalDesign/gdocCompilerInternalBlocks.png)](./ArchitecturalDesign.puml)  \
   \
 [@fig 4.2.1\] gdocCompiler Internal Blocks
 
@@ -516,7 +516,7 @@ The requirements given to THIS are as follows.
 
 <div align=center>
 
-[![](./_puml_/ArchitecturalDesign/gdocCompilerSequenceDiagram.png)](./ArchitecturalDesign.puml)  \
+[![gdocCompiler Sequence Diagram](./_puml_/ArchitecturalDesign/gdocCompilerSequenceDiagram.png)](./ArchitecturalDesign.puml)  \
   \
 [@fig 4.2.2\] gdocCompiler Sequence Diagram
 
@@ -595,7 +595,7 @@ The requirements given to THIS are as follows.
 
 <div align=center>
 
-[![](./_puml_/ArchitecturalDesign/pandocAstObjectArchitecturalDesign.png)](./ArchitecturalDesign.puml)  \
+[![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/pandocAstObjectArchitecturalDesign.png)](./ArchitecturalDesign.puml)  \
   \
 [@fig 4.1\] pandocAstObject Internal Blocks
 
@@ -735,8 +735,8 @@ The requirements given to THIS are as follows.
 ##### 4.5.1.1. [@ dr] Design requirement
 
 - [@reqt 1] クラスの継承
-  - 再利用のため、クラスを継承して新シクラスを構成することができる。\
-    http://ichitcltk.hustle.ne.jp/gudon2/index.php?pageType=file&id=python_class_meta1.md
+  - 再利用のため、クラスを継承して新いしクラスを構成することができる。\
+    参考： [メタクラス - クラス生成をカスタマイズする](http://ichitcltk.hustle.ne.jp/gudon2/index.php?pageType=file&id=python_class_meta1.md)
   - 親と子は、実行時にならないと特定できないフォルダに存在し、相対パスでの参照はできない場合もある。
 
 - [@reqt 2] 検索パスの順序に依存せず、一意にプラグインを特定する手段を提供する。
@@ -763,7 +763,7 @@ The requirements given to THIS are as follows.
 
 <div align=center>
 
-[![](./_puml_/ArchitecturalDesign/Plugin_Blcok_Diagram.png)](./ArchitecturalDesign.puml)  \
+[![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugin_Blcok_Diagram.png)](./ArchitecturalDesign.puml)  \
   \
 [@fig 4.1\] pandocAstObject Internal Blocks
 
@@ -774,7 +774,7 @@ The requirements given to THIS are as follows.
 
   <div align=center>
 
-  [![](./_puml_/ArchitecturalDesign/Plugins_ClassDiagram.png)](./ArchitecturalDesign.puml)  \
+  [![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugins_ClassDiagram.png)](./ArchitecturalDesign.puml)  \
     \
   [@fig 4.1\] pandocAstObject Internal Blocks
 
@@ -823,7 +823,7 @@ The requirements given to THIS are as follows.
 
 <div align=center>
 
-[![](./_puml_/ArchitecturalDesign/Plugins_AddProp_Sequence.png)](./ArchitecturalDesign.puml)  \
+[![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugins_AddProp_Sequence.png)](./ArchitecturalDesign.puml)  \
   \
 [@fig 4.1\] pandocAstObject Internal Blocks
 
@@ -841,7 +841,7 @@ The requirements given to THIS are as follows.
 
 <div align=center>
 
-[![](./_puml_/ArchitecturalDesign/Plugins_AddChild_Sequence.png)](./ArchitecturalDesign.puml)  \
+[![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugins_AddChild_Sequence.png)](./ArchitecturalDesign.puml)  \
   \
 [@fig 4.1\] pandocAstObject Internal Blocks
 
@@ -889,7 +889,7 @@ The requirements given to THIS are as follows.
 
 <div align=center>
 
-[![](./_puml_/ArchitecturalDesign/ApplicationSubcommand_Block_Definition.png)](./ArchitecturalDesign.puml)  \
+[![ApplicationSubcommand_Block_Definition](./_puml_/ArchitecturalDesign/ApplicationSubcommand_Block_Definition.png)](./ArchitecturalDesign.puml)  \
   \
 [@fig 4.1\] ApplicationSubcommand_Block_Definition
 

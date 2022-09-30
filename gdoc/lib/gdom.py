@@ -97,7 +97,9 @@ class PackageManager(Package):
         self.children = []
 
     def _addSection(self, level, tag):
-        while (level <= self._current._level) and (self._contextStack[-1] != self._current):
+        while (level <= self._current._level) and (
+            self._contextStack[-1] != self._current
+        ):
             self._current = self._current.parent
 
         # open next package
@@ -203,7 +205,10 @@ class GdocObjectModel(PackageManager):
 
             # element type check
             if not isinstance(block, gdast.Block):
-                return __class__ + "->Error: Invalid element type(should be instance of Block)"
+                return (
+                    __class__
+                    + "->Error: Invalid element type(should be instance of Block)"
+                )
 
             line = block.getFirstLine()
             if isinstance(block, gdast.Table):
@@ -217,7 +222,8 @@ class GdocObjectModel(PackageManager):
 
             # List:
             elif (block.type in ["OrderedList", "BulletList"]) and not (
-                (block.getFirstChild().getFirstChild().type in ["Plain", "Para"]) and tag.istagged()
+                (block.getFirstChild().getFirstChild().type in ["Plain", "Para"])
+                and tag.istagged()
             ):
                 listitem = block.getFirstChild()
                 while listitem is not None:

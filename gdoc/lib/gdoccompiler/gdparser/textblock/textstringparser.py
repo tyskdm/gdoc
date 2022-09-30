@@ -68,7 +68,9 @@ def parse_TextString(textstr: TextString) -> TextString:
     return tokenized_textstr
 
 
-def parse_BlockTag(tokenized_textstr: TextString, start: int) -> Tuple[TextString, Optional[int]]:
+def parse_BlockTag(
+    tokenized_textstr: TextString, start: int
+) -> Tuple[TextString, Optional[int]]:
     textstr: TextString = tokenized_textstr
     tag_idx: Optional[int] = None
     tagpos: Optional[slice] = None

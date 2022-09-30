@@ -18,12 +18,14 @@ from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
 from gdoc.lib.pandocastobject.pandocstr import PandocStr
 
-## @{ @name \_\_init\_\_(pan_elem, type_def)
-## [\@spec \_\_init\_\_] creates a new instance.
-##
-# | @Method      | get_info       |
-# |              | @param         | in index : int = 0
-# |              | @param         | out char_info : (sourcepos : {path:str, line:int, col:int}, decoration, item)
+# @{ @name \_\_init\_\_(pan_elem, type_def)
+# [\@spec \_\_init\_\_] creates a new instance.
+#
+# | get_info       |
+# | @param         | in index : int = 0
+# | @param         | out char_info : (
+# |                |     sourcepos : {path:str, line:int, col:int}, decoration, item
+# |                | )
 _data_get_info_1 = {
     "Case #1: Simple strings +sourcepos via html.": ("case_1.md", "gfm+sourcepos", True),
     "Case #2: Simple strings +sourcepos without going through html.": (
@@ -47,7 +49,9 @@ _data_get_info_1 = {
 
 
 @pytest.mark.parametrize(
-    "filename, formattype, html", list(_data_get_info_1.values()), ids=list(_data_get_info_1.keys())
+    "filename, formattype, html",
+    list(_data_get_info_1.values()),
+    ids=list(_data_get_info_1.keys()),
 )
 def spec_get_info_1(filename, formattype, html):
     r"""
@@ -96,7 +100,9 @@ _data_get_info_2 = {
 
 
 @pytest.mark.parametrize(
-    "filename, formattype, html", list(_data_get_info_2.values()), ids=list(_data_get_info_2.keys())
+    "filename, formattype, html",
+    list(_data_get_info_2.values()),
+    ids=list(_data_get_info_2.keys()),
 )
 def spec_get_info_2(filename, formattype, html):
     r"""
@@ -148,7 +154,9 @@ _data_get_info_3 = {
 
 
 @pytest.mark.parametrize(
-    "filename, formattype, html", list(_data_get_info_3.values()), ids=list(_data_get_info_3.keys())
+    "filename, formattype, html",
+    list(_data_get_info_3.values()),
+    ids=list(_data_get_info_3.keys()),
 )
 def spec_get_info_3(filename, formattype, html):
     r"""
@@ -185,4 +193,4 @@ def spec_get_info_3(filename, formattype, html):
             assert sourcepos["path"] == "[Source pos not found]"
 
 
-## @}
+# @}

@@ -28,7 +28,9 @@ def create_element(pan_elem, elem_type=None) -> Element:
         # Invalid etype( = 'ELEMENT TYPE MISSING' or invalid `elem_type`)
         raise KeyError(etype)
 
-    element = _ELEMENT_TYPES[etype]["class"](pan_elem, etype, _ELEMENT_TYPES[etype], create_element)
+    element = _ELEMENT_TYPES[etype]["class"](
+        pan_elem, etype, _ELEMENT_TYPES[etype], create_element
+    )
 
     return element
 
