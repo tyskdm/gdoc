@@ -41,10 +41,10 @@ class BlockTag(Tag):
         for kwarg in class_kwargs:
             key, val = kwarg
 
-            key = key.convert_to_string()
-            if not key:
-                raise GdocSyntaxError()
-                # Key should be String Only.
+            # key = key.get_text()
+            # if not key:
+            #     raise GdocSyntaxError()
+            #     # Key should be String Only.
 
             self.class_kwargs.append((key, val))
 
@@ -56,9 +56,8 @@ class BlockTag(Tag):
         idx = 0
         c = len(class_args)
         if c > 0:
-            word = class_args[idx].convert_to_string()
-            if word in ("+", "-"):
-                scope = word
+            if class_args[idx].get_text() in ("+", "-"):
+                scope = class_args[idx]
                 if c < 2:
                     raise GdocSyntaxError()
                     # Symbol should follow
@@ -69,6 +68,8 @@ class BlockTag(Tag):
             idx += 1
 
             if symbol.startswith(("+", "-")):
+                # TODO: 先頭要素が String であることも確認する。
+                #       以下の、先頭文字削除が機能しないため。
                 if scope is None:
                     scope = symbol[0][0]
                     symbol[0] = symbol[0][1:]

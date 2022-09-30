@@ -73,7 +73,7 @@ def spec_get_info_1(filename, formattype, html):
             str_items.append(item)
 
     target = PandocStr(str_items)
-    target_str = target.get_str()
+    target_str = str(target)
 
     assert target_str == expect_data[0]
 
@@ -122,7 +122,7 @@ def spec_get_info_2(filename, formattype, html):
             str_items.append(item)
 
     target = PandocStr(str_items)
-    target_str = target.get_str()
+    target_str = str(target)
 
     assert target_str == expect_data[0]
 
@@ -169,7 +169,7 @@ def spec_get_info_3(filename, formattype, html):
     for i in range(len(expect_data[0][0])):
         target.add_items(*[[para_items[i]]] + expect_data[0][0][i])
 
-    target_str = target.get_str()
+    target_str = str(target)
     assert target_str == expect_data[0][1]
 
     for expect in expect_data[1:]:

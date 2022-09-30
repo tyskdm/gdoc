@@ -531,10 +531,10 @@ The requirements given to THIS are as follows.
 | :---: | ---- | ---- | :---: |
 | 1a    |       | １つのファイルをパースし、gdObjectを生成する。 | @copy: SA.ra.Core.1.1
 | @spec | 1a.1  | gdObject生成の全体制御を行う | @allocate: gdc
-| @spec | 1a.2  | ファイルのパースを行う | @allocate: gdp
+| @spec | 1a.2  | Parse a file | @allocate: gdp
 | @spec | 1a.3  | gdObjectを生成する | @allocate: gdo
 | 1a2   |       | gdObjectは、タグ指定により型と固有のプロパティを持つことができる。 | @copy: SA.ra.Core.1a.2
-| @spec | 1a2.1 | 型と固有のプロパティを指定するタグを解釈する | @allocate: gdp
+| @spec | 1a2.1 | Interpret tags specifying type and properties | @allocate: gdp
 | @spec | 1a2.2 | 指定された型のオブジェクト・プロパティを生成する | @allocate: gdo
 | 4     | Source file format | 読み込み文書は gfm を対象とする。 | @copy: SA.ra.Constraint.4
 | @spec | 4.1   | 拡張子が'md'のファイルは、デフォルトでgfm形式として扱う。 | @allocate: gdc
@@ -549,7 +549,7 @@ The requirements given to THIS are as follows.
 | :---: | ---- | ---- | :---: |
 | 3b    |      | 変換されたPandocAst Objectを入力として、パース処理を行う。 | @copy: SA.ra.Constraint.3.2
 | @spec | 3b.1 | 入力として与えられたファイルをPandocAstObjectを利用してPandocAst Objectへ変換する | @allocate: gdc
-| @spec | 3b.2 | PandocAst Objectをパースする | @allocate: gdp
+| @spec | 3b.2 | Parse a PandocAst Object | @allocate: gdp
 
 ##### 4.2.5.3. Design Specification
 

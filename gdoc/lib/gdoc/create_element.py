@@ -7,7 +7,7 @@ from .code import Code
 from .string import String
 
 
-def create_element(cls, element):
+def create_element(element):
 
     _supported = ["Str", "Code", "Math", "Image", "Quoted", "Cite", "RawInline", "Note"]
 

@@ -782,7 +782,7 @@ _data_get_str_1 = {
     list(_data_get_str_1.values()),
     ids=list(_data_get_str_1.keys()),
 )
-def spec_get_str_1(items, position, slice, expected):
+def xspec_get_str_1(items, position, slice, expected):
     r"""
     [@spec add_items.1] construct with various items - Normal cases.
     """

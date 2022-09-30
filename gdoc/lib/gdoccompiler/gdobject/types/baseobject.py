@@ -2,6 +2,8 @@ r"""
 BaseObject class
 """
 
+from typing import Union
+
 from ...gdexception import *
 from ..gdobject import GdObject
 from ..gdsymbol import GdSymbol
@@ -80,7 +82,10 @@ class BaseObject(GdObject):
         constructor = None
 
         if type(symbol) is not GdSymbol:
-            symbol = GdSymbol(symbol)
+            if type(symbol) is str:
+                symbol = GdSymbol(symbol)
+            else:
+                symbol = GdSymbol(symbol.get_text())
 
         if not symbol.is_id():
             raise GdocSyntaxError("Invalid id")

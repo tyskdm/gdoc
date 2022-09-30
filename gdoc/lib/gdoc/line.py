@@ -38,7 +38,7 @@ class Line(TextString):
 
                     e = create_element(item)
                     if e is not None:
-                        self.append(e, opts)
+                        self.append(e)
                     else:
                         # Not yet supported element types
                         pass

@@ -2,7 +2,7 @@ r"""
 PandocStr class
 """
 
-from ast import Delete
+from typing import Optional
 
 _ALLOWED_TYPES_ = ("Str", "Space", "SoftBreak", "LineBreak")
 
@@ -54,15 +54,15 @@ class PandocStr:
         """
         return self._items
 
-    def get_str(self, start: int = 0, stop: int = None):
-        """Constructor
-        @param start : int = 0
-            start char pos in the str items.
-        @param stop : int | None = None
-            stop char pos in the str items.
-        @return output : python str
-        """
-        return self._text[start:stop]
+    # def get_str(self, start: int = 0, stop: int = None):
+    #     """Constructor
+    #     @param start : int = 0
+    #         start char pos in the str items.
+    #     @param stop : int | None = None
+    #         stop char pos in the str items.
+    #     @return output : python str
+    #     """
+    #     return self._text[start:stop]
 
     def get_info(self, index: int = 0):
         """Constructor
@@ -346,6 +346,18 @@ class PandocStr:
 
     def strip(self, *args, **kwargs) -> "PandocStr":
         word = self._text.strip(*args, **kwargs)
+        start = self.index(word)
+        stop = start + len(word)
+        return self[start:stop]
+
+    def lstrip(self, __chars: Optional[str] = None) -> "PandocStr":
+        word = self._text.lstrip(__chars)
+        start = self.index(word)
+        stop = start + len(word)
+        return self[start:stop]
+
+    def rstrip(self, __chars: Optional[str] = None) -> "PandocStr":
+        word = self._text.rstrip(__chars)
         start = self.index(word)
         stop = start + len(word)
         return self[start:stop]

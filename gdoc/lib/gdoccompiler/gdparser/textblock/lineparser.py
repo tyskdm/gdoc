@@ -1,4 +1,5 @@
 from gdoc.lib.gdoc.line import Line
+
 from .textstringparser import parse_TextString
 
 # from gdoc.lib.gdoc.string import String
