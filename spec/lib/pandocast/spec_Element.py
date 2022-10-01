@@ -171,7 +171,12 @@ def spec_Element_r1_6_1():
 ## -------------------------------------------------------------------------
 
 data_Element_r1_7 = {
-    "Case: No Content": ({"t": "Space"}, "Space", {"Space": {"content": None}}, [["TEST", None]]),
+    "Case: No Content": (
+        {"t": "Space"},
+        "Space",
+        {"Space": {"content": None}},
+        [["TEST", None]],
+    ),
     "Case: No Structure(Dict)": (
         {"t": "Str", "c": "String"},
         "Str",
@@ -236,7 +241,12 @@ data_Element_r1_8 = {
         {"t": "CodeBlock", "c": [["", ["c"], [["ATTR", "OK"]]], "main()"]},
         "CodeBlock",
         {"CodeBlock": {"content": {"key": "c"}, "struct": {"Attr": 0, "Text": 1}}},
-        [["TEST", None], ["ATTR", "OK"], [("ATTR", "TEST"), "OK"], [("TEST", "ATTR"), "OK"]],
+        [
+            ["TEST", None],
+            ["ATTR", "OK"],
+            [("ATTR", "TEST"), "OK"],
+            [("TEST", "ATTR"), "OK"],
+        ],
     ),
     "Case with Attr(Array)": (
         [["", [], [["ATTR", "OK"]]], {"t": "AlignDefault"}, 1, 1, []],
@@ -255,7 +265,12 @@ data_Element_r1_8 = {
                 },
             }
         },
-        [["TEST", None], ["ATTR", "OK"], [("ATTR", "TEST"), "OK"], [("TEST", "ATTR"), "OK"]],
+        [
+            ["TEST", None],
+            ["ATTR", "OK"],
+            [("ATTR", "TEST"), "OK"],
+            [("TEST", "ATTR"), "OK"],
+        ],
     ),
 }
 
@@ -279,7 +294,12 @@ def spec_Element_r1_8_1(element, type, TYPES, test):
 ## --------------------------------------------------------------------------------------------------------------------------
 
 data_Element_r1_9 = {
-    "Case: No Content dict": ({"t": "Space"}, "Space", {"Space": {"content": None}}, False),
+    "Case: No Content dict": (
+        {"t": "Space"},
+        "Space",
+        {"Space": {"content": None}},
+        False,
+    ),
     "Case: Content is None(Dict)": (
         {"t": "Str", "c": "String"},
         "Str",
@@ -330,7 +350,12 @@ def spec_Element_r1_9_1(element, type, TYPES, expect):
 
 
 data_Element_r1_10 = {
-    "Case: No Content dict": ({"t": "Space"}, "Space", {"Space": {"content": None}}, None),
+    "Case: No Content dict": (
+        {"t": "Space"},
+        "Space",
+        {"Space": {"content": None}},
+        None,
+    ),
     "Case: has Content(Dict)": (
         {"t": "Str", "c": "String"},
         "Str",
@@ -401,7 +426,12 @@ def spec_Element_r1_10_1(element, type, TYPES, expect):
 
 
 data_Element_r1_10 = {
-    "Case: No Content dict": ({"t": "Space"}, "Space", {"Space": {"content": None}}, None),
+    "Case: No Content dict": (
+        {"t": "Space"},
+        "Space",
+        {"Space": {"content": None}},
+        None,
+    ),
     "Case: has Content(Dict)": (
         {"t": "Str", "c": "String"},
         "Str",

@@ -23,7 +23,9 @@ def setup(subparsers, name, commonOptions):
     )
     parser.set_defaults(func=run)
     parser.add_argument("filepath", help="target source file", nargs="+")
-    parser.add_argument("-f", "--filetype", help="Input filetype(to be specified for pandoc)")
+    parser.add_argument(
+        "-f", "--filetype", help="Input filetype(to be specified for pandoc)"
+    )
     parser.add_argument(
         "--html", action="store_true", help="Interprete HTML tags when parsing markdown."
     )

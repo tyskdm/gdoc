@@ -67,7 +67,7 @@ class TextBlockParser(State):
         """
         1. The following text of btag will be used as the name. \
            Ignore comment-outs by `[]` is not support yet.
-        2. If the preceding text has only one or more `-` words at the end,
+        2. If the preceding text has one or more `-` words at the end,
            then Preceding lines + Preceding text (excluding `-`) will be the property "text".
         3. If 2 is False, Following lines will be set to the property "text".
         4. If the text contains inline tags, add the properties specified by the tags
@@ -82,25 +82,26 @@ class TextBlockParser(State):
             }
         )
 
-        name = tag_opts["following_text"].get_str()
-        for i in range(len(name)):
-            if not name[i].isspace():
-                break
-        name = name[i:]
-        for i in range(len(name)):
-            if not name[-1 - i].isspace():
-                break
-        if i > 0:
-            name = name[:-i]
+        name = tag_opts["following_text"].strip()
+        # for i in range(len(name)):
+        #     if not name[i].isspace():
+        #         break
+        # name = name[i:]
+        # for i in range(len(name)):
+        #     if not name[-1 - i].isspace():
+        #         break
+        # if i > 0:
+        #     name = name[:-i]
         if len(name) > 0:
             tag_args.append(name)
 
-        pretext = tag_opts["preceding_text"].get_str()
-        for i in range(len(pretext)):
-            if not pretext[-1 - i].isspace():
-                break
-        if i > 0:
-            pretext = pretext[:-i]
+        pretext = tag_opts["preceding_text"].rstrip()
+        # 右側から空白文字を除去している
+        # for i in range(len(pretext)):
+        #     if not pretext[-1 - i].isspace():
+        #         break
+        # if i > 0:
+        #     pretext = pretext[:-i]
 
         text = None
         hyphen = None
@@ -132,8 +133,9 @@ class TextBlockParser(State):
             text = tag_opts["following_lines"][:]
 
         if text:
+            # strを渡している。TextString を渡すように変更する
             tag_opts["properties"] = {"text": text}
 
-        tag_args[4] = tag_args[4].get_str()  # tag_args[4] = symbol
+        # tag_args[4] = tag_args[4].get_text()  # tag_args[4] = symbol
 
         return self.__gdobject.create_object(*tag_args, type_args=tag_opts)

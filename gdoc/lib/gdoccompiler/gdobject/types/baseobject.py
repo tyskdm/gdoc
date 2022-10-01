@@ -2,6 +2,8 @@ r"""
 BaseObject class
 """
 
+from typing import Union
+
 from ...gdexception import *
 from ..gdobject import GdObject
 from ..gdsymbol import GdSymbol
@@ -12,7 +14,9 @@ from .category import Category
 class BaseObject(GdObject):
     """ """
 
-    def __init__(self, typename, id, *, scope="+", name=None, tags=[], ref=None, type_args={}):
+    def __init__(
+        self, typename, id, *, scope="+", name=None, tags=[], ref=None, type_args={}
+    ):
         if type(typename) is GdSymbolTable.Type:
             _type = typename
             typename = typename.name
@@ -80,7 +84,10 @@ class BaseObject(GdObject):
         constructor = None
 
         if type(symbol) is not GdSymbol:
-            symbol = GdSymbol(symbol)
+            if type(symbol) is str:
+                symbol = GdSymbol(symbol)
+            else:
+                symbol = GdSymbol(symbol.get_text())
 
         if not symbol.is_id():
             raise GdocSyntaxError("Invalid id")
@@ -117,7 +124,13 @@ class BaseObject(GdObject):
 
         if constructor is not None:
             child = constructor(
-                type_name, id, scope=scope, name=name, tags=tags, ref=ref, type_args=type_args
+                type_name,
+                id,
+                scope=scope,
+                name=name,
+                tags=tags,
+                ref=ref,
+                type_args=type_args,
             )
 
         else:

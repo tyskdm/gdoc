@@ -47,13 +47,17 @@ class StateMachine(State):
         self.__next_state: Dict["State", Union["State", str, None]] = {}
         self.__current_state: Optional["State"] = None
 
-    def add_state(self, state: State, next: Union["State", str, None] = None) -> "StateMachine":
+    def add_state(
+        self, state: State, next: Union["State", str, None] = None
+    ) -> "StateMachine":
         if isinstance(state, State):
             self.__state_list.append(state)
             self.__next_state[state] = next
         else:
             raise TypeError(
-                'state to add should be State or StateMachine(not "' + type(state).__name__ + '")'
+                'state to add should be State or StateMachine(not "'
+                + type(state).__name__
+                + '")'
             )
 
         return self  # `self` for chaining
@@ -75,7 +79,9 @@ class StateMachine(State):
         #               --> state or (state, event)
         # done(default transition)
         #               --> None or (None, result)
-        next: Union[Union["State", str, None], Tuple[Union["State", str, None], Any]] = None
+        next: Union[
+            Union["State", str, None], Tuple[Union["State", str, None], Any]
+        ] = None
 
         if self.__current_state is None:
             # Not yet started.

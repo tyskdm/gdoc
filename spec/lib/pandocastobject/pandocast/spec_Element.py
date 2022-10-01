@@ -261,7 +261,12 @@ def spec_get_type_1():
 ## [\@spec get_prop] returns a property of the element specified by key string.
 
 _data_get_prop = {
-    "Case: No Content": ({"t": "Space"}, "Space", {"Space": {"content": None}}, [["TEST", None]]),
+    "Case: No Content": (
+        {"t": "Space"},
+        "Space",
+        {"Space": {"content": None}},
+        [["TEST", None]],
+    ),
     "Case: No Structure(Dict)": (
         {"t": "Str", "c": "String"},
         "Str",
@@ -307,7 +312,11 @@ _data_get_prop = {
             "Pandoc": {
                 # 'class':  BlockList,
                 "content": {"key": None, "main": "blocks", "type": "[Block]"},
-                "struct": {"Version": "pandoc-api-version", "Meta": "meta", "Blocks": "blocks"},
+                "struct": {
+                    "Version": "pandoc-api-version",
+                    "Meta": "meta",
+                    "Blocks": "blocks",
+                },
             },
         },
         [["Version", [1, 22]], ["Meta", {}]],
@@ -340,7 +349,12 @@ _data_get_attr = {
         {"t": "CodeBlock", "c": [["", ["c"], [["ATTR", "OK"]]], "main()"]},
         "CodeBlock",
         {"CodeBlock": {"content": {"key": "c"}, "struct": {"Attr": 0, "Text": 1}}},
-        [["TEST", None], ["ATTR", "OK"], [("ATTR", "TEST"), "OK"], [("TEST", "ATTR"), "OK"]],
+        [
+            ["TEST", None],
+            ["ATTR", "OK"],
+            [("ATTR", "TEST"), "OK"],
+            [("TEST", "ATTR"), "OK"],
+        ],
     ),
     "Case with Attr(Array)": (
         [["", [], [["ATTR", "OK"]]], {"t": "AlignDefault"}, 1, 1, []],
@@ -359,7 +373,12 @@ _data_get_attr = {
                 },
             }
         },
-        [["TEST", None], ["ATTR", "OK"], [("ATTR", "TEST"), "OK"], [("TEST", "ATTR"), "OK"]],
+        [
+            ["TEST", None],
+            ["ATTR", "OK"],
+            [("ATTR", "TEST"), "OK"],
+            [("TEST", "ATTR"), "OK"],
+        ],
     ),
 }
 
@@ -384,7 +403,12 @@ def spec_get_attr_1(pan_elem, elem_type, TYPE_DEFS, TESTS):
 ## [\@spec hascontent] returns True if self has content(s) or False if self is typed but has no content.
 
 _data_hascontent = {
-    "Case: No Content dict": ({"t": "Space"}, "Space", {"Space": {"content": None}}, False),
+    "Case: No Content dict": (
+        {"t": "Space"},
+        "Space",
+        {"Space": {"content": None}},
+        False,
+    ),
     "Case: Content is None(Dict)": (
         {"t": "Str", "c": "String"},
         "Str",
@@ -420,7 +444,11 @@ _data_hascontent = {
             "Pandoc": {
                 # 'class':  BlockList,
                 "content": {"key": None, "main": "blocks", "type": "[Block]"},
-                "struct": {"Version": "pandoc-api-version", "Meta": "meta", "Blocks": "blocks"},
+                "struct": {
+                    "Version": "pandoc-api-version",
+                    "Meta": "meta",
+                    "Blocks": "blocks",
+                },
             },
         },
         True,
@@ -447,7 +475,12 @@ def spec_hascontent_1(pan_elem, elem_type, TYPE_DEFS, expect):
 ## [\@spec get_content] returns main content data in the element.
 
 _data_get_content = {
-    "Case: No Content dict": ({"t": "Space"}, "Space", {"Space": {"content": None}}, None),
+    "Case: No Content dict": (
+        {"t": "Space"},
+        "Space",
+        {"Space": {"content": None}},
+        None,
+    ),
     "Case: has Content(Dict)": (
         {"t": "Str", "c": "String"},
         "Str",
@@ -503,7 +536,11 @@ _data_get_content = {
             "Pandoc": {
                 # 'class':  BlockList,
                 "content": {"key": None, "main": "blocks", "type": "[Block]"},
-                "struct": {"Version": "pandoc-api-version", "Meta": "meta", "Blocks": "blocks"},
+                "struct": {
+                    "Version": "pandoc-api-version",
+                    "Meta": "meta",
+                    "Blocks": "blocks",
+                },
             },
         },
         "[BLOCK]",
@@ -530,7 +567,12 @@ def spec_get_content_1(pan_elem, elem_type, TYPE_DEFS, expect):
 ## [\@spec get_content_type] returns type of main content in the element.
 
 _data_get_content_type = {
-    "Case: No Content dict": ({"t": "Space"}, "Space", {"Space": {"content": None}}, None),
+    "Case: No Content dict": (
+        {"t": "Space"},
+        "Space",
+        {"Space": {"content": None}},
+        None,
+    ),
     "Case: has Content(Dict)": (
         {"t": "Str", "c": "String"},
         "Str",
@@ -586,7 +628,11 @@ _data_get_content_type = {
             "Pandoc": {
                 # 'class':  BlockList,
                 "content": {"key": None, "main": "blocks", "type": "[Block]"},
-                "struct": {"Version": "pandoc-api-version", "Meta": "meta", "Blocks": "blocks"},
+                "struct": {
+                    "Version": "pandoc-api-version",
+                    "Meta": "meta",
+                    "Blocks": "blocks",
+                },
             },
         },
         "[Block]",

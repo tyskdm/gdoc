@@ -30,7 +30,9 @@ _data_Inline_1 = {
 
 
 @pytest.mark.parametrize(
-    "filename, formattype, html", list(_data_Inline_1.values()), ids=list(_data_Inline_1.keys())
+    "filename, formattype, html",
+    list(_data_Inline_1.values()),
+    ids=list(_data_Inline_1.keys()),
 )
 def test_gdParser_1(mocker: mock, filename, formattype, html):
     r"""

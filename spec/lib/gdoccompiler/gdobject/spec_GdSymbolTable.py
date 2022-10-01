@@ -428,7 +428,10 @@ _add_child_2 = {
     ),
     "ErrCase: c_name (1/)": (
         {"id": "A", "_type": GdSymbolTable.Type.OBJECT},  # parent,
-        [{"id": None, "name": "A"}, {"id": None, "name": {"t": "Str", "c": "A"}}],  # children,
+        [
+            {"id": None, "name": "A"},
+            {"id": None, "name": {"t": "Str", "c": "A"}},
+        ],  # children,
         {"Exception": (GdocIdError, 'duplicate name "A"'), "IDs": set(), "NAMEs": set()},
     ),
     #
@@ -476,7 +479,9 @@ _add_child_2 = {
 
 
 @pytest.mark.parametrize(
-    "parent, children, expected", list(_add_child_2.values()), ids=list(_add_child_2.keys())
+    "parent, children, expected",
+    list(_add_child_2.values()),
+    ids=list(_add_child_2.keys()),
 )
 def spec_add_child_2(mocker, parent, children, expected):
     r"""
@@ -589,7 +594,9 @@ ___add_reference_2 = {
 
 
 @pytest.mark.parametrize(
-    "children, expected", list(___add_reference_2.values()), ids=list(___add_reference_2.keys())
+    "children, expected",
+    list(___add_reference_2.values()),
+    ids=list(___add_reference_2.keys()),
 )
 def spec___add_reference_2(mocker, children, expected):
     r"""
@@ -691,7 +698,9 @@ ___get_children_1 = {
 
 
 @pytest.mark.parametrize(
-    "child_ids, expected", list(___get_children_1.values()), ids=list(___get_children_1.keys())
+    "child_ids, expected",
+    list(___get_children_1.values()),
+    ids=list(___get_children_1.keys()),
 )
 def spec___get_children_1(mocker, child_ids, expected):
     r"""
@@ -758,7 +767,9 @@ ___get_references_1 = {
 
 
 @pytest.mark.parametrize(
-    "child_ids, expected", list(___get_references_1.values()), ids=list(___get_references_1.keys())
+    "child_ids, expected",
+    list(___get_references_1.values()),
+    ids=list(___get_references_1.keys()),
 )
 def spec___get_references_1(mocker, child_ids, expected):
     r"""
@@ -1002,7 +1013,9 @@ _unidir_link_to_1 = {
 
 
 @pytest.mark.parametrize(
-    "child_ids, expected", list(_unidir_link_to_1.values()), ids=list(_unidir_link_to_1.keys())
+    "child_ids, expected",
+    list(_unidir_link_to_1.values()),
+    ids=list(_unidir_link_to_1.keys()),
 )
 def spec_unidir_link_to_1(mocker, child_ids, expected):
     r"""
@@ -1120,7 +1133,9 @@ _bidir_link_to_1 = {
 
 
 @pytest.mark.parametrize(
-    "child_ids, expected", list(_bidir_link_to_1.values()), ids=list(_bidir_link_to_1.keys())
+    "child_ids, expected",
+    list(_bidir_link_to_1.values()),
+    ids=list(_bidir_link_to_1.keys()),
 )
 def spec_bidir_link_to_1(mocker, child_ids, expected):
     r"""
@@ -1499,7 +1514,13 @@ _get_child_by_name_1 = {
                 [
                     {"id": "C", "name": None, "_type": GdSymbolTable.Type.REFERENCE},
                     [],
-                    [{"id": "TARGET", "name": "TARGET", "_type": GdSymbolTable.Type.OBJECT}],
+                    [
+                        {
+                            "id": "TARGET",
+                            "name": "TARGET",
+                            "_type": GdSymbolTable.Type.OBJECT,
+                        }
+                    ],
                 ],
             ],
             [],
@@ -1515,7 +1536,11 @@ _get_child_by_name_1 = {
                     {"id": "A", "name": None, "_type": GdSymbolTable.Type.REFERENCE},
                     [
                         [
-                            {"id": "START", "name": None, "_type": GdSymbolTable.Type.REFERENCE},
+                            {
+                                "id": "START",
+                                "name": None,
+                                "_type": GdSymbolTable.Type.REFERENCE,
+                            },
                             [],
                             [],
                         ]
@@ -1534,7 +1559,17 @@ _get_child_by_name_1 = {
             [
                 [
                     {"id": "START", "name": None, "_type": GdSymbolTable.Type.REFERENCE},
-                    [[{"id": "A", "name": None, "_type": GdSymbolTable.Type.REFERENCE}, [], []]],
+                    [
+                        [
+                            {
+                                "id": "A",
+                                "name": None,
+                                "_type": GdSymbolTable.Type.REFERENCE,
+                            },
+                            [],
+                            [],
+                        ]
+                    ],
                     [{"id": "B", "name": None, "_type": GdSymbolTable.Type.OBJECT}],
                 ]
             ],
@@ -1546,7 +1581,9 @@ _get_child_by_name_1 = {
 
 
 @pytest.mark.parametrize(
-    "objects, expected", list(_get_child_by_name_1.values()), ids=list(_get_child_by_name_1.keys())
+    "objects, expected",
+    list(_get_child_by_name_1.values()),
+    ids=list(_get_child_by_name_1.keys()),
 )
 def spec_get_child_by_name_1(mocker, objects, expected):
     r"""

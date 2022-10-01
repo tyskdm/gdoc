@@ -27,7 +27,12 @@ class GdObject(GdSymbolTable):
         super().__init__(*args, **kwargs)
 
         self.__properties = {
-            "": {"id": self.id, "scope": self.scope, "name": self.name, "tags": self.tags[:]}
+            "": {
+                "id": self.id,
+                "scope": self.scope,
+                "name": self.name,
+                "tags": self.tags[:],
+            }
         }
 
     def set_prop(self, key, value):

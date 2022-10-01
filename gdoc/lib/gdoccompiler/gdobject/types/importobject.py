@@ -10,7 +10,9 @@ from .baseobject import BaseObject
 class ImportObject(BaseObject):
     """ """
 
-    def __init__(self, typename, id, *, scope=None, name=None, tags=[], ref=None, type_args={}):
+    def __init__(
+        self, typename, id, *, scope=None, name=None, tags=[], ref=None, type_args={}
+    ):
         if typename == "IMPORT":
             typename = GdSymbolTable.Type.IMPORT
             if scope not in ("+", None):

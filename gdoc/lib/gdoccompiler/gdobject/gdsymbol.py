@@ -134,7 +134,9 @@ class GdSymbol:
                         # in case _IDENTIFIER matched with $(EOL)
                         column -= 1
 
-                    raise GdocSyntaxError("invalid syntax", (None, None, column, str(symbolstr)))
+                    raise GdocSyntaxError(
+                        "invalid syntax", (None, None, column, str(symbolstr))
+                    )
                 elif (i := cls._is_gdoc_identifier(identifier)) is not True:
                     raise GdocSyntaxError(
                         "invalid character in identifier",
@@ -159,16 +161,20 @@ class GdSymbol:
                         if (i := cls._is_gdoc_identifier(tag[hash_added:])) is not True:
                             i += target.index(tag) + hash_added
                             raise GdocSyntaxError(
-                                "invalid character in tag", (None, None, column + i, str(symbolstr))
+                                "invalid character in tag",
+                                (None, None, column + i, str(symbolstr)),
                             )
                     else:  # tag == ""
                         m = cls._TAG_INVALID_SYNTAX.search(target)
                         raise GdocSyntaxError(
-                            "invalid syntax", (None, None, column + m.end() - 1, str(symbolstr))
+                            "invalid syntax",
+                            (None, None, column + m.end() - 1, str(symbolstr)),
                         )
 
             else:
-                raise GdocSyntaxError("invalid syntax", (None, None, column, str(symbolstr)))
+                raise GdocSyntaxError(
+                    "invalid syntax", (None, None, column, str(symbolstr))
+                )
 
             column += length
             target = target[length:]
@@ -204,7 +210,9 @@ class GdSymbol:
             index += 1
 
         if index == length:
-            raise GdocSyntaxError("EOS while scanning name string", (None, None, index - 1, target))
+            raise GdocSyntaxError(
+                "EOS while scanning name string", (None, None, index - 1, target)
+            )
 
         #
         # Quoted string
@@ -278,7 +286,9 @@ class GdSymbol:
             index += 1
 
         if index == length:
-            raise GdocSyntaxError("EOS while scanning name string", (None, None, index - 1, target))
+            raise GdocSyntaxError(
+                "EOS while scanning name string", (None, None, index - 1, target)
+            )
 
         name = name.rstrip()
 

@@ -552,7 +552,9 @@ __split_symbol_1 = {
 
 
 @pytest.mark.parametrize(
-    "symbolstr, expected", list(__split_symbol_1.values()), ids=list(__split_symbol_1.keys())
+    "symbolstr, expected",
+    list(__split_symbol_1.values()),
+    ids=list(__split_symbol_1.keys()),
 )
 def spec__split_symbol_1(mocker, symbolstr, expected):
     r"""
@@ -745,7 +747,9 @@ __get_namestr_1 = {
 
 
 @pytest.mark.parametrize(
-    "symbolstr, expected", list(__get_namestr_1.values()), ids=list(__get_namestr_1.keys())
+    "symbolstr, expected",
+    list(__get_namestr_1.values()),
+    ids=list(__get_namestr_1.keys()),
 )
 def spec__get_namestr_1(mocker, symbolstr, expected):
     r"""

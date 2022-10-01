@@ -13,7 +13,9 @@ class Section(list):
         super().__init__(iterable)
         self.level = level
         self.__opts = opts  # not yet copy() / copy.deepcopy()
-        TEXT_BLOCK_TYPES = self.__opts.get("pandocast", {}).get("types", {}).get("textblock")
+        TEXT_BLOCK_TYPES = (
+            self.__opts.get("pandocast", {}).get("types", {}).get("textblock")
+        )
 
         block: Element = None
         i = 0

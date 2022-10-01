@@ -19,7 +19,9 @@ class Line(TextString):
         self.__opts = opts  # not yet copy() / copy.deepcopy()
         # self.__opts = copy.deepcopy(DEFAULTS).update(opts)
 
-        plain: list = self.__opts.get("pandocast", {}).get("types", {}).get("plaintext", [])
+        plain: list = (
+            self.__opts.get("pandocast", {}).get("types", {}).get("plaintext", [])
+        )
 
         plaintext: list = []
         for item in inlines:
@@ -38,7 +40,7 @@ class Line(TextString):
 
                     e = create_element(item)
                     if e is not None:
-                        self.append(e, opts)
+                        self.append(e)
                     else:
                         # Not yet supported element types
                         pass

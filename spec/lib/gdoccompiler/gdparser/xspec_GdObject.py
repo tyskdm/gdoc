@@ -156,7 +156,10 @@ _set_prop_1 = {
     "Case: Multiple values(5/)": (
         # props : [(key, val),...]
         [("key", ["val1", "val2"]), ("key", ["val3", "val4"])],
-        {"Exception": None, "properties": {"key": ["val1", "val2", "val3", "val4"]}},  # expected
+        {
+            "Exception": None,
+            "properties": {"key": ["val1", "val2", "val3", "val4"]},
+        },  # expected
     ),
     "Case: layered key(1/)": (
         # props : [(key, val),...]
@@ -166,12 +169,18 @@ _set_prop_1 = {
     "Case: layered key(2/)": (
         # props : [(key, val),...]
         [(["layer1"], "val1"), (["layer1", "layer2"], "val2")],
-        {"Exception": None, "properties": {"layer1": {"": "val1", "layer2": "val2"}}},  # expected
+        {
+            "Exception": None,
+            "properties": {"layer1": {"": "val1", "layer2": "val2"}},
+        },  # expected
     ),
     "Case: layered key(3/)": (
         # props : [(key, val),...]
         [(["layer1", "layer2"], "val2"), (["layer1"], "val1")],
-        {"Exception": None, "properties": {"layer1": {"": "val1", "layer2": "val2"}}},  # expected
+        {
+            "Exception": None,
+            "properties": {"layer1": {"": "val1", "layer2": "val2"}},
+        },  # expected
     ),
     "Case: layered key(4/)": (
         # props : [(key, val),...]
@@ -182,7 +191,9 @@ _set_prop_1 = {
         ],
         {  # expected
             "Exception": None,
-            "properties": {"layer1": {"": "val1", "layer2": {"": "val2", "layer3": "val3"}}},
+            "properties": {
+                "layer1": {"": "val1", "layer2": {"": "val2", "layer3": "val3"}}
+            },
         },
     ),
 }
