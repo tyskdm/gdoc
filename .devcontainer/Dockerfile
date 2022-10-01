@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.10
 
 RUN apt-get update && apt-get upgrade -y
 ENV DEBCONF_NOWARNINGS=yes

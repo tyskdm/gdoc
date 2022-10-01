@@ -6,7 +6,7 @@ authors = ["Tsuyoshi Kodama <tsuyoshi.kodama@byrnison.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
