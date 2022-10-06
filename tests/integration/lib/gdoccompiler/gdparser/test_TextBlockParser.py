@@ -51,7 +51,7 @@ def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
     gdobject = mocker.MagicMock(["create_object"])
 
     # Execution
-    parse_TextBlock(target_data, gdobject)
+    parse_TextBlock(target_data, gdobject, {}, None)
 
     # Assertion
     gdobject.create_object.assert_called_once()

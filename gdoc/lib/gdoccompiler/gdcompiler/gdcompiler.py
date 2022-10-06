@@ -6,6 +6,7 @@ import os
 from gdoc.lib.gdoc.document import Document as GdocDocument
 from gdoc.lib.gdoccompiler.gdobject.types.document import Document as GobjDocument
 from gdoc.lib.gdoccompiler.gdparser.documentparser import parse_Document
+from gdoc.lib.gdoccompiler.gdparser.errorreport import ErrorReport
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
 
@@ -34,8 +35,10 @@ class GdocCompiler:
         pandoc_json = Pandoc().get_json(filepath, "gfm+sourcepos", False)
         pandoc_ast = PandocAst(pandoc_json)
         gdoc = GdocDocument(pandoc_ast)
-        gobj = GobjDocument(None, filepath)
 
-        parse_Document(gdoc, gobj)
+        gobj = GobjDocument(None, filepath)
+        errs = ErrorReport()
+
+        gobj, errs = parse_Document(gdoc, gobj, opts, errs)
 
         return gobj

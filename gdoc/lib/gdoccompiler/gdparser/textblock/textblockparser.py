@@ -1,19 +1,40 @@
+"""
+textblockparser.py: parse_TextBlock function
+"""
 from gdoc.lib.gdoc.textblock import TextBlock
+from gdoc.lib.gdoccompiler.gdobject import GOBJ
 from gdoc.lib.gdoccompiler.gdparser.textblock.tag import BlockTag
+from gdoc.util.result import Err, Ok, Result
 
 from ...gdobject.types.baseobject import BaseObject
+from ..errorreport import ErrorReport
 from ..fsm import State, StateMachine
 from .lineparser import parse_Line
 
 
-def parse_TextBlock(textblock: TextBlock, gdobject, opts={}):
+def parse_TextBlock(
+    textblock: TextBlock, gobj: GOBJ, opts: dict, errs: ErrorReport
+) -> Result[GOBJ, ErrorReport]:
+    """
+    parse TextBlock and creates Gobj.
+
+    @param textblock (TextBlock) : _description_
+    @param gobj (GOBJ) : _description_
+    @param opts (dict) : _description_
+    @param errs (ErrorReport) : _description_
+
+    @return Result[GOBJ, ErrorReport] : if created, returns the new TextObject.
+                                        othrewise, None.
+    """
     parser: StateMachine = TextBlockParser()
-    parser.start(gdobject).on_entry()
+    parser.start(gobj).on_entry()
 
     for line in textblock:
         parser.on_event(line)
 
-    return parser.on_exit()
+    child: GOBJ = parser.on_exit()
+
+    return Ok(child)
 
 
 class TextBlockParser(State):
@@ -83,26 +104,10 @@ class TextBlockParser(State):
         )
 
         name = tag_opts["following_text"].strip()
-        # for i in range(len(name)):
-        #     if not name[i].isspace():
-        #         break
-        # name = name[i:]
-        # for i in range(len(name)):
-        #     if not name[-1 - i].isspace():
-        #         break
-        # if i > 0:
-        #     name = name[:-i]
         if len(name) > 0:
             tag_args.append(name)
 
         pretext = tag_opts["preceding_text"].rstrip()
-        # 右側から空白文字を除去している
-        # for i in range(len(pretext)):
-        #     if not pretext[-1 - i].isspace():
-        #         break
-        # if i > 0:
-        #     pretext = pretext[:-i]
-
         text = None
         hyphen = None
         for i in range(len(pretext)):
