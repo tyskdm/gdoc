@@ -26,121 +26,104 @@ def parse_TextBlock(
     @return Result[GOBJ, ErrorReport] : if created, returns the new TextObject.
                                         othrewise, None.
     """
-    parser: StateMachine = TextBlockParser()
-    parser.start(gobj).on_entry()
-
+    parsed_lines = []
     for line in textblock:
-        parser.on_event(line)
+        e = None  # parsed_line, e = parse_Line(line, opts, errs)
+        parsed_line = parse_Line(line)
+        if e and errs.submit(e):
+            return Err(errs)
 
-    child: GOBJ = parser.on_exit()
+        if parsed_line:
+            parsed_lines.append(parsed_line)
+
+    preceding_lines = []
+    following_lines = []
+    preceding_text = None
+    following_text = None
+    block_tag = None
+    for parsed_line in parsed_lines:
+        #
+        # TODO: Add a check for double tagging
+        #
+        if block_tag is None:
+            for i, text in enumerate(parsed_line):
+                if isinstance(text, BlockTag):
+                    block_tag = text
+                    break
+
+            if block_tag is None:
+                preceding_lines.append(parsed_line)
+            else:
+                preceding_text = parsed_line[:i]
+                following_text = parsed_line[i + 1 :]
+        else:
+            following_lines.append(parsed_line)
+
+    child = None
+    if block_tag is not None:
+        tag_args, tag_opts = block_tag.get_object_arguments()
+        tag_opts.update(
+            {
+                "preceding_lines": preceding_lines,
+                "following_lines": following_lines,
+                "preceding_text": preceding_text,
+                "following_text": following_text,
+            }
+        )
+        child = _create_objects(gobj, tag_args, tag_opts)
 
     return Ok(child)
 
 
-class TextBlockParser(State):
-    """ """
+def _create_objects(gobj, tag_args, tag_opts):
+    """
+    1. The following text of btag will be used as the name. \
+        Ignore comment-outs by `[]` is not support yet.
+    2. If the preceding text has one or more `-` words at the end,
+        then Preceding lines + Preceding text (excluding `-`) will be the property "text".
+    3. If 2 is False, Following lines will be set to the property "text".
+    4. If the text contains inline tags, add the properties specified by the tags
+        without deleting from content of text property.
+    """
 
-    def __init__(self, name: str = None) -> None:
-        super().__init__(name or __class__.__name__)
+    name = tag_opts["following_text"].strip()
+    if len(name) > 0:
+        tag_args.append(name)
 
-        self.preceding_lines = []
-        self.following_lines = []
-        self.preceding_text = None
-        self.following_text = None
-        self.block_tag = None
-
-    def start(self, param):
-        self.__gdobject: BaseObject = param
-        return self
-
-    def on_event(self, line):
-
-        parsed_line = parse_Line(line)
-
-        if self.block_tag is None:
-
-            for i, t in enumerate(parsed_line):
-                if isinstance(t, BlockTag):
-                    self.block_tag = t
-                    break
-
-            if self.block_tag is None:
-                self.preceding_lines.append(parsed_line)
+    pretext = tag_opts["preceding_text"].rstrip()
+    text = None
+    hyphen = None
+    for i in range(len(pretext)):
+        if hyphen is None:
+            if pretext[-1 - i] == "-":
+                hyphen = "-"
             else:
-                self.preceding_text = parsed_line[:i]
-                self.following_text = parsed_line[i + 1 :]
-        else:
-            self.following_lines.append(parsed_line)
+                break
 
-        return self
+        elif hyphen == "-":
+            if pretext[-1 - i] == "-":
+                continue
+            elif pretext[-1 - i].isspace():
+                hyphen == " "
+            else:
+                break
 
-    def on_exit(self):
-        super().on_exit()
+        elif hyphen == " ":
+            if pretext[-1 - i].isspace():
+                continue
+            else:
+                break
 
-        child = None
-        if self.block_tag is not None:
-            tag_args, tag_opts = self.block_tag.get_object_arguments()
-            child = self._create_objects(tag_args, tag_opts)
+    if hyphen == " ":
+        text = tag_opts["preceding_lines"][:]
+        text.append(pretext[:-i])
+    else:
+        text = tag_opts["following_lines"][:]
 
-        return child
+    if text:
+        # strを渡している。TextString を渡すように変更する
+        tag_opts["properties"] = {"text": text}
 
-    def _create_objects(self, tag_args, tag_opts):
-        """
-        1. The following text of btag will be used as the name. \
-           Ignore comment-outs by `[]` is not support yet.
-        2. If the preceding text has one or more `-` words at the end,
-           then Preceding lines + Preceding text (excluding `-`) will be the property "text".
-        3. If 2 is False, Following lines will be set to the property "text".
-        4. If the text contains inline tags, add the properties specified by the tags
-           without deleting from content of text property.
-        """
-        tag_opts.update(
-            {
-                "preceding_lines": self.preceding_lines,
-                "following_lines": self.following_lines,
-                "preceding_text": self.preceding_text,
-                "following_text": self.following_text,
-            }
-        )
+    # tag_args[4] = tag_args[4].get_text()  # tag_args[4] = symbol
 
-        name = tag_opts["following_text"].strip()
-        if len(name) > 0:
-            tag_args.append(name)
-
-        pretext = tag_opts["preceding_text"].rstrip()
-        text = None
-        hyphen = None
-        for i in range(len(pretext)):
-            if hyphen is None:
-                if pretext[-1 - i] == "-":
-                    hyphen = "-"
-                else:
-                    break
-
-            elif hyphen == "-":
-                if pretext[-1 - i] == "-":
-                    continue
-                elif pretext[-1 - i].isspace():
-                    hyphen == " "
-                else:
-                    break
-
-            elif hyphen == " ":
-                if pretext[-1 - i].isspace():
-                    continue
-                else:
-                    break
-
-        if hyphen == " ":
-            text = tag_opts["preceding_lines"][:]
-            text.append(pretext[:-i])
-        else:
-            text = tag_opts["following_lines"][:]
-
-        if text:
-            # strを渡している。TextString を渡すように変更する
-            tag_opts["properties"] = {"text": text}
-
-        # tag_args[4] = tag_args[4].get_text()  # tag_args[4] = symbol
-
-        return self.__gdobject.create_object(*tag_args, type_args=tag_opts)
+    return gobj.create_object(*tag_args, type_args=tag_opts)
