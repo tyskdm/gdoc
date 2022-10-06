@@ -157,10 +157,10 @@ _data_get_version_1 = {
     #       ]
     #   )
     "Normal Case: Actual output from pnadoc": (
-        b"pandoc 2.14.2\n" + b"Compiled with pandoc-types 1.22,",
+        b"pandoc 2.19.2\n" + b"Compiled with pandoc-types 1.22.2.1,",
         # expected
         {
-            "output": {"pandoc": [2, 14, 2], "pandoc-types": [1, 22]},
+            "output": {"pandoc": [2, 19, 2], "pandoc-types": [1, 22, 2, 1]},
             "_run": {"call_count": 1, "args": [(["pandoc --version"],), {}]},
         },
     ),

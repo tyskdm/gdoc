@@ -6,9 +6,9 @@ ENV DEBCONF_NOWARNINGS=yes
 RUN /usr/local/bin/python -m pip install --upgrade pip
 
 # pandoc
-RUN curl -sSLO https://github.com/jgm/pandoc/releases/download/2.14.2/pandoc-2.14.2-1-amd64.deb && \
-    dpkg -i pandoc-2.14.2-1-amd64.deb && \
-    rm pandoc-2.14.2-1-amd64.deb
+RUN curl -sSLO https://github.com/jgm/pandoc/releases/download/2.19.2/pandoc-2.19.2-1-amd64.deb && \
+    dpkg -i pandoc-2.19.2-1-amd64.deb && \
+    rm pandoc-2.19.2-1-amd64.deb
 
 # doxygen
 RUN apt-get install -y doxygen graphviz
