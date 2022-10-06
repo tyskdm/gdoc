@@ -1,5 +1,5 @@
 """
-Provides `Text` abstract base class for gdoc inline Elements.
+text.py: Text class
 """
 
 from abc import ABC, abstractmethod
@@ -13,7 +13,7 @@ class Text(ABC):
     @abstractmethod
     def get_str(self) -> str:
         """
-        Returns a human readable string.
+        Return a human readable string.
 
         A subclass inheriting from `Text` returns its own content
         in a readable string format.
@@ -27,7 +27,7 @@ class Text(ABC):
     @abstractmethod
     def get_text(self) -> str:
         """
-        Returns the text data contained in this element.
+        Return the text data contained in this element.
 
         - Ex. Code("some code").get_text() returns "some code"
           (original text data without surrounding char "`").
