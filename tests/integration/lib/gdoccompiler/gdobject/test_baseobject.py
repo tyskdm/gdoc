@@ -10,9 +10,9 @@ The specification of Inline class.
 [@import SWDD.SU[Inline] as=THIS]
 
 """
-from gdoc.lib.gdoccompiler.gdobject.types import CATEGORY_INFO
-from gdoc.lib.gdoccompiler.gdobject.types.baseobject import BaseObject
-from gdoc.lib.gdoccompiler.gdobject.types.category import Category
+from gdoc.lib.gobj.types import CATEGORY_INFO
+from gdoc.lib.gobj.types.baseobject import BaseObject
+from gdoc.lib.gobj.types.category import Category
 
 
 ## @{ @name Inline

@@ -27,8 +27,8 @@ import inspect
 import pytest
 
 from gdoc.lib.gdoccompiler.gdexception import GdocIdError, GdocRuntimeError, GdocTypeError
-from gdoc.lib.gdoccompiler.gdobject.gdsymbol import GdSymbol
-from gdoc.lib.gdoccompiler.gdobject.gdsymboltable import GdSymbolTable
+from gdoc.lib.gobj.gdsymbol import GdSymbol
+from gdoc.lib.gobj.gdsymboltable import GdSymbolTable
 from gdoc.lib.pandocastobject.pandocast.types import create_element
 from gdoc.lib.pandocastobject.pandocstr import PandocStr
 

@@ -3,7 +3,7 @@ GdSymbolTable class
 """
 from enum import Enum, auto
 
-from ..gdexception import GdocIdError, GdocRuntimeError, GdocTypeError
+from gdoc.lib.gdoccompiler.gdexception import GdocIdError, GdocRuntimeError, GdocTypeError
 from .gdsymbol import GdSymbol
 
 

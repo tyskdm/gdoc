@@ -22,7 +22,7 @@ import inspect
 import pytest
 
 from gdoc.lib.gdoccompiler.gdexception import *
-from gdoc.lib.gdoccompiler.gdobject.gdsymbol import GdSymbol
+from gdoc.lib.gobj.gdsymbol import GdSymbol
 
 ## @{ @name \_\_init\_\_(str \| PandocStr)
 ## [\@spec \_\_init\_\_] creates a new instance.

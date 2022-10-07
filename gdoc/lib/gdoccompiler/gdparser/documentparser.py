@@ -2,7 +2,7 @@
 documentparser.py: parse_Document function
 """
 from gdoc.lib.gdoc.document import Document
-from gdoc.lib.gdoccompiler.gdobject.types import GOBJECT
+from gdoc.lib.gobj.types import GOBJECT
 from gdoc.util.result import Result
 
 from .errorreport import ErrorReport

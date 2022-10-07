@@ -8,7 +8,7 @@ from gdoc.lib.gdoc.text import Text
 from gdoc.lib.gdoc.textstring import TextString
 from gdoc.util.result import Err, Ok, Result
 
-from ...gdexception import GdocSyntaxError
+from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from ..errorreport import ErrorReport
 from ..fsm import State, StateMachine
 from .tag import BlockTag

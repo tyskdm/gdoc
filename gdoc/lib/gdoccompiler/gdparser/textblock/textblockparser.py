@@ -4,7 +4,7 @@ textblockparser.py: parse_TextBlock function
 from gdoc.lib.gdoc.line import Line
 from gdoc.lib.gdoc.textblock import TextBlock
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.lib.gdoccompiler.gdobject.types import GOBJECT
+from gdoc.lib.gobj.types import GOBJECT
 from gdoc.lib.gdoccompiler.gdparser.textblock.tag import BlockTag
 from gdoc.util.result import Err, Ok, Result
 

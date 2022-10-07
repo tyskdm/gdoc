@@ -21,7 +21,7 @@ import inspect
 import pytest
 
 from gdoc.lib.gdoccompiler.gdexception import *
-from gdoc.lib.gdoccompiler.gdobject.types.category import Category
+from gdoc.lib.gobj.types.category import Category
 
 
 @pytest.fixture
@@ -82,7 +82,7 @@ def spec___init___3(_TEST_CLASS):
     r"""
     [@spec \_\_init\_\_.2] set props with default values.
     """
-    from gdoc.lib.gdoccompiler.gdobject.types import CATEGORY_INFO
+    from gdoc.lib.gobj.types import CATEGORY_INFO
 
     target = Category(CATEGORY_INFO)
 

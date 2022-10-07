@@ -3,7 +3,7 @@ sectionparser.py: parse_Section function
 """
 from gdoc.lib.gdoc.section import Section
 from gdoc.lib.gdoc.textblock import TextBlock
-from gdoc.lib.gdoccompiler.gdobject.types import GOBJECT
+from gdoc.lib.gobj.types import GOBJECT
 from gdoc.util.result import Err, Ok, Result
 
 from .errorreport import ErrorReport

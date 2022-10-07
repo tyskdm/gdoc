@@ -7,7 +7,7 @@ from enum import Enum, auto
 from gdoc.lib.gdoc.string import String
 from gdoc.lib.gdoc.textstring import TextString
 
-from ...gdexception import *
+from gdoc.lib.gdoccompiler.gdexception import *
 
 
 class Tag(TextString):

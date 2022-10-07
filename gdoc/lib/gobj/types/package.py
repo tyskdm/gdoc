@@ -2,7 +2,7 @@ r"""
 Package class
 """
 
-from ...gdexception import *
+from gdoc.lib.gdoccompiler.gdexception import *
 from .baseobject import BaseObject
 
 

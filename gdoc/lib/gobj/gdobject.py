@@ -1,7 +1,7 @@
 r"""
 GdObject class
 """
-from ..gdexception import *
+from gdoc.lib.gdoccompiler.gdexception import *
 from .gdsymboltable import GdSymbolTable
 
 

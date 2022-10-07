@@ -3,7 +3,7 @@ GdSymbol class
 """
 import re
 
-from ..gdexception import GdocSyntaxError
+from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 
 
 class GdSymbol:

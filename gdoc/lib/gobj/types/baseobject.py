@@ -3,7 +3,7 @@ BaseObject class
 """
 from typing import TypeVar
 
-from ...gdexception import *
+from gdoc.lib.gdoccompiler.gdexception import *
 from ..gdobject import GdObject
 from ..gdsymbol import GdSymbol
 from ..gdsymboltable import GdSymbolTable

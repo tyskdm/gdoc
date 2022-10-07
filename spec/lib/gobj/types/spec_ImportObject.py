@@ -21,8 +21,8 @@ import inspect
 import pytest
 
 from gdoc.lib.gdoccompiler.gdexception import *
-from gdoc.lib.gdoccompiler.gdobject.gdsymboltable import GdSymbolTable
-from gdoc.lib.gdoccompiler.gdobject.types.importobject import ImportObject
+from gdoc.lib.gobj.gdsymboltable import GdSymbolTable
+from gdoc.lib.gobj.types.importobject import ImportObject
 
 
 ## @{ @name \_\_init\_\_(str \| PandocStr)
