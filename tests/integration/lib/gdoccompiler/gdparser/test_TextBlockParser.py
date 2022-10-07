@@ -17,7 +17,7 @@ import pytest
 
 from gdoc.lib.gdoc.document import Document
 from gdoc.lib.gdoc.textstring import TextString
-from gdoc.lib.gdoccompiler.gdparser.textblock import parse_TextBlock
+from gdoc.lib.gdocparser.textblock import parse_TextBlock
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
 

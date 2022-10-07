@@ -5,8 +5,8 @@ import os
 
 from gdoc.lib.gdoc.document import Document as GdocDocument
 from gdoc.lib.gobj.types.document import Document as GobjDocument
-from gdoc.lib.gdoccompiler.gdparser.documentparser import parse_Document
-from gdoc.lib.gdoccompiler.gdparser.errorreport import ErrorReport
+from gdoc.lib.gdocparser.documentparser import parse_Document
+from gdoc.lib.gdocparser.errorreport import ErrorReport
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
 

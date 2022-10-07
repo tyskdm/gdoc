@@ -5,7 +5,7 @@ from gdoc.lib.gdoc.line import Line
 from gdoc.lib.gdoc.textblock import TextBlock
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gobj.types import GOBJECT
-from gdoc.lib.gdoccompiler.gdparser.textblock.tag import BlockTag
+from gdoc.lib.gdocparser.textblock.tag import BlockTag
 from gdoc.util.result import Err, Ok, Result
 
 from ..errorreport import ErrorReport
