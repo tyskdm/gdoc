@@ -1,49 +1,25 @@
+"""
+lineparser.py: parse_Line function
+"""
 from gdoc.lib.gdoc.line import Line
+from gdoc.util.result import Err, Ok, Result
 
+from ..errorreport import ErrorReport
 from .textstringparser import parse_TextString
 
-# from gdoc.lib.gdoc.string import String
-# from gdoc.lib.gdoc.text import Text
 
-# from ..fsm import State, StateMachine
-# from .plaintextparser import parse_PlainText
+def parse_Line(line: Line, opts: dict, errs: ErrorReport) -> Result[Line, ErrorReport]:
+    """
+    parse a Line and returns parsed new Line.
+    """
+    ln: Line
+    ln, e = parse_TextString(line, opts, errs)
 
+    if e and errs.submit(e):
+        return Err(errs)
 
-def parse_Line(line: Line) -> Line:
-    """ """
-    # parser: StateMachine = LineParser()
-    # parser.start()
-    # parser.on_entry(line)
+    parsed_line: Line = Line()
+    parsed_line.eol = line.eol
+    parsed_line[:] = ln
 
-    # for text in line:
-    #     parser.on_event(text)
-
-    # result: Line = parser.on_exit()
-    # parser.stop()
-
-    result: Line = Line()
-    result.eol = line.eol
-    result[:] = parse_TextString(line)
-
-    return result
-
-
-# class LineParser(State):
-#     """ """
-
-#     def __init__(self, name=None) -> None:
-#         super().__init__(name or __class__.__name__)
-#         self.line_elements = Line()
-
-#     def on_entry(self, e):
-#         self.line_elements.clear()
-
-#     def on_event(self, text: Text):
-#         if isinstance(text, String):
-#             self.line_elements += parse_PlainText(text)
-
-#         else:
-#             self.line_elements.append(text)
-
-#     def on_exit(self):
-#         return self.line_elements[:]
+    return Ok(parsed_line)

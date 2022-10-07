@@ -1,6 +1,6 @@
 ```json
 {
-    "args": [null, "Reqt", false, null, "SWRQ", "Software Requirement"],
+    "args": [null, "Reqt", null, null, "SWRQ", "Software Requirement"],
     "type_args": {
         "properties": {"text": ["The software should make me FUN!"]},
 

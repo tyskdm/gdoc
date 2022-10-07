@@ -2,7 +2,7 @@
 documentparser.py: parse_Document function
 """
 from gdoc.lib.gdoc.document import Document
-from gdoc.lib.gdoccompiler.gdobject import GOBJ
+from gdoc.lib.gdoccompiler.gdobject.types import GOBJECT
 from gdoc.util.result import Result
 
 from .errorreport import ErrorReport
@@ -10,8 +10,8 @@ from .sectionparser import parse_Section
 
 
 def parse_Document(
-    document: Document, gobj: GOBJ, opts: dict, errs: ErrorReport
-) -> Result[GOBJ, ErrorReport]:
+    document: Document, gobj: GOBJECT, opts: dict, errs: ErrorReport
+) -> Result[GOBJECT, ErrorReport]:
     """
     parse gdoc.Document
 

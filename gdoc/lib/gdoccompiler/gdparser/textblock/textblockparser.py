@@ -1,35 +1,37 @@
 """
 textblockparser.py: parse_TextBlock function
 """
+from gdoc.lib.gdoc.line import Line
 from gdoc.lib.gdoc.textblock import TextBlock
-from gdoc.lib.gdoccompiler.gdobject import GOBJ
+from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
+from gdoc.lib.gdoccompiler.gdobject.types import GOBJECT
 from gdoc.lib.gdoccompiler.gdparser.textblock.tag import BlockTag
 from gdoc.util.result import Err, Ok, Result
 
-from ...gdobject.types.baseobject import BaseObject
 from ..errorreport import ErrorReport
-from ..fsm import State, StateMachine
 from .lineparser import parse_Line
 
 
 def parse_TextBlock(
-    textblock: TextBlock, gobj: GOBJ, opts: dict, errs: ErrorReport
-) -> Result[GOBJ, ErrorReport]:
+    textblock: TextBlock, gobj: GOBJECT, opts: dict, errs: ErrorReport
+) -> Result[GOBJECT | None, ErrorReport]:
     """
     parse TextBlock and creates Gobj.
 
     @param textblock (TextBlock) : _description_
-    @param gobj (GOBJ) : _description_
+    @param gobj (GOBJECT) : _description_
     @param opts (dict) : _description_
     @param errs (ErrorReport) : _description_
 
-    @return Result[GOBJ, ErrorReport] : if created, returns the new TextObject.
+    @return Result[GOBJECT, ErrorReport] : if created, returns the new TextObject.
                                         othrewise, None.
     """
-    parsed_lines = []
+    parsed_lines: list[Line] = []
+    line: Line
+    parsed_line: Line
     for line in textblock:
-        e = None  # parsed_line, e = parse_Line(line, opts, errs)
-        parsed_line = parse_Line(line)
+        # e = None  # parsed_line, e = parse_Line(line, opts, errs)
+        parsed_line, e = parse_Line(line, opts, errs)
         if e and errs.submit(e):
             return Err(errs)
 
@@ -59,7 +61,7 @@ def parse_TextBlock(
         else:
             following_lines.append(parsed_line)
 
-    child = None
+    child: GOBJECT | None = None
     if block_tag is not None:
         tag_args, tag_opts = block_tag.get_object_arguments()
         tag_opts.update(
@@ -70,12 +72,17 @@ def parse_TextBlock(
                 "following_text": following_text,
             }
         )
-        child = _create_objects(gobj, tag_args, tag_opts)
+        child, e = _create_objects(gobj, tag_args, tag_opts, errs)
+        if e:
+            errs.submit(e)
+            return Err(errs)
 
     return Ok(child)
 
 
-def _create_objects(gobj, tag_args, tag_opts):
+def _create_objects(
+    gobj: GOBJECT, tag_args, tag_opts, errs: ErrorReport
+) -> Result[GOBJECT, ErrorReport]:
     """
     1. The following text of btag will be used as the name. \
         Ignore comment-outs by `[]` is not support yet.
@@ -126,4 +133,11 @@ def _create_objects(gobj, tag_args, tag_opts):
 
     # tag_args[4] = tag_args[4].get_text()  # tag_args[4] = symbol
 
-    return gobj.create_object(*tag_args, type_args=tag_opts)
+    try:
+        child: GOBJECT = gobj.create_object(*tag_args, type_args=tag_opts)
+
+    except GdocSyntaxError as e:
+        errs.submit(e)
+        return Err(errs)
+
+    return Ok(child)

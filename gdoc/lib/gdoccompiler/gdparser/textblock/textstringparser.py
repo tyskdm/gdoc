@@ -1,10 +1,15 @@
+"""
+textstringparser.py: parse_TextString function
+"""
 from typing import Any, List, Optional, Tuple, Union, cast
 
 from gdoc.lib.gdoc.string import String
 from gdoc.lib.gdoc.text import Text
 from gdoc.lib.gdoc.textstring import TextString
+from gdoc.util.result import Err, Ok, Result
 
 from ...gdexception import GdocSyntaxError
+from ..errorreport import ErrorReport
 from ..fsm import State, StateMachine
 from .tag import BlockTag
 from .texttokenizer import TextTokenizer, tokenize_textstring
@@ -13,50 +18,76 @@ from .texttokenizer import TextTokenizer, tokenize_textstring
 # from .tokenizer import Tokenizer
 
 
-def parse_TextString(textstr: TextString) -> TextString:
+def parse_TextString(
+    textstr: TextString, opts: dict, errs: ErrorReport
+) -> Result[TextString, ErrorReport]:
     """
-    Input TextString ::= [ String | Code | Math | Image ]*
-    Output TextString ::= [ String | Code | Math | Image | BlockTag | InlineTag ]*
+    _summary_
 
-    parse_TextString()  # input TextString is raw TextString.
+    @param textstr (TextString) : Tokenized TextString
+    @param opts (dict) : _description_
+    @param errs (ErrorReport) : _description_
 
-    - tokenize_textstring()
-      # Input TextString ::= [ String | Code | Math | Image ]*
-      # String -> " ", "=", ",", '"', "[", "]", "(", ")" or word(= concatenated String).
+    @return Result[TextString, ErrorReport] : _description_
 
-    - parse_BlockTag()
-      - detect_BlockTag()
-        # Input TextString is tokenized TextString.
-        # Tag TextString -> [ Quoted(::= TextString srrounded by ") | String | Code | ... ]*
+    ---
+    - Input TextString ::= [ String | Code | Math | Image ]*
+    - Output TextString ::= [ String | Code | Math | Image | BlockTag | InlineTag ]*
 
-      - create_BlockTag()
-        - parse_ClassInfo()
-        - parse_Arguments()
-          - detect_parentheses()  # TextString srrounded by '(' and ')'
-            # Tag TextString -> [
-            #     Bracketed(::= TextString srrounded by "(" and ")") |
-            #     Quoted(::= TextString srrounded by ") |
-            #     String(::= " " | = | , | " | [ | ] | ( | ) | word(= concatenated String)) |
-            #     Code | Math | Image
-            # ]*
+    ### parse_TextString()  # input TextString is raw TextString.
 
-          - ArgumentParser()
-            # should concatenate "[", "]" and other words.
+    #### 1. tokenize_textstring()
 
-        - BlockTag()
+        Input TextString ::= [ String | Code | Math | Image ]*
+        String -> " ", "=", ",", '"', "[", "]", "(", ")" or word(= concatenated String).
 
-    - parse_InlineTag
+    #### 2. parse_BlockTag()
+
+    - detect_BlockTag()
+
+      Input: tokenized TextString.
+
+          Tag TextString -> [Quoted(::= TextString srrounded by ") | String | Code | ...]*
+
+    - create_BlockTag()
+      - parse_ClassInfo()
+      - parse_Arguments()
+      - detect_parentheses()  # TextString srrounded by '(' and ')'
+
+            Tag TextString -> [
+                Bracketed(::= TextString srrounded by "(" and ")") |
+                Quoted(::= TextString srrounded by ") |
+                String(::= " " | = | , | " | [ | ] | ( | ) | word(= concatenated String))
+                | Code | Math | Image
+            ]*
+
+      - ArgumentParser()
+
+        should concatenate "[", "]" and other words.
+
+      - BlockTag()
+
+    #### 3. parse_InlineTag
     """
-    tokenized_textstr: Optional[TextString] = None
-    tag_index: Optional[int] = None
+    tokenized_textstr: TextString
+    tag_pos: Optional[int]
 
     # Tokenize
     tokenized_textstr = tokenize_textstring(textstr)
 
-    # Detect BlockTag
-    tag_index = -1
-    while tag_index is not None:
-        tokenized_textstr, tag_index = parse_BlockTag(tokenized_textstr, tag_index + 1)
+    # Parse BlockTag(s) in TextString
+    tag_pos = -1
+    while tag_pos is not None:
+        parseresults: Optional[tuple[TextString, Optional[int]]]
+        parseresults, e = parse_BlockTag(tokenized_textstr, tag_pos + 1, opts, errs)
+        if e:
+            if errs.submit(e):
+                return Err(errs)
+
+        if parseresults is None:
+            break
+
+        tokenized_textstr, tag_pos = parseresults
         # replaced a part of tokenized_text with a BlockTag.
 
     # Detect InlineTags
@@ -65,14 +96,24 @@ def parse_TextString(textstr: TextString) -> TextString:
     #     tokenized_textstr, tag_index = parse_InlineTag(tokenized_textstr, tag_index + 1)
     #     # replaced a part of tokenized_text to with a InlineTag.
 
-    return tokenized_textstr
+    return Ok(tokenized_textstr)
 
 
 def parse_BlockTag(
-    tokenized_textstr: TextString, start: int
-) -> Tuple[TextString, Optional[int]]:
+    tokenized_textstr: TextString, start: int, opts: dict, errs: ErrorReport
+) -> Result[tuple[TextString, Optional[int]], ErrorReport]:
+    """
+    _summary_
+
+    @param tokenized_textstr (TextString) : _description_
+    @param start (int) : _description_
+    @param opts (dict) : _description_
+    @param errs (ErrorReport) : _description_
+
+    @return Result[tuple[TextString, Optional[int], ErrorReport]] : _description_
+    """
     textstr: TextString = tokenized_textstr
-    tag_idx: Optional[int] = None
+    tag_pos: Optional[int] = None
     tagpos: Optional[slice] = None
     tagstr: Optional[TextString] = None
     blocktag: Optional[BlockTag] = None
@@ -80,57 +121,56 @@ def parse_BlockTag(
     tagpos, tagstr = detect_BlockTag(tokenized_textstr, start)
 
     if tagpos is not None:
-        """
-        Create tag object
-        """
-        blocktag = create_BlockTag(cast(TextString, tagstr))
+        # Create tag object
+        blocktag, e = create_BlockTag(cast(TextString, tagstr), opts, errs)
+        if e:
+            errs.submit(e)
+
         if blocktag is not None:
             textstr = tokenized_textstr[:]
             textstr[tagpos] = [blocktag]
-            tag_idx = tagpos.start
+            tag_pos = tagpos.start
 
-    return textstr, tag_idx
+    return Ok((textstr, tag_pos))
 
 
 def detect_BlockTag(
     tokenized_textstr: TextString, start: int
-) -> Tuple[Optional[slice], Optional[TextString]]:
-    tagpos: Union[List[int], slice, None] = None
-    tagstr: Optional[TextString] = None
-    tag_start: int = start
+) -> tuple[Optional[slice], Optional[TextString]]:
+    result: tuple[Optional[slice], Optional[TextString]]
+    tagpos: list[int]
+    tagstr: Optional[TextString]
 
     detector: StateMachine = BlockTagDetector()
+    start_pos: int = start
 
-    while tag_start >= 0:
+    while True:
         detector.start().on_entry()
 
-        for i, token in enumerate(tokenized_textstr[tag_start:]):
+        for i, token in enumerate(tokenized_textstr[start_pos:]):
             if detector.on_event((i, token)) is None:
-                tagpos, tagstr = detector.on_exit()  # tagpos: List[int]
                 break
 
-        else:
-            tagpos, tagstr = detector.on_exit()  # tagpos: List[int]
+        tagpos, tagstr = detector.on_exit()
 
-        tagpos = cast(List[int], tagpos)
         if tagpos[0] < 0:
             # Opening str "[@" NOT FOUND
-            tagpos = None
+            result = (None, None)
             break
 
         elif tagpos[1] < 0:
             # "[@" has been found, but NOT END correctly with "]".
             # Retry from the location indicated with tag_start.
-            tag_start += tagpos[0] + 2  # 2 = len('[@')
+            start_pos += tagpos[0] + 2  # 2 = len('[@')
 
         else:
             # Tag detected
-            tagpos = slice(tag_start + tagpos[0], tag_start + tagpos[1])
+            result = (slice(start_pos + tagpos[0], start_pos + tagpos[1]), tagstr)
             break
 
         detector.stop()
 
-    return cast(Optional[slice], tagpos), tagstr  # tagpos: None | slice
+    return result
 
 
 #
@@ -317,7 +357,9 @@ class _String(State):
 #
 # BlockTag constructor
 #
-def create_BlockTag(textstr: TextString) -> BlockTag:
+def create_BlockTag(
+    tagstr: TextString, opts: dict, errs: ErrorReport
+) -> Result[BlockTag, ErrorReport]:
     """
     Call this function with tokens as argument that does
     ~~NOT include starting '[@' and closing ']'.~~
@@ -326,29 +368,42 @@ def create_BlockTag(textstr: TextString) -> BlockTag:
     #                                            [category, type, is_reference]
     class_args: List[Union[str, Text]] = []
     class_kwargs: List[Tuple[Union[str, String], Union[str, Text]]] = []
-    tokens: TextString = textstr[1:-1]  # remove the first "[@" and the last "]"
+    tokens: TextString = tagstr[1:-1]  # remove the first "[@" and the last "]"
+    # TODO: Add removeprefix() and removesuffix() to TextString class and replace above.
 
     if len(tokens) > 0:
         # Class Info
         if TextTokenizer.is_word(tokens[0]):
             # get class info
-            class_info = parse_ClassInfo(tokens[0])
+            class_info, e = parse_ClassInfo(tokens[0], opts, errs)
+            if e:
+                errs.submit(e)
+                return Err(errs)
+
             tokens = tokens[1:]
 
         elif not (isinstance(tokens[0], String) and (tokens[0] == " ")):
-            raise (GdocSyntaxError)
             # Class info should be String
+            errs.submit(GdocSyntaxError())
+            return Err(errs)
 
-        class_args, class_kwargs = parse_Arguments(tokens)
+        args, e = parse_Arguments(tokens, opts, errs)
+        if e:
+            errs.submit(e)
+            return Err(e)
 
-    tag = BlockTag(class_info, class_args, class_kwargs, textstr)
+        class_args, class_kwargs = args
 
-    return tag
+    tag = BlockTag(class_info, class_args, class_kwargs, tagstr)
+
+    return Ok(tag)
 
 
-def parse_ClassInfo(token: String):
-    class_info: List[Union[String, str, None, bool]] = [None, None, False]
-    #                                                   [category, type, is_reference]
+def parse_ClassInfo(
+    token: String, opts: dict, errs: ErrorReport
+) -> Result[list[String | str | None], ErrorReport]:
+    class_info: list[String | str | None] = [None, None, None]
+    #                                       [category, type, is_reference]
 
     if (i := token.find(":")) >= 0:
         class_info[0] = token[:i]
@@ -364,18 +419,23 @@ def parse_ClassInfo(token: String):
         class_info[2] = cast(Union[str, String], class_info[1])[-1]
         class_info[1] = cast(Union[str, String], class_info[1])[:-1]
 
-    return class_info
+    return Ok(class_info)
 
 
 #
 # Argument Parser
 #
-def parse_Arguments(tokens):
+def parse_Arguments(
+    tokens: TextString, opts: dict, errs: ErrorReport
+) -> Result[tuple, ErrorReport]:
     """
     element ::=
     [ word | quoted TextString | ( arguments ) | "=" | " " | "," | OtherTextTypeTokens ]*
     """
-    elements = detect_parentheses(tokens)
+    elements, e = detect_parentheses(tokens, opts, errs)
+    if e:
+        errs.submit(e)
+        return Err(errs)
 
     parser = ArgumentParser().start()
     parser.on_entry()
@@ -385,7 +445,7 @@ def parse_Arguments(tokens):
 
     parser.on_event(None)  # EOL
 
-    return parser.on_exit()
+    return Ok(parser.on_exit())
 
 
 class ArgumentParser(StateMachine):
@@ -414,8 +474,8 @@ class ArgumentParser(StateMachine):
 
     def start(self, param=None):
         self.argstring: TextString = TextString()
-        self.args: List[Text] = []
-        self.kwargs: List[List[Text]] = []
+        self.args: list[Text] = []
+        self.kwargs: list[list[Text]] = []
         return super().start((self.argstring, self.args, self.kwargs))
 
     def on_entry(self, event=None):
@@ -580,19 +640,26 @@ class _Value(State):
         return
 
 
-def detect_parentheses(tokens):
+def detect_parentheses(
+    tokens: TextString, opts: dict, errs: ErrorReport
+) -> Result[TextString, ErrorReport]:
     elements: TextString = TextString()
 
     detector = ParenthesesDetector().start(elements)
 
-    detector.on_entry()
+    try:
+        detector.on_entry()
 
-    for token in tokens:
-        detector.on_event(token)
+        for token in tokens:
+            detector.on_event(token)
 
-    detector.on_exit()
+        detector.on_exit()
 
-    return elements
+    except GdocSyntaxError as e:
+        errs.submit(e)
+        return Err(errs)
+
+    return Ok(elements)
 
 
 class ParenthesesDetector(StateMachine):

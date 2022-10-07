@@ -1,14 +1,16 @@
 r"""
 BaseObject class
 """
-
-from typing import Union
+from typing import TypeVar
 
 from ...gdexception import *
 from ..gdobject import GdObject
 from ..gdsymbol import GdSymbol
 from ..gdsymboltable import GdSymbolTable
 from .category import Category
+
+
+GOBJECT = TypeVar("GOBJECT", bound="BaseObject")
 
 
 class BaseObject(GdObject):
@@ -66,7 +68,7 @@ class BaseObject(GdObject):
         symbol,
         name: str = None,
         type_args: dict = {},
-    ) -> "BaseObject":
+    ) -> GOBJECT:
         r"""
         To avoid consuming the keyword argument namespace, required
         arguments are received in tuples as positional arguments.
