@@ -1,5 +1,4 @@
-from gdoc.lib.gdoc.line import Line
-from gdoc.lib.gdoc.text import Text
+from gdoc.lib.gdoc import Line, Text
 
 from ..fsm import State, StateMachine
 

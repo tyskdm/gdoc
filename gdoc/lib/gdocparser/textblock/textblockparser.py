@@ -1,11 +1,10 @@
 """
 textblockparser.py: parse_TextBlock function
 """
-from gdoc.lib.gdoc.line import Line
-from gdoc.lib.gdoc.textblock import TextBlock
+from gdoc.lib.gdoc import Line, Text, TextBlock, TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.lib.gobj.types import GOBJECT
 from gdoc.lib.gdocparser.textblock.tag import BlockTag
+from gdoc.lib.gobj.types import GOBJECT
 from gdoc.util.result import Err, Ok, Result
 
 from ..errorreport import ErrorReport
@@ -30,7 +29,6 @@ def parse_TextBlock(
     line: Line
     parsed_line: Line
     for line in textblock:
-        # e = None  # parsed_line, e = parse_Line(line, opts, errs)
         parsed_line, e = parse_Line(line, opts, errs)
         if e and errs.submit(e):
             return Err(errs)
@@ -38,16 +36,18 @@ def parse_TextBlock(
         if parsed_line:
             parsed_lines.append(parsed_line)
 
-    preceding_lines = []
-    following_lines = []
-    preceding_text = None
-    following_text = None
-    block_tag = None
+    preceding_lines: list[Line] = []
+    following_lines: list[Line] = []
+    preceding_text: TextString | None = None
+    following_text: TextString | None = None
+    block_tag: BlockTag | None = None
     for parsed_line in parsed_lines:
         #
         # TODO: Add a check for double tagging
         #
         if block_tag is None:
+            i: int
+            text: Text
             for i, text in enumerate(parsed_line):
                 if isinstance(text, BlockTag):
                     block_tag = text

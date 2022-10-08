@@ -4,6 +4,7 @@ GdSymbolTable class
 from enum import Enum, auto
 
 from gdoc.lib.gdoccompiler.gdexception import GdocIdError, GdocRuntimeError, GdocTypeError
+
 from .gdsymbol import GdSymbol
 
 

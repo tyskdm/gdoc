@@ -15,7 +15,7 @@ from unittest import mock
 
 import pytest
 
-from gdoc.lib.gdoc.document import Document
+from gdoc.lib.gdoc import Document
 from gdoc.lib.gdocparser.textblock import parse_TextBlock
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst

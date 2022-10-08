@@ -3,6 +3,7 @@ ImportObject class
 """
 
 from gdoc.lib.gdoccompiler.gdexception import *
+
 from ..gdsymboltable import GdSymbolTable
 from .baseobject import BaseObject
 

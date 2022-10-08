@@ -1,8 +1,7 @@
 """
 sectionparser.py: parse_Section function
 """
-from gdoc.lib.gdoc.section import Section
-from gdoc.lib.gdoc.textblock import TextBlock
+from gdoc.lib.gdoc import Section, TextBlock
 from gdoc.lib.gobj.types import GOBJECT
 from gdoc.util.result import Err, Ok, Result
 

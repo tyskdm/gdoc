@@ -1,7 +1,7 @@
 """
 documentparser.py: parse_Document function
 """
-from gdoc.lib.gdoc.document import Document
+from gdoc.lib.gdoc import Document
 from gdoc.lib.gobj.types import GOBJECT
 from gdoc.util.result import Result
 

@@ -4,9 +4,7 @@ tag.py: tag class
 
 from enum import Enum, auto
 
-from gdoc.lib.gdoc.string import String
-from gdoc.lib.gdoc.textstring import TextString
-
+from gdoc.lib.gdoc import String, TextString
 from gdoc.lib.gdoccompiler.gdexception import *
 
 

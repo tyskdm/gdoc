@@ -3,6 +3,7 @@ Package class
 """
 
 from gdoc.lib.gdoccompiler.gdexception import *
+
 from .baseobject import BaseObject
 
 

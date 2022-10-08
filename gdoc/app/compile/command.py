@@ -3,9 +3,7 @@ command.py
 """
 import json
 
-from gdoc.lib.gdoc.line import Line
-from gdoc.lib.gdoc.string import String
-from gdoc.lib.gdoc.text import Text
+from gdoc.lib.gdoc import Line, String, Text
 from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
 
 

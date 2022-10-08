@@ -1,8 +1,7 @@
 from collections.abc import Iterable
 from typing import Union, cast
 
-from gdoc.lib.gdoc import String, Text
-from gdoc.lib.gdoc.textstring import TextString
+from gdoc.lib.gdoc import String, Text, TextString
 
 from ..fsm import State
 

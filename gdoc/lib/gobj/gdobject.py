@@ -2,6 +2,7 @@ r"""
 GdObject class
 """
 from gdoc.lib.gdoccompiler.gdexception import *
+
 from .gdsymboltable import GdSymbolTable
 
 
