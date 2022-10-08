@@ -7,7 +7,7 @@ from gdoc.lib.gdocparser.textblock.tag import BlockTag
 from gdoc.lib.gobj.types import GOBJECT
 from gdoc.util.result import Err, Ok, Result
 
-from ..errorreport import ErrorReport
+from ....util.errorreport import ErrorReport
 from .lineparser import parse_Line
 
 

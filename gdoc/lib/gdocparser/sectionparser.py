@@ -5,7 +5,7 @@ from gdoc.lib.gdoc import Section, TextBlock
 from gdoc.lib.gobj.types import GOBJECT
 from gdoc.util.result import Err, Ok, Result
 
-from .errorreport import ErrorReport
+from ...util.errorreport import ErrorReport
 from .textblock.textblockparser import parse_TextBlock
 
 

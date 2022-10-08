@@ -4,7 +4,7 @@ lineparser.py: parse_Line function
 from gdoc.lib.gdoc import Line
 from gdoc.util.result import Err, Ok, Result
 
-from ..errorreport import ErrorReport
+from ....util.errorreport import ErrorReport
 from .textstringparser import parse_TextString
 
 

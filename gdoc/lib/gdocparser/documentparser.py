@@ -5,7 +5,7 @@ from gdoc.lib.gdoc import Document
 from gdoc.lib.gobj.types import GOBJECT
 from gdoc.util.result import Result
 
-from .errorreport import ErrorReport
+from ...util.errorreport import ErrorReport
 from .sectionparser import parse_Section
 
 
