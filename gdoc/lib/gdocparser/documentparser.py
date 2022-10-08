@@ -3,7 +3,7 @@ documentparser.py: parse_Document function
 """
 from gdoc.lib.gdoc import Document
 from gdoc.lib.gobj.types import GOBJECT
-from gdoc.util.result import Result
+from gdoc.util import Result
 
 from ...util.errorreport import ErrorReport
 from .sectionparser import parse_Section

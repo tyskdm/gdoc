@@ -5,7 +5,7 @@ from typing import Any, List, Optional, Tuple, Union, cast
 
 from gdoc.lib.gdoc import String, Text, TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.util.result import Err, Ok, Result
+from gdoc.util import Err, Ok, Result
 
 from ....util.errorreport import ErrorReport
 from ..fsm import State, StateMachine

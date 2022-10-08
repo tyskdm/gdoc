@@ -2,7 +2,7 @@
 lineparser.py: parse_Line function
 """
 from gdoc.lib.gdoc import Line
-from gdoc.util.result import Err, Ok, Result
+from gdoc.util import Err, Ok, Result
 
 from ....util.errorreport import ErrorReport
 from .textstringparser import parse_TextString
