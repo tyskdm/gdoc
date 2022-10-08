@@ -10,7 +10,7 @@ from .sectionparser import parse_Section
 
 
 def parse_Document(
-    document: Document, gobj: GOBJECT, opts: dict, errs: ErrorReport
+    document: Document, gobj: GOBJECT, opts: dict, erpt: ErrorReport
 ) -> Result[GOBJECT, ErrorReport]:
     """
     parse gdoc.Document
@@ -19,4 +19,4 @@ def parse_Document(
     - read meta data and set opts based on it.
     """
 
-    return parse_Section(document, gobj, opts, errs)
+    return parse_Section(document, gobj, opts, erpt)

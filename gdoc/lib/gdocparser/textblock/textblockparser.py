@@ -12,7 +12,7 @@ from .lineparser import parse_Line
 
 
 def parse_TextBlock(
-    textblock: TextBlock, gobj: GOBJECT, opts: dict, errs: ErrorReport
+    textblock: TextBlock, gobj: GOBJECT, opts: dict, erpt: ErrorReport
 ) -> Result[GOBJECT | None, ErrorReport]:
     """
     parse TextBlock and creates Gobj.
@@ -20,7 +20,7 @@ def parse_TextBlock(
     @param textblock (TextBlock) : _description_
     @param gobj (GOBJECT) : _description_
     @param opts (dict) : _description_
-    @param errs (ErrorReport) : _description_
+    @param erpt (ErrorReport) : _description_
 
     @return Result[GOBJECT, ErrorReport] : if created, returns the new TextObject.
                                         othrewise, None.
@@ -29,9 +29,9 @@ def parse_TextBlock(
     line: Line
     parsed_line: Line
     for line in textblock:
-        parsed_line, e = parse_Line(line, opts, errs)
-        if e and errs.submit(e):
-            return Err(errs)
+        parsed_line, e = parse_Line(line, opts, erpt)
+        if e and erpt.submit(e):
+            return Err(erpt)
 
         if parsed_line:
             parsed_lines.append(parsed_line)
@@ -72,16 +72,16 @@ def parse_TextBlock(
                 "following_text": following_text,
             }
         )
-        child, e = _create_objects(gobj, tag_args, tag_opts, errs)
+        child, e = _create_objects(gobj, tag_args, tag_opts, erpt)
         if e:
-            errs.submit(e)
-            return Err(errs)
+            erpt.submit(e)
+            return Err(erpt)
 
     return Ok(child)
 
 
 def _create_objects(
-    gobj: GOBJECT, tag_args, tag_opts, errs: ErrorReport
+    gobj: GOBJECT, tag_args, tag_opts, erpt: ErrorReport
 ) -> Result[GOBJECT, ErrorReport]:
     """
     1. The following text of btag will be used as the name. \
@@ -137,7 +137,7 @@ def _create_objects(
         child: GOBJECT = gobj.create_object(*tag_args, type_args=tag_opts)
 
     except GdocSyntaxError as e:
-        errs.submit(e)
-        return Err(errs)
+        erpt.submit(e)
+        return Err(erpt)
 
     return Ok(child)

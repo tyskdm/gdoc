@@ -10,7 +10,7 @@ from .textblock.textblockparser import parse_TextBlock
 
 
 def parse_Section(
-    section: Section, gobj: GOBJECT, opts: dict, errs: ErrorReport
+    section: Section, gobj: GOBJECT, opts: dict, erpt: ErrorReport
 ) -> Result[GOBJECT, ErrorReport]:
     """ """
     context: GOBJECT = gobj
@@ -22,9 +22,9 @@ def parse_Section(
             #
             # Header block
             #
-            context, e = parse_TextBlock(section[0], context, opts, errs)
-            if e and errs.submit(e):
-                return Err(errs)
+            context, e = parse_TextBlock(section[0], context, opts, erpt)
+            if e and erpt.submit(e):
+                return Err(erpt)
 
             context = context or gobj
             i += 1
@@ -35,14 +35,14 @@ def parse_Section(
             #
             blocktype = type(section[i])
             if blocktype is TextBlock:
-                _, e = parse_TextBlock(section[i], context, opts, errs)
-                if e and errs.submit(e):
-                    return Err(errs)
+                _, e = parse_TextBlock(section[i], context, opts, erpt)
+                if e and erpt.submit(e):
+                    return Err(erpt)
 
             elif blocktype is Section:
-                _, e = parse_Section(section[i], context, opts, errs)
-                if e and errs.submit(e):
-                    return Err(errs)
+                _, e = parse_Section(section[i], context, opts, erpt)
+                if e and erpt.submit(e):
+                    return Err(erpt)
 
             i += 1
 

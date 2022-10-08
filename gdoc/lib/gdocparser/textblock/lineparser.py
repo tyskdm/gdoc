@@ -8,15 +8,15 @@ from ....util.errorreport import ErrorReport
 from .textstringparser import parse_TextString
 
 
-def parse_Line(line: Line, opts: dict, errs: ErrorReport) -> Result[Line, ErrorReport]:
+def parse_Line(line: Line, opts: dict, erpt: ErrorReport) -> Result[Line, ErrorReport]:
     """
     parse a Line and returns parsed new Line.
     """
     ln: Line
-    ln, e = parse_TextString(line, opts, errs)
+    ln, e = parse_TextString(line, opts, erpt)
 
-    if e and errs.submit(e):
-        return Err(errs)
+    if e and erpt.submit(e):
+        return Err(erpt)
 
     parsed_line: Line = Line()
     parsed_line.eol = line.eol

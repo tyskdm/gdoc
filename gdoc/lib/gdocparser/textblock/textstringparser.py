@@ -17,14 +17,14 @@ from .texttokenizer import TextTokenizer, tokenize_textstring
 
 
 def parse_TextString(
-    textstr: TextString, opts: dict, errs: ErrorReport
+    textstr: TextString, opts: dict, erpt: ErrorReport
 ) -> Result[TextString, ErrorReport]:
     """
     _summary_
 
     @param textstr (TextString) : Tokenized TextString
     @param opts (dict) : _description_
-    @param errs (ErrorReport) : _description_
+    @param erpt (ErrorReport) : _description_
 
     @return Result[TextString, ErrorReport] : _description_
 
@@ -77,10 +77,10 @@ def parse_TextString(
     tag_pos = -1
     while tag_pos is not None:
         parseresults: Optional[tuple[TextString, Optional[int]]]
-        parseresults, e = parse_BlockTag(tokenized_textstr, tag_pos + 1, opts, errs)
+        parseresults, e = parse_BlockTag(tokenized_textstr, tag_pos + 1, opts, erpt)
         if e:
-            if errs.submit(e):
-                return Err(errs)
+            if erpt.submit(e):
+                return Err(erpt)
 
         if parseresults is None:
             break
@@ -98,7 +98,7 @@ def parse_TextString(
 
 
 def parse_BlockTag(
-    tokenized_textstr: TextString, start: int, opts: dict, errs: ErrorReport
+    tokenized_textstr: TextString, start: int, opts: dict, erpt: ErrorReport
 ) -> Result[tuple[TextString, Optional[int]], ErrorReport]:
     """
     _summary_
@@ -106,7 +106,7 @@ def parse_BlockTag(
     @param tokenized_textstr (TextString) : _description_
     @param start (int) : _description_
     @param opts (dict) : _description_
-    @param errs (ErrorReport) : _description_
+    @param erpt (ErrorReport) : _description_
 
     @return Result[tuple[TextString, Optional[int], ErrorReport]] : _description_
     """
@@ -120,9 +120,9 @@ def parse_BlockTag(
 
     if tagpos is not None:
         # Create tag object
-        blocktag, e = create_BlockTag(cast(TextString, tagstr), opts, errs)
+        blocktag, e = create_BlockTag(cast(TextString, tagstr), opts, erpt)
         if e:
-            errs.submit(e)
+            erpt.submit(e)
 
         if blocktag is not None:
             textstr = tokenized_textstr[:]
@@ -356,7 +356,7 @@ class _String(State):
 # BlockTag constructor
 #
 def create_BlockTag(
-    tagstr: TextString, opts: dict, errs: ErrorReport
+    tagstr: TextString, opts: dict, erpt: ErrorReport
 ) -> Result[BlockTag, ErrorReport]:
     """
     Call this function with tokens as argument that does
@@ -373,21 +373,21 @@ def create_BlockTag(
         # Class Info
         if TextTokenizer.is_word(tokens[0]):
             # get class info
-            class_info, e = parse_ClassInfo(tokens[0], opts, errs)
+            class_info, e = parse_ClassInfo(tokens[0], opts, erpt)
             if e:
-                errs.submit(e)
-                return Err(errs)
+                erpt.submit(e)
+                return Err(erpt)
 
             tokens = tokens[1:]
 
         elif not (isinstance(tokens[0], String) and (tokens[0] == " ")):
             # Class info should be String
-            errs.submit(GdocSyntaxError())
-            return Err(errs)
+            erpt.submit(GdocSyntaxError())
+            return Err(erpt)
 
-        args, e = parse_Arguments(tokens, opts, errs)
+        args, e = parse_Arguments(tokens, opts, erpt)
         if e:
-            errs.submit(e)
+            erpt.submit(e)
             return Err(e)
 
         class_args, class_kwargs = args
@@ -398,7 +398,7 @@ def create_BlockTag(
 
 
 def parse_ClassInfo(
-    token: String, opts: dict, errs: ErrorReport
+    token: String, opts: dict, erpt: ErrorReport
 ) -> Result[list[String | str | None], ErrorReport]:
     class_info: list[String | str | None] = [None, None, None]
     #                                       [category, type, is_reference]
@@ -424,16 +424,16 @@ def parse_ClassInfo(
 # Argument Parser
 #
 def parse_Arguments(
-    tokens: TextString, opts: dict, errs: ErrorReport
+    tokens: TextString, opts: dict, erpt: ErrorReport
 ) -> Result[tuple, ErrorReport]:
     """
     element ::=
     [ word | quoted TextString | ( arguments ) | "=" | " " | "," | OtherTextTypeTokens ]*
     """
-    elements, e = detect_parentheses(tokens, opts, errs)
+    elements, e = detect_parentheses(tokens, opts, erpt)
     if e:
-        errs.submit(e)
-        return Err(errs)
+        erpt.submit(e)
+        return Err(erpt)
 
     parser = ArgumentParser().start()
     parser.on_entry()
@@ -639,7 +639,7 @@ class _Value(State):
 
 
 def detect_parentheses(
-    tokens: TextString, opts: dict, errs: ErrorReport
+    tokens: TextString, opts: dict, erpt: ErrorReport
 ) -> Result[TextString, ErrorReport]:
     elements: TextString = TextString()
 
@@ -654,8 +654,8 @@ def detect_parentheses(
         detector.on_exit()
 
     except GdocSyntaxError as e:
-        errs.submit(e)
-        return Err(errs)
+        erpt.submit(e)
+        return Err(erpt)
 
     return Ok(elements)
 

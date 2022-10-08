@@ -37,8 +37,8 @@ class GdocCompiler:
         gdoc = GdocDocument(pandoc_ast)
 
         gobj = GobjDocument(None, filepath)
-        errs = ErrorReport()
+        erpt = ErrorReport()
 
-        gobj, errs = parse_Document(gdoc, gobj, opts, errs)
+        gobj, erpt = parse_Document(gdoc, gobj, opts, erpt)
 
         return gobj
