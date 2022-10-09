@@ -1,7 +1,6 @@
 """
 gdoc: Gdoc data structure
 """
-from .create_element import create_element
 from .document import Document
 from .line import Line
 from .section import Section

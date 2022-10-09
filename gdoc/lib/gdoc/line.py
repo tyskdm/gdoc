@@ -4,7 +4,7 @@ line.py: Line class
 
 from gdoc.lib.pandocastobject.pandocast.element import Element
 
-from .create_element import create_element
+from .code import Code
 from .string import String
 from .text import Text
 from .textstring import TextString
@@ -50,3 +50,27 @@ class Line(TextString):
 
         if len(plaintext) > 0:
             self.append(String(plaintext))
+
+
+def create_element(element):
+
+    _supported = ["Str", "Code", "Math", "Image", "Quoted", "Cite", "RawInline", "Note"]
+
+    result = None
+
+    t = element.get_type()
+
+    if t == "Str":  # BUGBUG: "Space", "SoftBreak",.. <-- defined in config.
+        result = String([element])
+
+    elif t == "Code":
+        result = Code(element)
+
+    elif t in _supported:
+        # Not yet supported element types.
+        result = None
+
+    else:
+        raise RuntimeError()
+
+    return result
