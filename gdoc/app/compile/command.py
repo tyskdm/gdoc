@@ -3,7 +3,7 @@ command.py
 """
 import json
 
-from gdoc.lib.gdoc import Line, String, Text
+from gdoc.lib.gdoc import String, Text, TextString
 from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
 
 
@@ -62,7 +62,7 @@ def _cast_to_str(prop):
         if isinstance(prop[key], String):
             prop[key] = str(prop[key])
 
-        elif isinstance(prop[key], (Text, Line)):
+        elif isinstance(prop[key], Text):
             prop[key] = str(prop[key].get_str())
 
         elif isinstance(prop[key], (dict, list)):

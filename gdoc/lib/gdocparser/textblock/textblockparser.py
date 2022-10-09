@@ -1,14 +1,13 @@
 """
 textblockparser.py: parse_TextBlock function
 """
-from gdoc.lib.gdoc import Line, Text, TextBlock, TextString
+from gdoc.lib.gdoc import Text, TextBlock, TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gdocparser.textblock.tag import BlockTag
 from gdoc.lib.gobj.types import GOBJECT
 from gdoc.util import Err, Ok, Result
 
 from ....util.errorreport import ErrorReport
-
 from .textstringparser import parse_TextString
 
 
@@ -26,9 +25,9 @@ def parse_TextBlock(
     @return Result[GOBJECT, ErrorReport] : if created, returns the new TextObject.
                                         othrewise, None.
     """
-    parsed_lines: list[Line] = []
-    line: Line
-    parsed_line: Line
+    parsed_lines: list[TextString] = []
+    line: TextString
+    parsed_line: TextString
     for line in textblock:
         parsed_line, e = parse_TextString(line, opts, erpt)
         if e and erpt.submit(e):
@@ -37,8 +36,8 @@ def parse_TextBlock(
         if parsed_line:
             parsed_lines.append(parsed_line)
 
-    preceding_lines: list[Line] = []
-    following_lines: list[Line] = []
+    preceding_lines: list[TextString] = []
+    following_lines: list[TextString] = []
     preceding_text: TextString | None = None
     following_text: TextString | None = None
     block_tag: BlockTag | None = None
