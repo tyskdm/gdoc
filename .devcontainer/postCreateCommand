@@ -11,6 +11,9 @@ fi
 # PlantUML
 sudo ln -s $(pwd)/.devcontainer/plantuml /usr/local/bin/
 
+# doxybook2
+sudo ln -s $(pwd)/.devcontainer/doxybook /usr/local/bin/
+
 # gdoc
 sudo ln -s $(pwd)/bin/gdoc /usr/local/bin/
 
