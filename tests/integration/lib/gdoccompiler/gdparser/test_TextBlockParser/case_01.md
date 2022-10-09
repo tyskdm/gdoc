@@ -8,11 +8,11 @@
         "tag_kwargs": [["k1", "1"], ["k2", "2"]],
 
         "preceding_lines": [
-            "Preceding line"
+            "Preceding line\n"
         ],
         "preceding_text": "Preceding text ",
         "tag_text": "[@cat:type& - id k1=1, k2=2]",
-        "following_text": " Following text",
+        "following_text": " Following text\n",
         "following_lines": [
             "Following line"
         ]

@@ -15,13 +15,8 @@ class Line(TextString):
 
     def __init__(self, inlines=[], eol=None, opts={}):
         super().__init__()  # init as an empty list
-        self.eol = None if eol is None else String([eol])
-        self.__opts = opts  # not yet copy() / copy.deepcopy()
-        # self.__opts = copy.deepcopy(DEFAULTS).update(opts)
 
-        plain: list = (
-            self.__opts.get("pandocast", {}).get("types", {}).get("plaintext", [])
-        )
+        plain: list = opts.get("pandocast", {}).get("types", {}).get("plaintext", [])
 
         plaintext: list = []
         for item in inlines:
@@ -54,7 +49,17 @@ class Line(TextString):
 
 def create_element(element):
 
-    _supported = ["Str", "Code", "Math", "Image", "Quoted", "Cite", "RawInline", "Note"]
+    _supported = [
+        # "Str",
+        # "Code",
+        "Math",
+        "Image",
+        "Quoted",
+        "Cite",
+        "RawInline",
+        "Note",
+        # "LineBreak",
+    ]
 
     result = None
 
@@ -65,6 +70,9 @@ def create_element(element):
 
     elif t == "Code":
         result = Code(element)
+
+    elif t == "LineBreak":
+        result = String([element])
 
     elif t in _supported:
         # Not yet supported element types.

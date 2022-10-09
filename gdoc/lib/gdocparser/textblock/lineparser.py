@@ -12,14 +12,4 @@ def parse_Line(line: Line, opts: dict, erpt: ErrorReport) -> Result[Line, ErrorR
     """
     parse a Line and returns parsed new Line.
     """
-    ln: Line
-    ln, e = parse_TextString(line, opts, erpt)
-
-    if e and erpt.submit(e):
-        return Err(erpt)
-
-    parsed_line: Line = Line()
-    parsed_line.eol = line.eol
-    parsed_line[:] = ln
-
-    return Ok(parsed_line)
+    return parse_TextString(line, opts, erpt)

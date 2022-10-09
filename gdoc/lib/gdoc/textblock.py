@@ -31,6 +31,7 @@ class TextBlock(list):
             if type in remove:
                 pass
             elif type == "LineBreak":
+                line.append(item)
                 self.append(Line(line, eol=item, opts=self.__opts))
                 line = []
             else:

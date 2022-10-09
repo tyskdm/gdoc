@@ -10,7 +10,7 @@
         "preceding_lines": [],
         "preceding_text": "",
         "tag_text": "[@Reqt SWRQ]",
-        "following_text": " Software Requirement",
+        "following_text": " Software Requirement\n",
         "following_lines": [
             "The software should make me FUN!"
         ]
