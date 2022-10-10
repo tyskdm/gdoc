@@ -140,13 +140,9 @@ This document refers to the following documents.
 
 ### 5.1. Class definitions
 
-<div align=center>
-
-[![](./_puml_/gdObject/GdObject_hierarchy.png)](./gdObject.puml)  \
-  \
-[@fig 4.1.1\] GdObject class hierarchy
-
-</div>
+| [![](./_puml_/gdObject/GdObject_hierarchy.png)](./gdObject.puml) |
+| :-----: |
+| [@fig 4.1.1\] GdObject class hierarchy |
 
 <br>
 
@@ -200,13 +196,10 @@ These are internal classes that provide the basic mechanisms.
 
 Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
-<div align=center>
+| [![](./_puml_/gdObject/gdocCompilerSequenceDiagram.png)](./gdObject.puml) |
+| :-----: |
+| [@fig 4.2.2\] gdocCompiler Sequence Diagram |
 
-[![](./_puml_/gdObject/gdocCompilerSequenceDiagram.png)](./gdObject.puml)  \
-  \
-[@fig 4.2.2\] gdocCompiler Sequence Diagram
-
-</div>
 <br>
 
 ### 6.2. Json dumps/loads
@@ -215,13 +208,9 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
 <br>
 
-<div align=center>
-
-[![](./_puml_/gdObject/GdocObject_dumps_Sequence.png)](./gdObject.puml) \
-\
-[@fig 1.1] dumps() Sequence
-
-</div>
+| [![](./_puml_/gdObject/GdocObject_dumps_Sequence.png)](./gdObject.puml) |
+| :-----: |
+| [@fig 1.1] dumps() Sequence |
 
 <br>
 
@@ -229,13 +218,9 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
 <br>
 
-<div align=center>
-
-[![](./_puml_/gdObject/GdocObject_loads_Sequence.png)](./gdObject.puml) \
-\
-[@fig 1.2] loads() Sequence
-
-</div>
+| [![](./_puml_/gdObject/GdocObject_loads_Sequence.png)](./gdObject.puml) |
+| :-----: |
+| [@fig 1.2] loads() Sequence |
 
 <br>
 

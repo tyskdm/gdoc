@@ -92,14 +92,9 @@ This document refers to the following documents.
 To access a pandocAst object, apply the Element Handler for each of its individual elements.
 The basic element types are as follows.
 
-<div align=center>
-
-[![@source: ./PandocAst.pml#PandocAstInternalBlocks  \
-@type: puml](./_puml_/PandocAst/PandocAstInternalBlocks.png)](./PandocAst.puml)  \
-\
-[@fig 4.1\] PandocAst ElementHandlers
-
-</div>
+| [![@source: ./PandocAst.pml#PandocAstInternalBlocks @type: puml](./_puml_/PandocAst/PandocAstInternalBlocks.png)](./PandocAst.puml) |
+| :-----: |
+| [@fig 4.1\] PandocAst ElementHandlers |
 
 ### 4.2. Element Types
 
@@ -121,14 +116,10 @@ Two means to cover them are as follows.
 
 ### 5.1. Class Hierarchy
 
-<div align=center>
-
-[![@source: ./PandocAst.puml#PandocAstObjectClassHierarchy  \
-@type: puml](./_puml_/PandocAst/PandocAstObjectClassHierarchy.png)](./PandocAst.puml)  \
-  \
-[@fig 5.1\] PandocAst ElementHandler class hierarchy
-
-</div>
+| [![@source: ./PandocAst.puml#PandocAstObjectClassHierarchy  \
+@type: puml](./_puml_/PandocAst/PandocAstObjectClassHierarchy.png)](./PandocAst.puml) |
+| :-----: |
+| [@fig 5.1\] PandocAst ElementHandler class hierarchy |
 
 ### 5.2. Element-Handler Mapping
 

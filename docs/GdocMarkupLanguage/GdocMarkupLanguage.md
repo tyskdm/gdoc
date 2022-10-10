@@ -145,12 +145,9 @@ GdObjectの概念説明用クラス図を以下に示す。
 
 <br>
 
-<div align=center>
-
-[![](./_puml_/GdocMarkupLanguage/GdocObjectClass.png)](./GdocMarkupLanguage.puml)  \
-[@fig 1.1] GdObject Class
-
-</div>
+| [![](./_puml_/GdocMarkupLanguage/GdocObjectClass.png)](./GdocMarkupLanguage.puml) |
+| :-----: |
+| [@fig 1.1] GdObject Class |
 
 <br>
 
@@ -334,13 +331,11 @@ This is called the Gdoc data structure, and a document that follows this structu
 GDML is a markup language for Gdoc documents.
 
 <br>
-<div align=center>
 
-[![](./_puml_/GdocMarkupLanguage/GdocObjectStructure.png)](./GdocMarkupLanguage.puml) \
-\
-[@fig 1.1] Gdoc Data Structure [Overview]
+| [![](./_puml_/GdocMarkupLanguage/GdocObjectStructure.png)](./GdocMarkupLanguage.puml) |
+| :-----: |
+| [@fig 1.1] Gdoc Data Structure [Overview] |
 
-</div>
 <br>
 
 Gdoc Markup Notation では便宜上、Header, Para, Plane, LineBlock の４タイプを、テキストブロックと呼ぶ。
@@ -533,13 +528,11 @@ Gdocはこのリスト内のブロックを先頭から順に取り出し、解�
 そのブロック取り出しの際、以下のルールに従う。
 
 <br>
-<div align=center>
 
-[![](./_puml_/GdocMarkupLanguage/SectionDataStructure.png)](./GdocMarkupLanguage.puml) \
-\
-[@fig 1.1] Section Data Structure
+| [![](./_puml_/GdocMarkupLanguage/SectionDataStructure.png)](./GdocMarkupLanguage.puml) |
+| :-----: |
+| [@fig 1.1] Section Data Structure |
 
-</div>
 <br>
 
 #### 4.1.1. Div Block
@@ -669,13 +662,11 @@ GDML文法上の全てのケースで無視される。
 入力情報の形式について。
 
 <br>
-<div align=center>
 
-[![](./_puml_/GdocMarkupLanguage/TextBlockDataStructure.png)](./GdocMarkupLanguage.puml)  \
-\
-[@fig 1.1] TextBlock Data Structure
+| [![](./_puml_/GdocMarkupLanguage/TextBlockDataStructure.png)](./GdocMarkupLanguage.puml) |
+| :-----: |
+| [@fig 1.1] TextBlock Data Structure |
 
-</div>
 <br>
 
 Memo:

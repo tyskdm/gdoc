@@ -230,13 +230,10 @@ Line is elements contained in TextBlock or the first line in CodeBlock.
 ### 6.1. BlockList Parser
 
 <br>
-<div align=center>
+| [![](./_puml_/gdParser/BlockListParser.png)](./gdParser.puml) |
+| :-----: |
+| [@fig 1.1] Parsing rule of Bloc kList |
 
-[![](./_puml_/gdParser/BlockListParser.png)](./gdParser.puml) \
-\
-[@fig 1.1] Parsing rule of Bloc kList
-
-</div>
 <br>
 
 - Blocklist Parser divides block list to section and keeps context object.
@@ -249,13 +246,10 @@ The text block parser divides the components of a text block into lines.
 2. The extracted element sequence is divided by line break elements to generate lines.
 
 <br>
-<div align=center>
+| [![](./_puml_/gdParser/TextBlockParser.png)](./gdParser.puml) |
+| :-----: |
+| [@fig 1.1] Parsing rule of Bloc |
 
-[![](./_puml_/gdParser/TextBlockParser.png)](./gdParser.puml) \
-\
-[@fig 1.1] Parsing rule of Bloc
-
-</div>
 <br>
 
 <br>

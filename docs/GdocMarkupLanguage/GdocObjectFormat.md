@@ -176,13 +176,10 @@ A Gdoc object has an Id or Name or both of them.
 
 ### 3.1. Object
 
-<div align=center>
+| [![](./_puml_/GdocObjectFormat/Plugins_ClassDiagram.png)](./GdocObjectFormat.puml) |
+| :-----: |
+| [@fig 4.1\] pandocAstObject Internal Blocks |
 
-[![](./_puml_/GdocObjectFormat/Plugins_ClassDiagram.png)](./GdocObjectFormat.puml)  \
-  \
-[@fig 4.1\] pandocAstObject Internal Blocks
-
-</div>
 <br>
 
 ### 3.2. Document
@@ -213,13 +210,10 @@ Packageには２つの意味がある。
    - ~~preCompiledPackageとして提供される場合がある。~~
      - 外部パッケージへの依存関係でリンク結果が変わる場合があり、これを固定することが危険なため。
 
-<div align=center>
+| [![](./_puml_/GdocObjectFormat/GdocObjectClass.png)](./GdocObjectFormat.puml) |
+| :-----: |
+| [@fig 4.1\] pandocAstObject Internal Blocks |
 
-[![](./_puml_/GdocObjectFormat/GdocObjectClass.png)](./GdocObjectFormat.puml)  \
-  \
-[@fig 4.1\] pandocAstObject Internal Blocks
-
-</div>
 <br>
 
 #### Packageとは-２ <!-- omit in toc -->

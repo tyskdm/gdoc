@@ -119,14 +119,9 @@ This document refers to the following documents.
 
 The figure below shows the internal blocks of GDOC.
 
-<div align=center>
-
-![@source: "" @type: pptx](./ArchitecturalDesign.png)  \
-  \
-[@fig 3.1\] gdoc Internal Block Diagram [rough sketch]
-
-</div>
-<br>
+| ![@fig source="" type=puml](./ArchitecturalDesign.png) |
+| :-----: |
+| [@fig 3.1\] gdoc Internal Block Diagram [rough sketch] |
 
 1. [@Strategy s1] Pluggable Application subcommand \
    Keep subcommands separate from others to make it easier for users to add their own subcommands.
@@ -138,14 +133,9 @@ The figure below shows the internal blocks of GDOC.
 
 ### 3.2. Structure
 
-<div align=center>
-
-[![@source: ./ArchitecturalDesign.puml#GdocArchitecturalDesign  \
-@type: puml](./_puml_/ArchitecturalDesign/GdocArchitecturalDesign.png)](./ArchitecturalDesign.puml)  \
-  \
-[@fig 3.2\] gdoc Internal Blocks
-
-</div>
+| [![@source: ./ArchitecturalDesign.puml#GdocArchitecturalDesign @type: puml](./_puml_/ArchitecturalDesign/GdocArchitecturalDesign.png)](./ArchitecturalDesign.puml) |
+| :-----: |
+| [@fig 3.2\] gdoc Internal Blocks |
 
 The blocks in the figure are defined as follows.
 
@@ -190,28 +180,18 @@ The blocks in the figure are defined as follows.
 
 The following sequence shows the typical behavior of the GDOC command from start to finish.
 
-<div align=center>
-
-[![@source: ./ArchitecturalDesign.puml#Gdoc_StartToFinish_Sequence  \
-@type: puml](./_puml_/ArchitecturalDesign/Gdoc_StartToFinish_Sequence.png)](./ArchitecturalDesign.puml)  \
-  \
-[@fig 3.3\] gdoc execution lifecycle
-
-</div>
+| [![@source: ./ArchitecturalDesign.puml#Gdoc_StartToFinish_Sequence  @type: puml](./_puml_/ArchitecturalDesign/Gdoc_StartToFinish_Sequence.png)](./ArchitecturalDesign.puml) |
+| :-----: |
+| [@fig 3.3\] gdoc execution lifecycle |
 
 #### 3.3.2. Creating An Object
 
 gdocCompiler parses a source document and generates objects according to tags.
 When it finds a tag in the document, gdocComiler generates an object with class constructor as follows.
 
-<div align=center>
-
-[![Creating an object](./_puml_/ArchitecturalDesign/Gdoc_CreateObject_Sequence.png)](./ArchitecturalDesign.puml)  \
-  \
-[@fig 3.4\] Creating an object
-
-</div>
-<br>
+| [![Creating an object](./_puml_/ArchitecturalDesign/Gdoc_CreateObject_Sequence.png)](./ArchitecturalDesign.puml) |
+| :-----: |
+| [@fig 3.4\] Creating an object |
 
 <br>
 
@@ -323,13 +303,9 @@ The followings are some of the usecases by application subcommands.
 
 #### 4.1.2. Internal Blocks
 
-<div align=center>
-
-[![gdocPackage Internal Blocks](./_puml_/ArchitecturalDesign/gdocPackageInternalBlocks.png)](./ArchitecturalDesign.puml)  \
-  \
-[@fig 4.1.1\] gdocPackage Internal Blocks
-
-</div>
+| [![gdocPackage Internal Blocks](./_puml_/ArchitecturalDesign/gdocPackageInternalBlocks.png)](./ArchitecturalDesign.puml) |
+| :-----: |
+| [@fig 4.1.1\] gdocPackage Internal Blocks |
 
 #### 4.1.3. Structure
 
@@ -381,23 +357,17 @@ gdocPackage has the following external interfaces.
 
 The build sequence is shown in the figure below.
 
-<div align=center>
-
-[![gdocPackage Build sequence](./_puml_/ArchitecturalDesign/gdocPackage_Build_Sequence.png)](./ArchitecturalDesign.puml)  \
-  \
-[@fig 4.1.2\] gdocPackage Build sequence
-</div>
+| [![gdocPackage Build sequence](./_puml_/ArchitecturalDesign/gdocPackage_Build_Sequence.png)](./ArchitecturalDesign.puml) |
+| :-----: |
+| [@fig 4.1.2\] gdocPackage Build sequence |
 
 ##### 4.1.4.2. Lint
 
 The Link sequence is shown in the figure below.
 
-<div align=center>
-
-[![gdocPackage Build sequence](./_puml_/ArchitecturalDesign/gdocPackage_Lint_Sequence.png)](./ArchitecturalDesign.puml)  \
-  \
-[@fig 4.1.2\] gdocPackage Build sequence
-</div>
+| [![gdocPackage Build sequence](./_puml_/ArchitecturalDesign/gdocPackage_Lint_Sequence.png)](./ArchitecturalDesign.puml) |
+| :-----: |
+| [@fig 4.1.2\] gdocPackage Build sequence |
 
 <br>
 
@@ -456,13 +426,9 @@ The requirements given to THIS are as follows.
 
 #### 4.2.2. Internal Blocks
 
-<div align=center>
-
-[![gdocCompiler Internal Blocks](./_puml_/ArchitecturalDesign/gdocCompilerInternalBlocks.png)](./ArchitecturalDesign.puml)  \
-  \
-[@fig 4.2.1\] gdocCompiler Internal Blocks
-
-</div>
+| [![gdocCompiler Internal Blocks](./_puml_/ArchitecturalDesign/gdocCompilerInternalBlocks.png)](./ArchitecturalDesign.puml) |
+| :-----: |
+| [@fig 4.2.1\] gdocCompiler Internal Blocks |
 
 1. [@Strategy s1] gdParser \
    The parser functionality should be easy to test, as the specification is complex and is expected to change frequently.
@@ -514,13 +480,10 @@ The requirements given to THIS are as follows.
 
 ##### 4.2.4.1. Compile
 
-<div align=center>
+| [![gdocCompiler Sequence Diagram](./_puml_/ArchitecturalDesign/gdocCompilerSequenceDiagram.png)](./ArchitecturalDesign.puml) |
+| :-----: |
+| [@fig 4.2.2\] gdocCompiler Sequence Diagram |
 
-[![gdocCompiler Sequence Diagram](./_puml_/ArchitecturalDesign/gdocCompilerSequenceDiagram.png)](./ArchitecturalDesign.puml)  \
-  \
-[@fig 4.2.2\] gdocCompiler Sequence Diagram
-
-</div>
 <br>
 
 #### 4.2.5. [@ ra] Requirements allocation
@@ -593,13 +556,10 @@ The requirements given to THIS are as follows.
 
 #### 4.3.2. Structure
 
-<div align=center>
+| [![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/pandocAstObjectArchitecturalDesign.png)](./ArchitecturalDesign.puml) |
+| :-----: |
+| [@fig 4.1\] pandocAstObject Internal Blocks |
 
-[![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/pandocAstObjectArchitecturalDesign.png)](./ArchitecturalDesign.puml)  \
-  \
-[@fig 4.1\] pandocAstObject Internal Blocks
-
-</div>
 <br>
 
 ##### 4.3.2.1. Blocks
@@ -761,24 +721,16 @@ The requirements given to THIS are as follows.
 
 #### 4.5.2. Structure
 
-<div align=center>
-
-[![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugin_Blcok_Diagram.png)](./ArchitecturalDesign.puml)  \
-  \
-[@fig 4.1\] pandocAstObject Internal Blocks
-
-</div>
+| [![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugin_Blcok_Diagram.png)](./ArchitecturalDesign.puml) |
+| :-----: |
+| [@fig 4.1\] pandocAstObject Internal Blocks |
 
 - 参考： gdoc Classes
   - [ ] PluginClassの設計書へ移動する
 
-  <div align=center>
-
-  [![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugins_ClassDiagram.png)](./ArchitecturalDesign.puml)  \
-    \
-  [@fig 4.1\] pandocAstObject Internal Blocks
-
-  </div>
+  | [![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugins_ClassDiagram.png)](./ArchitecturalDesign.puml) |
+  | :-----: |
+  | [@fig 4.1\] pandocAstObject Internal Blocks |
 
 <br>
 
@@ -821,13 +773,9 @@ The requirements given to THIS are as follows.
 
 ##### 4.5.3.1. Add Properties
 
-<div align=center>
-
-[![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugins_AddProp_Sequence.png)](./ArchitecturalDesign.puml)  \
-  \
-[@fig 4.1\] pandocAstObject Internal Blocks
-
-</div>
+| [![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugins_AddProp_Sequence.png)](./ArchitecturalDesign.puml) |
+| :-----: |
+| [@fig 4.1\] pandocAstObject Internal Blocks |
 
 このシーケンスではgdObject.set_prop()とgdObject._set_prop()の関係を表しているが、固定ではない。
 プラグインには以下の設計自由度がある。
@@ -839,13 +787,10 @@ The requirements given to THIS are as follows.
 
 ##### 4.5.3.2. Add Child
 
-<div align=center>
+| [![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugins_AddChild_Sequence.png)](./ArchitecturalDesign.puml) |
+| :-----: |
+| [@fig 4.1\] pandocAstObject Internal Blocks |
 
-[![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugins_AddChild_Sequence.png)](./ArchitecturalDesign.puml)  \
-  \
-[@fig 4.1\] pandocAstObject Internal Blocks
-
-</div>
 <br>
 
 - あるクラスが、親クラスの add_child()を呼び出す（親クラスの独自処理を実施する）か、_add_child()を呼び出す（親クラスの独自処理を実施しない）かは、クラスの設計に任せる。
@@ -887,13 +832,9 @@ The requirements given to THIS are as follows.
 
 #### 4.6.2. Structure
 
-<div align=center>
-
-[![ApplicationSubcommand_Block_Definition](./_puml_/ArchitecturalDesign/ApplicationSubcommand_Block_Definition.png)](./ArchitecturalDesign.puml)  \
-  \
-[@fig 4.1\] ApplicationSubcommand_Block_Definition
-
-</div>
+| [![ApplicationSubcommand_Block_Definition](./_puml_/ArchitecturalDesign/ApplicationSubcommand_Block_Definition.png)](./ArchitecturalDesign.puml) |
+| :-----: |
+| [@fig 4.1\] ApplicationSubcommand_Block_Definition |
 
 ##### 4.6.2.1. Blocks
 
