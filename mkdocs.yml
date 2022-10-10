@@ -1,8 +1,29 @@
 site_name: gdoc
 
+# ## Contents Navigation
+# nav:
+# 
+# - はじめに:
+#     - はじめに: index.md
+#     - 環境設定: settings.md
+# - 概要:
+#     - DevelopersIOについて: overview/overview.md
+# - ジョインブログ執筆:
+#     - ログイン: join-blog-flow/login.md
+#     - アカウントの確認と設定: join-blog-flow/account.md
+#     - ジョインブログに書く内容: join-blog-flow/topics.md
+#     - 記法: join-blog-flow/notation.md
+#     - 執筆フロー: join-blog-flow/writing-flow.md
+
 theme:
   name: material
-  
+  features:
+    - navigation.tabs
+    - navigation.top
+  palette:
+      accent: Black
+      primary: Black
+
 plugins:
   - search
 

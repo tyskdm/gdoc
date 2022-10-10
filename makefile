@@ -40,7 +40,7 @@ doc-clean:
 #
 DOXYBOOKFLAGS :=
 
-book: book-clean doc-clean doc
+book: book-clean doc-clean puml-clean puml-img doc
 	@$(RM) -rf $(DOCSDIR)/$(DOXYBOOKDIR)
 	@mkdir -p $(DOCSDIR)/$(DOXYBOOKDIR)
 	@doxybook --input $(DOXYGENDIR)/$(DOXYXMLDIR) \
@@ -49,6 +49,9 @@ book: book-clean doc-clean doc
 
 book-clean:
 	@$(RM) -rf $(DOCSDIR)/$(DOXYBOOKDIR)
+
+book-serve: book
+	@mkdocs serve
 
 #
 # PlantUML
