@@ -18,9 +18,7 @@ class TextString(list[Text], Text):
     - @trace(realize): `_BlockId_`
     """
 
-    def __init__(self, inlines=[], opts={}):
-        super().__init__()  # init as an empty list
-
+    def __init__(self, items: list[Text] | str = [], opts={}):
         _plain: list = opts.get("pandocast", {}).get("types", {}).get("plaintext", [])
         _other_known_types = [
             # "Str",
@@ -35,32 +33,43 @@ class TextString(list[Text], Text):
             "RawInline",
             "Note",
         ]
+        super().__init__()  # init as an empty list
+
+        inlines: list[Text]
+
+        if type(items) is str:
+            inlines = [String(items)]
+
+        elif type(items) is list:
+            inlines = items
+
+        else:
+            raise TypeError()
 
         for item in inlines:
             if isinstance(item, Text):
                 self.append(item)
 
             elif isinstance(item, Element):
-                type = item.get_type()
+                etype = item.get_type()
 
-                if type in _plain:
+                if etype in _plain:
                     self.append(String([item]))
 
-                elif type == "LineBreak":
+                elif etype == "LineBreak":
                     self.append(String([item]))
 
-                elif type == "Code":
+                elif etype == "Code":
                     self.append(Code(item))
 
-                elif type in _other_known_types:
+                elif etype in _other_known_types:
                     # Not yet supported element types.
                     pass
 
                 else:
-                    raise RuntimeError()
-
+                    raise TypeError()
             else:
-                raise RuntimeError()
+                raise TypeError()
 
     # @Override(list)
     def append(self, text: Text) -> None:
