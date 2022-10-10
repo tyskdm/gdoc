@@ -2,14 +2,14 @@
 [
     "expected data",
     [
-        ["First line", "\n" ],
-        ["Second line", "\n"],
-        ["Third line" ]
+        ["First", " ", "line", "\n"],
+        ["Second", " ", "line", "\n"],
+        ["Third", " ", "line" ]
     ],
     [
-        ["1st. line", "\n"],
-        ["2nd. line", "\n"],
-        ["3rd. line"]
+        ["1st.", " ", "line", "\n"],
+        ["2nd.", " ", "line", "\n"],
+        ["3rd.", " ", "line"]
     ]
 ]
 ```

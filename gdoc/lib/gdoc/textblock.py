@@ -32,7 +32,7 @@ class TextBlock(list):
                 pass
             elif type == "LineBreak":
                 line.append(item)
-                self.append(TextString(line, eol=item, opts=self.__opts))
+                self.append(TextString(line, opts=self.__opts))
                 line = []
             else:
                 line.append(item)
