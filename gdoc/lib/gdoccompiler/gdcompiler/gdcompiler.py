@@ -17,7 +17,7 @@ class GdocCompiler:
     def __init__(self) -> None:
         pass
 
-    def compile(self, filepath: str, option: dict = {}):
+    def compile(self, filepath: str, opts: dict = {}):
         """
         1. fileの存在確認
         2. ./_gdoc_/filename.past.json の存在確認
@@ -27,8 +27,6 @@ class GdocCompiler:
         6. パーサーの生成、visitorの取得、start(Document)。
         7. Pandoc.accept(parser)して、エレメントをイベントとしてパーサーに投げる。
         """
-        opts = {}.update(option)
-
         if not os.path.isfile(filepath):
             return f"{filepath} is not found."
 
