@@ -5,7 +5,7 @@ from gdoc.lib.gdoc import String, Text, TextString
 
 from ..fsm import State
 
-_TOKEN_CHARS = (" ", ",", "=", "@", "[", "]", "(", ")", "{", "}", '"', "\\")
+_TOKEN_CHARS = (" ", ",", "=", "@", "[", "]", "(", ")", "{", "}", '"', "\\", "\n")
 
 
 def tokenize_textstring(textstr: TextString) -> TextString:

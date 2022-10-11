@@ -3,7 +3,7 @@ textblockparser.py: parse_TextBlock function
 """
 from gdoc.lib.gdoc import Text, TextBlock, TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.lib.gdocparser.textblock.tag import BlockTag
+from gdoc.lib.gdocparser.tag.tag import BlockTag
 from gdoc.lib.gobj.types import GOBJECT
 from gdoc.util import Err, Ok, Result
 
