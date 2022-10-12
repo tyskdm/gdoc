@@ -10,7 +10,7 @@ from gdoc.util.errorreport import ErrorReport
 
 from ..fsm import State, StateMachine
 from ..textblock.texttokenizer import TextTokenizer
-from .tag import BlockTag
+from .blocktag import BlockTag
 
 # from .inlinetagparser import parse_InlineTag
 # from .tokenizer import Tokenizer

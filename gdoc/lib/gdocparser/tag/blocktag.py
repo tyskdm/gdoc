@@ -1,30 +1,15 @@
 """
 tag.py: tag class
 """
-
-from enum import Enum, auto
-
 from gdoc.lib.gdoc import String, TextString
-from gdoc.lib.gdoccompiler.gdexception import *
+from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 
 
-class Tag(TextString):
-    """ """
-
-    class Type(Enum):
-        BLOCK = auto()
-        INLINE = auto()
-
-    def __init__(self, element, tag_type):
-        self.element = element
-        self.tag_type = tag_type
-
-
-class BlockTag(Tag):
+class BlockTag:
     """ """
 
     def __init__(self, class_info, class_args, class_kwargs, tag_text):
-        super().__init__(tag_text, Tag.Type.BLOCK)
+        self.element = tag_text
 
         self.category, self.type, self.is_referrence = class_info
         self.tag_text = tag_text
@@ -110,10 +95,3 @@ class BlockTag(Tag):
         }
 
         return class_args, tag_opts
-
-
-class InlineTag(Tag):
-    """ """
-
-    def __init__(self):
-        super().__init__(Tag.Type.INLINE)
