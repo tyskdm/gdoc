@@ -8,7 +8,7 @@ from gdoc.lib.gobj.types import GOBJECT
 from gdoc.util import Err, Ok, Result
 
 from ....util.errorreport import ErrorReport
-from .textstringparser import parse_TextString
+from .lineparser import parse_Line
 
 
 def parse_TextBlock(
@@ -29,7 +29,7 @@ def parse_TextBlock(
     line: TextString
     parsed_line: TextString
     for line in textblock:
-        parsed_line, e = parse_TextString(line, opts, erpt)
+        parsed_line, e = parse_Line(line, opts, erpt)
         if e and erpt.submit(e):
             return Err(erpt)
 

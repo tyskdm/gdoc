@@ -1,5 +1,5 @@
 """
-textstringparser.py: parse_TextString function
+blocktagparser.py: parse_BlockTag function
 """
 from typing import Any, Optional, Tuple, Union, cast
 

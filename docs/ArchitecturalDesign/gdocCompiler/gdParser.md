@@ -190,7 +190,7 @@ Line is elements contained in TextBlock or the first line in CodeBlock.
   Input TextString ::= [ String | Code | Math | Image ]*
   Output TextString ::= [ String | Code | Math | Image | BlockTag | InlineTag ]*
 
-  parse_TextString()  # input TextString is raw TextString.
+  parse_Line()  # input TextString is raw TextString.
 
   - tokenize_textstring()
     # Input TextString ::= [ String | Code | Math | Image ]*

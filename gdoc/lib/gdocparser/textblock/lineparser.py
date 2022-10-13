@@ -1,5 +1,5 @@
 """
-textstringparser.py: parse_TextString function
+textstringparser.py: parse_Line function
 """
 from typing import Optional
 
@@ -10,11 +10,8 @@ from ....util.errorreport import ErrorReport
 from ..tag.blocktagparser import parse_BlockTag
 from .texttokenizer import tokenize_textstring
 
-# from .inlinetagparser import parse_InlineTag
-# from .tokenizer import Tokenizer
 
-
-def parse_TextString(
+def parse_Line(
     textstr: TextString, opts: dict, erpt: ErrorReport
 ) -> Result[TextString, ErrorReport]:
     """
