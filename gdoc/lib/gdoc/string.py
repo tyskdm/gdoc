@@ -4,7 +4,7 @@ string.py: String class
 
 from typing import Optional
 
-from gdoc.lib.pandocastobject.pandocast import PandocAst
+from gdoc.lib.pandocastobject.pandocast import PandocAst, PandocElement
 from gdoc.lib.pandocastobject.pandocstr import PandocStr
 
 from .text import Text
@@ -16,7 +16,10 @@ class String(PandocStr, Text):
     """
 
     def __init__(
-        self, items: Optional[PandocStr | str] = None, start: int = 0, stop: int = None
+        self,
+        items: Optional[PandocStr | str | list[PandocElement]] = None,
+        start: int = 0,
+        stop: int = None,
     ):
         if isinstance(items, PandocStr):
             super().__init__()

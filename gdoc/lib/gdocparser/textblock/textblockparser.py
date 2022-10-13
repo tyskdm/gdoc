@@ -2,8 +2,8 @@
 textblockparser.py: parse_TextBlock function
 """
 from gdoc.lib.gdoc import Text, TextBlock, TextString
+from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.lib.gdocparser.tag.blocktag import BlockTag
 from gdoc.lib.gobj.types import GOBJECT
 from gdoc.util import Err, Ok, Result
 

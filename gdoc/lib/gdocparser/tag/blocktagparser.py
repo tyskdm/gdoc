@@ -1,16 +1,16 @@
 """
 textstringparser.py: parse_TextString function
 """
-from typing import Any, List, Optional, Tuple, Union, cast
+from typing import Any, Optional, Tuple, Union, cast
 
 from gdoc.lib.gdoc import String, Text, TextString
+from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.util import Err, Ok, Result
 from gdoc.util.errorreport import ErrorReport
 
 from ..fsm import State, StateMachine
 from ..textblock.texttokenizer import TextTokenizer
-from .blocktag import BlockTag
 
 # from .inlinetagparser import parse_InlineTag
 # from .tokenizer import Tokenizer
@@ -99,7 +99,7 @@ class BlockTagDetector(StateMachine):
     def __init__(self, name: str = None) -> None:
         super().__init__(name)
         self.tagstr: Optional[TextString] = None
-        self.tagpos: Optional[List[int]] = None
+        self.tagpos: Optional[list[int]] = None
 
         self.add_state(_Open("Opening"), "Character")
         self.add_state(_Char("Character"), None)
@@ -129,7 +129,7 @@ class _Open(State):
     def __init__(self, name: str = None) -> None:
         super().__init__(name)
         self.tagstr: Optional[TextString] = None
-        self.tagpos: Optional[List[int]] = None
+        self.tagpos: Optional[list[int]] = None
         self._prev: Optional[String] = None
         self._start: int = -1
 
@@ -152,7 +152,7 @@ class _Open(State):
 
         elif isinstance(token, String) and (token == "@"):
             cast(TextString, self.tagstr).append(self._prev + token)
-            cast(List[int], self.tagpos)[0] = self._start
+            cast(list[int], self.tagpos)[0] = self._start
             next = None
 
         else:
@@ -172,7 +172,7 @@ class _Char(State):
     def __init__(self, name: str = None) -> None:
         super().__init__(name)
         self.tagstr: Optional[TextString] = None
-        self.tagpos: Optional[List[int]] = None
+        self.tagpos: Optional[list[int]] = None
         self._bcount: int = 0
         self._word: Optional[String] = None
 
@@ -209,7 +209,7 @@ class _Char(State):
                     self._bcount -= 1
                 else:
                     # Tag Detection Success
-                    cast(List[int], self.tagpos)[1] = index + 1
+                    cast(list[int], self.tagpos)[1] = index + 1
                     next = None
 
         return next
@@ -231,7 +231,7 @@ class _String(State):
     def __init__(self, name: str = None) -> None:
         super().__init__(name)
         self.tagstr: Optional[TextString] = None
-        self.tagpos: Optional[List[int]] = None
+        self.tagpos: Optional[list[int]] = None
         self.quoted: Optional[TextString] = None
         self.escape: bool = False
 
@@ -278,18 +278,18 @@ def create_BlockTag(
     tagstr: TextString, opts: dict, erpt: ErrorReport
 ) -> Result[BlockTag, ErrorReport]:
     """
-    Call this function with tokens as argument that does
-    ~~NOT include starting '[@' and closing ']'.~~
+    create_BlockTag
     """
-    class_info: List[Union[String, str, None]] = [None, None, None]
-    #                                            [category, type, is_reference]
-    class_args: List[Union[str, Text]] = []
-    class_kwargs: List[Tuple[Union[str, String], Union[str, Text]]] = []
+    class_info: list[String | None] = [None, None, None]
+    #                                       [category, type, is_reference]
+
+    class_args: list[TextString] = []
+    class_kwargs: list[Tuple[TextString, TextString]] = []
     tokens: TextString = tagstr[1:-1]  # remove the first "[@" and the last "]"
     # TODO: Add removeprefix() and removesuffix() to TextString class and replace above.
 
     if len(tokens) > 0:
-        # Class Info
+        # parse Class Info
         if TextTokenizer.is_word(tokens[0]):
             # get class info
             class_info, e = parse_ClassInfo(tokens[0], opts, erpt)
@@ -450,8 +450,8 @@ class _Key(State):
 
     def start(self, param):
         self.argstring: TextString
-        self.args: List[Text]
-        self.kwargs: List[List[Text]]
+        self.args: list[Text]
+        self.kwargs: list[list[Text]]
 
         self.argstring, self.args, self.kwargs = param
 
@@ -481,8 +481,8 @@ class _AfterKey(State):
 
     def start(self, param):
         self.argstring: TextString
-        self.args: List[Text]
-        self.kwargs: List[List[Text]]
+        self.args: list[Text]
+        self.kwargs: list[list[Text]]
 
         self.argstring, self.args, self.kwargs = param
 
@@ -522,7 +522,7 @@ class _Value(State):
 
     def start(self, param):
         self.argstring: TextString
-        self.kwargs: List[List[Text]]
+        self.kwargs: list[list[Text]]
 
         self.argstring, _, self.kwargs = param
 

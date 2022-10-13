@@ -34,18 +34,18 @@ def parse_TextString(
 
     # Parse BlockTag(s) in TextString
     tag_pos = -1
-    while tag_pos is not None:
+    while tag_pos is not None:  # if None, parsed to the EOL.
         parseresults: Optional[tuple[TextString, Optional[int]]]
         parseresults, e = parse_BlockTag(tokenized_textstr, tag_pos + 1, opts, erpt)
-        if e:
-            if erpt.submit(e):
-                return Err(erpt)
+
+        if e and erpt.submit(e):
+            return Err(erpt)
 
         if parseresults is None:
             break
 
         tokenized_textstr, tag_pos = parseresults
-        # replaced a part of tokenized_text with a BlockTag.
+        # a part of tokenized_text was replaced with a BlockTag.
 
     # Detect InlineTags
     # tag_index = -1

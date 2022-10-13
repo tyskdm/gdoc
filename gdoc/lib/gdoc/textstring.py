@@ -2,9 +2,9 @@
 textstring.py: TextString class
 """
 
-from typing import Optional, SupportsIndex, overload
+from typing import Optional, SupportsIndex, Union, overload
 
-from gdoc.lib.pandocastobject.pandocast.element import Element
+from gdoc.lib.pandocastobject.pandocast import PandocElement
 
 from .code import Code
 from .string import String
@@ -18,7 +18,16 @@ class TextString(list[Text], Text):
     - @trace(realize): `_BlockId_`
     """
 
-    def __init__(self, items: list[Text] | str = [], opts={}):
+    def __init__(
+        self,
+        items: Union[list[PandocElement], list[Text], str, "TextString"] = [],  # type: ignore
+        opts={}
+        # if this > items: list[Element] | list[Text] | str | "TextString" = []
+        # returns > E   TypeError: unsupported operand type(s) for |
+        # @3.10.7 >              : 'types.UnionType' and 'str'
+    ):
+        super().__init__()  # init as an empty list
+
         _plain: list = opts.get("pandocast", {}).get("types", {}).get("plaintext", [])
         _other_known_types = [
             # "Str",
@@ -33,12 +42,14 @@ class TextString(list[Text], Text):
             "RawInline",
             "Note",
         ]
-        super().__init__()  # init as an empty list
 
-        inlines: list[Text]
+        inlines: "TextString" | list[PandocElement] | list[Text] | list[String]
 
         if type(items) is str:
             inlines = [String(items)]
+
+        elif type(items) is __class__:  # type: ignore
+            inlines = items
 
         elif type(items) is list:
             inlines = items
@@ -50,7 +61,7 @@ class TextString(list[Text], Text):
             if isinstance(item, Text):
                 self.append(item)
 
-            elif isinstance(item, Element):
+            elif isinstance(item, PandocElement):
                 etype = item.get_type()
 
                 if etype in _plain:

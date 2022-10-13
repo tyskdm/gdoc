@@ -1,15 +1,17 @@
 """
 tag.py: tag class
 """
-from gdoc.lib.gdoc import String, TextString
+from gdoc.lib.gdoc import TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 
 
-class BlockTag:
-    """ """
+class BlockTag(TextString):
+    """
+    BlockTag class
+    """
 
     def __init__(self, class_info, class_args, class_kwargs, tag_text):
-        self.element = tag_text
+        super().__init__(tag_text)
 
         self.category, self.type, self.is_referrence = class_info
         self.tag_text = tag_text
