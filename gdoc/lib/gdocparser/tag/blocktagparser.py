@@ -1,12 +1,10 @@
 """
 blocktagparser.py: parse_BlockTag function
 """
-from dataclasses import dataclass
-from typing import Any, NewType, Optional, Tuple, TypeAlias, Union, cast
+from typing import Optional, Union, cast
 
 from gdoc.lib.gdoc import String, Text, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag
-from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.util import Err, Ok, Result
 from gdoc.util.errorreport import ErrorReport
 
@@ -37,8 +35,8 @@ def parse_BlockTag(
     tagpos, tagstr = detect_BlockTag(tokenized_textstr, start)
 
     if tagpos is not None:
-        # remove the first "[@" and the last "]"
         tokens: TextString = cast(TextString, tagstr)[1:-1]
+        # remove the first "[@" and the last "]"
         # TODO: Replace with removeprefix("[@") and removesuffix("]")
 
         taginfo: ObjectTagInfo
@@ -147,7 +145,7 @@ class _Open(State):
         self._start = -1
         return self
 
-    def on_event(self, event: Tuple[int, Text]):
+    def on_event(self, event: tuple[int, Text]):
         next: Optional[State] = self
         index, token = event
 
@@ -194,7 +192,7 @@ class _Char(State):
         return next
 
     def on_event(self, event):
-        next: Union[State, None, Tuple[str, Tuple[int, Text]]] = self
+        next: Union[State, None, tuple[str, tuple[int, Text]]] = self
         index, token = event
 
         if isinstance(token, String) and (token == '"'):
@@ -245,7 +243,7 @@ class _String(State):
         self.tagstr, self.tagpos = taginfo
 
     def on_entry(self, event):
-        next: Union[State, None, Tuple[str, Tuple[int, Text]]] = self
+        next: Union[State, None, tuple[str, tuple[int, Text]]] = self
         _, token = event
 
         self.quoted = TextString([token])  # Always it's '"'.
@@ -254,7 +252,7 @@ class _String(State):
         return next
 
     def on_event(self, event):
-        next: Union[State, None, Tuple[str, Tuple[int, Text]]] = self
+        next: Union[State, None, tuple[str, tuple[int, Text]]] = self
         _, token = event
 
         self.quoted.append(token)
