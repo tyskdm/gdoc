@@ -119,19 +119,20 @@ Gdoc Objects are always able to export to and import from JSON strings.
 {
    // attrs and props
    ".": {
-      "": {                         // attrs
-         "id":   {"": [["s", l, c, "idstr"]]},
-         "name": {"": [["s", l, c, "namestr"]]},
+      // attrs
+      "": {
+         "id": ["s", l, c, "idstr"],
+         "name": ["s", l, c, "namestr"],
          "class": {}
       },
-                                    // props
+      // props
       "note": {
-         "":  ["note text"],
-         "str": {"": ["note.1 text"]},
-         "String": {"": [["s", l, c, "note.2 text"]]},
-         "TextString": {"": [
+         "": ["note text"],
+         "str": ["note.1 text"],
+         "String": [["s", l, c, "note.2 text"]],
+         "TextString": [
             ["t", [["s", l, c, "String"], ["c", l, c, "Code"], ["m", l, c, "Math"]]]
-         ]}
+         ]
       }
    },
 
@@ -144,15 +145,16 @@ Gdoc Objects are always able to export to and import from JSON strings.
    "c1": {
       // attrs and props
       ".": {
-         "": {                      // attrs
-            "id": "c1",
-            "name": "name string"
+         // attrs
+         "": {
+            "id": ["s", l, c, "c1"],
+            "name": ["s", l, c, "name string"]
          },
-                                    // props
+         // props
          "trace": {
-            "": [[l, c, "true"]],
-            "copy": [[l, c, "src1"], [l, c, "src2"]],
-            "deribe": [[l, c, "parent"]]
+            "": [["s", l, c, "true"]],
+            "copy": [["s", l, c, "src1"], ["s", l, c, "src2"]],
+            "deribe": [["s", l, c, "parent"]]
          }
       }
       // no child

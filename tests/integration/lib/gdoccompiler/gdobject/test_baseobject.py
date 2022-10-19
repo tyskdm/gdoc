@@ -11,14 +11,14 @@ The specification of Inline class.
 
 """
 from gdoc.lib.gobj.types import CATEGORY_INFO
-from gdoc.lib.gobj.types.baseobject import BaseObject
+from gdoc.lib.gobj.types.baseobject import BaseObject, ClassInfo
 from gdoc.lib.gobj.types.category import Category
 
 
 ## @{ @name Inline
 ## [\@test Inline] creates a new instance.
 ##
-def test_BaseObject_1():
+def x_test_BaseObject_1():
     r"""
     [@test Inline.2] Code.
     """

@@ -5,7 +5,7 @@ r"""!
 """
 import sys
 
-from .baseobject import GOBJECT, BaseObject
+from .baseobject import BaseObject, ClassInfo
 from .importobject import ImportObject
 
 CATEGORY_INFO = {

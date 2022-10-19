@@ -1,10 +1,13 @@
 """
 textblockparser.py: parse_TextBlock function
 """
-from gdoc.lib.gdoc import Text, TextBlock, TextString
-from gdoc.lib.gdoc.blocktag import BlockTag
+from xxlimited import foo
+
+from gdoc.lib.gdoc import String, Text, TextBlock, TextString
+from gdoc.lib.gdoc.blocktag import BlockTag, BlockTagInfo
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.lib.gobj.types import GOBJECT
+from gdoc.lib.gobj.types import BaseObject
+from gdoc.lib.gobj.types.baseobject import ClassInfo
 from gdoc.util import Err, Ok, Result
 
 from ....util.errorreport import ErrorReport
@@ -12,17 +15,17 @@ from .lineparser import parse_Line
 
 
 def parse_TextBlock(
-    textblock: TextBlock, gobj: GOBJECT, opts: dict, erpt: ErrorReport
-) -> Result[GOBJECT | None, ErrorReport]:
+    textblock: TextBlock, gobj: BaseObject, opts: dict, erpt: ErrorReport
+) -> Result[BaseObject | None, ErrorReport]:
     """
     parse TextBlock and creates Gobj.
 
     @param textblock (TextBlock) : _description_
-    @param gobj (GOBJECT) : _description_
+    @param gobj (BaseObject) : _description_
     @param opts (dict) : _description_
     @param erpt (ErrorReport) : _description_
 
-    @return Result[GOBJECT, ErrorReport] : if created, returns the new TextObject.
+    @return Result[BaseObject, ErrorReport] : if created, returns the new TextObject.
                                         othrewise, None.
     """
     parsed_lines: list[TextString] = []
@@ -61,28 +64,43 @@ def parse_TextBlock(
         else:
             following_lines.append(parsed_line)
 
-    child: GOBJECT | None = None
+    child: BaseObject | None = None
     if block_tag is not None:
-        tag_args, tag_opts = block_tag.get_object_arguments()
-        tag_opts.update(
-            {
-                "preceding_lines": preceding_lines,
-                "following_lines": following_lines,
-                "preceding_text": preceding_text,
-                "following_text": following_text,
-            }
+        class_info: tuple[String | None, String | None, String | None]
+        class_args: list[TextString]
+        class_kwargs: list[tuple[TextString, TextString]]
+        class_info, class_args, class_kwargs = block_tag.get_class_arguments()
+
+        block_tag.tag_info = BlockTagInfo(
+            textblock, preceding_lines, following_lines, preceding_text, following_text
         )
-        child, e = _create_objects(gobj, tag_args, tag_opts, erpt)
-        if e:
+
+        tag_opts = _get_blocktag_opts(
+            preceding_lines, following_lines, preceding_text, following_text
+        )
+
+        try:
+            child = gobj.create_object(
+                class_info,
+                class_args,
+                class_kwargs,
+                tag_opts,
+                block_tag,
+            )
+
+        except GdocSyntaxError as e:
             erpt.submit(e)
             return Err(erpt)
 
     return Ok(child)
 
 
-def _create_objects(
-    gobj: GOBJECT, tag_args, tag_opts, erpt: ErrorReport
-) -> Result[GOBJECT, ErrorReport]:
+def _get_blocktag_opts(
+    preceding_lines: list[TextString],
+    following_lines: list[TextString],
+    preceding_text: TextString | None,
+    following_text: TextString | None,
+) -> dict[str, TextString | list[TextString] | None]:
     """
     1. The following text of btag will be used as the name. \
         Ignore comment-outs by `[]` is not support yet.
@@ -92,52 +110,54 @@ def _create_objects(
     4. If the text contains inline tags, add the properties specified by the tags
         without deleting from content of text property.
     """
+    tag_opts: dict[str, TextString | list[TextString] | None] = {}
 
-    name = tag_opts["following_text"].strip()
-    if len(name) > 0:
-        tag_args.append(name)
+    #
+    # Set `name`
+    #
+    tag_opts["name"] = None
+    if type(following_text) is TextString:
+        name = following_text.strip()
+        if len(name) > 0:
+            tag_opts["name"] = name
 
-    pretext = tag_opts["preceding_text"].rstrip()
-    text = None
-    hyphen = None
-    for i in range(len(pretext)):
-        if hyphen is None:
-            if pretext[-1 - i] == "-":
-                hyphen = "-"
-            else:
-                break
+    #
+    # Set postposition tag
+    #
+    tag_opts["text"] = None
+    if type(preceding_text) is TextString:
+        pretext: TextString = preceding_text.rstrip()
+        hyphen: str | None = None
+        text: TextString | None = None
 
-        elif hyphen == "-":
-            if pretext[-1 - i] == "-":
-                continue
-            elif pretext[-1 - i].isspace():
-                hyphen == " "
-            else:
-                break
+        for i in range(len(pretext)):
+            if hyphen is None:
+                if pretext[-1 - i] == "-":
+                    hyphen = "-"
+                else:
+                    break
 
-        elif hyphen == " ":
-            if pretext[-1 - i].isspace():
-                continue
-            else:
-                break
+            elif hyphen == "-":
+                if pretext[-1 - i] == "-":
+                    continue
+                elif pretext[-1 - i].isspace():
+                    hyphen == " "
+                else:
+                    break
 
-    if hyphen == " ":
-        text = tag_opts["preceding_lines"][:]
-        text.append(pretext[:-i])
-    else:
-        text = tag_opts["following_lines"][:]
+            elif hyphen == " ":
+                if pretext[-1 - i].isspace():
+                    continue
+                else:
+                    break
 
-    if text:
-        # strを渡している。TextString を渡すように変更する
-        tag_opts["properties"] = {"text": text}
+        if hyphen == " ":
+            text = preceding_lines[:]
+            text.append(pretext[:-i])
+        else:
+            text = following_lines[:]
 
-    # tag_args[4] = tag_args[4].get_text()  # tag_args[4] = symbol
+        if text:
+            tag_opts["text"] = text
 
-    try:
-        child: GOBJECT = gobj.create_object(*tag_args, type_args=tag_opts)
-
-    except GdocSyntaxError as e:
-        erpt.submit(e)
-        return Err(erpt)
-
-    return Ok(child)
+    return tag_opts

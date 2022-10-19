@@ -2,7 +2,7 @@
 sectionparser.py: parse_Section function
 """
 from gdoc.lib.gdoc import Section, TextBlock
-from gdoc.lib.gobj.types import GOBJECT
+from gdoc.lib.gobj.types import BaseObject
 from gdoc.util import Err, Ok, Result
 
 from ...util.errorreport import ErrorReport
@@ -10,10 +10,10 @@ from .textblock.textblockparser import parse_TextBlock
 
 
 def parse_Section(
-    section: Section, gobj: GOBJECT, opts: dict, erpt: ErrorReport
-) -> Result[GOBJECT, ErrorReport]:
+    section: Section, gobj: BaseObject, opts: dict, erpt: ErrorReport
+) -> Result[BaseObject, ErrorReport]:
     """ """
-    context: GOBJECT = gobj
+    context: BaseObject = gobj
     num_blocks: int = len(section)
     i = 0
 

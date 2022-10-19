@@ -1,8 +1,7 @@
 """
 blocktagparser.py: parse_BlockTag function
 """
-from dataclasses import dataclass
-from typing import Any, Optional, Tuple, Union, cast
+from typing import Any, Optional, TypeAlias, Union, cast
 
 from gdoc.lib.gdoc import String, Text, TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
@@ -12,12 +11,12 @@ from gdoc.util.errorreport import ErrorReport
 from ..fsm import State, StateMachine
 from ..textblock.texttokenizer import TextTokenizer
 
-
-@dataclass
-class ObjectTagInfo:
-    class_info: list[String | None]
-    class_args: list[TextString]
-    class_kwargs: list[Tuple[TextString, TextString]]
+ObjectTagInfo: TypeAlias = tuple[
+    tuple[String | None, String | None, String | None],
+    #    [category,      type,          isref        ]
+    list[TextString],
+    list[tuple[TextString, TextString]],
+]
 
 
 def parse_ObjectTagInfo(
@@ -26,11 +25,10 @@ def parse_ObjectTagInfo(
     """
     parse_ObjectTag
     """
-    class_info: list[String | None] = [None, None, None]
-    #                                 [category, type, is_reference]
-
+    class_info: tuple[String | None, String | None, String | None] = (None, None, None)
+    #           tuple[category, type, is_reference]
     class_args: list[TextString] = []
-    class_kwargs: list[Tuple[TextString, TextString]] = []
+    class_kwargs: list[tuple[TextString, TextString]] = []
     tokens: TextString = tagstr[:]
 
     if len(tokens) > 0:
@@ -56,34 +54,32 @@ def parse_ObjectTagInfo(
 
         class_args, class_kwargs = args
 
-    taginfo = ObjectTagInfo(
-        class_info=class_info, class_args=class_args, class_kwargs=class_kwargs
-    )
-
-    return Ok(taginfo)
+    return Ok((class_info, class_args, class_kwargs))
 
 
 def parse_ClassInfo(
     token: String, opts: dict, erpt: ErrorReport
-) -> Result[list[String | str | None], ErrorReport]:
-    class_info: list[String | str | None] = [None, None, None]
-    #                                       [category, type, is_reference]
+) -> Result[tuple[String | None, String | None, String | None], ErrorReport]:
+    #       tuple[category, type, is_reference]
+    class_cat: String | None = None
+    class_type: String | None = None
+    class_isref: String | None = None
 
     if (i := token.find(":")) >= 0:
-        class_info[0] = token[:i]
-        class_info[1] = token[i + 1 :]
+        class_cat = token[:i]
+        class_type = token[i + 1 :]
 
-        if cast(Union[str, String], class_info[1]).find(":") >= 0:
+        if cast(Union[str, String], class_type).find(":") >= 0:
             raise GdocSyntaxError()
 
     else:
-        class_info[1] = token[:]
+        class_type = token[:]
 
-    if cast(Union[str, String], class_info[1]).endswith("&"):
-        class_info[2] = cast(Union[str, String], class_info[1])[-1]
-        class_info[1] = cast(Union[str, String], class_info[1])[:-1]
+    if cast(Union[str, String], class_type).endswith("&"):
+        class_isref = cast(String, class_type)[-1]
+        class_type = cast(String, class_type)[:-1]
 
-    return Ok(class_info)
+    return Ok((class_cat, class_type, class_isref))
 
 
 #
@@ -389,7 +385,7 @@ class _Parentheses(State):
         return self
 
     def on_event(self, token):
-        next: Union[State, None, Tuple[str, Tuple[int, Text]]] = self
+        next: Union[State, None, tuple[str, tuple[int, Text]]] = self
 
         self._tokens.append(token)
 

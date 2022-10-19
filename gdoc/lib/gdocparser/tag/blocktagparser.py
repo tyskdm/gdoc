@@ -27,7 +27,7 @@ def parse_BlockTag(
     @return Result[tuple[TextString, Optional[int], ErrorReport]] : _description_
     """
     textstr: TextString = tokenized_textstr
-    tag_pos: Optional[int] = None
+    tag_start: Optional[int] = None
     tagpos: Optional[slice] = None
     tagstr: Optional[TextString] = None
     blocktag: Optional[BlockTag] = None
@@ -35,7 +35,9 @@ def parse_BlockTag(
     tagpos, tagstr = detect_BlockTag(tokenized_textstr, start)
 
     if tagpos is not None:
-        tokens: TextString = cast(TextString, tagstr)[1:-1]
+        tagstr = cast(TextString, tagstr)
+
+        tokens: TextString = tagstr[1:-1]
         # remove the first "[@" and the last "]"
         # TODO: Replace with removeprefix("[@") and removesuffix("]")
 
@@ -45,14 +47,17 @@ def parse_BlockTag(
             erpt.submit(e)
             return Err(erpt)
 
-        blocktag = BlockTag(
-            taginfo.class_info, taginfo.class_args, taginfo.class_kwargs, tagstr
-        )
+        class_info: tuple[String | None, String | None, String | None]
+        class_args: list[TextString]
+        class_kwargs: list[tuple[TextString, TextString]]
+
+        class_info, class_args, class_kwargs = taginfo
+        blocktag = BlockTag(class_info, class_args, class_kwargs, tagstr)
         textstr = tokenized_textstr[:]
         textstr[tagpos] = [blocktag]
-        tag_pos = tagpos.start
+        tag_start = tagpos.start
 
-    return Ok((textstr, tag_pos))
+    return Ok((textstr, tag_start))
 
 
 def detect_BlockTag(

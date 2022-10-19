@@ -1,8 +1,19 @@
 """
 tag.py: tag class
 """
-from gdoc.lib.gdoc import TextString
-from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
+from typing import NamedTuple, Optional
+
+from gdoc.lib.gdoc import String, TextString
+
+from .textblock import TextBlock
+
+
+class BlockTagInfo(NamedTuple):
+    textblock: TextBlock
+    preceding_lines: list[TextString]
+    following_lines: list[TextString]
+    preceding_text: Optional[TextString]
+    following_text: Optional[TextString]
 
 
 class BlockTag(TextString):
@@ -10,90 +21,42 @@ class BlockTag(TextString):
     BlockTag class
     """
 
-    def __init__(self, class_info, class_args, class_kwargs, tag_text):
+    _class_info: tuple[String | None, String | None, String | None]
+    category: String | None
+    type: String | None
+    isref: String | None
+    class_args: list[TextString]
+    class_kwargs: list[tuple[TextString, TextString]]
+    tag_text: TextString
+    tag_info: BlockTagInfo | None = None
+
+    def __init__(
+        self,
+        class_info: tuple[String | None, String | None, String | None],
+        class_args: list[TextString],
+        class_kwargs: list[tuple[TextString, TextString]],
+        tag_text: TextString,
+        tag_info: BlockTagInfo | None = None,
+    ):
         super().__init__(tag_text)
 
-        self.category, self.type, self.is_referrence = class_info
+        self._class_info = class_info
+        self.category, self.type, self.isref = class_info
+        self.class_args = class_args
+        self.class_kwargs = class_kwargs
         self.tag_text = tag_text
+        self.tag_info = tag_info
 
-        self.scope = None
-        self.symbol = None
-        self.class_args = []
+    def get_class_arguments(
+        self,
+    ) -> tuple[
+        tuple[String | None, String | None, String | None],
+        list[TextString],
+        list[tuple[TextString, TextString]],
+    ]:
+        """
+        _summary_
 
-        self.scope, self.symbol, self.class_args = self._get_symbol(class_args)
-
-        self.class_kwargs = []
-        for kwarg in class_kwargs:
-            key, val = kwarg
-
-            # key = key.get_text()
-            # if not key:
-            #     raise GdocSyntaxError()
-            #     # Key should be String Only.
-
-            self.class_kwargs.append((key, val))
-
-    def _get_symbol(self, class_args):
-        scope = None
-        symbol = None
-        args = []
-
-        idx = 0
-        c = len(class_args)
-        if c > 0:
-            if class_args[idx].get_text() in ("+", "-"):
-                scope = class_args[idx]
-                if c < 2:
-                    raise GdocSyntaxError()
-                    # Symbol should follow
-                idx += 1
-
-            # class_args[idx] should be symbol
-            symbol = class_args[idx]
-            idx += 1
-
-            if symbol.startswith(("+", "-")):
-                # TODO: 先頭要素が String であることも確認する。
-                #       以下の、先頭文字削除が機能しないため。
-                if scope is None:
-                    scope = symbol[0][0]
-                    symbol[0] = symbol[0][1:]
-
-                else:
-                    raise GdocSyntaxError()
-                    # Scope is duplecated
-
-            args = class_args[idx:]
-
-        return scope, symbol, args
-
-    def get_object_arguments(self):
-        # def create_object(self, cat_name: str, type_name: str, isref: bool,
-        #     scope: str, symbol, name: str =None, type_args: dict ={}) -> "BaseObject":
-        #     r"""
-        #     To avoid consuming the keyword argument namespace, required
-        #     arguments are received in tuples as positional arguments.
-
-        #     | @Method | create_object     | creates new object and return it.
-        #     |         | @Param cat_name   | in cat_name: str \| PandocStr
-        #     |         | @Param type_name  | in type_name: str \| PandocStr
-        #     |         | @Param isref      | in isref: None \| String("&")
-        #     |         | @Param scope      | in scope: str \| PandocStr
-        #     |         | @Param symbol     | in symbol: str \| PandocStr \| GdSymbol
-        #     |         | @Param type_kwargs  | in type_args: dict<br># keyword arguments to the type constructor
-        #     |         | @Param object     | out object: BaseObject
-        #     """
-        class_args = []
-        class_args.append(self.category)
-        class_args.append(self.type)
-        class_args.append(self.is_referrence)
-        class_args.append(self.scope)
-        class_args.append(self.symbol)
-
-        tag_opts = {
-            "tag_args": self.class_args,
-            "tag_kwargs": self.class_kwargs,
-            "tag_text": self.tag_text,
-        }
-
-        return class_args, tag_opts
+        @return _type_ : _description_
+        """
+        return self._class_info, self.class_args, self.class_kwargs

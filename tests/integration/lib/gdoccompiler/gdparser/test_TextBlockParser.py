@@ -15,7 +15,7 @@ from unittest import mock
 
 import pytest
 
-from gdoc.lib.gdoc import Document, TextString
+from gdoc.lib.gdoc import Document
 from gdoc.lib.gdocparser.textblock import parse_TextBlock
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
@@ -57,72 +57,43 @@ def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
     args = gdobject.create_object.call_args_list[0][0]
     kwargs = gdobject.create_object.call_args_list[0][1]
 
-    assert len(args) == len(expect_data["args"])
-    for i in range(len(expect_data["args"])):
-        if type(expect_data["args"][i]) is str:
-            actual = None
-            if type(args[i]) is TextString:
-                actual = args[i].get_str()
-            else:
-                actual = str(args[i])
-            assert actual == expect_data["args"][i]
+    assert kwargs == {}
+
+    assert len(args) == 5
+
+    for i, exp in enumerate(expect_data["class_info"]):
+        act = args[0][i].get_text() if args[0][i] is not None else None
+        assert act == exp
+
+    for i, exp in enumerate(expect_data["class_args"]):
+        act = args[1][i].get_text() if args[1][i] is not None else None
+        assert act == exp
+
+    for i, exp in enumerate(expect_data["class_kwargs"]):
+        actkey = args[2][i][0].get_text() if args[2][i][0] is not None else None
+        actval = args[2][i][1].get_text() if args[2][i][1] is not None else None
+        assert actkey == exp[0]
+        assert actval == exp[1]
+
+    assert len(args[3]) == len(expect_data["tag_opts"])
+    for key in args[3]:
+        if type(args[3][key]) is list:
+            act = [val.get_text() for val in args[3][key]]
         else:
-            assert args[i] == expect_data["args"][i]
+            act = args[3][key].get_text()
+        assert act == expect_data["tag_opts"][key]
 
-    assert len(kwargs) == 1
-    assert "type_args" in kwargs
-    assert _assert_kwargs(kwargs["type_args"], expect_data["type_args"])
+    assert getattr(args[4], "tag_text").get_text() == expect_data["tag_text"]
 
-
-def _assert_kwargs(actual, expected):
-
-    assert len(expected) == len(actual)
-
-    # tag_args
-    act = actual["tag_args"]
-    exp = expected["tag_args"]
-    assert len(act) == len(exp)
-    for ln in range(len(exp)):
-        assert str(act[ln].get_str()) == exp[ln]
-
-    # tag_kwargs
-    act = actual["tag_kwargs"]
-    exp = expected["tag_kwargs"]
-    assert len(act) == len(exp)
-    for ln in range(len(exp)):
-        assert str(act[ln][0].get_str()) == exp[ln][0]
-        assert str(act[ln][1].get_str()) == exp[ln][1]
-
-    # Preceding Lines
-    act = actual["preceding_lines"]
-    exp = expected["preceding_lines"]
-    assert len(act) == len(exp)
-    for ln in range(len(exp)):
-        assert str(act[ln].get_str()) == exp[ln]
-
-    # Preceding Text
-    act = actual["preceding_text"]
-    exp = expected["preceding_text"]
-    assert str(act.get_str()) == exp
-
-    # Tag Text
-    act = actual["tag_text"]
-    exp = expected["tag_text"]
-    assert str(act.get_str()) == exp
-
-    # Following Text
-    act = actual["following_text"]
-    exp = expected["following_text"]
-    assert str(act.get_str()) == exp
-
-    # Following Lines
-    act = actual["following_lines"]
-    exp = expected["following_lines"]
-    assert len(act) == len(exp)
-    for ln in range(len(exp)):
-        assert str(act[ln].get_str()) == exp[ln]
-
-    return True
+    tag_info = getattr(args[4], "tag_info")
+    for key in expect_data["tag_info"]:
+        if type(getattr(tag_info, key)) is list:
+            act = [val.get_text() for val in getattr(tag_info, key)]
+        elif getattr(tag_info, key) is None:
+            act = None
+        else:
+            act = getattr(tag_info, key).get_text()
+        assert act == expect_data["tag_info"][key]
 
 
 ## @}
