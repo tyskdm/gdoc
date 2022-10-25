@@ -1,13 +1,10 @@
 """
 textblockparser.py: parse_TextBlock function
 """
-from xxlimited import foo
-
 from gdoc.lib.gdoc import String, Text, TextBlock, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag, BlockTagInfo
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gobj.types import BaseObject
-from gdoc.lib.gobj.types.baseobject import ClassInfo
 from gdoc.util import Err, Ok, Result
 
 from ....util.errorreport import ErrorReport
@@ -28,13 +25,15 @@ def parse_TextBlock(
     @return Result[BaseObject, ErrorReport] : if created, returns the new TextObject.
                                         othrewise, None.
     """
+    srpt = erpt.new_subreport()
+
     parsed_lines: list[TextString] = []
     line: TextString
     parsed_line: TextString
     for line in textblock:
-        parsed_line, e = parse_Line(line, opts, erpt)
-        if e and erpt.submit(e):
-            return Err(erpt)
+        parsed_line, e = parse_Line(line, opts, srpt)
+        if e and srpt.submit(e):
+            return Err(srpt)
 
         if parsed_line:
             parsed_lines.append(parsed_line)
@@ -89,8 +88,11 @@ def parse_TextBlock(
             )
 
         except GdocSyntaxError as e:
-            erpt.submit(e)
-            return Err(erpt)
+            srpt.submit(e)
+            return Err(srpt)
+
+    if srpt.haserror():
+        return Err(srpt, child)
 
     return Ok(child)
 

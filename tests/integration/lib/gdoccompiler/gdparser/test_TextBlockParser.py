@@ -48,9 +48,11 @@ def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
 
     # Mock
     gdobject = mocker.MagicMock(["create_object"])
+    erpt_mock = mocker.MagicMock()
+    erpt_mock.submit = mocker.Mock(return_value=True)
 
     # Execution
-    parse_TextBlock(target_data, gdobject, {}, None)
+    parse_TextBlock(target_data, gdobject, {}, erpt_mock)
 
     # Assertion
     gdobject.create_object.assert_called_once()

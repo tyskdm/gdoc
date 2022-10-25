@@ -13,6 +13,7 @@ def parse_Section(
     section: Section, gobj: BaseObject, opts: dict, erpt: ErrorReport
 ) -> Result[BaseObject, ErrorReport]:
     """ """
+    srpt: ErrorReport = erpt.new_subreport()
     context: BaseObject = gobj
     num_blocks: int = len(section)
     i = 0
@@ -20,11 +21,11 @@ def parse_Section(
     if num_blocks > 0:
         if type(section[0]) is TextBlock:
             #
-            # Header block
+            # The first block
             #
-            context, e = parse_TextBlock(section[0], context, opts, erpt)
-            if e and erpt.submit(e):
-                return Err(erpt)
+            context, e = parse_TextBlock(section[0], context, opts, srpt)
+            if e and srpt.submit(e):
+                return Err(srpt)
 
             context = context or gobj
             i += 1
@@ -35,15 +36,18 @@ def parse_Section(
             #
             blocktype = type(section[i])
             if blocktype is TextBlock:
-                _, e = parse_TextBlock(section[i], context, opts, erpt)
-                if e and erpt.submit(e):
-                    return Err(erpt)
+                _, e = parse_TextBlock(section[i], context, opts, srpt)
+                if e and srpt.submit(e):
+                    return Err(srpt)
 
             elif blocktype is Section:
-                _, e = parse_Section(section[i], context, opts, erpt)
-                if e and erpt.submit(e):
-                    return Err(erpt)
+                _, e = parse_Section(section[i], context, opts, srpt)
+                if e and srpt.submit(e):
+                    return Err(srpt)
 
             i += 1
+
+    if srpt.haserror():
+        return Err(srpt, gobj)
 
     return Ok(gobj)

@@ -3,8 +3,9 @@ command.py
 """
 import json
 
-from gdoc.lib.gdoc import String, Text, TextString
+from gdoc.lib.gdoc import String, Text
 from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
+from gdoc.util import ErrorReport
 
 
 def setup(subparsers, name, commonOptions):
@@ -27,16 +28,30 @@ def setup(subparsers, name, commonOptions):
     parser.add_argument(
         "--html", action="store_true", help="Interprete HTML tags when parsing markdown."
     )
+    parser.add_argument(
+        "--check-only",
+        action="store_true",
+        help="Performs only syntax checking on the document.",
+    )
 
 
 def run(args):
     """
     run subcommand
     """
+    erpt: ErrorReport
+
     for filepath in args.filepath:
-        gobj = GdocCompiler().compile(filepath)
-        data = _export_gobj(gobj)
-        print(json.dumps(data, indent=4, ensure_ascii=False))
+        gobj, erpt = GdocCompiler().compile(
+            filepath, opts={"check-only": args.check_only}
+        )
+
+        if gobj is not None:
+            data = _export_gobj(gobj)
+            print(json.dumps(data, indent=4, ensure_ascii=False))
+
+        if erpt is not None:
+            print(erpt.dump())
 
 
 def _export_gobj(gobj):
