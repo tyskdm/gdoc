@@ -119,19 +119,20 @@ Gdoc Objects are always able to export to and import from JSON strings.
 {
    // attrs and props
    ".": {
-      "": {                         // attrs
-         "id":   {"": [["s", l, c, "idstr"]]},
-         "name": {"": [["s", l, c, "namestr"]]},
+      // attrs
+      "": {
+         "id": ["s", l, c, "idstr"],
+         "name": ["s", l, c, "namestr"],
          "class": {}
       },
-                                    // props
+      // props
       "note": {
-         "":  ["note text"],
-         "str": {"": ["note.1 text"]},
-         "String": {"": [["s", l, c, "note.2 text"]]},
-         "TextString": {"": [
+         "": ["note text"],
+         "str": ["note.1 text"],
+         "String": [["s", l, c, "note.2 text"]],
+         "TextString": [
             ["t", [["s", l, c, "String"], ["c", l, c, "Code"], ["m", l, c, "Math"]]]
-         ]}
+         ]
       }
    },
 
@@ -144,15 +145,16 @@ Gdoc Objects are always able to export to and import from JSON strings.
    "c1": {
       // attrs and props
       ".": {
-         "": {                      // attrs
-            "id": "c1",
-            "name": "name string"
+         // attrs
+         "": {
+            "id": ["s", l, c, "c1"],
+            "name": ["s", l, c, "name string"]
          },
-                                    // props
+         // props
          "trace": {
-            "": [[l, c, "true"]],
-            "copy": [[l, c, "src1"], [l, c, "src2"]],
-            "deribe": [[l, c, "parent"]]
+            "": [["s", l, c, "true"]],
+            "copy": [["s", l, c, "src1"], ["s", l, c, "src2"]],
+            "deribe": [["s", l, c, "parent"]]
          }
       }
       // no child
@@ -176,13 +178,10 @@ A Gdoc object has an Id or Name or both of them.
 
 ### 3.1. Object
 
-<div align=center>
+| [![](./_puml_/GdocObjectFormat/Plugins_ClassDiagram.png)](./GdocObjectFormat.puml) |
+| :-----: |
+| [@fig 4.1\] pandocAstObject Internal Blocks |
 
-[![](./_puml_/GdocObjectFormat/Plugins_ClassDiagram.png)](./GdocObjectFormat.puml)  \
-  \
-[@fig 4.1\] pandocAstObject Internal Blocks
-
-</div>
 <br>
 
 ### 3.2. Document
@@ -213,13 +212,10 @@ Packageには２つの意味がある。
    - ~~preCompiledPackageとして提供される場合がある。~~
      - 外部パッケージへの依存関係でリンク結果が変わる場合があり、これを固定することが危険なため。
 
-<div align=center>
+| [![](./_puml_/GdocObjectFormat/GdocObjectClass.png)](./GdocObjectFormat.puml) |
+| :-----: |
+| [@fig 4.1\] pandocAstObject Internal Blocks |
 
-[![](./_puml_/GdocObjectFormat/GdocObjectClass.png)](./GdocObjectFormat.puml)  \
-  \
-[@fig 4.1\] pandocAstObject Internal Blocks
-
-</div>
 <br>
 
 #### Packageとは-２ <!-- omit in toc -->

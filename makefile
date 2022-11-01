@@ -5,17 +5,20 @@ TARGET      := gdoc
 SRCDIR 		:= gdoc
 SPECDIR     := spec
 TESTDIR     := tests
+DOCSDIR     := docs
 DOXYGENDIR  := doxy
 DOXYOUTDIR  := html
 DOXYXMLDIR  := xml
+DOXYBOOKDIR := DetailedDesign
 PYTESTDIR   := htmlcov
 MKDOCSDIR   := site
 
-.PHONY: all clean doc doc-clean puml-img puml-clean test test-cov cov cov-clean style
+.PHONY: all clean doc doc-clean puml-img puml-clean test test-cov cov cov-clean style \
+        book book-clean
 
 all: clean test puml-img doc
 
-clean: puml-clean doc-clean cov-clean 
+clean: puml-clean doc-clean book-clean cov-clean 
 	@py3clean .
 	@$(RM) -rf $(MKDOCSDIR)
 
@@ -31,6 +34,24 @@ doc:
 doc-clean:
 	@$(RM) -rf $(DOXYGENDIR)/$(DOXYOUTDIR)
 	@$(RM) -rf $(DOXYGENDIR)/$(DOXYXMLDIR)
+
+#
+# Doxybook2
+#
+DOXYBOOKFLAGS :=
+
+book: book-clean doc-clean puml-clean puml-img doc
+	@$(RM) -rf $(DOCSDIR)/$(DOXYBOOKDIR)
+	@mkdir -p $(DOCSDIR)/$(DOXYBOOKDIR)
+	@doxybook --input $(DOXYGENDIR)/$(DOXYXMLDIR) \
+	          --output $(DOCSDIR)/$(DOXYBOOKDIR) \
+			  --config $(DOXYGENDIR)/doxybook2cfg.json
+
+book-clean:
+	@$(RM) -rf $(DOCSDIR)/$(DOXYBOOKDIR)
+
+book-serve: book
+	@mkdocs serve
 
 #
 # PlantUML

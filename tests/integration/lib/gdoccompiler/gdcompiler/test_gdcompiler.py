@@ -47,9 +47,10 @@ def test_GdocCompile_1(mocker: mock, filename, formattype, html):
     expect_data = json.loads(expect_json)
 
     # Execution
-    gobj = GdocCompiler().compile(filepath)
+    gobj, e = GdocCompiler().compile(filepath)
 
     # Assertion
+    assert e is None
     assert gobj is not None
     assert gobj is not str
     assert _assert_children(expect_data, gobj)

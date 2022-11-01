@@ -1,9 +1,12 @@
 [tool.poetry]
 name = "gdoc"
-version = "0.1.0"
-description = "Ghost documentation"
+version = "0.1.1"
+description = "A tool to process GDML(GDoc Markup Language) documents."
 authors = ["Tsuyoshi Kodama <tsuyoshi.kodama@byrnison.com>"]
 license = "MIT"
+
+[tool.poetry.scripts]
+gdoc = "gdoc.__main__:main"
 
 [tool.poetry.dependencies]
 python = "^3.10"

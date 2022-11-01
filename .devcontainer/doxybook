@@ -1,0 +1,10 @@
+#!/bin/bash
+here=$(dirname $(readlink -f $0))
+doxybook=$here/doxybook2/bin/doxybook2
+if [ ! -f $doxybook ]; then
+    echo "ERROR: doxybook2 does not exist."
+    echo "download it and extract $here/doxybook2/bin from https://github.com/matusnovak/doxybook2/releases"
+    exit 1
+fi
+$doxybook "$@"
+echo

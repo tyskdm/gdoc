@@ -1,5 +1,5 @@
 r"""
-The specification of StateMachine class.
+The specification of GdObject class.
 
 ### REFERENCES
 

@@ -1,16 +1,17 @@
 ```json
 {
-    "args": [null, "Reqt", false, null, "SWRQ", "Software Requirement"],
-    "type_args": {
-        "properties": {"text": ["The software should make me FUN!"]},
-
-        "tag_args": [],
-        "tag_kwargs": [],
-
+    "class_info": [null, "Reqt", null],
+    "class_args": ["SWRQ"],
+    "class_kwargs": [],
+    "tag_opts": {
+        "name": "Software Requirement",
+        "text": ["The software should make me FUN!"]
+    },
+    "tag_text": "[@Reqt SWRQ]",
+    "tag_info": {
         "preceding_lines": [],
         "preceding_text": "",
-        "tag_text": "[@Reqt SWRQ]",
-        "following_text": " Software Requirement",
+        "following_text": " Software Requirement\n",
         "following_lines": [
             "The software should make me FUN!"
         ]
