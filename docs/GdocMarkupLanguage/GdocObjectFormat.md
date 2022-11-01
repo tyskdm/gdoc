@@ -1,7 +1,7 @@
 # Gdoc Object
 
 gdoc gathers information from documents tagged with gdoc markup language and generates structured objects.
-gdoc subcommands reference that structured objects to provide user applications.
+gdoc subcommands refer to that structured objects and provide user applications.
 This structured object is called Gdoc Object.
 
 This document describes the structure of Gdoc Object, name resolution rules, and inter-object links.
@@ -26,22 +26,35 @@ This document describes the structure of Gdoc Object, name resolution rules, and
 
       The symbol table can specify either private or public scopes for each object.
 
-3. Name Resolution
+3. Reference Object
 
-   The symbol table in Each Gdoc Object
+4. Name Resolution
 
-4. Properties
+   1. Absolute path and Relative path
+
+      The symbol table in Each Gdoc Object
+
+   2. Reference Object
+
+      It's like a shortcut in file systems.
+
+5. Properties
+
    1. Key and Value
+
       1. Key
+
       2. Value
+
          - Arrays an array
-         - Basic types
+         - Types
+           - str
            - String
-           - PandocStr
-         - User-specific types
+           - TextString
+
    2. Hierarchical Keys
 
-5. Export and Import
+6. Export to and Import from Json
    - Exporting to json
    - Importing from json
 
@@ -75,7 +88,7 @@ This document describes the structure of Gdoc Object, name resolution rules, and
 
 1. Id and Name
 
-   - A Gdoc object has an Id or Name or both of them.
+   - A Gdoc object has Id or Name or both of them.
 
 2. Parent-Child Relationship
 
@@ -91,7 +104,7 @@ This document describes the structure of Gdoc Object, name resolution rules, and
 
    2. The type of the value is by default String or gdoc.String type that contains source mapping info and String.
 
-   3. Values are always one-dimensional arrays by default, and multiple values can be set for a single key.
+   3. Values are always one-dimensional arrays, and multiple values can be set for a single key.
 
 ### 1.2. Expoting and Importing Json
 
@@ -106,16 +119,20 @@ Gdoc Objects are always able to export to and import from JSON strings.
 {
    // attrs and props
    ".": {
-      "": {                         // attrs
-         "id":   [l, c, "idstr"],
-         "name": [l, c, "namestr"],
+      // attrs
+      "": {
+         "id": ["s", l, c, "idstr"],
+         "name": ["s", l, c, "namestr"],
          "class": {}
       },
-                                    // props
+      // props
       "note": {
-         "":  ["note text"],
-         "1": ["note.1 text"],
-         "2": [[l, c, "note.2 text"]]
+         "": ["note text"],
+         "str": ["note.1 text"],
+         "String": [["s", l, c, "note.2 text"]],
+         "TextString": [
+            ["t", [["s", l, c, "String"], ["c", l, c, "Code"], ["m", l, c, "Math"]]]
+         ]
       }
    },
 
@@ -128,15 +145,16 @@ Gdoc Objects are always able to export to and import from JSON strings.
    "c1": {
       // attrs and props
       ".": {
-         "": {                      // attrs
-            "id": "c1",
-            "name": "name string"
+         // attrs
+         "": {
+            "id": ["s", l, c, "c1"],
+            "name": ["s", l, c, "name string"]
          },
-                                    // props
+         // props
          "trace": {
-            "": [[l, c, "true"]],
-            "copy": [[l, c, "src1"], [l, c, "src2"]],
-            "deribe": [[l, c, "parent"]]
+            "": [["s", l, c, "true"]],
+            "copy": [["s", l, c, "src1"], ["s", l, c, "src2"]],
+            "deribe": [["s", l, c, "parent"]]
          }
       }
       // no child
@@ -148,13 +166,6 @@ Gdoc Objects are always able to export to and import from JSON strings.
 
 A Gdoc object has an Id or Name or both of them.
 
-<div align=center>
-
-[![](./_puml_/GdocObjectFormat/SymbolString.png)](./GdocObjectFormat.puml)  \
-  \
-[@fig 4.1\] Symbol string structure
-
-</div>
 <br>
 
 ## 3. Types
@@ -167,13 +178,10 @@ A Gdoc object has an Id or Name or both of them.
 
 ### 3.1. Object
 
-<div align=center>
+| [![](./_puml_/GdocObjectFormat/Plugins_ClassDiagram.png)](./GdocObjectFormat.puml) |
+| :-----: |
+| [@fig 4.1\] pandocAstObject Internal Blocks |
 
-[![](./_puml_/GdocObjectFormat/Plugins_ClassDiagram.png)](./GdocObjectFormat.puml)  \
-  \
-[@fig 4.1\] pandocAstObject Internal Blocks
-
-</div>
 <br>
 
 ### 3.2. Document
@@ -204,13 +212,10 @@ Packageには２つの意味がある。
    - ~~preCompiledPackageとして提供される場合がある。~~
      - 外部パッケージへの依存関係でリンク結果が変わる場合があり、これを固定することが危険なため。
 
-<div align=center>
+| [![](./_puml_/GdocObjectFormat/GdocObjectClass.png)](./GdocObjectFormat.puml) |
+| :-----: |
+| [@fig 4.1\] pandocAstObject Internal Blocks |
 
-[![](./_puml_/GdocObjectFormat/GdocObjectClass.png)](./GdocObjectFormat.puml)  \
-  \
-[@fig 4.1\] pandocAstObject Internal Blocks
-
-</div>
 <br>
 
 #### Packageとは-２ <!-- omit in toc -->

@@ -48,7 +48,11 @@ def spec___init___2():
             # Pandoc Meta [Block]
             "class": Pandoc,
             "content": {"key": None, "main": "blocks", "type": "[Block]"},
-            "struct": {"Version": "pandoc-api-version", "Meta": "meta", "Blocks": "blocks"},
+            "struct": {
+                "Version": "pandoc-api-version",
+                "Meta": "meta",
+                "Blocks": "blocks",
+            },
         },
     }
 

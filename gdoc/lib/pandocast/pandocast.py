@@ -134,7 +134,9 @@ class Element:
             else:
                 content = self.pan_element
 
-            if ("main" in TYPEDEF["content"]) and (TYPEDEF["content"]["main"] is not None):
+            if ("main" in TYPEDEF["content"]) and (
+                TYPEDEF["content"]["main"] is not None
+            ):
                 content = content[TYPEDEF["content"]["main"]]
 
         return content
@@ -379,7 +381,9 @@ class Table(Block):
         self.numFooterRows = table_foot.num_rows
 
         # set up props
-        self.numTableRows = self.numHeaderRows + sum(self.numBodyRows) + self.numFooterRows
+        self.numTableRows = (
+            self.numHeaderRows + sum(self.numBodyRows) + self.numFooterRows
+        )
         self._create_cell_index()
 
         _DEBUG.undent()
@@ -404,7 +408,9 @@ class Table(Block):
             for index in range(rows.num_rows):
                 cells = []
                 if hashead:
-                    cells.extend(row_heads.children[index].children)  # row_heads -> row -> cells
+                    cells.extend(
+                        row_heads.children[index].children
+                    )  # row_heads -> row -> cells
                 cells.extend(rows.children[index].children)  # rows -> row -> cells
                 self.cells.append(cells)
 
@@ -560,7 +566,9 @@ class PandocAst(Element):
                     if elem.children[0].source.position is None:
                         elem.children[0].source.position = elem.source.position
 
-                    elif (len(elem.parent.children) == 1) and (elem.parent.source.position is None):
+                    elif (len(elem.parent.children) == 1) and (
+                        elem.parent.source.position is None
+                    ):
                         elem.parent.source.position = elem.source.position
 
                 self._remove_elem(elem)

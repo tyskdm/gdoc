@@ -175,7 +175,9 @@ class Element:
             else:
                 content = self.pan_element
 
-            if ("main" in TYPEDEF["content"]) and (TYPEDEF["content"]["main"] is not None):
+            if ("main" in TYPEDEF["content"]) and (
+                TYPEDEF["content"]["main"] is not None
+            ):
                 content = content[TYPEDEF["content"]["main"]]
 
         return content
@@ -292,7 +294,9 @@ class Element:
 
         return first
 
-    def walk_items(self, action, post_action=None, opt=None, ignore=["Div", "Span"]) -> "Element":
+    def walk_items(
+        self, action, post_action=None, opt=None, ignore=["Div", "Span"]
+    ) -> "Element":
         """Walk through all items of the tree and call out given functions.
         @param action(function) : def action(element, opt)
         @param post_action(function) : def post_action(element, opt)

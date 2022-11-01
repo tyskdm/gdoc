@@ -45,7 +45,10 @@ def spec_create_element_1(mocker):
     args = Class_mock.call_args_list
 
     assert Class_mock.call_count == 1
-    assert args[0] == [(pan_elem, "TARGET", elem_types["TARGET"], types.create_element), {}]
+    assert args[0] == [
+        (pan_elem, "TARGET", elem_types["TARGET"], types.create_element),
+        {},
+    ]
 
 
 def spec_create_element_2(mocker):
@@ -64,7 +67,10 @@ def spec_create_element_2(mocker):
     args = Class_mock.call_args_list
 
     assert Class_mock.call_count == 1
-    assert args[0] == [(pan_elem, "Pandoc", elem_types["Pandoc"], types.create_element), {}]
+    assert args[0] == [
+        (pan_elem, "Pandoc", elem_types["Pandoc"], types.create_element),
+        {},
+    ]
 
 
 def spec_create_element_3(mocker):
@@ -83,7 +89,10 @@ def spec_create_element_3(mocker):
     args = Class_mock.call_args_list
 
     assert Class_mock.call_count == 1
-    assert args[0] == [(pan_elem, "TARGET", elem_types["TARGET"], types.create_element), {}]
+    assert args[0] == [
+        (pan_elem, "TARGET", elem_types["TARGET"], types.create_element),
+        {},
+    ]
 
 
 def spec_create_element_4(mocker):
@@ -148,7 +157,11 @@ def spec___init___1():
             # Pandoc Meta [Block]
             "class": Pandoc,
             "content": {"key": None, "main": "blocks", "type": "[Block]"},
-            "struct": {"Version": "pandoc-api-version", "Meta": "meta", "Blocks": "blocks"},
+            "struct": {
+                "Version": "pandoc-api-version",
+                "Meta": "meta",
+                "Blocks": "blocks",
+            },
         },
     }
 

@@ -6,7 +6,7 @@ import copy
 
 from ..pandocastobject.pandocast.element import Element
 from .config import DEFAULTS
-from .line import Line
+from .textstring import TextString
 
 
 class TextBlock(list):
@@ -31,10 +31,11 @@ class TextBlock(list):
             if type in remove:
                 pass
             elif type == "LineBreak":
-                self.append(Line(line, eol=item, opts=self.__opts))
+                line.append(item)
+                self.append(TextString(line, opts=self.__opts))
                 line = []
             else:
                 line.append(item)
 
         if len(line) > 0:
-            self.append(Line(line, opts=self.__opts))
+            self.append(TextString(line, opts=self.__opts))

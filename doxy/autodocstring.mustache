@@ -1,0 +1,34 @@
+{{! Doxygen Docstring Template for 'autoDocstring' vscode extension}}
+{{! autoDocstring - https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring}}
+
+{{summaryPlaceholder}}
+
+{{extendedSummaryPlaceholder}}
+{{#parametersExist}}
+
+{{#args}}
+@param {{var}} ({{typePlaceholder}}) : {{descriptionPlaceholder}}
+{{/args}}
+{{#kwargs}}
+@param {{var}} ({{typePlaceholder}}, optional) : {{descriptionPlaceholder}}. Defaults to {{&default}}.
+{{/kwargs}}
+{{/parametersExist}}
+{{#exceptionsExist}}
+
+{{#exceptions}}
+@exception {{type}} : {{descriptionPlaceholder}}
+{{/exceptions}}
+{{/exceptionsExist}}
+{{#returnsExist}}
+
+{{#returns}}
+@return {{typePlaceholder}} : {{descriptionPlaceholder}}
+{{/returns}}
+{{/returnsExist}}
+{{#yieldsExist}}
+
+Yields:
+{{#yields}}
+- {{typePlaceholder}} : {{descriptionPlaceholder}}
+{{/yields}}
+{{/yieldsExist}}

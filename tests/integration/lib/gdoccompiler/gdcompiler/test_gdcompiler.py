@@ -29,7 +29,9 @@ _data_Inline_1 = {
 
 
 @pytest.mark.parametrize(
-    "filename, formattype, html", list(_data_Inline_1.values()), ids=list(_data_Inline_1.keys())
+    "filename, formattype, html",
+    list(_data_Inline_1.values()),
+    ids=list(_data_Inline_1.keys()),
 )
 def test_GdocCompile_1(mocker: mock, filename, formattype, html):
     r"""
@@ -45,9 +47,10 @@ def test_GdocCompile_1(mocker: mock, filename, formattype, html):
     expect_data = json.loads(expect_json)
 
     # Execution
-    gobj = GdocCompiler().compile(filepath)
+    gobj, e = GdocCompiler().compile(filepath)
 
     # Assertion
+    assert e is None
     assert gobj is not None
     assert gobj is not str
     assert _assert_children(expect_data, gobj)
@@ -60,7 +63,7 @@ def _assert_children(expected, actual):
         exp = expected[i]
         act = children[i]
         assert exp[0] == act.id
-        assert exp[1] == act.name
+        assert exp[1] == act.name.get_text()
         assert _assert_children(exp[2], act)
 
     return True

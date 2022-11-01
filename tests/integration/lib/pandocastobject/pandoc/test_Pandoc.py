@@ -45,7 +45,11 @@ _data__run_1 = {
         {"output": b"_test_cmd_ 2.14.2\n" b"Commandline opt = OUTPUT\n"},  # expected
     ),
     "Case: Three commandlines": (
-        ["_test_cmd_.sh ------", "_test_cmd_.sh ------", "_test_cmd_.sh OUTPUT"],  # commandlines,
+        [
+            "_test_cmd_.sh ------",
+            "_test_cmd_.sh ------",
+            "_test_cmd_.sh OUTPUT",
+        ],  # commandlines,
         {"output": b"_test_cmd_ 2.14.2\n" b"Commandline opt = OUTPUT\n"},  # expected
     ),
 }
@@ -97,7 +101,11 @@ _data__run_2 = {
         },
     ),
     "Case: Three commandlines": (
-        ["_test_cmd_.sh --OPTION", "_test_cmd_.sh", "_test_cmd_.sh --OPTION"],  # commandlines,
+        [
+            "_test_cmd_.sh --OPTION",
+            "_test_cmd_.sh",
+            "_test_cmd_.sh --OPTION",
+        ],  # commandlines,
         {  # expected
             "excinfo": {
                 "returncode": 1,
@@ -128,7 +136,8 @@ def test__run_2(commandlines, expected):
 
     assert excinfo.value.returncode == expected["excinfo"]["returncode"]
     assert (
-        excinfo.value.cmd == [here + expected["excinfo"]["cmd"][0]] + expected["excinfo"]["cmd"][1:]
+        excinfo.value.cmd
+        == [here + expected["excinfo"]["cmd"][0]] + expected["excinfo"]["cmd"][1:]
     )
     assert excinfo.value.stdout == expected["excinfo"]["stdout"]
     assert excinfo.value.stderr == expected["excinfo"]["stderr"]
@@ -148,10 +157,10 @@ _data_get_version_1 = {
     #       ]
     #   )
     "Normal Case: Actual output from pnadoc": (
-        b"pandoc 2.14.2\n" + b"Compiled with pandoc-types 1.22,",
+        b"pandoc 2.19.2\n" + b"Compiled with pandoc-types 1.22.2.1,",
         # expected
         {
-            "output": {"pandoc": [2, 14, 2], "pandoc-types": [1, 22]},
+            "output": {"pandoc": [2, 19, 2], "pandoc-types": [1, 22, 2, 1]},
             "_run": {"call_count": 1, "args": [(["pandoc --version"],), {}]},
         },
     ),
@@ -159,7 +168,9 @@ _data_get_version_1 = {
 
 
 @pytest.mark.parametrize(
-    "stdout, expected", list(_data_get_version_1.values()), ids=list(_data_get_version_1.keys())
+    "stdout, expected",
+    list(_data_get_version_1.values()),
+    ids=list(_data_get_version_1.keys()),
 )
 def test_get_version_1(mocker, stdout, expected):
     r"""
@@ -190,7 +201,9 @@ _data_get_json_1 = {
 
 
 @pytest.mark.parametrize(
-    "filename, args, jsonfile", list(_data_get_json_1.values()), ids=list(_data_get_json_1.keys())
+    "filename, args, jsonfile",
+    list(_data_get_json_1.values()),
+    ids=list(_data_get_json_1.keys()),
 )
 def test_get_json_1(monkeypatch, filename, args, jsonfile):
     r"""

@@ -123,7 +123,9 @@ class Pandoc:
             words = line.replace(",", " ").split()
 
             for i, word in enumerate(words):
-                if ((word == "pandoc") or (word == "pandoc-types")) and (i < len(words) - 1):
+                if ((word == "pandoc") or (word == "pandoc-types")) and (
+                    i < len(words) - 1
+                ):
                     vers = words[i + 1].split(".")
                     if not vers[0].isdecimal():
                         break

@@ -43,10 +43,14 @@ class Plugins:
                 pkg = pkg.parent
 
         else:
-            typeinfo = self.typetable[plugin.lower()][blocktype].get(".".join(types).lower())
+            typeinfo = self.typetable[plugin.lower()][blocktype].get(
+                ".".join(types).lower()
+            )
             constructor = typeinfo["constructor"]
 
         return constructor
 
 
-_TypeTable = {"": {"Para": {"import": {"constructor": None}, "access": {"constructor": None}}}}
+_TypeTable = {
+    "": {"Para": {"import": {"constructor": None}, "access": {"constructor": None}}}
+}

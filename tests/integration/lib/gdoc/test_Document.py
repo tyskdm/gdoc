@@ -15,8 +15,8 @@ from unittest import mock
 
 import pytest
 
-from gdoc.lib.gdoc.document import Document
-from gdoc.lib.gdoccompiler.gdparser.textblock import parse_TextBlock
+from gdoc.lib.gdoc import Document
+from gdoc.lib.gdocparser.textblock import parse_TextBlock
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
 
@@ -30,7 +30,9 @@ _data_Inline_1 = {
 
 
 @pytest.mark.parametrize(
-    "filename, formattype, html", list(_data_Inline_1.values()), ids=list(_data_Inline_1.keys())
+    "filename, formattype, html",
+    list(_data_Inline_1.values()),
+    ids=list(_data_Inline_1.keys()),
 )
 def test_gdParser_1(mocker: mock, filename, formattype, html):
     r"""

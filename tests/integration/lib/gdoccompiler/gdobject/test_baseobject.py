@@ -10,15 +10,15 @@ The specification of Inline class.
 [@import SWDD.SU[Inline] as=THIS]
 
 """
-from gdoc.lib.gdoccompiler.gdobject.types import CATEGORY_INFO
-from gdoc.lib.gdoccompiler.gdobject.types.baseobject import BaseObject
-from gdoc.lib.gdoccompiler.gdobject.types.category import Category
+from gdoc.lib.gobj.types import CATEGORY_INFO
+from gdoc.lib.gobj.types.baseobject import BaseObject, ClassInfo
+from gdoc.lib.gobj.types.category import Category
 
 
 ## @{ @name Inline
 ## [\@test Inline] creates a new instance.
 ##
-def test_BaseObject_1():
+def x_test_BaseObject_1():
     r"""
     [@test Inline.2] Code.
     """
