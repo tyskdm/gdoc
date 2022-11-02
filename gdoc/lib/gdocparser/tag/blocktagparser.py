@@ -8,7 +8,7 @@ from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.util import Err, Ok, Result
 from gdoc.util.errorreport import ErrorReport
 
-from ..fsm import State, StateMachine
+from ....util.fsm import State, StateMachine
 from ..textblock.texttokenizer import TextTokenizer
 from .objecttaginfoparser import ObjectTagInfo, parse_ObjectTagInfo
 

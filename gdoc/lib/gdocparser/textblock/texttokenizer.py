@@ -3,7 +3,7 @@ from typing import Union, cast
 
 from gdoc.lib.gdoc import String, Text, TextString
 
-from ..fsm import State
+from ....util.fsm import State
 
 _TOKEN_CHARS = (" ", ",", "=", "@", "[", "]", "(", ")", "{", "}", '"', "\\", "\n")
 
