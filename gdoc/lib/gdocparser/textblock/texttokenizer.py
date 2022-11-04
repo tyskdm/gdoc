@@ -1,19 +1,36 @@
-from collections.abc import Iterable
-from typing import Union, cast
+"""
+texttokenizer.py: tokenize_textstring function
+"""
 
 from gdoc.lib.gdoc import String, Text, TextString
+from gdoc.util.fsm import State
 
-from ....util.fsm import State
-
-_TOKEN_CHARS = (" ", ",", "=", "@", "[", "]", "(", ")", "{", "}", '"', "\\", "\n")
+_TOKEN_CHARS = (
+    " ",
+    ",",
+    # ".",
+    # ":",
+    "=",
+    "@",
+    "[",
+    "]",
+    "(",
+    ")",
+    "{",
+    "}",
+    '"',
+    "\\",
+    "\n",
+)
 
 
 def tokenize_textstring(textstr: TextString) -> TextString:
-    tokenizer: State = cast(State, TextTokenizer().start().on_entry())
+    tokenizer = TextTokenizer()
+    tokenizer.start().on_entry()
 
+    text: Text | String
     for text in textstr:
         if isinstance(text, String):
-            text = cast(Iterable, text)
             for c in text:
                 tokenizer.on_event(c)
 
@@ -23,39 +40,38 @@ def tokenize_textstring(textstr: TextString) -> TextString:
     return tokenizer.on_exit()
 
 
-class TextTokenizer(State):
+class TextTokenizer(State[None, Text | String, TextString]):
     """
     TextTokenizer
     """
 
-    def on_entry(self):
-        next = self
+    tokens: TextString
+    word: String
 
+    def on_entry(self):
         self.tokens = TextString()
         self.word = String()
 
-        return next
+        return self._continue()
 
-    def on_event(self, event: Union[Text, String]):
-        next = self
-
+    def on_event(self, event: Text | String):
         if TextTokenizer.is_word(event):
             self.word += event
-
         else:
             self._flush_word_buff()
             self.tokens.append(event)
 
-        return next
+        return self._continue()
 
-    def on_exit(self):
+    def on_exit(self) -> TextString:
         self._flush_word_buff()
+
         return self.tokens
 
-    def _flush_word_buff(self):
+    def _flush_word_buff(self) -> None:
         if len(self.word) > 0:
             # Flush buffer
-            self.tokens.append(self.word[:])
+            self.tokens.append(self.word)
             self.word = String()
 
     @classmethod

@@ -51,12 +51,10 @@ class State(Generic[PARAM, EVENT, RESULT]):
         @return NEXT[EVENT, RESULT] : Next state. see bellow also.
 
         NEXT:
-        # continue      --> self
-        # re-entry      --> (self, event)
-        # transition(forward)
-        #               --> state or (state, event)
-        # done(default transition)
-        #               --> None or (None, result)
+        - continue -> self
+        - re-entry -> (self, event)
+        - transition(forward) -> state or (state, event)
+        - done(default transition) -> None or (None, result)
         """
         return self
 
@@ -69,30 +67,28 @@ class State(Generic[PARAM, EVENT, RESULT]):
         @return NEXT[EVENT, RESULT] : Next state. see bellow also.
 
         NEXT:
-        # continue      --> self
-        # re-entry      --> (self, event)
-        # transition(forward)
-        #               --> state or (state, event)
-        # done(default transition)
-        #               --> None or (None, result)
+        - continue -> self
+        - re-entry -> (self, event)
+        - transition(forward) -> state or (state, event)
+        - done(default transition) -> None or (None, result)
         """
         return self
 
-    def on_exit(self) -> Optional[RESULT]:
+    def on_exit(self) -> RESULT:
         """
         Called on exit the state
 
-        @return Optional[RESULT] : Subclass can return result value.
+        @return RESULT : Subclass can return result value.
         """
-        return None
+        pass
 
-    def stop(self) -> Optional[RESULT]:
+    def stop(self) -> RESULT:
         """
         Set the state to be disable
 
-        @return Optional[RESULT] : Subclass can return result value.
+        @return RESULT : Subclass can return result value.
         """
-        return None
+        pass
 
     def _continue(self) -> "State":
         return self
@@ -110,7 +106,7 @@ class State(Generic[PARAM, EVENT, RESULT]):
         return (state, event)
 
 
-class StateMachine(State[PARAM, EVENT, RESULT]):
+class StateMachine(State[PARAM, EVENT, Optional[RESULT]]):
     """
     StateMachine to handle states and events
 
@@ -167,12 +163,10 @@ class StateMachine(State[PARAM, EVENT, RESULT]):
         @return NEXT[EVENT, RESULT] : Next state. see bellow also.
 
         NEXT:
-        # continue      --> self
-        # re-entry      --> (self, event)
-        # transition(forward)
-        #               --> state or (state, event)
-        # done(default transition)
-        #               --> None or (None, result)
+        - continue -> self
+        - re-entry -> (self, event)
+        - transition(forward) -> state or (state, event)
+        - done(default transition) -> None or (None, result)
         """
         if self.__current_state is None:
             raise RuntimeError(f"StateMachine '{self.name}' is not started.")
@@ -190,12 +184,10 @@ class StateMachine(State[PARAM, EVENT, RESULT]):
         @return NEXT[EVENT, RESULT] : Next state. see bellow also.
 
         NEXT:
-        # continue      --> self
-        # re-entry      --> (self, event)
-        # transition(forward)
-        #               --> state or (state, event)
-        # done(default transition)
-        #               --> None or (None, result)
+        - continue -> self
+        - re-entry -> (self, event)
+        - transition(forward) -> state or (state, event)
+        - done(default transition) -> None or (None, result)
         """
         if self.__current_state is None:
             raise RuntimeError(f"StateMachine '{self.name}' is not started.")
@@ -223,12 +215,18 @@ class StateMachine(State[PARAM, EVENT, RESULT]):
 
         @return Optional[RESULT] : Subclass can return result value.
         """
+        result: Optional[RESULT] = None
+
+        state: State
         for state in self.__state_list:
-            state.stop()
+            if state is not self.__current_state:
+                state.stop()
 
-        self.__current_state = None
+        if self.__current_state is not None:
+            result = self.__current_state.stop()
+            self.__current_state = None
 
-        return None
+        return result
 
     def __move_to(self, next: NEXT) -> NEXT:
         # continue      --> self

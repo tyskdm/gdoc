@@ -1,15 +1,14 @@
 """
 blocktagparser.py: parse_BlockTag function
 """
-from typing import Optional, Union, cast
+from typing import Optional, cast
 
 from gdoc.lib.gdoc import String, Text, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.util import Err, Ok, Result
 from gdoc.util.errorreport import ErrorReport
+from gdoc.util.fsm import NEXT, State, StateMachine
 
-from ....util.fsm import State, StateMachine
-from ..textblock.texttokenizer import TextTokenizer
 from .objecttaginfoparser import ObjectTagInfo, parse_ObjectTagInfo
 
 
@@ -77,7 +76,8 @@ def detect_BlockTag(
             if detector.on_event((i, token)) is None:
                 break
 
-        tagpos, tagstr = detector.on_exit()
+        assert (detect := detector.on_exit()) is not None
+        tagpos, tagstr = detect
 
         if tagpos[0] < 0:
             # Opening str "[@" NOT FOUND
@@ -102,14 +102,18 @@ def detect_BlockTag(
 #
 # BlockTag detector
 #
-class BlockTagDetector(StateMachine):
-    """ """
+class BlockTagDetector(
+    StateMachine[None, tuple[int, Text], tuple[list[int], TextString]]
+):
+    """
+    BlockTagDetector
+    """
+
+    tagstr: TextString
+    tagpos: list[int]
 
     def __init__(self, name: str = None) -> None:
         super().__init__(name)
-        self.tagstr: Optional[TextString] = None
-        self.tagpos: Optional[list[int]] = None
-
         self.add_state(_Open("Opening"), "Character")
         self.add_state(_Char("Character"), None)
         self.add_state(_String("String"), "Character")
@@ -119,31 +123,24 @@ class BlockTagDetector(StateMachine):
         self.tagpos = [-1, -1]
         return super().start((self.tagstr, self.tagpos))
 
-    def on_entry(self, _=None):
-        return super().on_entry(None)  # None for reset substatuses
-
-    def on_exit(self):
+    def on_exit(self) -> tuple[list[int], TextString]:
         super().on_exit()
         return self.tagpos, self.tagstr
 
-    def stop(self):
-        self.tagstr = None
-        self.tagpos = None
-        return super().stop()
 
+class _Open(State[tuple[TextString, list[int]], tuple[int, Text], None]):
+    """
+    _Open: Wait opening chars
+    """
 
-class _Open(State):
-    """ """
+    tagstr: TextString
+    tagpos: list[int]
+    _prev: Optional[String]
+    _start: int
 
-    def __init__(self, name: str = None) -> None:
-        super().__init__(name)
-        self.tagstr: Optional[TextString] = None
-        self.tagpos: Optional[list[int]] = None
-        self._prev: Optional[String] = None
-        self._start: int = -1
-
-    def start(self, taginfo):
+    def start(self, taginfo: tuple[TextString, list[int]]) -> State:
         self.tagstr, self.tagpos = taginfo
+        return self
 
     def on_entry(self, _=None):
         self._prev = None
@@ -151,7 +148,7 @@ class _Open(State):
         return self
 
     def on_event(self, event: tuple[int, Text]):
-        next: Optional[State] = self
+        next: NEXT = self
         index, token = event
 
         if self._prev is None:
@@ -170,46 +167,28 @@ class _Open(State):
 
         return next
 
-    def stop(self):
-        self.tagstr = None
-        self.tagpos = None
-
 
 class _Char(State):
-    """ """
+    """
+    _Char: Characters
+    """
 
-    def __init__(self, name: str = None) -> None:
-        super().__init__(name)
-        self.tagstr: Optional[TextString] = None
-        self.tagpos: Optional[list[int]] = None
-        self._bcount: int = 0
-        self._word: Optional[String] = None
+    tagstr: TextString
+    tagpos: list[int]
+    _bcount: int
 
     def start(self, taginfo):
         self.tagstr, self.tagpos = taginfo
         self._bcount = 0
 
-    def on_entry(self, _=None):
-        next: Optional[State] = self
-
-        # TODO: Check if concatenation is not needed.
-        self._word = String()  # Empty string
-
-        return next
-
     def on_event(self, event):
-        next: Union[State, None, tuple[str, tuple[int, Text]]] = self
+        next: NEXT = self
         index, token = event
 
         if isinstance(token, String) and (token == '"'):
-            self._flush_word_buff()
             next = ("String", event)
 
-        elif TextTokenizer.is_word(token):
-            self._word += token
-
         else:
-            self._flush_word_buff()
             self.tagstr.append(token)
 
             if isinstance(token, String) and (token == "["):
@@ -225,41 +204,30 @@ class _Char(State):
 
         return next
 
-    def stop(self):
-        self.tagstr = None
-        self.tagpos = None
-
-    def _flush_word_buff(self):
-        if len(self._word) > 0:
-            # Flush buffer
-            self.tagstr.append(self._word)
-            self._word = String()  # Empty string
-
 
 class _String(State):
-    """ """
+    """
+    _String
+    """
 
-    def __init__(self, name: str = None) -> None:
-        super().__init__(name)
-        self.tagstr: Optional[TextString] = None
-        self.tagpos: Optional[list[int]] = None
-        self.quoted: Optional[TextString] = None
-        self.escape: bool = False
+    tagstr: Optional[TextString]
+    tagpos: Optional[list[int]]
+    quoted: Optional[TextString]
+    escape: bool
 
     def start(self, taginfo):
         self.tagstr, self.tagpos = taginfo
 
     def on_entry(self, event):
-        next: Union[State, None, tuple[str, tuple[int, Text]]] = self
         _, token = event
-
-        self.quoted = TextString([token])  # Always it's '"'.
+        self.quoted = TextString()
+        self.quoted.append(token)  # Always it's '"'.
         self.escape = None
 
-        return next
+        return self
 
     def on_event(self, event):
-        next: Union[State, None, tuple[str, tuple[int, Text]]] = self
+        next: NEXT = self
         _, token = event
 
         self.quoted.append(token)
@@ -276,7 +244,3 @@ class _String(State):
             next = None
 
         return next
-
-    def stop(self):
-        self.tagstr = None
-        self.tagpos = None
