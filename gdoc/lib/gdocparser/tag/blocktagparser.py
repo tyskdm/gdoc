@@ -192,6 +192,7 @@ class _Char(State):
     def on_entry(self, _=None):
         next: Optional[State] = self
 
+        # TODO: Check if concatenation is not needed.
         self._word = String()  # Empty string
 
         return next
@@ -201,6 +202,7 @@ class _Char(State):
         index, token = event
 
         if isinstance(token, String) and (token == '"'):
+            self._flush_word_buff()
             next = ("String", event)
 
         elif TextTokenizer.is_word(token):

@@ -173,7 +173,7 @@ class BaseObject(GdObject):
                 p = parent_obj.get_parent()
                 while len(symbols) > 0:
                     s = symbols.pop()
-                    if s.startwith("*"):  # name
+                    if s.startswith("*"):  # name
                         if p.name != s[1:]:
                             raise GdocRuntimeError(
                                 "The explicit parent Name is incorrect."
