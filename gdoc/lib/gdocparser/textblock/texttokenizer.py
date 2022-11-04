@@ -8,8 +8,8 @@ from gdoc.util.fsm import State
 _TOKEN_CHARS = (
     " ",
     ",",
-    # ".",
-    # ":",
+    ".",
+    ":",
     "=",
     "@",
     "[",

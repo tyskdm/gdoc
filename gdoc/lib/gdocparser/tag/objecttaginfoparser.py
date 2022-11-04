@@ -32,21 +32,32 @@ def parse_ObjectTagInfo(
     tokens: TextString = tagstr[:]
 
     if len(tokens) > 0:
+        #
         # parse Class Info
-        if TextTokenizer.is_word(tokens[0]):
+        #
+        i: int
+        elem: Text
+        class_str: String = String()
+        for i, elem in enumerate(tokens):
+            if isinstance(elem, String) and (elem == " "):
+                break
+            if isinstance(tokens[i], String):
+                class_str += tokens[i]
+            else:
+                erpt.submit(GdocSyntaxError())
+                return Err(erpt)
+        tokens = tokens[i:]
+
+        if len(class_str) > 0:
             # get class info
-            class_info, e = parse_ClassInfo(tokens[0], opts, erpt)
+            class_info, e = parse_ClassInfo(class_str, opts, erpt)
             if e:
                 erpt.submit(e)
                 return Err(erpt)
 
-            tokens = tokens[1:]
-
-        elif not (isinstance(tokens[0], String) and (tokens[0] == " ")):
-            # Class info should be String
-            erpt.submit(GdocSyntaxError())
-            return Err(erpt)
-
+        #
+        # parse Arguments
+        #
         args, e = parse_Arguments(tokens, opts, erpt)
         if e:
             erpt.submit(e)
@@ -89,8 +100,7 @@ def parse_Arguments(
     tokens: TextString, opts: dict, erpt: ErrorReport
 ) -> Result[tuple, ErrorReport]:
     """
-    element ::=
-    [ word | quoted TextString | ( arguments ) | "=" | " " | "," | OtherTextTypeTokens ]*
+    parse_Argument
     """
     elements, e = detect_parentheses(tokens, opts, erpt)
     if e:
@@ -110,20 +120,12 @@ def parse_Arguments(
 
 class ArgumentParser(StateMachine):
     """
-    returns argument
-
-    argument = {
-        "args": [ value ],
-        "kwargs": [
-            [ key, value ]
-        ]
-    }
-
-    element ::= [ word | "quoted" | (bracketed) | "=" | " " | "," | NotStringTokens ]*
-
-    Key: TextString ::= word    # should be isidentifier()
-    Value: TextString ::= [ word | "quoted" | (bracketed) | NotStringTokens ]*
+    Returns positional arguments and keyward arguments.
     """
+
+    argstring: TextString
+    args: list[Text]
+    kwargs: list[list[Text]]
 
     def __init__(self, name: str = None) -> None:
         super().__init__(name)
@@ -133,16 +135,10 @@ class ArgumentParser(StateMachine):
         self.add_state(_Value("Value"), "Idle")
 
     def start(self, param=None):
-        self.argstring: TextString = TextString()
-        self.args: list[Text] = []
-        self.kwargs: list[list[Text]] = []
+        self.argstring = TextString()
+        self.args = []
+        self.kwargs = []
         return super().start((self.argstring, self.args, self.kwargs))
-
-    def on_entry(self, event=None):
-        return super().on_entry(event)
-
-    def on_event(self, token):
-        return super().on_event(token)
 
     def on_exit(self):
         super().on_exit()
@@ -150,11 +146,15 @@ class ArgumentParser(StateMachine):
 
 
 class _Idle(State):
-    """ """
+    """
+    _Idle state
+    """
+
+    comma: String | bool | None
 
     def start(self, param: Any = None) -> "State":
-        self.comma: Union[String, bool, None] = None
-        return super().start(param)
+        self.comma = None
+        return self
 
     def on_entry(self, element=None):
         next = self
@@ -189,13 +189,15 @@ class _Idle(State):
 
 
 class _Key(State):
-    """ """
+    """
+    _Key state
+    """
+
+    argstring: TextString
+    args: list[Text]
+    kwargs: list[list[Text]]
 
     def start(self, param):
-        self.argstring: TextString
-        self.args: list[Text]
-        self.kwargs: list[list[Text]]
-
         self.argstring, self.args, self.kwargs = param
 
     def on_entry(self, element):
@@ -220,13 +222,15 @@ class _Key(State):
 
 
 class _AfterKey(State):
-    """ """
+    """
+    _AfterKey state
+    """
+
+    argstring: TextString
+    args: list[Text]
+    kwargs: list[list[Text]]
 
     def start(self, param):
-        self.argstring: TextString
-        self.args: list[Text]
-        self.kwargs: list[list[Text]]
-
         self.argstring, self.args, self.kwargs = param
 
     def on_entry(self, element=None):
@@ -261,15 +265,18 @@ class _AfterKey(State):
 
 
 class _Value(State):
-    """ """
+    """
+    _Value state
+    """
+
+    argstring: TextString
+    kwargs: list[list[Text]]
 
     def start(self, param):
-        self.argstring: TextString
-        self.kwargs: list[list[Text]]
-
         self.argstring, _, self.kwargs = param
-
         self.value: TextString = TextString()
+
+        return self
 
     def on_entry(self, element=None):
         self.value.clear()
