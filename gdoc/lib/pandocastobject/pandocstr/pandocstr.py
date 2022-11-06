@@ -1,13 +1,13 @@
-r"""
+"""
 PandocStr class
 """
-
+from collections.abc import Sequence
 from typing import Optional
 
 _ALLOWED_TYPES_ = ("Str", "Space", "SoftBreak", "LineBreak")
 
 
-class PandocStr:
+class PandocStr(Sequence):
     """
     Handles text strings in 'Str' inline elements and keep source mapping data.
     """
