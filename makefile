@@ -5,6 +5,7 @@ TARGET      := gdoc
 SRCDIR 		:= gdoc
 SPECDIR     := spec
 TESTDIR     := tests
+DISTDIR     := dist
 DOCSDIR     := docs
 DOXYGENDIR  := doxy
 DOXYOUTDIR  := html
@@ -20,6 +21,7 @@ all: clean test puml-img doc
 
 clean: puml-clean doc-clean book-clean cov-clean 
 	@py3clean .
+	@$(RM) -rf $(DISTDIR)
 	@$(RM) -rf $(MKDOCSDIR)
 
 #
