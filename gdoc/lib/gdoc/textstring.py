@@ -20,7 +20,9 @@ class TextString(list[Text], Text):
 
     def __init__(
         self,
-        items: Union[list[PandocElement], list[Text], str, "TextString"] = [],  # type: ignore
+        items: Union[
+            list[PandocElement], list[Text], str, "TextString"
+        ] = [],  # type: ignore
         opts={}
         # if this > items: list[Element] | list[Text] | str | "TextString" = []
         # returns > E   TypeError: unsupported operand type(s) for |
@@ -224,9 +226,9 @@ class TextString(list[Text], Text):
         result: TextString = self[:]
 
         while (len(result) > 0) and (type(result[0]) in (String, TextString)):
-            s: String = result[0]
+            s: String | TextString = result[0]  # type: ignore
             result[0] = s.lstrip(__chars)
-            if len(result[0]) > 0:
+            if len(result[0]) > 0:  # type: ignore
                 break
             else:
                 del result[0]
@@ -246,9 +248,9 @@ class TextString(list[Text], Text):
         result: TextString = self[:]
 
         while (len(result) > 0) and (type(result[-1]) in (String, TextString)):
-            s: String | TextString = result[-1]
+            s: String | TextString = result[-1]  # type: ignore
             result[-1] = s.rstrip(__chars)
-            if len(result[-1]) > 0:
+            if len(result[-1]) > 0:  # type: ignore
                 break
             else:
                 del result[-1]
