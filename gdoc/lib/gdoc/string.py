@@ -36,7 +36,7 @@ class String(PandocStr, Text):
     def get_str(self) -> str:
         return str(self)
 
-    def get_text(self) -> str:
+    def get_content_str(self) -> str:
         return self.get_str()
 
     def __getitem__(self, *args, **kwargs):

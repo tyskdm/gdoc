@@ -136,10 +136,10 @@ class TextString(list[Text], Text):
         return result
 
     # @Override(Text(ABC))
-    def get_text(self) -> str:
+    def get_content_str(self) -> str:
         result = ""
         for text in self:
-            result += text.get_text()
+            result += text.get_content_str()
 
         return result
 
@@ -166,7 +166,7 @@ class TextString(list[Text], Text):
             elif type(text) is TextString:
                 string: str = text.__get_leading_str()
                 result += string
-                if len(string) < len(text.get_text()):
+                if len(string) < len(text.get_content_str()):
                     break
             else:
                 break
@@ -192,7 +192,7 @@ class TextString(list[Text], Text):
             elif type(text) is TextString:
                 string: str = text.__get_leading_str()
                 result = result + string
-                if len(string) < len(text.get_text()):
+                if len(string) < len(text.get_content_str()):
                     break
             else:
                 break

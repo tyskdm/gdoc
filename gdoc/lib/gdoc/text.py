@@ -27,11 +27,11 @@ class Text(ABC):
         """
 
     @abstractmethod
-    def get_text(self) -> str:
+    def get_content_str(self) -> str:
         """
         Return the text data contained in this element.
 
-        - Ex. Code("some code").get_text() returns "some code"
+        - Ex. Code("some code").get_content_str() returns "some code"
           (original text data without surrounding char "`").
 
         @return the text data contained in this element.

@@ -156,7 +156,7 @@ class BaseObject(GdObject):
             if type(symbol) is str:
                 symbol = GdSymbol(symbol)
             else:
-                symbol = GdSymbol(symbol.get_text())
+                symbol = GdSymbol(symbol.get_content_str())
 
             if not symbol.is_id():
                 raise GdocSyntaxError("Invalid id")
@@ -208,7 +208,7 @@ def _get_symbol(class_args):
     idx = 0
     c = len(class_args)
     if c > 0:
-        if class_args[idx].get_text() in ("+", "-"):
+        if class_args[idx].get_content_str() in ("+", "-"):
             scope = class_args[idx]
             if c < 2:
                 raise GdocSyntaxError()

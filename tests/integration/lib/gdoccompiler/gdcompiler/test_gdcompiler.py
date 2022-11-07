@@ -63,7 +63,7 @@ def _assert_children(expected, actual):
         exp = expected[i]
         act = children[i]
         assert exp[0] == act.id
-        assert exp[1] == act.name.get_text()
+        assert exp[1] == act.name.get_content_str()
         assert _assert_children(exp[2], act)
 
     return True

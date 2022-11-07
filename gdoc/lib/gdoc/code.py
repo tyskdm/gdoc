@@ -27,5 +27,5 @@ class Code(Text):
     def get_str(self):
         return f"`{self.element.get_content()}`"
 
-    def get_text(self):
+    def get_content_str(self):
         return self.element.get_content()
