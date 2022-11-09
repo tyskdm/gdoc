@@ -2,9 +2,6 @@
 text.py: Text class
 """
 from abc import ABC, abstractmethod
-from typing import TypeVar
-
-TEXT = TypeVar("TEXT", bound="Text")
 
 
 class Text(ABC):
