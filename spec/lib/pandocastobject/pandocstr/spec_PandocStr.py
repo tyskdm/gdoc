@@ -825,14 +825,14 @@ def xspec_get_str_1(items, position, slice, expected):
     assert target_str == expected
 
 
-## @{ @name get_info(pan_elem, type_def)
-## [\@spec get_info] creates a new instance.
+## @{ @name get_char_info(pan_elem, type_def)
+## [\@spec get_char_info] creates a new instance.
 ##
-# | @Method      | get_info       |
+# | @Method      | get_char_info       |
 # |              | @param         | in index : int = 0
 # |              | @param         | out char_info : (sourcepos : {path:str, line:int, col:int}, decoration, item)
 #
-# >> SEE spec_get_info.py
+# >> SEE spec_get_char_info.py
 #
 
 ## @{ @name \_\_len\_\_(pan_elem, type_def)

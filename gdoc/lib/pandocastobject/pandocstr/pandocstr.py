@@ -54,7 +54,7 @@ class PandocStr(Sequence):
         """
         return self._items
 
-    def get_info(self, index: int = 0):
+    def get_char_info(self, index: int = 0):
         """Constructor
         @param index : int = 0
             index of the target char in self._text
