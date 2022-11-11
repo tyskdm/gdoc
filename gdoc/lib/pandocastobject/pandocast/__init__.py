@@ -5,6 +5,7 @@ r"""!
 """
 
 from .element import Element as PandocElement
+from .inline import Inline as PandocInlineElement
 from .types import PandocAst
 
-__all__ = ["PandocAst", "PandocElement"]
+__all__ = ["PandocAst", "PandocElement", "PandocInlineElement"]

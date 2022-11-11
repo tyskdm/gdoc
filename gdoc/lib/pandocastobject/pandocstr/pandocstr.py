@@ -4,48 +4,48 @@ PandocStr class
 from collections.abc import Sequence
 from typing import Optional
 
+from ..pandocast import PandocInlineElement
+
 _ALLOWED_TYPES_ = ("Str", "Space", "SoftBreak", "LineBreak")
 
 
 class PandocStr(Sequence):
     """
-    Handles text strings in 'Str' inline elements and keep source mapping data.
+    Handles text strings and source mapping info in 'Str' inline elements.
     """
 
-    def __init__(self, items=None, start: int = 0, stop: int = None):
-        """Constructor
-        @param items : [Str] | None
-            PandocAST items to be added.
-        @param start : int = 0
-            start char pos in the str items.
-        @param stop : int | None = None
-            stop char pos in the str items.
-        @return output : PandocStr
-        """
+    _items: list[dict]
+    _text: str
+    _len: int
 
-        # self._items = []
-        # self._text = ""
-        # self._len = 0
+    def __init__(
+        self, items: list[PandocInlineElement] = None, start: int = 0, stop: int = None
+    ) -> None:
+        """
+        Handles text strings and source mapping info in 'Str' inline elements.
+
+        @param items (list[PandocInlineElement], optional) : Pandoc Inline Elements.
+                                                             Defaults to None.
+        @param start (int, optional) : Start char postion. Defaults to 0.
+        @param stop (int, optional) : Stop char position. Defaults to None.
+        """
         self._items, self._text, self._len = self._create_items_list(items, start, stop)
 
-    def add_items(self, items=None, start: int = 0, stop: int = None):
-        """Constructor
-        @param items : [Str] | None
-            PandocAST items to be added.
-        @param start : int = 0
-            start char pos in the str items.
-        @param stop : int | None = None
-            stop char pos in the str items.
-        @return output : PandocStr
+    def add_items(
+        self, items: list[PandocInlineElement] = None, start: int = 0, stop: int = None
+    ) -> None:
         """
+        Handles text strings and source mapping info in 'Str' inline elements.
 
-        ## Create new items list
-        # new_items = []
-        # new_text = ""
-        # new_len = 0
+        @param items (list[PandocInlineElement], optional) : Pandoc Inline Elements.
+                                                             Defaults to None.
+        @param start (int, optional) : Start char postion. Defaults to 0.
+        @param stop (int, optional) : Stop char position. Defaults to None.
+        """
+        new_items: list[dict]
+        new_text: str
+        new_len: int
         new_items, new_text, new_len = self._create_items_list(items, start, stop)
-
-        ## Join new list to existing lit.
         self._join_items(new_items, new_text, new_len)
 
     def get_items(self):
@@ -53,16 +53,6 @@ class PandocStr(Sequence):
         @return output : PandocStr
         """
         return self._items
-
-    # def get_str(self, start: int = 0, stop: int = None):
-    #     """Constructor
-    #     @param start : int = 0
-    #         start char pos in the str items.
-    #     @param stop : int | None = None
-    #         stop char pos in the str items.
-    #     @return output : python str
-    #     """
-    #     return self._text[start:stop]
 
     def get_info(self, index: int = 0):
         """Constructor
@@ -370,106 +360,135 @@ class PandocStr(Sequence):
     def isspace(self) -> bool:
         return self._text.isspace()
 
-    def _create_items_list(self, items=None, start: int = 0, stop: int = None):
-        """Constructor
-        @param items : [Str] | None
-            PandocAST items to be added.
-        @param start : int = 0
-            start char pos in the str items.
-        @param stop : int | None = None
-            stop char pos in the str items.
-        @return output : PandocStr
+    def _create_items_list(
+        self, items: list[PandocInlineElement] = None, start: int = 0, stop: int = None
+    ) -> tuple[list[dict], str, int]:  # (new_items, new_text, new_len)
         """
-        ##
-        ## Create new items list
-        ##
-        new_items = []
-        new_text = ""
-        new_len = 0
-        _stop = stop  # storing for error reporting
+        Create items list from pandoc inline elements with start/stop pos.
+
+        @param items (list[PandocInlineElement], optional) : Pandoc Inline Elements.
+                                                             Defaults to None.
+        @param start (int, optional) : Start char postion. Defaults to 0.
+        @param stop (int, optional) : Stop char position. Defaults to None.
+
+        @exception TypeError : Invalid item type
+
+        @return tuple[list[dict], str, int] : items list, entire_text, text_length
+        """
+        new_items: list[dict] = []
+        new_text: str = ""
+        new_len: int = 0
 
         if items is None or len(items) == 0:
             return (new_items, new_text, new_len)
 
-        total_lenght = 0
-        for item in items:
-            if item.get_type() in _ALLOWED_TYPES_:
-                new_items.append(
-                    {
-                        "_item": item,
-                        "start": 0,
-                        "stop": len(item.text),
-                        "text": item.text,
-                        "len": len(item.text),
-                        "decoration": 0,
-                    }
-                )
-                total_lenght += len(item.text)
+        #
+        # Create new items list
+        #
+        total_length: int = 0
+        inline_element: PandocInlineElement
+        for inline_element in items:
+            if inline_element.get_type() in _ALLOWED_TYPES_:
+                if len(inline_element.text) > 0:
+                    new_items.append(
+                        {
+                            "_item": inline_element,
+                            "start": 0,
+                            "stop": len(inline_element.text),
+                            "text": inline_element.text,
+                            "len": len(inline_element.text),
+                            "decoration": 0,
+                        }
+                    )
+                    total_length += len(inline_element.text)
 
             else:
                 # raise error
-                raise TypeError("Invalid item type(" + item.get_type() + ")")
+                # TODO: Change Error message
+                raise TypeError("Invalid item type(" + inline_element.get_type() + ")")
 
-        # Set stop as plus val(0 - total_length)
-        if stop is None:
-            stop = total_lenght
-        elif stop < 0:
-            stop = total_lenght + stop
+        #
+        # Normalize start and stop values
+        #
+        _start: int
+        _stop: int
+        _start, _stop = self._normalize_pos_vals(start, stop, total_length)
+        trailing_str_len: int = total_length - _stop
+        new_len = _stop - _start
 
-        trailing_str_len = total_lenght - stop
+        #
+        # Remove unneeded items
+        #
+        length: int
+
+        # 1) Leading items
+        while _start > 0:
+            length = new_items[0]["len"]
+
+            if length <= _start:
+                del new_items[0]
+                _start -= length
+
+            else:
+                new_items[0]["start"] = _start
+                new_items[0]["len"] -= _start
+                new_items[0]["text"] = new_items[0]["text"][_start:]
+                # The above line is same as:
+                # new_items[0]["text"] = new_items[0]["_item"].text[
+                #     new_items[0]["start"] : new_items[0]["stop"]
+                # ]
+                break
+
+        # 2) Trailing items
+        while trailing_str_len > 0:
+            if new_items[-1]["len"] <= trailing_str_len:
+                trailing_str_len -= new_items[-1]["len"]
+                del new_items[-1]
+
+            else:
+                length = len(new_items[-1]["_item"].text)
+                new_items[-1]["stop"] = length - trailing_str_len
+                new_items[-1]["len"] -= trailing_str_len
+                new_items[-1]["text"] = new_items[-1]["_item"].text[
+                    new_items[-1]["start"] : new_items[-1]["stop"]
+                ]
+                break
+
+        #
+        # Create entire string
+        #
+        itme: dict
+        for item in new_items:
+            new_text += item["text"]
+
+        return (new_items, new_text, new_len)
+
+    def _normalize_pos_vals(
+        self, start: int, stop: Optional[int], total_length: int
+    ) -> tuple[int, int]:
+        _start: int = start
+        _stop: Optional[int] = stop
+
+        if _stop is None:
+            _stop = total_length
+        elif _stop < 0:
+            # Set valiable 'stop' to a positive value.
+            _stop = total_length + _stop
 
         # Check invalid start and stop
-        if total_lenght > 0:
-            if (start < 0) or (start > total_lenght):
-                raise IndexError("Out of range specifier: start = " + str(start))
+        if total_length > 0:
+            if (_start < 0) or (_start > total_length):
+                raise IndexError("Out of range specifier: start = " + str(_start))
 
-            if (stop < 0) or (stop > total_lenght):
-                raise IndexError("Out of range specifier: stop = " + str(_stop))
+            if (_stop < 0) or (_stop > total_length):
+                raise IndexError("Out of range specifier: stop = " + str(stop))
 
-        new_len = stop - start  # if start pos == stop pos: len = 0
+        new_len = _stop - _start  # if start pos == stop pos: len = 0
         if new_len < 0:
             # raise error
             raise ValueError("Invalid range specification")
 
-        # Check `start` value
-        while start > 0:
-            length = new_items[0]["len"]
-
-            if length <= start:
-                del new_items[0]
-                start -= length
-
-            else:
-                new_items[0]["start"] = start
-                new_items[0]["len"] -= start
-                break
-
-        # Check `stop` value
-        while trailing_str_len > 0:
-            length = len(new_items[-1]["_item"].text)
-
-            if length < trailing_str_len:
-                del new_items[-1]
-                trailing_str_len -= length
-
-            else:
-                new_items[-1]["stop"] = length - trailing_str_len
-                new_items[-1]["len"] -= trailing_str_len
-                break
-
-        # remove empty items and text out of range.
-        for item in new_items:
-            if item["len"] == 0:
-                del new_items[new_items.index(item)]
-                continue
-
-            # remove text out of range.
-            elif (item["start"] > 0) or (item["stop"] < len(new_items[-1]["_item"].text)):
-                item["text"] = item["text"][item["start"] : item["stop"]]
-
-            new_text += item["text"]
-
-        return (new_items, new_text, new_len)
+        return _start, _stop
 
     def _join_items(self, new_items, new_text, new_len):
         """Constructor
