@@ -7,14 +7,14 @@ from .string import String
 from .text import Text
 from .textblock import TextBlock
 from .textstring import TextString
+from .code import Code
 
-# from .code import Code
 # from .quoted import Quoted
 
 __all__ = [
     "Text",
     "String",
-    # "Code",
+    "Code",
     # "Quoted",
     "TextString",
     "TextBlock",

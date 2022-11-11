@@ -1,5 +1,3 @@
-r"""!
-
-**gdparser**\n
-
+"""
+gdocparser: Gdoc parser modules
 """

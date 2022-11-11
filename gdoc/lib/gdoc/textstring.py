@@ -2,7 +2,7 @@
 textstring.py: TextString class
 """
 
-from typing import Optional, SupportsIndex, Union, overload
+from typing import Callable, Optional, SupportsIndex, Union, cast, overload
 
 from gdoc.lib.pandocastobject.pandocast import PandocElement
 
@@ -192,8 +192,8 @@ class TextString(list[Text], Text):
             if type(text) is String:
                 result = str(text) + result
             elif type(text) is TextString:
-                string: str = text.__get_leading_str()
-                result = result + string
+                string: str = text.__get_last_str()
+                result = string + result
                 if len(string) < len(text.get_content_str()):
                     break
             else:
@@ -210,7 +210,7 @@ class TextString(list[Text], Text):
 
         @return TextString : Copy of the TextString with leading and trailing
                              whitespace removed.
-        """.strip()
+        """
         return self.rstrip(__chars).lstrip(__chars)
 
     def lstrip(self, __chars: Optional[str] = None) -> "TextString":
@@ -254,5 +254,114 @@ class TextString(list[Text], Text):
                 break
             else:
                 del result[-1]
+
+        return result
+
+    def split(
+        self, sep: Optional[str] = None, maxsplit: int = -1, /, retsep: bool = False
+    ) -> list["TextString"]:
+        result: list = []
+        target: TextString = self[:]
+        _max: int = maxsplit
+
+        # temp
+        sep = sep or " "
+
+        textstr: TextString = TextString()
+        while (len(target) > 0) and (_max != 0):
+
+            textstr += target.deque_while(lambda text: not (type(text) is String))
+
+            texts: TextString = TextString(
+                target.deque_while(lambda text: (type(text) is String))
+            )
+            parts: list[str] = texts.get_str().split(sep, _max)
+            if _max > 0:
+                _max = _max - (len(parts) - 1)
+
+            num_seps: int = len(parts) - 1
+            if num_seps == 0:
+                textstr += texts
+            else:
+                for i in range(num_seps):
+                    textstr += target.pop_prefix(parts[i])
+                    result.append(textstr)
+                    textstr = TextString()
+                    if retsep:
+                        result.append(TextString(target.pop_prefix(sep)))
+                    else:
+                        target.pop_prefix(sep)
+
+                textstr += target.pop_prefix(parts[-1])
+
+        textstr += target
+        if len(textstr) > 0:
+            result.append(textstr)
+
+        return result
+
+    def pop_prefix(self, prefix: str) -> Optional["TextString"]:
+        result: Optional[TextString] = TextString()
+        target: str = prefix
+
+        text: Text
+        num_texts: int = 0
+        num_chars: int = 0
+        for text in self:
+            if type(text) is not String:
+                result = None
+                break
+
+            text_str: str = text.get_str()
+            if not (text_str.startswith(target) or target.startswith(text_str)):
+                result = None
+                break
+
+            if len(text_str) <= len(target):
+                num_texts += 1
+                cast(TextString, result).append(text)
+                target.removeprefix(text_str)
+
+            else:
+                num_chars = len(text_str)
+                cast(TextString, result).append(text[:num_chars])
+                target = ""
+
+            if len(target) == 0:
+                # Setup result
+                break
+        else:
+            # Not enoufh length of TextString
+            result = None
+
+        if result is not None:
+            del self[:num_texts]
+            self[0] = cast(TextString, self[0])[num_chars:]
+
+        return result
+
+    # def removeprefix(self, prefix, /):
+    #     if isinstance(prefix, UserString):
+    #         prefix = prefix.data
+    #     return self.__class__(self.data.removeprefix(prefix))
+
+    # def removesuffix(self, suffix, /):
+    #     if isinstance(suffix, UserString):
+    #         suffix = suffix.data
+    #     return self.__class__(self.data.removesuffix(suffix))
+
+    #
+    # pop_while / deque_while
+    #
+    def deque_while(self, cond: Callable[[Text], bool]) -> list[Text]:
+        result: list = []
+
+        for text in self:
+            if cond(text):
+                result.append(text)
+            else:
+                break
+
+        del self[0 : len(result)]
 
         return result
