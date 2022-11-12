@@ -60,58 +60,59 @@ class PandocStr(Sequence):
             index of the target char in self._text
         @return (sourcepos : {path:str, line:int, col:int}, decoration, item)
         """
-        _index = index
-        sourcepos = None
-        decoration = 0
-        prev_ast_item = False
+        _index: int = index
+        sourcepos: Optional[dict] = None
+        decoration: int = 0
+        prev_element: Optional[PandocInlineElement] = None
 
+        item: dict
         for item in self._items:
             if _index >= item["len"]:
                 _index -= item["len"]
-                continue
             else:
                 break
+        else:
+            _index = item["len"]  # set to the last
 
-        if _index > item["len"]:
-            # _index is longer than PandocStr._text.
-            # Then refer to the last item and points the end of the item.
-            prev_ast_item = True
-            _index = 0
-
-        # Pandoc AST elem type 'Str', 'Space', 'SoftBreak', 'LineBreak' don't have pos attr.
-        # But their parents are 'Span' and have pos attr, when 'sourcepos'
+        # Pandoc AST elem type 'Str', 'Space', 'SoftBreak', 'LineBreak' don't have pos
+        # attr. But their parents are 'Span' and have pos attr, when 'sourcepos'
         # extension is enabled.
-        pos = item["_item"].get_parent().get_attr(("pos", "data-pos"))
+        pos: str = item["_item"].get_parent().get_attr(("pos", "data-pos"))
 
-        if (
-            (pos is None)
-            or (len(pos.split("@")) < 2)
-            and (item["_item"].get_type() in ("Space", "SoftBreak"))
-        ):
+        if (pos == "") and (item["_item"].get_type() in ("Space", "SoftBreak")):
             # Currently(pandoc -v = 2.14.2),
             # If the type is SoftBreak, data-pos is not provided and is "".
             # Therefore, try to get the prev item and get its stop position.
             # The stop position points start point of the next(this) element.
-            prev_ast_item = item["_item"].prev_item()
-            if prev_ast_item is not None:
-                pos = prev_ast_item.get_attr(("pos", "data-pos"))
-                if (pos is None) or (len(pos.split("@")) < 2):
-                    pos = prev_ast_item.get_parent().get_attr(("pos", "data-pos"))
 
-        if (pos is not None) and (len(pos.split("@")) >= 2):
-            # ".tmp/t.md@1:1-1:3"
-            p = pos.split("@")
-            _path = p[0]
-            p = p[1].split("-")
+            prev_element = item["_item"].prev_item()
+            if prev_element is not None:
+                pos = prev_element.get_attr(("pos", "data-pos"))
+                if pos is None:
+                    pos = prev_element.get_parent().get_attr(("pos", "data-pos"))
 
-            if prev_ast_item is False:
-                p = p[0].split(":")
-                _line = int(p[0])
-                _col = int(p[1]) + item["start"] + _index
+        parts: list[str]
+        _path: str
+        _line: int
+        _col: int
+        if pos is not None:
+            # pos = ".tmp/t.md@1:1-1:3"
+            parts = pos.split("@")
+            if len(parts) == 2:
+                _path = parts[0]
             else:
-                p = p[1].split(":")
-                _line = int(p[0])
-                _col = int(p[1])
+                _path = ""
+
+            parts = parts[-1].split("-")
+            if prev_element is None:
+                parts = parts[0].split(":")
+                _line = int(parts[0])
+                _col = int(parts[1]) + item["start"] + _index
+
+            else:
+                parts = parts[1].split(":")
+                _line = int(parts[0])
+                _col = int(parts[1])
 
             sourcepos = {"path": _path, "line": _line, "col": _col}
 
