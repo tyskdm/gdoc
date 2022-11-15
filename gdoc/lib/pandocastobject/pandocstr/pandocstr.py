@@ -4,7 +4,7 @@ PandocStr class
 from collections.abc import Sequence
 from typing import Optional
 
-from ..pandocast import PandocInlineElement, DataPos
+from ..pandocast import PandocInlineElement, DataPos, Pos
 
 _ALLOWED_TYPES_ = ("Str", "Space", "SoftBreak", "LineBreak")
 
@@ -86,6 +86,45 @@ class PandocStr(Sequence):
             sourcepos = {"path": "[Source pos not found]", "line": 0, "col": 0}
 
         return sourcepos, decoration, item
+
+    def get_char_pos(self, index: int = 0) -> Optional[DataPos]:
+        result: Optional[DataPos] = None
+        element: PandocInlineElement
+        item: dict
+
+        _index: int = index
+        for item in self._items:
+            if _index >= item["len"]:
+                _index -= item["len"]
+            else:
+                break
+        else:
+            _index = item["len"]  # set to the last
+
+        element = item["_item"]
+        datapos: DataPos = element.get_data_pos()
+        if datapos is not None:
+            text_len: int = len(element.text)
+            if (text_len == 1) and (_index == 0):
+                # LineBreak(`<br>` etc), Space(multiple space char),
+                # SoftBreak(`  \n`, '\\\n'), Str(Escape sequence)
+                # are one element and more than one char.
+                result = datapos
+
+            elif (text_len > 1) and (_index < text_len):
+                # A character in a Str.
+                # _index doesn't point its last.
+                result = DataPos(
+                    datapos.path,
+                    Pos(datapos.start.ln, datapos.start.col + item["start"] + _index),
+                    Pos(datapos.start.ln, datapos.start.col + item["start"] + _index + 1),
+                )
+
+            else:
+                # _index points the next to the last char.
+                result = DataPos(datapos.path, datapos.stop, Pos(0, 0))
+
+        return result
 
     def __len__(self):
         """Constructor
