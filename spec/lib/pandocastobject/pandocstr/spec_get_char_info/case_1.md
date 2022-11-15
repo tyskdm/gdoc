@@ -1,24 +1,39 @@
-```json
-[
-    "ABC DEF GHI \nJKL\nMNO\nPQR",
-    [ 1, "B",  "B",            [16, 2]],
-    [ 3, " ",  "Space",        [16, 4]],
-    [ 4, "D",  "D",            [16, 5]],
-    [ 7, " ",  "SoftBreak",    [16, 8]],
-    [12, "\n", "LineBreak-BS", [17, 5]],
-    [16, "\n", "LineBreak-DS", [18, 4]],
-    [17, "M",  "M",            [19, 1]],
-    [20, "\n", "HtmlBreak",    [19, 4]],
-    [22, "Q",  "Q",            [19, 9]]
-]
-```
+## Test data and Test parameters
 
 ABC DEF
 GHI \
 JKL  
 MNO<br>PQR
 
-### Case #1: Simple strings +sourcepos via html
+```json
+{
+    "data_check": "ABC DEF GHI \nJKL\nMNO\nPQR",
+    "test_params": [
+        [  1, [ "B",  [3, 2] ], "B"             ],
+        [  3, [ " ",  [3, 4] ], "Space"         ],
+        [  4, [ "D",  [3, 5] ], "D"             ],
+        [  7, [ " ",  [3, 8] ], "SoftBreak"     ],
+        [ 12, [ "\n", [4, 5] ], "LineBreak-BS"  ],
+        [ 16, [ "\n", [5, 4] ], "LineBreak-DS"  ],
+        [ 17, [ "M",  [6, 1] ], "M"             ],
+        [ 20, [ "\n", [6, 4] ], "HtmlBreak"     ],
+        [ 22, [ "Q",  [6, 9] ], "Q"             ]
+    ]
+}
+```
+
+- test_param = [ stimulus, [expected_data], sub_id ]
+
+## Description: Case #1 Simple strings +sourcepos via html
 
 - this md should be converted with gfm+sourcepos option. \
   if not, result will be different.
+
+## Index
+
+```json
+{
+    "test_block": 1,
+    "test_param": 2
+}
+```
