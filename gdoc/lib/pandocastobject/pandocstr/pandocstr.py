@@ -4,7 +4,7 @@ PandocStr class
 from collections.abc import Sequence
 from typing import Optional
 
-from ..pandocast import PandocInlineElement
+from ..pandocast import PandocInlineElement, DataPos
 
 _ALLOWED_TYPES_ = ("Str", "Space", "SoftBreak", "LineBreak")
 
@@ -63,7 +63,6 @@ class PandocStr(Sequence):
         _index: int = index
         sourcepos: Optional[dict] = None
         decoration: int = 0
-        prev_element: Optional[PandocInlineElement] = None
 
         item: dict
         for item in self._items:
@@ -74,47 +73,14 @@ class PandocStr(Sequence):
         else:
             _index = item["len"]  # set to the last
 
-        # Pandoc AST elem type 'Str', 'Space', 'SoftBreak', 'LineBreak' don't have pos
-        # attr. But their parents are 'Span' and have pos attr, when 'sourcepos'
-        # extension is enabled.
-        pos: str = item["_item"].get_parent().get_attr(("pos", "data-pos"))
+        datapos: DataPos = item["_item"].get_data_pos()
 
-        if (pos == "") and (item["_item"].get_type() in ("Space", "SoftBreak")):
-            # Currently(pandoc -v = 2.14.2),
-            # If the type is SoftBreak, data-pos is not provided and is "".
-            # Therefore, try to get the prev item and get its stop position.
-            # The stop position points start point of the next(this) element.
-
-            prev_element = item["_item"].prev_item()
-            if prev_element is not None:
-                pos = prev_element.get_attr(("pos", "data-pos"))
-                if pos is None:
-                    pos = prev_element.get_parent().get_attr(("pos", "data-pos"))
-
-        parts: list[str]
-        _path: str
-        _line: int
-        _col: int
-        if pos is not None:
-            # pos = ".tmp/t.md@1:1-1:3"
-            parts = pos.split("@")
-            if len(parts) == 2:
-                _path = parts[0]
-            else:
-                _path = ""
-
-            parts = parts[-1].split("-")
-            if prev_element is None:
-                parts = parts[0].split(":")
-                _line = int(parts[0])
-                _col = int(parts[1]) + item["start"] + _index
-
-            else:
-                parts = parts[1].split(":")
-                _line = int(parts[0])
-                _col = int(parts[1])
-
-            sourcepos = {"path": _path, "line": _line, "col": _col}
+        if datapos is not None:
+            sourcepos = {
+                "path": datapos.path,
+                "line": datapos.start.ln,
+                "col": datapos.start.col + item["start"] + _index,
+            }
 
         else:
             sourcepos = {"path": "[Source pos not found]", "line": 0, "col": 0}
