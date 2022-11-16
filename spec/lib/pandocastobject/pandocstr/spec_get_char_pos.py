@@ -15,7 +15,7 @@ from typing import cast
 import pytest
 from _pytest import fixtures
 
-from gdoc.lib.pandocastobject.pandocast import PandocElement, PandocInlineElement, DataPos
+from gdoc.lib.pandocastobject.pandocast import DataPos, PandocElement, PandocInlineElement
 from gdoc.lib.pandocastobject.pandocstr import PandocStr
 
 # fmt: off

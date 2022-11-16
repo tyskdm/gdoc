@@ -2,12 +2,12 @@
 code.py: `Code` inline element class
 """
 
-from typing import cast, Optional
+from typing import Optional, cast
 
 from gdoc.lib.pandocastobject.pandocast import (
+    DataPos,
     PandocAst,
     PandocInlineElement,
-    DataPos,
     Pos,
 )
 

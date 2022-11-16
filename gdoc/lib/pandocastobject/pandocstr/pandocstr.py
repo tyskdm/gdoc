@@ -4,7 +4,7 @@ PandocStr class
 from collections.abc import Sequence
 from typing import Optional
 
-from ..pandocast import PandocInlineElement, DataPos, Pos
+from ..pandocast import DataPos, PandocInlineElement, Pos
 
 _ALLOWED_TYPES_ = ("Str", "Space", "SoftBreak", "LineBreak")
 
