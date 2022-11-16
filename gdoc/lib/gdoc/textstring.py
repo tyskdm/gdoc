@@ -4,7 +4,7 @@ textstring.py: TextString class
 
 from typing import Callable, Optional, SupportsIndex, Union, cast, overload
 
-from gdoc.lib.pandocastobject.pandocast import PandocElement
+from gdoc.lib.pandocastobject.pandocast import DataPos, PandocElement, Pos
 
 from .code import Code
 from .string import String
@@ -144,6 +144,82 @@ class TextString(list[Text], Text):
             result += text.get_content_str()
 
         return result
+
+    def get_data_pos(self, index: int = None):
+        result: Optional[DataPos] = None
+
+        item: Text | None
+        item = self._get_first_text()
+
+        if item is not None:
+            result = item.get_data_pos()
+
+        return result
+
+    def get_char_pos(self, index: int):
+        result: Optional[DataPos] = None
+
+        item: Text | None
+        _index: int
+        item, _index = self._get_text_by_charindex(index)
+
+        if item is None:
+            item = self._get_last_text()
+
+        if item is not None:
+            result = item.get_char_pos(_index)
+
+        return result
+
+    def _get_text_by_charindex(self, index: int) -> tuple[Union[Text, None], int]:
+        item: Text | None
+        _index: int = index
+
+        for item in self:
+            if not isinstance(item, __class__):
+                l: int = len(item.get_content_str())
+                if l < _index:
+                    break
+                else:
+                    _index -= l
+                    continue
+            else:
+                item, _index = item._get_text_by_charindex(_index)
+                if item is not None:
+                    break
+                else:
+                    continue
+
+        else:
+            item = None
+
+        return item, _index
+
+    def _get_first_text(self) -> Text | None:
+        text: Text | "TextString" | None = None
+
+        if len(self) > 0:
+            for text in self:
+                if not issubclass(text, __class__):
+                    break
+                else:
+                    text = text._get_first_text()
+                    if text is not None:
+                        break
+        return text
+
+    def _get_last_text(self) -> Text | None:
+        text: Text | "TextString" | None = None
+
+        if len(self) > 0:
+            for text in reversed(self):
+                if not issubclass(text, __class__):
+                    break
+                else:
+                    text = text._get_last_text()
+                    if text is not None:
+                        break
+        return text
 
     #
     # Original `str`-like methods
