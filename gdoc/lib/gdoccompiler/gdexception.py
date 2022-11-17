@@ -41,16 +41,19 @@ class GdocSyntaxError(SyntaxError):
 
     err_info: tuple[str, int, int] | None
 
+    # For backward compatibility, same as SyntaxError
     @overload
     def __init__(self, message: str | None, pos: tuple | None, info: None) -> None:
         ...
 
     @overload
-    def __init__(self, message: Any, pos: DataPos, info: None) -> None:
+    def __init__(self, message: SyntaxError, pos: DataPos, info: None) -> None:
         ...
 
     @overload
-    def __init__(self, message: str, pos: DataPos, info: tuple[str, int, int]) -> None:
+    def __init__(
+        self, message: str, pos: DataPos | None, info: tuple[str, int, int] | None
+    ) -> None:
         ...
 
     def __init__(
@@ -59,16 +62,21 @@ class GdocSyntaxError(SyntaxError):
         pos: tuple | Any | DataPos = None,
         info: tuple[str, int, int] | None = None,
     ) -> None:
+        text: str
+        offset: int
+        end_offset: int
 
         if type(message) is __class__:
             pos = cast(DataPos, pos)
 
+            text = message.text or ""
+            offset = message.offset or 0
+            end_offset = message.end_offset or 0
             super().__init__(
-                message.msg,
+                text,
                 (pos.path, pos.start.ln, pos.start.col, None, pos.stop.ln, pos.stop.col),
             )
-
-            self.err_info = (message.text, message.offset, message.end_offset)
+            self.err_info = (text, offset - 1, end_offset - 1)
 
         elif type(pos) is DataPos:
 
@@ -83,29 +91,43 @@ class GdocSyntaxError(SyntaxError):
                     pos.stop.col,
                 ),
             )
-            self.err_info = info
+
+            if info is not None:
+                text = info[0] or ""
+                offset = info[1] or 0
+                end_offset = info[2] or 0
+                self.err_info = (text, offset, end_offset)
+            else:
+                self.err_info = None
 
         else:
             pos = cast(tuple[str, int, int, str], pos)
             super().__init__(message, pos)
             if pos:
-                self.err_info = (pos[3], pos[2], 0)
+                text = pos[3] or ""
+                offset = pos[2] - 1 if pos[2] else 0
+                end_offset = 0
+                self.err_info = (text, offset, 0)
+            else:
+                self.err_info = None
 
     def dump(self) -> list[str]:
         result: list[str] = []
 
-        errstr = f"{self.filename}:{self.lineno}:{self.offset} "
-        if self.end_offset is not None:
-            errstr += f"- {self.end_lineno}:{self.end_offset} "
-        errstr += f"{type(self).__name__}: {str(self.msg)}"
+        errstr = f"{self.filename}:{self.lineno}:{self.offset}"
+        if (self.end_offset is not None) and (self.end_offset != 0):
+            errstr += f"-{self.end_lineno}:{self.end_offset}"
+        errstr += f" {type(self).__name__}: {str(self.msg)}"
         result.append(errstr)
 
         if self.err_info is not None:
             result.append(f"{self.err_info[0]}")
 
-            errstr = " " * (self.err_info[1] - 1)
-            if self.err_info[2] > self.err_info[1]:
-                errstr += "^" * (self.err_info[2] - self.err_info[1])
+            errstr = " " * (self.err_info[1])
+            # stop: int = self.err_info[2] or 0
+            stop: int = self.err_info[2]
+            if stop > self.err_info[1]:
+                errstr += "^" * (stop - self.err_info[1])
             else:
                 errstr += "^"
             result.append(errstr)

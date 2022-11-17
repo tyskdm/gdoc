@@ -178,11 +178,11 @@ class TextString(list[Text], Text):
         for item in self:
             if not isinstance(item, __class__):
                 l: int = len(item.get_content_str())
-                if l < _index:
-                    break
-                else:
+                if _index >= l:
                     _index -= l
-                    continue
+                else:
+                    break
+
             else:
                 item, _index = item._get_text_by_charindex(_index)
                 if item is not None:
@@ -200,7 +200,7 @@ class TextString(list[Text], Text):
 
         if len(self) > 0:
             for text in self:
-                if not issubclass(text, __class__):
+                if not isinstance(text, __class__):
                     break
                 else:
                     text = text._get_first_text()
@@ -213,7 +213,7 @@ class TextString(list[Text], Text):
 
         if len(self) > 0:
             for text in reversed(self):
-                if not issubclass(text, __class__):
+                if not isinstance(text, __class__):
                     break
                 else:
                     text = text._get_last_text()

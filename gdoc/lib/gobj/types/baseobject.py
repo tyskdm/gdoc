@@ -82,7 +82,7 @@ class BaseObject(GdObject):
     @final
     def create_object(
         self,
-        class_info: tuple[String | str | None, String | str | None, String | str | None],
+        class_info: tuple[String | None, String | None, String | None],
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
         tag_opts: dict,
@@ -106,9 +106,13 @@ class BaseObject(GdObject):
 
         if constructor is not None:
             try:
-                child = constructor.create(
-                    class_info, class_args, class_kwargs, tag_opts, parent_obj=self
+                child, e = constructor.create(
+                    class_info, class_args, class_kwargs, tag_opts, self, erpt
                 )
+                if e:
+                    erpt.submit(e)
+                    return Err(erpt)
+
             except GdocSyntaxError as e:
                 erpt.submit(e)
                 return Err(erpt)
@@ -135,28 +139,42 @@ class BaseObject(GdObject):
     @classmethod
     def create(
         cls,
-        class_info: tuple[String | str | None, String | str | None, String | str | None],
+        class_info: tuple[String | None, String | None, String | None],
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
         tag_opts: dict,
         parent_obj: "BaseObject",
-    ) -> "BaseObject":
+        erpt: ErrorReport,
+    ) -> Result["BaseObject", ErrorReport]:
         id = None
         tags = []
         isref = class_info[2]  # isref
         ref = None
-        scope, symbol, args = _get_symbol(class_args)
 
-        if symbol is not None:
-            if type(symbol) is str:
-                symbol = GdSymbol(symbol)
-            else:
-                symbol = GdSymbol(symbol.get_content_str())
+        scope: TextString
+        symbol_str: TextString
+        args: list[TextString]
+        r, e = _get_symbol(class_args, erpt)
+        if e:
+            erpt.submit(e)
+            return Err(erpt)
+        scope, symbol_str, args = r
 
-            if not symbol.is_id():
-                raise GdocSyntaxError("Invalid id")
+        if symbol_str is not None:
+            symbol_obj: GdSymbol
+            try:
+                symbol_obj = GdSymbol(symbol_str.get_content_str())
+            except GdocSyntaxError as e:
+                e = GdocSyntaxError(e, symbol_str.get_char_pos(e.err_info[1]))
+                erpt.submit(e)
+                return Err(erpt)
 
-            symbols = symbol.get_symbols()
+            # TODO: Replace with 'name.is_id' after creating it.
+            if not symbol_obj.is_id():
+                erpt.submit(GdocSyntaxError("Invalid id", symbol_str.get_char_pos(0)))
+                return Err(erpt)
+
+            symbols = symbol_obj.get_symbols()
             id = symbols[-1]
 
             if isref:
@@ -170,14 +188,18 @@ class BaseObject(GdObject):
                     s = symbols.pop()
                     if s.startswith("*"):  # name
                         if p.name != s[1:]:
-                            raise GdocSyntaxError(
-                                "The explicit parent Name is incorrect."
+                            erpt.submit(
+                                GdocSyntaxError("The explicit parent Name is incorrect.")
                             )
+                            return Err(erpt)
                     else:  # id
                         if p.id != s:
-                            raise GdocSyntaxError("The explicit parent ID is incorrect.")
+                            erpt.submit(
+                                GdocSyntaxError("The explicit parent ID is incorrect.")
+                            )
+                            return Err(erpt)
 
-            tags = symbol.get_tags()
+            tags = symbol_obj.get_tags()
 
         child = cls(
             str(class_info[1]),  # type
@@ -192,22 +214,24 @@ class BaseObject(GdObject):
         if parent_obj:
             parent_obj.add_child(child)
 
-        return child
+        return Ok(child)
 
 
-def _get_symbol(class_args):
-    scope = None
-    symbol = None
-    args = []
+def _get_symbol(
+    class_args: list[TextString], erpt: ErrorReport
+) -> Result[tuple[TextString | None, TextString | None, list[TextString]], ErrorReport]:
+    scope: TextString | None = None
+    symbol: TextString | None = None
+    args: list[TextString] = []
 
-    idx = 0
+    idx: int = 0
     c = len(class_args)
     if c > 0:
         if class_args[idx].get_content_str() in ("+", "-"):
             scope = class_args[idx]
             if c < 2:
-                raise GdocSyntaxError()
-                # Symbol should follow
+                erpt.submit(GdocSyntaxError("Object name missing", scope.get_char_pos(1)))
+                return Err(erpt)
             idx += 1
 
         # class_args[idx] should be symbol
@@ -222,9 +246,11 @@ def _get_symbol(class_args):
                 symbol[0] = symbol[0][1:]
 
             else:
-                raise GdocSyntaxError()
-                # Scope is duplecated
+                erpt.submit(
+                    GdocSyntaxError("Duplicate scope specifier", symbol.get_char_pos(0))
+                )
+                return Err(erpt)
 
         args = class_args[idx:]
 
-    return scope, symbol, args
+    return Ok((scope, symbol, args))
