@@ -5,6 +5,8 @@ errorhandler.py: ErrorHandler class
 
 from typing import Union, cast
 
+from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
+
 
 class ErrorReport:
     """
@@ -45,14 +47,13 @@ class ErrorReport:
 
         errors: list[Exception] = self.get_errors()
         for err in errors:
-            if isinstance(err, SyntaxError):
-                errstr = f"{err.filename}:{err.lineno}:{err.offset} "
-                if err.end_offset is not None:
-                    errstr += f"- {err.end_lineno}:{err.end_offset} "
-                errstr += f"{type(err).__name__}: {str(err)}\n"
-                errstr += f"> {err.text}"
-                if err.offset is not None:
-                    errstr += "\n>" + (" " * err.offset) + "^"
+            if isinstance(err, GdocSyntaxError):
+                err_info: list[str] = err.dump()
+
+                errstr = err_info[0]
+                if len(err_info) > 1:
+                    for info in err_info[1:]:
+                        errstr += "\n> " + info
             else:
                 errstr = str(err)
 
