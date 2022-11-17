@@ -3,7 +3,6 @@ textblockparser.py: parse_TextBlock function
 """
 from gdoc.lib.gdoc import String, Text, TextBlock, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag, BlockTagInfo
-from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gobj.types import BaseObject
 from gdoc.util import Err, Ok, Result
 
@@ -78,18 +77,12 @@ def parse_TextBlock(
             preceding_lines, following_lines, preceding_text, following_text
         )
 
-        try:
-            child = gobj.create_object(
-                class_info,
-                class_args,
-                class_kwargs,
-                tag_opts,
-                block_tag,
-            )
+        child, e = gobj.create_object(
+            class_info, class_args, class_kwargs, tag_opts, block_tag, srpt
+        )
 
-        except GdocSyntaxError as e:
+        if e:
             srpt.submit(e)
-            return Err(srpt)
 
     if srpt.haserror():
         return Err(srpt, child)

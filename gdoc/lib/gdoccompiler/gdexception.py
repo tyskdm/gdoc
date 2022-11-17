@@ -42,7 +42,7 @@ class GdocSyntaxError(SyntaxError):
     err_info: tuple[str, int, int] | None
 
     @overload
-    def __init__(self, message: str, pos: tuple, info: None) -> None:
+    def __init__(self, message: str | None, pos: tuple | None, info: None) -> None:
         ...
 
     @overload
@@ -55,8 +55,8 @@ class GdocSyntaxError(SyntaxError):
 
     def __init__(
         self,
-        message: str | Any,
-        pos: tuple | Any | DataPos,
+        message: str | Any = None,
+        pos: tuple | Any | DataPos = None,
         info: tuple[str, int, int] | None = None,
     ) -> None:
 
@@ -88,7 +88,8 @@ class GdocSyntaxError(SyntaxError):
         else:
             pos = cast(tuple[str, int, int, str], pos)
             super().__init__(message, pos)
-            self.err_info = (pos[3], pos[2], 0)
+            if pos:
+                self.err_info = (pos[3], pos[2], 0)
 
     def dump(self) -> list[str]:
         result: list[str] = []

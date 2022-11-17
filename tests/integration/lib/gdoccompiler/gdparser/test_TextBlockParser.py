@@ -47,8 +47,9 @@ def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
     target_data = Document(pandoc_ast)[1]  # 2nd. block
 
     # Mock
-    gdobject = mocker.MagicMock(["create_object"])
-    erpt_mock = mocker.MagicMock()
+    gdobject = mocker.Mock(["create_object"])
+    gdobject.create_object.return_value = (None, None)
+    erpt_mock = mocker.Mock()
     erpt_mock.submit = mocker.Mock(return_value=True)
 
     # Execution
@@ -61,7 +62,7 @@ def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
 
     assert kwargs == {}
 
-    assert len(args) == 5
+    assert len(args) == 6
 
     for i, exp in enumerate(expect_data["class_info"]):
         act = args[0][i].get_content_str() if args[0][i] is not None else None

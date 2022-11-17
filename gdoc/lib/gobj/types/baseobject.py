@@ -4,7 +4,8 @@ baseobject.py: BaseObject class
 from typing import Any, NamedTuple, final
 
 from gdoc.lib.gdoc import String, TextString
-from gdoc.lib.gdoccompiler.gdexception import *
+from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
+from gdoc.util import Err, ErrorReport, Ok, Result
 
 from ..gdobject import GdObject
 from ..gdsymbol import GdSymbol
@@ -85,22 +86,11 @@ class BaseObject(GdObject):
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
         tag_opts: dict,
-        tag: Any,
-    ) -> "BaseObject":
+        tag_body: TextString,
+        erpt: ErrorReport,
+    ) -> Result["BaseObject", ErrorReport]:
         """
-        _summary_
-
-        @param class_info (ClassInfo) : _description_
-        @param class_args (list[TextString]) : _description_
-        @param class_kwargs (list[tuple[TextString, TextString]]) : _description_
-        @param tag_opts (dict, optional) : _description_. Defaults to {}.
-
-        @exception GdocSyntaxError : _description_
-        @exception GdocRuntimeError : _description_
-        @exception GdocRuntimeError : _description_
-        @exception GdocTypeError : _description_
-
-        @return BaseObject : _description_
+        Object Factory
         """
         class_cat = str(class_info[0]) if class_info[0] is not None else None
         class_type = str(class_info[1]) if class_info[1] is not None else ""
@@ -115,14 +105,19 @@ class BaseObject(GdObject):
             obj = obj.get_parent()
 
         if constructor is not None:
-            child = constructor.create(
-                class_info, class_args, class_kwargs, tag_opts, parent_obj=self
-            )
+            try:
+                child = constructor.create(
+                    class_info, class_args, class_kwargs, tag_opts, parent_obj=self
+                )
+            except GdocSyntaxError as e:
+                erpt.submit(e)
+                return Err(erpt)
 
         else:
-            raise GdocTypeError("Class not found")
+            erpt.submit(GdocSyntaxError("Class not found", tag_body.get_char_pos(2)))
+            return Err(erpt)
 
-        return child
+        return Ok(child)
 
     def __get_constructor(self, class_cat: str = None, class_type: str = ""):
         """ """
@@ -175,12 +170,12 @@ class BaseObject(GdObject):
                     s = symbols.pop()
                     if s.startswith("*"):  # name
                         if p.name != s[1:]:
-                            raise GdocRuntimeError(
+                            raise GdocSyntaxError(
                                 "The explicit parent Name is incorrect."
                             )
                     else:  # id
                         if p.id != s:
-                            raise GdocRuntimeError("The explicit parent ID is incorrect.")
+                            raise GdocSyntaxError("The explicit parent ID is incorrect.")
 
             tags = symbol.get_tags()
 
