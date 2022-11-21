@@ -50,7 +50,7 @@ class TextString(list[Text], Text):
         if type(items) is str:
             inlines = [String(items)]
 
-        elif type(items) is __class__:  # type: ignore
+        elif type(items) is TextString:
             inlines = items
 
         elif type(items) is list:
@@ -176,7 +176,7 @@ class TextString(list[Text], Text):
         _index: int = index
 
         for item in self:
-            if not isinstance(item, __class__):
+            if not isinstance(item, TextString):
                 l: int = len(item.get_content_str())
                 if _index >= l:
                     _index -= l
@@ -200,7 +200,7 @@ class TextString(list[Text], Text):
 
         if len(self) > 0:
             for text in self:
-                if not isinstance(text, __class__):
+                if not isinstance(text, TextString):
                     break
                 else:
                     text = text._get_first_text()
@@ -213,7 +213,7 @@ class TextString(list[Text], Text):
 
         if len(self) > 0:
             for text in reversed(self):
-                if not isinstance(text, __class__):
+                if not isinstance(text, TextString):
                     break
                 else:
                     text = text._get_last_text()

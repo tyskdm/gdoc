@@ -66,7 +66,7 @@ class GdocSyntaxError(SyntaxError):
         offset: int
         end_offset: int
 
-        if type(message) is __class__:
+        if type(message) is GdocSyntaxError:
             pos = cast(DataPos, pos)
 
             text = message.text or ""
