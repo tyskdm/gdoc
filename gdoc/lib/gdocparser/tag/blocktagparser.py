@@ -25,11 +25,11 @@ def parse_BlockTag(
 
     @return Result[tuple[TextString, Optional[int], ErrorReport]] : _description_
     """
-    textstr: TextString = tokenized_textstr
     tag_start: Optional[int] = None
     tagpos: Optional[slice] = None
     tagstr: Optional[TextString] = None
     blocktag: Optional[BlockTag] = None
+    text_items: list[Text] = tokenized_textstr.get_text_items()
 
     tagpos, tagstr = detect_BlockTag(tokenized_textstr, start)
 
@@ -52,11 +52,14 @@ def parse_BlockTag(
 
         class_info, class_args, class_kwargs = taginfo
         blocktag = BlockTag(class_info, class_args, class_kwargs, tagstr)
-        textstr = tokenized_textstr[:]
-        textstr[tagpos] = [blocktag]
+        text_items = (
+            tokenized_textstr.get_text_items()[: tagpos.start]
+            + [blocktag]
+            + tokenized_textstr.get_text_items()[tagpos.stop :]
+        )
         tag_start = tagpos.start
 
-    return Ok((textstr, tag_start))
+    return Ok((TextString(text_items), tag_start))
 
 
 def detect_BlockTag(
