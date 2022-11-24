@@ -2,7 +2,6 @@
 textstring.py: TextString class
 """
 from collections.abc import Sequence
-
 from typing import Callable, Optional, SupportsIndex, Union, cast, overload
 
 from gdoc.lib.pandocastobject.pandocast import DataPos, PandocInlineElement
@@ -20,7 +19,6 @@ class TextString(Text, Sequence):
     """
 
     __text_items: list[Text]
-    __length: int
 
     def __init__(
         self,
@@ -33,7 +31,6 @@ class TextString(Text, Sequence):
         # @3.10.7 >              : 'types.UnionType' and 'str'
     ):
         self.__text_items = []  # init as an empty list
-        self.__length = 0
 
         _plain: list = opts.get("pandocast", {}).get("types", {}).get("plaintext", [])
         _other_known_types = [
@@ -101,16 +98,14 @@ class TextString(Text, Sequence):
             raise TypeError()
 
         elif isinstance(text, String):
-            self.__length += len(text)
+            for c in text:
+                self.__text_items.append(c)
 
         else:
-            self.__length += 1
-
-        self.__text_items.append(text)
+            self.__text_items.append(text)
 
     def __len__(self):
-        # return len(self.__text_items)
-        return self.__length
+        return len(self.__text_items)
 
     # @Override(list)
     def __add__(self, __x: Union[list[Text], "TextString"], /) -> "TextString":
@@ -246,7 +241,6 @@ class TextString(Text, Sequence):
         return text
 
     def clear(self):
-        self.__length = 0
         self.__text_items.clear()
 
     def pop_prefix(self, prefix: str) -> Optional["TextString"]:
@@ -304,17 +298,14 @@ class TextString(Text, Sequence):
     #
     def deque_while(self, cond: Callable[[Text], bool]) -> list[Text]:
         result: list = []
-        del_length: int = 0
 
         for text in self.__text_items:
             if cond(text):
-                del_length += len(text) if isinstance(text, String) else 1
                 result.append(text)
             else:
                 break
 
         del self.__text_items[0 : len(result)]
-        self.__length -= del_length
 
         return result
 

@@ -36,7 +36,7 @@ def parse_BlockTag(
     if tagpos is not None:
         tagstr = cast(TextString, tagstr)
 
-        tokens: TextString = tagstr[1:-1]
+        tokens: TextString = tagstr[2:-1]
         # remove the first "[@" and the last "]"
         # TODO: Replace with removeprefix("[@") and removesuffix("]")
 

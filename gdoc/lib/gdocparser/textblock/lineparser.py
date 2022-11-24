@@ -8,7 +8,6 @@ from gdoc.util import Err, Ok, Result
 
 from ....util.errorreport import ErrorReport
 from ..tag.blocktagparser import parse_BlockTag
-from .texttokenizer import tokenize_textstring
 
 
 def parse_Line(
@@ -23,11 +22,8 @@ def parse_Line(
 
     @return Result[TextString, ErrorReport] : _description_
     """
-    tokenized_textstr: TextString
+    tokenized_textstr: TextString = textstr[:]
     tag_pos: Optional[int]
-
-    # Tokenize
-    tokenized_textstr = tokenize_textstring(textstr)
 
     # Parse BlockTag(s) in TextString
     tag_pos = -1
