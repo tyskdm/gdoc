@@ -28,24 +28,24 @@ def parse_ObjectTagInfo(
     #           tuple[category, type, is_reference]
     class_args: list[TextString] = []
     class_kwargs: list[tuple[TextString, TextString]] = []
-    tokens: TextString = tagstr[:]
+    _tagstr: TextString = tagstr[:]
 
-    if len(tokens) > 0:
+    if len(_tagstr) > 0:
         #
         # parse Class Info
         #
         i: int
         elem: Text
         class_str: String = String()
-        for i, elem in enumerate(tokens):
+        for i, elem in enumerate(_tagstr):
             if isinstance(elem, String) and (elem == " "):
                 break
-            if isinstance(tokens[i], String):
-                class_str += tokens[i]
+            if isinstance(_tagstr[i], String):
+                class_str += _tagstr[i]
             else:
                 erpt.submit(GdocSyntaxError())
                 return Err(erpt)
-        tokens = tokens[i:]
+        _tagstr = _tagstr[i:]
 
         if len(class_str) > 0:
             # get class info
@@ -57,7 +57,7 @@ def parse_ObjectTagInfo(
         #
         # parse Arguments
         #
-        args, e = parse_Arguments(tokens, opts, erpt)
+        args, e = parse_Arguments(_tagstr, opts, erpt)
         if e:
             erpt.submit(e)
             return Err(e)
@@ -96,12 +96,12 @@ def parse_ClassInfo(
 # Argument Parser
 #
 def parse_Arguments(
-    tokens: TextString, opts: dict, erpt: ErrorReport
+    tagstr: TextString, opts: dict, erpt: ErrorReport
 ) -> Result[tuple, ErrorReport]:
     """
     parse_Argument
     """
-    elements, e = detect_parentheses(tokens, opts, erpt)
+    elements, e = detect_parentheses(tagstr, opts, erpt)
     if e:
         erpt.submit(e)
         return Err(erpt)
@@ -307,7 +307,7 @@ class _Value(State):
 
 
 def detect_parentheses(
-    tokens: TextString, opts: dict, erpt: ErrorReport
+    tagstr: TextString, opts: dict, erpt: ErrorReport
 ) -> Result[TextString, ErrorReport]:
     elements: TextString = TextString()
 
@@ -316,7 +316,7 @@ def detect_parentheses(
     try:
         detector.on_entry()
 
-        for token in tokens:
+        for token in tagstr:
             detector.on_event(token)
 
         detector.on_exit()
@@ -364,8 +364,7 @@ class _Main(State):
             next = ("Parentheses", token)
 
         elif isinstance(token, String) and (token == ")"):
-            raise GdocSyntaxError()
-            # It may be better to call State "Parentheses" to raise
+            raise GdocSyntaxError("unmatched ')'", token.get_char_pos())
 
         else:
             self.elements.append(token)

@@ -46,10 +46,12 @@ class GdocSyntaxError(SyntaxError):
     def __init__(self, message: str | None, pos: tuple | None, info: None) -> None:
         ...
 
+    # For backward compatibility, convert SyntaxError to GdocSyntaxError
     @overload
     def __init__(self, message: SyntaxError, pos: DataPos, info: None) -> None:
         ...
 
+    # Normal GdocSyntaxError
     @overload
     def __init__(
         self, message: str, pos: DataPos | None, info: tuple[str, int, int] | None

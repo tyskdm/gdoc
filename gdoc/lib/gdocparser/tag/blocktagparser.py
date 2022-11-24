@@ -13,12 +13,12 @@ from .objecttaginfoparser import ObjectTagInfo, parse_ObjectTagInfo
 
 
 def parse_BlockTag(
-    tokenized_textstr: TextString, start: int, opts: dict, erpt: ErrorReport
+    textstr: TextString, start: int, opts: dict, erpt: ErrorReport
 ) -> Result[tuple[TextString, Optional[int]], ErrorReport]:
     """
     _summary_
 
-    @param tokenized_textstr (TextString) : _description_
+    @param textstr (TextString) : _description_
     @param start (int) : _description_
     @param opts (dict) : _description_
     @param erpt (ErrorReport) : _description_
@@ -29,9 +29,9 @@ def parse_BlockTag(
     tagpos: Optional[slice] = None
     tagstr: Optional[TextString] = None
     blocktag: Optional[BlockTag] = None
-    text_items: list[Text] = tokenized_textstr.get_text_items()
+    text_items: list[Text] = textstr.get_text_items()
 
-    tagpos, tagstr = detect_BlockTag(tokenized_textstr, start)
+    tagpos, tagstr = detect_BlockTag(textstr, start)
 
     if tagpos is not None:
         tagstr = cast(TextString, tagstr)
@@ -53,9 +53,9 @@ def parse_BlockTag(
         class_info, class_args, class_kwargs = taginfo
         blocktag = BlockTag(class_info, class_args, class_kwargs, tagstr)
         text_items = (
-            tokenized_textstr.get_text_items()[: tagpos.start]
+            textstr.get_text_items()[: tagpos.start]
             + [blocktag]
-            + tokenized_textstr.get_text_items()[tagpos.stop :]
+            + textstr.get_text_items()[tagpos.stop :]
         )
         tag_start = tagpos.start
 
@@ -63,7 +63,7 @@ def parse_BlockTag(
 
 
 def detect_BlockTag(
-    tokenized_textstr: TextString, start: int
+    textstr: TextString, start: int
 ) -> tuple[Optional[slice], Optional[TextString]]:
     result: tuple[Optional[slice], Optional[TextString]]
     tagpos: list[int]
@@ -75,8 +75,8 @@ def detect_BlockTag(
     while True:
         detector.start().on_entry()
 
-        for i, token in enumerate(tokenized_textstr[start_pos:]):
-            if detector.on_event((i, token)) is None:
+        for i, text in enumerate(textstr[start_pos:]):
+            if detector.on_event((i, text)) is None:
                 break
 
         assert (detect := detector.on_exit()) is not None

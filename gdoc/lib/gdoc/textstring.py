@@ -2,7 +2,7 @@
 textstring.py: TextString class
 """
 from collections.abc import Sequence
-from typing import Callable, Optional, SupportsIndex, Union, cast, overload
+from typing import Callable, ClassVar, Optional, SupportsIndex, Union, cast, overload
 
 from gdoc.lib.pandocastobject.pandocast import DataPos, PandocInlineElement
 
@@ -18,19 +18,54 @@ class TextString(Text, Sequence):
     - @trace(realize): `_BlockId_`
     """
 
+    ##################
+    #
+    #  Class methods
+    #
+    ##################
+
+    _SubClass_: ClassVar[type]  # Needs initialize but can't here
+
+    def __init_subclass__(cls, /, ret_subclass: bool = False, **kwargs) -> None:
+        """
+        Sets the type of substring returned by the subclasses.
+
+        @param ret_subclass (bool, optional) : If set returns by the subclass.
+                                               Defaults to False.
+        """
+        TextString._SubClass_ = TextString
+        # Iint ClassVar `_SubClass_` here instead of setting default value(1/2).
+
+        cls._SubClass_ = cls if ret_subclass else cls._SubClass_
+        super().__init_subclass__(**kwargs)
+
+    ################################
+    #
+    #  Core methods as same as str
+    #
+    ################################
+
     __text_items: list[Text]
 
     def __init__(
         self,
         items: Union[
-            list[PandocInlineElement], list[Text], str, "TextString"
+            list[PandocInlineElement], list[Text], "TextString"
         ] = [],  # type: ignore
-        opts={}
-        # if this > items: list[Element] | list[Text] | str | "TextString" = []
-        # returns > E   TypeError: unsupported operand type(s) for |
-        # @3.10.7 >              : 'types.UnionType' and 'str'
+        opts={},
     ):
-        self.__text_items = []  # init as an empty list
+        """
+        Construct TextString from several argument types.
+
+        @param items (Union[list[PandocInlineElement], list[Text], TextString], optional):
+                     List of items to append the TextString. Defaults to [].
+
+        @exception TypeError : Invalid item type
+        """
+        TextString._SubClass_ = TextString
+        # Iint ClassVar `_SubClass_` here instead of setting default value(2/2).
+
+        self.__text_items = []  # init self as an empty list
 
         _plain: list = opts.get("pandocast", {}).get("types", {}).get("plaintext", [])
         _other_known_types = [
@@ -47,12 +82,9 @@ class TextString(Text, Sequence):
             "Note",
         ]
 
-        inlines: "TextString" | list[PandocInlineElement] | list[Text] | list[String]
+        inlines: list[PandocInlineElement] | list[Text]
 
-        if type(items) is str:
-            inlines = [String(items)]
-
-        elif type(items) is TextString:
+        if type(items) is TextString:
             inlines = items.get_text_items()
 
         elif type(items) is list:
@@ -86,43 +118,12 @@ class TextString(Text, Sequence):
             else:
                 raise TypeError()
 
-    # @Override(list)
-    def append(self, text: Text) -> None:
-        """
-        Append `Text` to the end of the list.
-
-        @param text (Text) : text to be added
-        @exception TypeError : text is not subclass of `Text`.
-        """
-        if not isinstance(text, Text):
-            raise TypeError()
-
-        elif isinstance(text, String):
-            for c in text:
-                self.__text_items.append(c)
-
-        else:
-            self.__text_items.append(text)
+    def __str__(self) -> str:
+        return self.get_str()
 
     def __len__(self):
         return len(self.__text_items)
 
-    # @Override(list)
-    def __add__(self, __x: Union[list[Text], "TextString"], /) -> "TextString":
-        texts = self.__text_items[:]
-        if type(__x) is TextString:
-            texts += __x.__text_items
-        else:
-            texts += __x
-
-        return TextString(__x)
-
-    # @Override(list)
-    # def __iadd__
-
-    #
-    # @Override(list)
-    #
     @overload
     def __getitem__(self, __i: SupportsIndex) -> Text:
         ...
@@ -131,7 +132,7 @@ class TextString(Text, Sequence):
     def __getitem__(self, __s: slice) -> "TextString":
         ...
 
-    def __getitem__(self, index: SupportsIndex | slice):
+    def __getitem__(self, index: SupportsIndex | slice) -> Union[Text, "TextString"]:
         """
         x.__getitem__(y) <==> x[y]
 
@@ -139,11 +140,39 @@ class TextString(Text, Sequence):
         @return Text : if type(index) is SupportIndex
         @return TextString : if type(index) is slice
         """
-        result = self.__text_items.__getitem__(index)
-        if type(result) is list:
-            result = TextString(result)
+        item: Text | list[Text] = self.__text_items.__getitem__(index)
+        result: Text | TextString
+
+        if isinstance(item, Text):
+            result = item
+        else:
+            result = self.__class__._SubClass_(item)
 
         return result
+
+    def __add__(self, __x: "TextString", /) -> "TextString":
+        texts = self.__text_items[:]
+        if type(__x) is TextString:
+            texts += __x.__text_items
+        else:
+            raise TypeError()
+
+        return self.__class__._SubClass_(__x)
+
+    def __radd__(self, __x: "TextString", /) -> "TextString":
+        texts = self.__text_items[:]
+        if type(__x) is TextString:
+            texts = __x.__text_items + texts
+        else:
+            raise TypeError()
+
+        return self.__class__._SubClass_(__x)
+
+    #########################
+    #
+    #  Core methods as Text
+    #
+    #########################
 
     # @Override(Text(ABC))
     def get_str(self) -> str:
@@ -160,6 +189,29 @@ class TextString(Text, Sequence):
             result += text.get_content_str()
 
         return result
+
+    ###############################
+    #
+    #  Core methods as TextString
+    #
+    ###############################
+
+    def append(self, text: Text) -> None:
+        """
+        Append `Text` to the end of the list.
+
+        @param text (Text) : text to be added
+        @exception TypeError : text is not subclass of `Text`.
+        """
+        if not isinstance(text, Text):
+            raise TypeError()
+
+        elif type(text) is String:
+            for c in text:
+                self.__text_items.append(c)
+
+        else:
+            self.__text_items.append(text)
 
     def get_text_items(self) -> list[Text]:
         return self.__text_items[:]
@@ -297,6 +349,7 @@ class TextString(Text, Sequence):
     # pop_while / deque_while
     #
     def deque_while(self, cond: Callable[[Text], bool]) -> list[Text]:
+        # TODO: to be removed
         result: list = []
 
         for text in self.__text_items:
@@ -309,9 +362,12 @@ class TextString(Text, Sequence):
 
         return result
 
+    ############################
     #
-    # Original `str`-like methods
+    # Other `str`-like methods
     #
+    ############################
+
     def startswith(self, __prefix: str | tuple[str, ...]) -> bool:
         """
         S.startswith(prefix[, start[, end]]) -> bool
@@ -329,11 +385,6 @@ class TextString(Text, Sequence):
         for text in self.__text_items:
             if type(text) is String:
                 result += str(text)
-            elif type(text) is TextString:
-                string: str = text.__get_leading_str()
-                result += string
-                if len(string) < len(text.get_content_str()):
-                    break
             else:
                 break
 
@@ -355,11 +406,6 @@ class TextString(Text, Sequence):
         for text in reversed(self.__text_items):
             if type(text) is String:
                 result = str(text) + result
-            elif type(text) is TextString:
-                string: str = text.__get_last_str()
-                result = string + result
-                if len(string) < len(text.get_content_str()):
-                    break
             else:
                 break
         return result
@@ -387,17 +433,17 @@ class TextString(Text, Sequence):
 
         @return TextString : Copy of the TextString with leading whitespace removed.
         """
-        result: TextString = self[:]
+        text_items: list[Text] = self.__text_items[:]
 
-        while (len(result) > 0) and (type(result[0]) in (String, TextString)):
-            s: String | TextString = result[0]  # type: ignore
-            result.__text_items[0] = s.lstrip(__chars)
-            if len(result[0]) > 0:  # type: ignore
+        while (len(text_items) > 0) and (type(text_items[0]) is String):
+            s: String = text_items[0]
+            text_items[0] = s.lstrip(__chars)
+            if len(text_items[0]) > 0:
                 break
             else:
-                del result.__text_items[0]
+                del text_items[0]
 
-        return result
+        return self.__class__._SubClass_(text_items)
 
     def rstrip(self, __chars: Optional[str] = None) -> "TextString":
         """
@@ -409,21 +455,24 @@ class TextString(Text, Sequence):
 
         @return TextString : Copy of the TextString with trailing whitespace removed.
         """
-        result: TextString = self[:]
+        text_items: list[Text] = self.__text_items[:]
 
-        while (len(result) > 0) and (type(result[-1]) in (String, TextString)):
-            s: String | TextString = result[-1]  # type: ignore
-            result.__text_items[-1] = s.rstrip(__chars)
-            if len(result[-1]) > 0:  # type: ignore
+        while (len(text_items) > 0) and (type(text_items[-1]) is String):
+            s: String = text_items[-1]
+            text_items[-1] = s.rstrip(__chars)
+            if len(text_items[-1]) > 0:
                 break
             else:
-                del result.__text_items[-1]
+                del text_items[-1]
 
-        return result
+        return self.__class__._SubClass_(text_items)
 
     def split(
         self, sep: Optional[str] = None, maxsplit: int = -1, /, retsep: bool = False
     ) -> list["TextString"]:
+        #
+        #  Replace simple code with self.find() after impl it.
+        #
         result: list = []
         target: TextString = self[:]
         _max: int = maxsplit
@@ -431,12 +480,12 @@ class TextString(Text, Sequence):
         # temp
         sep = sep or " "
 
-        textstr: TextString = TextString()
+        textstr: TextString = self.__class__._SubClass_()
         while (len(target) > 0) and (_max != 0):
 
             textstr += target.deque_while(lambda text: not (type(text) is String))
 
-            texts: TextString = TextString(
+            texts: TextString = self.__class__._SubClass_(
                 target.deque_while(lambda text: (type(text) is String))
             )
             parts: list[str] = texts.get_str().split(sep, _max)
@@ -450,9 +499,9 @@ class TextString(Text, Sequence):
                 for i in range(num_seps):
                     textstr += target.pop_prefix(parts[i])
                     result.append(textstr)
-                    textstr = TextString()
+                    textstr = self.__class__._SubClass_()
                     if retsep:
-                        result.append(TextString(target.pop_prefix(sep)))
+                        result.append(self.__class__._SubClass_(target.pop_prefix(sep)))
                     else:
                         target.pop_prefix(sep)
 
