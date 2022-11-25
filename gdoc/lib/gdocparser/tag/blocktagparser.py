@@ -3,7 +3,7 @@ blocktagparser.py: parse_BlockTag function
 """
 from typing import Optional, cast
 
-from gdoc.lib.gdoc import String, Text, TextString
+from gdoc.lib.gdoc import Quoted, String, Text, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.util import Err, Ok, Result
 from gdoc.util.errorreport import ErrorReport
@@ -242,7 +242,8 @@ class _String(State):
             self.escape = True
 
         elif isinstance(token, String) and (token == '"'):
-            self.tagstr.append(self.quoted)
+            self.tagstr.append(Quoted(self.quoted))
+            # self.tagstr.append(self.quoted)
             self.quoted = None
             next = None
 

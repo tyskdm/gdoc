@@ -242,8 +242,8 @@ def _get_symbol(
             # TODO: check that the first element is a String. If not,
             # the following deletion of the first character does not work.
             if scope is None:
-                scope = symbol[0][0]
-                symbol[0] = symbol[0][1:]
+                scope = symbol[0]
+                symbol = symbol[1:]
 
             else:
                 erpt.submit(

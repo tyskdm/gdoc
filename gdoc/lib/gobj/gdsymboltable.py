@@ -32,8 +32,8 @@ class GdSymbolTable:
         elif (id is not None) and id.startswith(GdSymbol.IS_NAME_STR):
             raise GdocIdError('invalid id "' + id + '"')
 
-        elif scope not in ("+", "-"):
-            raise GdocRuntimeError('invalid access modifier "' + scope + '"')
+        elif str(scope) not in ("+", "-"):
+            raise GdocRuntimeError('invalid access modifier "' + str(scope) + '"')
 
         elif type(tags) is not list:
             raise TypeError("only a list can be added as tags")
