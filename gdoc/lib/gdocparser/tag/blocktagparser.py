@@ -188,7 +188,7 @@ class _Char(State):
         next: NEXT = self
         index, token = event
 
-        if isinstance(token, String) and (token == '"'):
+        if isinstance(token, String) and (token in ('"', "'")):
             next = ("String", event)
 
         else:
@@ -217,6 +217,7 @@ class _String(State):
     tagpos: Optional[list[int]]
     quoted: Optional[TextString]
     escape: bool
+    quote_char: str
 
     def start(self, taginfo):
         self.tagstr, self.tagpos = taginfo
@@ -224,7 +225,8 @@ class _String(State):
     def on_entry(self, event):
         _, token = event
         self.quoted = TextString()
-        self.quoted.append(token)  # Always it's '"'.
+        self.quoted.append(token)
+        self.quote_char = str(token)
         self.escape = None
 
         return self
@@ -241,9 +243,8 @@ class _String(State):
         elif isinstance(token, String) and (token == "\\"):
             self.escape = True
 
-        elif isinstance(token, String) and (token == '"'):
+        elif isinstance(token, String) and (token == self.quote_char):
             self.tagstr.append(Quoted(self.quoted))
-            # self.tagstr.append(self.quoted)
             self.quoted = None
             next = None
 
