@@ -3,13 +3,15 @@ GdObject class
 """
 from gdoc.lib.gdoccompiler.gdexception import *
 
-from .gdsymboltable import GdSymbolTable
+from .namespace import Namespace
 
 
-class GdObject(GdSymbolTable):
+class GdObject(Namespace):
     """
     ;
     """
+
+    Type = Namespace.Type
 
     __category_module = None
 
@@ -21,18 +23,20 @@ class GdObject(GdSymbolTable):
     def get_category(cls):
         return cls.__category_module
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, id=None, scope="+", name=None, tags=[], _type=Type.OBJECT):
         """Constructs GdObject.
         @param id : str | PandocStr
         """
-        super().__init__(*args, **kwargs)
+        _id = str(id) if id else None
+        _name = str(name) if name else None
+        super().__init__(id=_id, scope=str(scope), name=_name, tags=tags, _type=_type)
 
         self.__properties = {
             "": {
-                "id": self.id,
-                "scope": self.scope,
-                "name": self.name,
-                "tags": self.tags[:],
+                "id": id,
+                "scope": scope,
+                "name": name,
+                "tags": tags[:],
             }
         }
 

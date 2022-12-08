@@ -31,7 +31,7 @@ class BaseObject(GdObject):
 
     def __init__(
         self,
-        typename: GdSymbolTable.Type | str,
+        typename: GdObject.Type | str,
         id,
         scope="+",
         name=None,
@@ -39,15 +39,15 @@ class BaseObject(GdObject):
         ref=None,
         type_args={},
     ):
-        if type(typename) is GdSymbolTable.Type:
+        if type(typename) is GdObject.Type:
             _type = typename
             typename = typename.name
 
         else:
             if ref is None:
-                _type = GdSymbolTable.Type.OBJECT
+                _type = GdObject.Type.OBJECT
             else:
-                _type = GdSymbolTable.Type.REFERENCE
+                _type = GdObject.Type.REFERENCE
 
         if scope is None:
             scope = "+"
