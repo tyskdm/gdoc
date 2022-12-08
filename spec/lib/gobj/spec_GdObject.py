@@ -23,7 +23,6 @@ import pytest
 
 from gdoc.lib.gdoccompiler.gdexception import *
 from gdoc.lib.gobj.gdobject import GdObject
-from gdoc.lib.gobj.gdsymboltable import GdSymbolTable
 
 ## @{ @name _set_category(cls, module)
 ## [\@spec _set_category]

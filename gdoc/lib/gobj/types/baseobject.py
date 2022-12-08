@@ -9,7 +9,6 @@ from gdoc.util import Err, ErrorReport, Ok, Result
 
 from ..gdobject import GdObject
 from ..gdsymbol import GdSymbol
-from ..gdsymboltable import GdSymbolTable
 from .category import Category
 
 
