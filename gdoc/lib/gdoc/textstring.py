@@ -2,48 +2,22 @@
 textstring.py: TextString class
 """
 from collections.abc import Sequence
-from typing import Callable, ClassVar, Optional, SupportsIndex, Union, cast, overload
+from typing import Callable, Optional, SupportsIndex, Union, cast, overload
 
 from gdoc.lib.pandocastobject.pandocast import DataPos, PandocInlineElement
+from gdoc.util.returntype import ReturnType
 
 from .code import Code
 from .string import String
 from .text import Text
 
 
-class TextString(Text, Sequence):
+class TextString(Text, Sequence, ReturnType, ret_subclass=True):
     """
     MutableSequence of gdoc inline elements.
 
     - @trace(realize): `_BlockId_`
     """
-
-    ##################
-    #
-    #  Class methods
-    #
-    ##################
-
-    _SubClass_: ClassVar[type]  # Needs initialize but can't here
-
-    def __init_subclass__(cls, /, ret_subclass: bool = False, **kwargs) -> None:
-        """
-        Sets the type of substring returned by the subclasses.
-
-        @param ret_subclass (bool, optional) : If set returns by the subclass.
-                                               Defaults to False.
-        """
-        TextString._SubClass_ = TextString
-        # Iint ClassVar `_SubClass_` here instead of setting default value(1/2).
-
-        cls._SubClass_ = cls if ret_subclass else cls._SubClass_
-        super().__init_subclass__(**kwargs)
-
-    ################################
-    #
-    #  Core methods as same as str
-    #
-    ################################
 
     __text_items: list[Text]
 
@@ -62,8 +36,6 @@ class TextString(Text, Sequence):
 
         @exception TypeError : Invalid item type
         """
-        TextString._SubClass_ = TextString
-        # Iint ClassVar `_SubClass_` here instead of setting default value(2/2).
 
         self.__text_items = []  # init self as an empty list
 
@@ -118,6 +90,12 @@ class TextString(Text, Sequence):
             else:
                 raise TypeError()
 
+    ###############################
+    #
+    #  Core methods similar to str
+    #
+    ###############################
+
     def __str__(self) -> str:
         return self.get_str()
 
@@ -146,7 +124,7 @@ class TextString(Text, Sequence):
         if isinstance(item, Text):
             result = item
         else:
-            result = self.__class__._SubClass_(item)
+            result = self.__class__._returntype_(item)
 
         return result
 
@@ -157,7 +135,7 @@ class TextString(Text, Sequence):
         else:
             raise TypeError()
 
-        return self.__class__._SubClass_(__x)
+        return self.__class__._returntype_(__x)
 
     def __radd__(self, __x: "TextString", /) -> "TextString":
         texts = self.__text_items[:]
@@ -166,7 +144,7 @@ class TextString(Text, Sequence):
         else:
             raise TypeError()
 
-        return self.__class__._SubClass_(__x)
+        return self.__class__._returntype_(__x)
 
     #########################
     #
@@ -443,7 +421,7 @@ class TextString(Text, Sequence):
             else:
                 del text_items[0]
 
-        return self.__class__._SubClass_(text_items)
+        return self.__class__._returntype_(text_items)
 
     def rstrip(self, __chars: Optional[str] = None) -> "TextString":
         """
@@ -465,7 +443,7 @@ class TextString(Text, Sequence):
             else:
                 del text_items[-1]
 
-        return self.__class__._SubClass_(text_items)
+        return self.__class__._returntype_(text_items)
 
     def split(
         self, sep: Optional[str] = None, maxsplit: int = -1, /, retsep: bool = False
@@ -480,12 +458,12 @@ class TextString(Text, Sequence):
         # temp
         sep = sep or " "
 
-        textstr: TextString = self.__class__._SubClass_()
+        textstr: TextString = self.__class__._returntype_()
         while (len(target) > 0) and (_max != 0):
 
             textstr += target.deque_while(lambda text: not (type(text) is String))
 
-            texts: TextString = self.__class__._SubClass_(
+            texts: TextString = self.__class__._returntype_(
                 target.deque_while(lambda text: (type(text) is String))
             )
             parts: list[str] = texts.get_str().split(sep, _max)
@@ -499,9 +477,9 @@ class TextString(Text, Sequence):
                 for i in range(num_seps):
                     textstr += target.pop_prefix(parts[i])
                     result.append(textstr)
-                    textstr = self.__class__._SubClass_()
+                    textstr = self.__class__._returntype_()
                     if retsep:
-                        result.append(self.__class__._SubClass_(target.pop_prefix(sep)))
+                        result.append(self.__class__._returntype_(target.pop_prefix(sep)))
                     else:
                         target.pop_prefix(sep)
 
