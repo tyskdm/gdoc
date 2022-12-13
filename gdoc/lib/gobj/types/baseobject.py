@@ -5,10 +5,10 @@ from typing import Any, NamedTuple, final
 
 from gdoc.lib.gdoc import String, TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
+from gdoc.lib.gdocparser import nameparser
 from gdoc.util import Err, ErrorReport, Ok, Result
 
 from ..gdobject import GdObject
-from ..gdsymbol import GdSymbol
 from .category import Category
 
 
@@ -160,20 +160,16 @@ class BaseObject(GdObject):
         scope, symbol_str, args = r
 
         if symbol_str is not None:
-            symbol_obj: GdSymbol
-            try:
-                symbol_obj = GdSymbol(symbol_str.get_content_str())
-            except GdocSyntaxError as e:
-                e = GdocSyntaxError(e, symbol_str.get_char_pos(e.err_info[1]))
+            r, e = nameparser.parse_name(symbol_str, erpt)
+            if e:
                 erpt.submit(e)
                 return Err(erpt)
 
-            # TODO: Replace with 'name.is_id' after creating it.
-            if not symbol_obj.is_id():
+            symbols, tags = r
+            if not nameparser.is_basic_name(str(symbols[0])):
                 erpt.submit(GdocSyntaxError("Invalid id", symbol_str.get_char_pos(0)))
                 return Err(erpt)
 
-            symbols = symbol_obj.get_symbols()
             id = symbols[-1]
 
             if isref:
@@ -197,8 +193,6 @@ class BaseObject(GdObject):
                                 GdocSyntaxError("The explicit parent ID is incorrect.")
                             )
                             return Err(erpt)
-
-            tags = symbol_obj.get_tags()
 
         child = cls(
             str(class_info[1]),  # type

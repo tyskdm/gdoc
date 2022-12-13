@@ -135,7 +135,7 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         else:
             raise TypeError()
 
-        return self.__class__._returntype_(__x)
+        return self.__class__._returntype_(texts)
 
     def __radd__(self, __x: "TextString", /) -> "TextString":
         texts = self.__text_items[:]
@@ -144,7 +144,7 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         else:
             raise TypeError()
 
-        return self.__class__._returntype_(__x)
+        return self.__class__._returntype_(texts)
 
     #########################
     #
@@ -461,7 +461,9 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         textstr: TextString = self.__class__._returntype_()
         while (len(target) > 0) and (_max != 0):
 
-            textstr += target.deque_while(lambda text: not (type(text) is String))
+            textstr += TextString(
+                target.deque_while(lambda text: not (type(text) is String))
+            )
 
             texts: TextString = self.__class__._returntype_(
                 target.deque_while(lambda text: (type(text) is String))
