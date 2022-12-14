@@ -1,6 +1,7 @@
 r"""
 GdObject class
 """
+from gdoc.lib.gdoc import Text
 from gdoc.lib.gdoccompiler.gdexception import *
 
 from .namespace import Namespace
@@ -176,3 +177,36 @@ class GdObject(Namespace):
 
     def update(self, *args, **kwargs):
         return self.__properties.update(*args, **kwargs)
+
+    def dumpd(self):
+        prop = self._cast_to_str(self.__properties)
+
+        data = {"a": prop[""]}
+        del prop[""]
+
+        data["p"] = prop
+
+        data["c"] = []
+        children = self.get_children()
+        child: "GdObject"
+        for child in children:
+            data["c"].append(child.dumpd())
+
+        return data
+
+    @staticmethod
+    def _cast_to_str(prop):
+
+        if isinstance(prop, dict):
+            keys = prop.keys()
+        elif isinstance(prop, list):
+            keys = range(len(prop))
+
+        for key in keys:
+            if isinstance(prop[key], Text):
+                prop[key] = prop[key].dumpd()
+
+            elif isinstance(prop[key], (dict, list)):
+                prop[key] = __class__._cast_to_str(prop[key])
+
+        return prop

@@ -113,52 +113,75 @@ Gdoc Objects are always able to export to and import from JSON strings.
 - A gdoc object needs 3 namespaces while exporting to JSON.
   1. attributes (id, name, class info)
   2. properties
-  3. children (with id / with no id)
+  3. children
 
-```json
+\$ gdoc compile -t gobj
+
+```js
 {
-   // attrs and props
-   ".": {
-      // attrs
-      "": {
-         "id": ["s", l, c, "idstr"],
-         "name": ["s", l, c, "namestr"],
-         "class": {}
-      },
-      // props
-      "note": {
-         "": ["note text"],
-         "str": ["note.1 text"],
-         "String": [["s", l, c, "note.2 text"]],
-         "TextString": [
-            ["t", [["s", l, c, "String"], ["c", l, c, "Code"], ["m", l, c, "Math"]]]
-         ]
-      }
+   // attributes
+   "a": {
+      "id": "id",
+      "name": "name.md",
+      "class": ["category", "type"]
    },
-
-   // children with no id
-   "": [
-      {}, {}
-   ],
-
-   // children with id
-   "c1": {
-      // attrs and props
-      ".": {
+   // properties
+   "p": {
+      "note": ["note text"],
+      "str": ["note.1 text"],
+      "String": [["s", [".", l,c,l,c], "note.2 text"]],
+      "TextString": [
+         [
+            "T",
+            [
+              ["s", [".", l,c,l,c], "String"],
+              ["c", [".", l,c,l,c], "Code"],
+              ["m", [".", l,c,l,c], "Math"]
+            ]
+         ]
+      ]
+   },
+   // children
+   "c": [
+      {
          // attrs
-         "": {
-            "id": ["s", l, c, "c1"],
-            "name": ["s", l, c, "name string"]
+         "a": {
+            "id": "c1",
+            "name": "name string"
          },
          // props
-         "trace": {
-            "": [["s", l, c, "true"]],
-            "copy": [["s", l, c, "src1"], ["s", l, c, "src2"]],
-            "deribe": [["s", l, c, "parent"]]
+         "p": {
+            "trace": {
+               "": [["s", [".", l,c,l,c], "true"]],
+               "copy": [["s", [".", l,c,l,c], "src1"], ["s", [".", l,c,l,c], "src2"]],
+               "deribe": [["s", [".", l,c,l,c], "parent"]]
+            }
          }
       }
-      // no child
-   }
+   ],
+}
+```
+
+\$ gdoc compile -t json
+
+```js
+{
+  "": {
+    "name": "hello.md"
+  },
+
+  "section 1": {
+    "": {
+      "name": "section 1"
+    },
+
+    "req1": {
+      "": {
+        "id": "req1",
+        "text": "hello prints "hello" in japanese."
+      }
+    }
+  }
 }
 ```
 

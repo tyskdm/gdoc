@@ -20,8 +20,11 @@ class Code(Text):
     """
 
     element: PandocInlineElement
+    data_pos: Optional[DataPos] | bool
 
-    def __init__(self, item: PandocInlineElement | str):
+    def __init__(
+        self, item: PandocInlineElement | str, dpos: Optional[DataPos] | bool = False
+    ):
         _element: PandocInlineElement
 
         if type(item) is str:
@@ -33,21 +36,20 @@ class Code(Text):
             _element = cast(PandocInlineElement, item)
             if _element.get_type() != "Code":
                 raise RuntimeError()
-
         else:
             raise RuntimeError()
 
+        self.data_pos = dpos
         self.element = _element
 
     def get_str(self):
-        return f"`{self.element.get_content()}`"
-
-    def get_content_str(self):
         return self.element.get_content()
 
     def get_data_pos(self) -> Optional[DataPos]:
-        # return self.element.get_data_pos()
-        pass
+        if self.data_pos is False:
+            self.data_pos = self.element.get_data_pos()
+
+        return cast(Optional[DataPos], self.data_pos)
 
     def get_char_pos(self, index: int):
         result: Optional[DataPos] = None
@@ -67,3 +69,32 @@ class Code(Text):
             )
 
         return result
+
+    def dumpd(self) -> list:
+        result: list[str | list[str | int]] = ["c"]
+
+        dpos = self.get_data_pos()
+        if dpos is not None:
+            result.append(
+                [dpos.path, dpos.start.ln, dpos.start.col, dpos.stop.ln, dpos.stop.col]
+            )
+        else:
+            result.append([])
+
+        result.append(self.get_str())
+
+        return result
+
+    @classmethod
+    def loadd(cls, data: list) -> "Code":
+
+        if data[0] != "c":
+            raise TypeError()
+
+        dpos = data[1]
+        if len(dpos) == 0:
+            dpos = None
+        else:
+            dpos = DataPos(dpos[0], Pos(dpos[1], dpos[2]), Pos(dpos[3], dpos[4]))
+
+        return cls(data[-1], dpos)

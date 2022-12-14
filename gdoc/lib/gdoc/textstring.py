@@ -492,3 +492,44 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
             result.append(textstr)
 
         return result
+
+    def dumpd(self) -> list:
+        result: list[list[str | list[str | int]]] = []
+
+        string = String()
+        text: Text
+        for text in self.__text_items:
+
+            if isinstance(text, String):
+                string += text
+
+            else:
+                if len(string) > 0:
+                    result += string.dumpd()
+                    string = String()
+
+                result.append(text.dumpd())
+
+        else:
+            if len(string) > 0:
+                result += string.dumpd()
+                string = String()
+
+        return ["T", result]
+
+    @classmethod
+    def loadd(cls, data: list) -> "TextString":
+
+        if data[0] != "T":
+            raise TypeError()
+
+        texts: list[Text] = []
+        for item in data[-1]:
+            if item[0] == "s":
+                texts.append(String.loadd(item))
+            elif item[0] == "c":
+                texts.append(Code.loadd(item))
+            if item[0] == "T":
+                texts.append(TextString.loadd(item))
+
+        return cls(texts)

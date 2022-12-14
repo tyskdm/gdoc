@@ -47,40 +47,8 @@ def run(args):
         )
 
         if gobj is not None:
-            data = _export_gobj(gobj)
-            print(json.dumps(data, indent=4, ensure_ascii=False))
+            data = gobj.dumpd()
+            print(json.dumps(data, indent=2, ensure_ascii=False))
 
         if erpt is not None:
             print(erpt.dump())
-
-
-def _export_gobj(gobj):
-    prop = gobj._GdObject__properties
-    data = _cast_to_str(prop)
-
-    data["children"] = []
-    children = gobj.get_children()
-    for child in children:
-        data["children"].append(_export_gobj(child))
-
-    return data
-
-
-def _cast_to_str(prop):
-
-    if isinstance(prop, dict):
-        keys = prop.keys()
-    elif isinstance(prop, list):
-        keys = range(len(prop))
-
-    for key in keys:
-        if isinstance(prop[key], String):
-            prop[key] = str(prop[key])
-
-        elif isinstance(prop[key], Text):
-            prop[key] = str(prop[key].get_str())
-
-        elif isinstance(prop[key], (dict, list)):
-            prop[key] = _cast_to_str(prop[key])
-
-    return prop
