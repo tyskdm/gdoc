@@ -44,9 +44,6 @@ class String(PandocStr, Text, ret_subclass=True):
     def get_str(self) -> str:
         return str(self)
 
-    def get_content_str(self) -> str:
-        return self.get_str()
-
     def dumpd(self) -> list:
         result: list[list[str | list[str | int]]] = []
 

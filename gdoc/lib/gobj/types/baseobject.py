@@ -220,7 +220,8 @@ def _get_symbol(
     idx: int = 0
     c = len(class_args)
     if c > 0:
-        if class_args[idx].get_content_str() in ("+", "-"):
+        if class_args[idx].get_str() in ("+", "-"):
+            # TODO: check if type is String, not Code, Quoted....
             scope = class_args[idx]
             if c < 2:
                 erpt.submit(GdocSyntaxError("Object name missing", scope.get_char_pos(1)))

@@ -160,14 +160,6 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
 
         return result
 
-    # @Override(Text(ABC))
-    def get_content_str(self) -> str:
-        result = ""
-        for text in self.__text_items:
-            result += text.get_content_str()
-
-        return result
-
     ###############################
     #
     #  Core methods as TextString
@@ -226,7 +218,7 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
 
         for item in self.__text_items:
             if not isinstance(item, TextString):
-                l: int = len(item.get_content_str())
+                l: int = len(item.get_str())
                 if _index >= l:
                     _index -= l
                 else:

@@ -34,10 +34,10 @@ class Quoted(TextString):
 
         super().__init__(textstr, opts)
         self.quote_type = str(self[0])
-        self._quote_char = (self[0], self[-1])
+        self._quote_char = (cast(String, self[0]), cast(String, self[-1]))
 
         #
-        # Remove escape char
+        # Remove escape char for content textstring
         #
         content_texts: list[Text] = []
         text: Text
@@ -53,6 +53,9 @@ class Quoted(TextString):
 
             else:
                 content_texts.append(text)
+
+        if escape:
+            raise TypeError("Invalid escape sequence(ends with escape char)")
 
         self._content_textstr = TextString(content_texts)
 
