@@ -78,7 +78,7 @@ def spec___init___2(_TEST_CLASS):
     assert target.defaults == CATEGORY_INFO["defaults"]
 
 
-def spec___init___3(_TEST_CLASS):
+def x_spec___init___3(_TEST_CLASS):
     r"""
     [@spec \_\_init\_\_.2] set props with default values.
     """
