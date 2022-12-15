@@ -37,6 +37,6 @@ line-length = 90
 profile = "black"
 line_length = 90
 
-[flake8]
+[tool.flake8]
 max-line-length = 90
-ignore = "E203"
+ignore = "W503"
