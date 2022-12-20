@@ -47,8 +47,9 @@ def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
     target_data = Document(pandoc_ast)[1]  # 2nd. block
 
     # Mock
-    gdobject = mocker.MagicMock(["create_object"])
-    erpt_mock = mocker.MagicMock()
+    gdobject = mocker.Mock(["create_object"])
+    gdobject.create_object.return_value = (None, None)
+    erpt_mock = mocker.Mock()
     erpt_mock.submit = mocker.Mock(return_value=True)
 
     # Execution
@@ -61,40 +62,40 @@ def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
 
     assert kwargs == {}
 
-    assert len(args) == 5
+    assert len(args) == 7
 
     for i, exp in enumerate(expect_data["class_info"]):
-        act = args[0][i].get_text() if args[0][i] is not None else None
+        act = args[0][i].get_str() if args[0][i] is not None else None
         assert act == exp
 
     for i, exp in enumerate(expect_data["class_args"]):
-        act = args[1][i].get_text() if args[1][i] is not None else None
+        act = args[1][i].get_str() if args[1][i] is not None else None
         assert act == exp
 
     for i, exp in enumerate(expect_data["class_kwargs"]):
-        actkey = args[2][i][0].get_text() if args[2][i][0] is not None else None
-        actval = args[2][i][1].get_text() if args[2][i][1] is not None else None
+        actkey = args[2][i][0].get_str() if args[2][i][0] is not None else None
+        actval = args[2][i][1].get_str() if args[2][i][1] is not None else None
         assert actkey == exp[0]
         assert actval == exp[1]
 
     assert len(args[3]) == len(expect_data["tag_opts"])
     for key in args[3]:
         if type(args[3][key]) is list:
-            act = [val.get_text() for val in args[3][key]]
+            act = [val.get_str() for val in args[3][key]]
         else:
-            act = args[3][key].get_text()
+            act = args[3][key].get_str()
         assert act == expect_data["tag_opts"][key]
 
-    assert getattr(args[4], "tag_text").get_text() == expect_data["tag_text"]
+    assert getattr(args[4], "tag_text").get_str() == expect_data["tag_text"]
 
     tag_info = getattr(args[4], "tag_info")
     for key in expect_data["tag_info"]:
         if type(getattr(tag_info, key)) is list:
-            act = [val.get_text() for val in getattr(tag_info, key)]
+            act = [val.get_str() for val in getattr(tag_info, key)]
         elif getattr(tag_info, key) is None:
             act = None
         else:
-            act = getattr(tag_info, key).get_text()
+            act = getattr(tag_info, key).get_str()
         assert act == expect_data["tag_info"][key]
 
 

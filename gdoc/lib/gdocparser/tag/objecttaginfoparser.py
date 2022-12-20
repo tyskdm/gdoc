@@ -5,11 +5,9 @@ from typing import Any, Optional, TypeAlias, Union, cast
 
 from gdoc.lib.gdoc import String, Text, TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.util import Err, Ok, Result
-from gdoc.util.errorreport import ErrorReport
+from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from ..fsm import State, StateMachine
-from ..textblock.texttokenizer import TextTokenizer
+from ....util.fsm import State, StateMachine
 
 ObjectTagInfo: TypeAlias = tuple[
     tuple[String | None, String | None, String | None],
@@ -20,7 +18,7 @@ ObjectTagInfo: TypeAlias = tuple[
 
 
 def parse_ObjectTagInfo(
-    tagstr: TextString, opts: dict, erpt: ErrorReport
+    tagstr: TextString, opts: Settings, erpt: ErrorReport
 ) -> Result[ObjectTagInfo, ErrorReport]:
     """
     parse_ObjectTag
@@ -29,25 +27,36 @@ def parse_ObjectTagInfo(
     #           tuple[category, type, is_reference]
     class_args: list[TextString] = []
     class_kwargs: list[tuple[TextString, TextString]] = []
-    tokens: TextString = tagstr[:]
+    _tagstr: TextString = tagstr[:]
 
-    if len(tokens) > 0:
+    if len(_tagstr) > 0:
+        #
         # parse Class Info
-        if TextTokenizer.is_word(tokens[0]):
+        #
+        i: int
+        elem: Text
+        class_str: String = String()
+        for i, elem in enumerate(_tagstr):
+            if isinstance(elem, String) and (elem == " "):
+                break
+            if isinstance(_tagstr[i], String):
+                class_str += _tagstr[i]
+            else:
+                erpt.submit(GdocSyntaxError())
+                return Err(erpt)
+        _tagstr = _tagstr[i:]
+
+        if len(class_str) > 0:
             # get class info
-            class_info, e = parse_ClassInfo(tokens[0], opts, erpt)
+            class_info, e = parse_ClassInfo(class_str, opts, erpt)
             if e:
                 erpt.submit(e)
                 return Err(erpt)
 
-            tokens = tokens[1:]
-
-        elif not (isinstance(tokens[0], String) and (tokens[0] == " ")):
-            # Class info should be String
-            erpt.submit(GdocSyntaxError())
-            return Err(erpt)
-
-        args, e = parse_Arguments(tokens, opts, erpt)
+        #
+        # parse Arguments
+        #
+        args, e = parse_Arguments(_tagstr, opts, erpt)
         if e:
             erpt.submit(e)
             return Err(e)
@@ -58,7 +67,7 @@ def parse_ObjectTagInfo(
 
 
 def parse_ClassInfo(
-    token: String, opts: dict, erpt: ErrorReport
+    token: String, opts: Settings, erpt: ErrorReport
 ) -> Result[tuple[String | None, String | None, String | None], ErrorReport]:
     #       tuple[category, type, is_reference]
     class_cat: String | None = None
@@ -86,13 +95,12 @@ def parse_ClassInfo(
 # Argument Parser
 #
 def parse_Arguments(
-    tokens: TextString, opts: dict, erpt: ErrorReport
+    tagstr: TextString, opts: Settings, erpt: ErrorReport
 ) -> Result[tuple, ErrorReport]:
     """
-    element ::=
-    [ word | quoted TextString | ( arguments ) | "=" | " " | "," | OtherTextTypeTokens ]*
+    parse_Argument
     """
-    elements, e = detect_parentheses(tokens, opts, erpt)
+    elements, e = detect_parentheses(tagstr, opts, erpt)
     if e:
         erpt.submit(e)
         return Err(erpt)
@@ -110,20 +118,12 @@ def parse_Arguments(
 
 class ArgumentParser(StateMachine):
     """
-    returns argument
-
-    argument = {
-        "args": [ value ],
-        "kwargs": [
-            [ key, value ]
-        ]
-    }
-
-    element ::= [ word | "quoted" | (bracketed) | "=" | " " | "," | NotStringTokens ]*
-
-    Key: TextString ::= word    # should be isidentifier()
-    Value: TextString ::= [ word | "quoted" | (bracketed) | NotStringTokens ]*
+    Returns positional arguments and keyward arguments.
     """
+
+    argstring: TextString
+    args: list[Text]
+    kwargs: list[list[Text]]
 
     def __init__(self, name: str = None) -> None:
         super().__init__(name)
@@ -133,16 +133,10 @@ class ArgumentParser(StateMachine):
         self.add_state(_Value("Value"), "Idle")
 
     def start(self, param=None):
-        self.argstring: TextString = TextString()
-        self.args: list[Text] = []
-        self.kwargs: list[list[Text]] = []
+        self.argstring = TextString()
+        self.args = []
+        self.kwargs = []
         return super().start((self.argstring, self.args, self.kwargs))
-
-    def on_entry(self, event=None):
-        return super().on_entry(event)
-
-    def on_event(self, token):
-        return super().on_event(token)
 
     def on_exit(self):
         super().on_exit()
@@ -150,11 +144,15 @@ class ArgumentParser(StateMachine):
 
 
 class _Idle(State):
-    """ """
+    """
+    _Idle state
+    """
+
+    comma: String | bool | None
 
     def start(self, param: Any = None) -> "State":
-        self.comma: Union[String, bool, None] = None
-        return super().start(param)
+        self.comma = None
+        return self
 
     def on_entry(self, element=None):
         next = self
@@ -189,13 +187,15 @@ class _Idle(State):
 
 
 class _Key(State):
-    """ """
+    """
+    _Key state
+    """
+
+    argstring: TextString
+    args: list[Text]
+    kwargs: list[list[Text]]
 
     def start(self, param):
-        self.argstring: TextString
-        self.args: list[Text]
-        self.kwargs: list[list[Text]]
-
         self.argstring, self.args, self.kwargs = param
 
     def on_entry(self, element):
@@ -220,13 +220,15 @@ class _Key(State):
 
 
 class _AfterKey(State):
-    """ """
+    """
+    _AfterKey state
+    """
+
+    argstring: TextString
+    args: list[Text]
+    kwargs: list[list[Text]]
 
     def start(self, param):
-        self.argstring: TextString
-        self.args: list[Text]
-        self.kwargs: list[list[Text]]
-
         self.argstring, self.args, self.kwargs = param
 
     def on_entry(self, element=None):
@@ -261,15 +263,18 @@ class _AfterKey(State):
 
 
 class _Value(State):
-    """ """
+    """
+    _Value state
+    """
+
+    argstring: TextString
+    kwargs: list[list[Text]]
 
     def start(self, param):
-        self.argstring: TextString
-        self.kwargs: list[list[Text]]
-
         self.argstring, _, self.kwargs = param
-
         self.value: TextString = TextString()
+
+        return self
 
     def on_entry(self, element=None):
         self.value.clear()
@@ -301,7 +306,7 @@ class _Value(State):
 
 
 def detect_parentheses(
-    tokens: TextString, opts: dict, erpt: ErrorReport
+    tagstr: TextString, opts: Settings, erpt: ErrorReport
 ) -> Result[TextString, ErrorReport]:
     elements: TextString = TextString()
 
@@ -310,7 +315,7 @@ def detect_parentheses(
     try:
         detector.on_entry()
 
-        for token in tokens:
+        for token in tagstr:
             detector.on_event(token)
 
         detector.on_exit()
@@ -358,8 +363,7 @@ class _Main(State):
             next = ("Parentheses", token)
 
         elif isinstance(token, String) and (token == ")"):
-            raise GdocSyntaxError()
-            # It may be better to call State "Parentheses" to raise
+            raise GdocSyntaxError("unmatched ')'", token.get_char_pos())
 
         else:
             self.elements.append(token)

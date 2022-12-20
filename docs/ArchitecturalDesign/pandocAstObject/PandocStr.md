@@ -193,7 +193,7 @@ Python `str` is inherited from Abstract Base Class, `Sequence`.
 | @Method      | get_str        |
 |              | @param         | in start : int = 0
 |              | @param         | in stop : int \| None = None
-| @Method      | get_info       |
+| @Method      | get_char_info       |
 |              | @param         | in index : int = 0
 |              | @param         | out char info : (sourcepos : {path:str, line:int, col:int}, decoration, item)
 | @Method      | `__len__`      | () -> int

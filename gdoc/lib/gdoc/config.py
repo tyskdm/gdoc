@@ -16,7 +16,5 @@ DEFAULTS: dict = {
             "plaintext": ["Str", "Space", "SoftBreak"],
             "textblock": ["Plain", "Para", "LineBlock", "Header"],
         },
-        "altchar": {"Code": "`", "Math": "$", "Quoted": '"', "RawInline": ""},
     },
-    "textblock": {"types": ["Plain", "Para", "LineBlock", "Header"]},
 }

@@ -4,11 +4,11 @@ baseobject.py: BaseObject class
 from typing import Any, NamedTuple, final
 
 from gdoc.lib.gdoc import String, TextString
-from gdoc.lib.gdoccompiler.gdexception import *
+from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
+from gdoc.lib.gdocparser import nameparser
+from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 from ..gdobject import GdObject
-from ..gdsymbol import GdSymbol
-from ..gdsymboltable import GdSymbolTable
 from .category import Category
 
 
@@ -30,7 +30,7 @@ class BaseObject(GdObject):
 
     def __init__(
         self,
-        typename: GdSymbolTable.Type | str,
+        typename: GdObject.Type | str,
         id,
         scope="+",
         name=None,
@@ -38,15 +38,15 @@ class BaseObject(GdObject):
         ref=None,
         type_args={},
     ):
-        if type(typename) is GdSymbolTable.Type:
+        if type(typename) is GdObject.Type:
             _type = typename
             typename = typename.name
 
         else:
             if ref is None:
-                _type = GdSymbolTable.Type.OBJECT
+                _type = GdObject.Type.OBJECT
             else:
-                _type = GdSymbolTable.Type.REFERENCE
+                _type = GdObject.Type.REFERENCE
 
         if scope is None:
             scope = "+"
@@ -81,26 +81,16 @@ class BaseObject(GdObject):
     @final
     def create_object(
         self,
-        class_info: tuple[String | str | None, String | str | None, String | str | None],
+        class_info: tuple[String | None, String | None, String | None],
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
         tag_opts: dict,
-        tag: Any,
-    ) -> "BaseObject":
+        tag_body: TextString,
+        opts: Settings,
+        erpt: ErrorReport,
+    ) -> Result["BaseObject", ErrorReport]:
         """
-        _summary_
-
-        @param class_info (ClassInfo) : _description_
-        @param class_args (list[TextString]) : _description_
-        @param class_kwargs (list[tuple[TextString, TextString]]) : _description_
-        @param tag_opts (dict, optional) : _description_. Defaults to {}.
-
-        @exception GdocSyntaxError : _description_
-        @exception GdocRuntimeError : _description_
-        @exception GdocRuntimeError : _description_
-        @exception GdocTypeError : _description_
-
-        @return BaseObject : _description_
+        Object Factory
         """
         class_cat = str(class_info[0]) if class_info[0] is not None else None
         class_type = str(class_info[1]) if class_info[1] is not None else ""
@@ -108,60 +98,82 @@ class BaseObject(GdObject):
 
         obj = self
         while obj is not None:
-            class_type, constructor = obj.__get_constructor(class_cat, class_type)
+            class_type, constructor = obj.__get_constructor(class_cat, class_type, opts)
             if constructor is not None:
                 break
 
             obj = obj.get_parent()
 
         if constructor is not None:
-            child = constructor.create(
-                class_info, class_args, class_kwargs, tag_opts, parent_obj=self
-            )
+            try:
+                child, e = constructor.create(
+                    class_info, class_args, class_kwargs, tag_opts, self, erpt
+                )
+                if e:
+                    erpt.submit(e)
+                    return Err(erpt)
+
+            except GdocSyntaxError as e:
+                erpt.submit(e)
+                return Err(erpt)
 
         else:
-            raise GdocTypeError("Class not found")
+            erpt.submit(GdocSyntaxError("Class not found", tag_body.get_char_pos(2)))
+            return Err(erpt)
 
-        return child
+        return Ok(child)
 
-    def __get_constructor(self, class_cat: str = None, class_type: str = ""):
+    def __get_constructor(self, class_cat: str, class_type: str, opts: Settings):
         """ """
         constructor = None
         class_name = None
+        cat = None
 
         if class_cat in (None, self.class_category):
             cat = self.__class__.get_category()
 
         if type(cat) is Category:
-            class_name, constructor = cat.get_type(class_type, self.class_type)
+            class_name, constructor = cat.get_type(
+                class_type, self.class_type, opts.get(["types", "aliasies", cat.name], {})
+            )
 
         return class_name, constructor
 
     @classmethod
     def create(
         cls,
-        class_info: tuple[String | str | None, String | str | None, String | str | None],
+        class_info: tuple[String | None, String | None, String | None],
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
         tag_opts: dict,
         parent_obj: "BaseObject",
-    ) -> "BaseObject":
+        erpt: ErrorReport,
+    ) -> Result["BaseObject", ErrorReport]:
         id = None
         tags = []
         isref = class_info[2]  # isref
         ref = None
-        scope, symbol, args = _get_symbol(class_args)
 
-        if symbol is not None:
-            if type(symbol) is str:
-                symbol = GdSymbol(symbol)
-            else:
-                symbol = GdSymbol(symbol.get_text())
+        scope: TextString
+        symbol_str: TextString
+        args: list[TextString]
+        r, e = _get_symbol(class_args, erpt)
+        if e:
+            erpt.submit(e)
+            return Err(erpt)
+        scope, symbol_str, args = r
 
-            if not symbol.is_id():
-                raise GdocSyntaxError("Invalid id")
+        if symbol_str is not None:
+            r, e = nameparser.parse_name(symbol_str, erpt)
+            if e:
+                erpt.submit(e)
+                return Err(erpt)
 
-            symbols = symbol.get_symbols()
+            symbols, tags = r
+            if not nameparser.is_basic_name(str(symbols[0])):
+                erpt.submit(GdocSyntaxError("Invalid id", symbol_str.get_char_pos(0)))
+                return Err(erpt)
+
             id = symbols[-1]
 
             if isref:
@@ -173,16 +185,18 @@ class BaseObject(GdObject):
                 p = parent_obj.get_parent()
                 while len(symbols) > 0:
                     s = symbols.pop()
-                    if s.startwith("*"):  # name
+                    if s.startswith("*"):  # name
                         if p.name != s[1:]:
-                            raise GdocRuntimeError(
-                                "The explicit parent Name is incorrect."
+                            erpt.submit(
+                                GdocSyntaxError("The explicit parent Name is incorrect.")
                             )
+                            return Err(erpt)
                     else:  # id
                         if p.id != s:
-                            raise GdocRuntimeError("The explicit parent ID is incorrect.")
-
-            tags = symbol.get_tags()
+                            erpt.submit(
+                                GdocSyntaxError("The explicit parent ID is incorrect.")
+                            )
+                            return Err(erpt)
 
         child = cls(
             str(class_info[1]),  # type
@@ -197,22 +211,25 @@ class BaseObject(GdObject):
         if parent_obj:
             parent_obj.add_child(child)
 
-        return child
+        return Ok(child)
 
 
-def _get_symbol(class_args):
-    scope = None
-    symbol = None
-    args = []
+def _get_symbol(
+    class_args: list[TextString], erpt: ErrorReport
+) -> Result[tuple[TextString | None, TextString | None, list[TextString]], ErrorReport]:
+    scope: TextString | None = None
+    symbol: TextString | None = None
+    args: list[TextString] = []
 
-    idx = 0
+    idx: int = 0
     c = len(class_args)
     if c > 0:
-        if class_args[idx].get_text() in ("+", "-"):
+        if class_args[idx].get_str() in ("+", "-"):
+            # TODO: check if type is String, not Code, Quoted....
             scope = class_args[idx]
             if c < 2:
-                raise GdocSyntaxError()
-                # Symbol should follow
+                erpt.submit(GdocSyntaxError("Object name missing", scope.get_char_pos(1)))
+                return Err(erpt)
             idx += 1
 
         # class_args[idx] should be symbol
@@ -223,13 +240,15 @@ def _get_symbol(class_args):
             # TODO: check that the first element is a String. If not,
             # the following deletion of the first character does not work.
             if scope is None:
-                scope = symbol[0][0]
-                symbol[0] = symbol[0][1:]
+                scope = symbol[0]
+                symbol = symbol[1:]
 
             else:
-                raise GdocSyntaxError()
-                # Scope is duplecated
+                erpt.submit(
+                    GdocSyntaxError("Duplicate scope specifier", symbol.get_char_pos(0))
+                )
+                return Err(erpt)
 
         args = class_args[idx:]
 
-    return scope, symbol, args
+    return Ok((scope, symbol, args))

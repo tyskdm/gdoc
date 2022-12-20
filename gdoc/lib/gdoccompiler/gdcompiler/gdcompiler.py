@@ -2,13 +2,14 @@ r"""
 Gdoc Compiler class
 """
 import os
+from typing import Optional
 
 from gdoc.lib.gdoc import Document as GdocDocument
 from gdoc.lib.gdocparser.documentparser import parse_Document
 from gdoc.lib.gobj.types.document import Document as GobjDocument
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
-from gdoc.util import Err, ErrorReport, Ok, Result
+from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 
 class GdocCompiler:
@@ -18,7 +19,10 @@ class GdocCompiler:
         pass
 
     def compile(
-        self, filepath: str, opts: dict = {}
+        self,
+        filepath: str,
+        opts: Optional[Settings] = None,
+        erpt: Optional[ErrorReport] = None,
     ) -> Result[GobjDocument, ErrorReport | Exception]:
         """
         1. fileの存在確認
@@ -29,7 +33,8 @@ class GdocCompiler:
         6. パーサーの生成、visitorの取得、start(Document)。
         7. Pandoc.accept(parser)して、エレメントをイベントとしてパーサーに投げる。
         """
-        erpt = ErrorReport(cont=opts.get("check-only"))
+        opts = opts or Settings({})
+        erpt = erpt or ErrorReport()
 
         if not os.path.isfile(filepath):
             erpt.submit(
@@ -38,7 +43,7 @@ class GdocCompiler:
             )
             return Err(erpt)
 
-        pandoc_json = Pandoc().get_json(filepath, "gfm+sourcepos", False)
+        pandoc_json = Pandoc().get_json(filepath)
         pandoc_ast = PandocAst(pandoc_json)
         gdoc = GdocDocument(pandoc_ast)
 

@@ -4,7 +4,6 @@ ImportObject class
 
 from gdoc.lib.gdoccompiler.gdexception import *
 
-from ..gdsymboltable import GdSymbolTable
 from .baseobject import BaseObject
 
 
@@ -15,13 +14,13 @@ class ImportObject(BaseObject):
         self, typename, id, *, scope=None, name=None, tags=[], ref=None, type_args={}
     ):
         if typename == "IMPORT":
-            typename = GdSymbolTable.Type.IMPORT
+            typename = BaseObject.Type.IMPORT
             if scope not in ("+", None):
                 raise GdocRuntimeError()
             scope = "+"
 
         elif typename == "ACCESS":
-            typename = GdSymbolTable.Type.ACCESS
+            typename = BaseObject.Type.ACCESS
             if scope not in ("-", None):
                 raise GdocRuntimeError()
             scope = "-"

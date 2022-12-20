@@ -1,15 +1,18 @@
 r"""
 GdObject class
 """
+from gdoc.lib.gdoc import Text
 from gdoc.lib.gdoccompiler.gdexception import *
 
-from .gdsymboltable import GdSymbolTable
+from .namespace import Namespace
 
 
-class GdObject(GdSymbolTable):
+class GdObject(Namespace):
     """
     ;
     """
+
+    Type = Namespace.Type
 
     __category_module = None
 
@@ -21,18 +24,20 @@ class GdObject(GdSymbolTable):
     def get_category(cls):
         return cls.__category_module
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, id=None, scope="+", name=None, tags=[], _type=Type.OBJECT):
         """Constructs GdObject.
         @param id : str | PandocStr
         """
-        super().__init__(*args, **kwargs)
+        _id = str(id) if id else None
+        _name = str(name) if name else None
+        super().__init__(id=_id, scope=str(scope), name=_name, tags=tags, _type=_type)
 
         self.__properties = {
             "": {
-                "id": self.id,
-                "scope": self.scope,
-                "name": self.name,
-                "tags": self.tags[:],
+                "id": id,
+                "scope": scope,
+                "name": name,
+                "tags": tags[:],
             }
         }
 
@@ -172,3 +177,36 @@ class GdObject(GdSymbolTable):
 
     def update(self, *args, **kwargs):
         return self.__properties.update(*args, **kwargs)
+
+    def dumpd(self):
+        prop = self._cast_to_str(self.__properties)
+
+        data = {"a": prop[""]}
+        del prop[""]
+
+        data["p"] = prop
+
+        data["c"] = []
+        children = self.get_children()
+        child: "GdObject"
+        for child in children:
+            data["c"].append(child.dumpd())
+
+        return data
+
+    @staticmethod
+    def _cast_to_str(prop):
+
+        if isinstance(prop, dict):
+            keys = prop.keys()
+        elif isinstance(prop, list):
+            keys = range(len(prop))
+
+        for key in keys:
+            if isinstance(prop[key], Text):
+                prop[key] = prop[key].dumpd()
+
+            elif isinstance(prop[key], (dict, list)):
+                prop[key] = __class__._cast_to_str(prop[key])
+
+        return prop

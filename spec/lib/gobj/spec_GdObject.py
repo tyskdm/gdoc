@@ -23,7 +23,6 @@ import pytest
 
 from gdoc.lib.gdoccompiler.gdexception import *
 from gdoc.lib.gobj.gdobject import GdObject
-from gdoc.lib.gobj.gdsymboltable import GdSymbolTable
 
 ## @{ @name _set_category(cls, module)
 ## [\@spec _set_category]
@@ -73,7 +72,7 @@ def spec___init___1():
     [@spec \_\_init\_\_.1] `Symbol` should be a class.
     """
     assert inspect.isclass(GdObject) == True
-    assert issubclass(GdObject, GdSymbolTable) == True
+    # assert issubclass(GdObject, GdSymbolTable) == True
 
 
 def spec___init___2():
