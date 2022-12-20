@@ -3,9 +3,8 @@ command.py
 """
 import json
 
-from gdoc.lib.gdoc import String, Text
 from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
-from gdoc.util import ErrorReport
+from gdoc.util import ErrorReport, Settings
 
 
 def setup(subparsers, name, commonOptions):
@@ -39,12 +38,11 @@ def run(args):
     """
     run subcommand
     """
-    erpt: ErrorReport
+    opts = Settings({})
+    erpt = ErrorReport(cont=args.check_only)
 
     for filepath in args.filepath:
-        gobj, erpt = GdocCompiler().compile(
-            filepath, opts={"check-only": args.check_only}
-        )
+        gobj, erpt = GdocCompiler().compile(filepath, opts, erpt)
 
         if gobj is not None:
             data = gobj.dumpd()

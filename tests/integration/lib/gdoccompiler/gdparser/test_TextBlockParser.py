@@ -62,7 +62,7 @@ def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
 
     assert kwargs == {}
 
-    assert len(args) == 6
+    assert len(args) == 7
 
     for i, exp in enumerate(expect_data["class_info"]):
         act = args[0][i].get_str() if args[0][i] is not None else None

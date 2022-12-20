@@ -6,7 +6,7 @@ from typing import Any, NamedTuple, final
 from gdoc.lib.gdoc import String, TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gdocparser import nameparser
-from gdoc.util import Err, ErrorReport, Ok, Result
+from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 from ..gdobject import GdObject
 from .category import Category
@@ -86,6 +86,7 @@ class BaseObject(GdObject):
         class_kwargs: list[tuple[TextString, TextString]],
         tag_opts: dict,
         tag_body: TextString,
+        opts: Settings,
         erpt: ErrorReport,
     ) -> Result["BaseObject", ErrorReport]:
         """
@@ -97,7 +98,7 @@ class BaseObject(GdObject):
 
         obj = self
         while obj is not None:
-            class_type, constructor = obj.__get_constructor(class_cat, class_type)
+            class_type, constructor = obj.__get_constructor(class_cat, class_type, opts)
             if constructor is not None:
                 break
 
@@ -122,16 +123,19 @@ class BaseObject(GdObject):
 
         return Ok(child)
 
-    def __get_constructor(self, class_cat: str = None, class_type: str = ""):
+    def __get_constructor(self, class_cat: str, class_type: str, opts: Settings):
         """ """
         constructor = None
         class_name = None
+        cat = None
 
         if class_cat in (None, self.class_category):
             cat = self.__class__.get_category()
 
         if type(cat) is Category:
-            class_name, constructor = cat.get_type(class_type, self.class_type)
+            class_name, constructor = cat.get_type(
+                class_type, self.class_type, opts.get(["types", "aliasies", cat.name], {})
+            )
 
         return class_name, constructor
 

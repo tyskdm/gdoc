@@ -4,14 +4,13 @@ textblockparser.py: parse_TextBlock function
 from gdoc.lib.gdoc import String, Text, TextBlock, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag, BlockTagInfo
 from gdoc.lib.gobj.types import BaseObject
-from gdoc.util import Err, Ok, Result
+from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from ....util.errorreport import ErrorReport
 from .lineparser import parse_Line
 
 
 def parse_TextBlock(
-    textblock: TextBlock, gobj: BaseObject, opts: dict, erpt: ErrorReport
+    textblock: TextBlock, gobj: BaseObject, opts: Settings, erpt: ErrorReport
 ) -> Result[BaseObject | None, ErrorReport]:
     """
     parse TextBlock and creates Gobj.
@@ -78,7 +77,7 @@ def parse_TextBlock(
         )
 
         child, e = gobj.create_object(
-            class_info, class_args, class_kwargs, tag_opts, block_tag, srpt
+            class_info, class_args, class_kwargs, tag_opts, block_tag, opts, srpt
         )
 
         if e:

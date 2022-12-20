@@ -217,11 +217,7 @@ _get_type_1 = {
             "defaults": {},
         },
         # kwargs: {target_type, parent_type, opts}
-        {
-            "target_type": "ALIAS",
-            "parent_type": "",
-            "opts": {"aliases": {"ALIAS": "TARGET"}},
-        },
+        {"target_type": "ALIAS", "parent_type": "", "aliases": {"ALIAS": "TARGET"}},
         {"constructor": (not None), "type_name": "TARGET"},  # expected
     ),
     "Case: Opts-Aliase(2/)": (
@@ -241,49 +237,49 @@ _get_type_1 = {
         {
             "target_type": "ALIAS-ALIAS",
             "parent_type": "",
-            "opts": {"aliases": {"ALIAS-ALIAS": "ALIAS"}},
+            "aliases": {"ALIAS-ALIAS": "ALIAS"},
         },
         {"constructor": (not None), "type_name": "TARGET"},  # expected
     ),
-    "Case: Opts-Default(1/)": (
-        # category_info : {key: val,...}
-        {
-            "name": "@NAME",
-            "version": "@VERSION",
-            "module": "@MODULE",
-            "types": {"TARGET": None},  # None will be replaced with _TEST_CLASS
-            "aliases": {},
-            "defaults": {"PARENT": "NOT_EXIST"},
-        },
-        # kwargs: {target_type, parent_type, opts}
-        {
-            "target_type": "",
-            "parent_type": "PARENT",
-            "opts": {"defaults": {"PARENT": "TARGET"}},
-        },
-        {"constructor": (not None), "type_name": "TARGET"},  # expected
-    ),
-    "Case: Opts-Default(2/)": (
-        # category_info : {key: val,...}
-        {
-            "name": "@NAME",
-            "version": "@VERSION",
-            "module": "@MODULE",
-            "types": {"TARGET": None},  # None will be replaced with _TEST_CLASS
-            "aliases": {"ALIAS": "TARGET"},
-            "defaults": {"PARENT": "NOT_EXIST"},
-        },
-        # kwargs: {target_type, parent_type, opts}
-        {
-            "target_type": "",
-            "parent_type": "PARENT",
-            "opts": {
-                "aliases": {"ALIAS-ALIAS": "ALIAS"},
-                "defaults": {"PARENT": "ALIAS-ALIAS"},
-            },
-        },
-        {"constructor": (not None), "type_name": "TARGET"},  # expected
-    ),
+    # "Case: Opts-Default(1/)": (
+    #     # category_info : {key: val,...}
+    #     {
+    #         "name": "@NAME",
+    #         "version": "@VERSION",
+    #         "module": "@MODULE",
+    #         "types": {"TARGET": None},  # None will be replaced with _TEST_CLASS
+    #         "aliases": {},
+    #         "defaults": {"PARENT": "NOT_EXIST"},
+    #     },
+    #     # kwargs: {target_type, parent_type, opts}
+    #     {
+    #         "target_type": "",
+    #         "parent_type": "PARENT",
+    #         "opts": {"defaults": {"PARENT": "TARGET"}},
+    #     },
+    #     {"constructor": (not None), "type_name": "TARGET"},  # expected
+    # ),
+    # "Case: Opts-Default(2/)": (
+    #     # category_info : {key: val,...}
+    #     {
+    #         "name": "@NAME",
+    #         "version": "@VERSION",
+    #         "module": "@MODULE",
+    #         "types": {"TARGET": None},  # None will be replaced with _TEST_CLASS
+    #         "aliases": {"ALIAS": "TARGET"},
+    #         "defaults": {"PARENT": "NOT_EXIST"},
+    #     },
+    #     # kwargs: {target_type, parent_type, opts}
+    #     {
+    #         "target_type": "",
+    #         "parent_type": "PARENT",
+    #         "opts": {
+    #             "aliases": {"ALIAS-ALIAS": "ALIAS"},
+    #             "defaults": {"PARENT": "ALIAS-ALIAS"},
+    #         },
+    #     },
+    #     {"constructor": (not None), "type_name": "TARGET"},  # expected
+    # ),
 }
 
 

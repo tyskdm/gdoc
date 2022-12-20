@@ -5,15 +5,14 @@ from typing import Optional, cast
 
 from gdoc.lib.gdoc import Quoted, String, Text, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag
-from gdoc.util import Err, Ok, Result
-from gdoc.util.errorreport import ErrorReport
+from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 from gdoc.util.fsm import NEXT, State, StateMachine
 
 from .objecttaginfoparser import ObjectTagInfo, parse_ObjectTagInfo
 
 
 def parse_BlockTag(
-    textstr: TextString, start: int, opts: dict, erpt: ErrorReport
+    textstr: TextString, start: int, opts: Settings, erpt: ErrorReport
 ) -> Result[tuple[TextString, Optional[int]], ErrorReport]:
     """
     _summary_

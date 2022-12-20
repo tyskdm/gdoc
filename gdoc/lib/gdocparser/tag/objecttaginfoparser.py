@@ -5,8 +5,7 @@ from typing import Any, Optional, TypeAlias, Union, cast
 
 from gdoc.lib.gdoc import String, Text, TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.util import Err, Ok, Result
-from gdoc.util.errorreport import ErrorReport
+from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 from ....util.fsm import State, StateMachine
 
@@ -19,7 +18,7 @@ ObjectTagInfo: TypeAlias = tuple[
 
 
 def parse_ObjectTagInfo(
-    tagstr: TextString, opts: dict, erpt: ErrorReport
+    tagstr: TextString, opts: Settings, erpt: ErrorReport
 ) -> Result[ObjectTagInfo, ErrorReport]:
     """
     parse_ObjectTag
@@ -68,7 +67,7 @@ def parse_ObjectTagInfo(
 
 
 def parse_ClassInfo(
-    token: String, opts: dict, erpt: ErrorReport
+    token: String, opts: Settings, erpt: ErrorReport
 ) -> Result[tuple[String | None, String | None, String | None], ErrorReport]:
     #       tuple[category, type, is_reference]
     class_cat: String | None = None
@@ -96,7 +95,7 @@ def parse_ClassInfo(
 # Argument Parser
 #
 def parse_Arguments(
-    tagstr: TextString, opts: dict, erpt: ErrorReport
+    tagstr: TextString, opts: Settings, erpt: ErrorReport
 ) -> Result[tuple, ErrorReport]:
     """
     parse_Argument
@@ -307,7 +306,7 @@ class _Value(State):
 
 
 def detect_parentheses(
-    tagstr: TextString, opts: dict, erpt: ErrorReport
+    tagstr: TextString, opts: Settings, erpt: ErrorReport
 ) -> Result[TextString, ErrorReport]:
     elements: TextString = TextString()
 

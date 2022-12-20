@@ -4,14 +4,13 @@ textstringparser.py: parse_Line function
 from typing import Optional
 
 from gdoc.lib.gdoc import TextString
-from gdoc.util import Err, Ok, Result
+from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from ....util.errorreport import ErrorReport
 from ..tag.blocktagparser import parse_BlockTag
 
 
 def parse_Line(
-    textstr: TextString, opts: dict, erpt: ErrorReport
+    textstr: TextString, opts: Settings, erpt: ErrorReport
 ) -> Result[TextString, ErrorReport]:
     """
     _summary_

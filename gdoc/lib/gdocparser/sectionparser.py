@@ -3,14 +3,13 @@ sectionparser.py: parse_Section function
 """
 from gdoc.lib.gdoc import Section, TextBlock
 from gdoc.lib.gobj.types import BaseObject
-from gdoc.util import Err, Ok, Result
+from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from ...util.errorreport import ErrorReport
 from .textblock.textblockparser import parse_TextBlock
 
 
 def parse_Section(
-    section: Section, gobj: BaseObject, opts: dict, erpt: ErrorReport
+    section: Section, gobj: BaseObject, opts: Settings, erpt: ErrorReport
 ) -> Result[BaseObject, ErrorReport]:
     """ """
     srpt: ErrorReport = erpt.new_subreport()

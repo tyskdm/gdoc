@@ -8,8 +8,24 @@ from gdoc.lib.pandocastobject.pandocast import DataPos, PandocInlineElement
 from gdoc.util.returntype import ReturnType
 
 from .code import Code
+from .config import DEFAULTS
 from .string import String
 from .text import Text
+
+_PLAIN_TYPES: list = DEFAULTS.get("pandocast", {}).get("types", {}).get("plaintext", [])
+_OTHER_KNOWN_TYPES = [
+    # "Str",
+    # "Space",
+    # "SoftBreak",
+    # "LineBreak",
+    # "Code",
+    "Math",
+    "Image",
+    "Quoted",
+    "Cite",
+    "RawInline",
+    "Note",
+]
 
 
 class TextString(Text, Sequence, ReturnType, ret_subclass=True):
@@ -26,7 +42,6 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         items: Union[
             list[PandocInlineElement], list[Text], "TextString"
         ] = [],  # type: ignore
-        opts={},
     ):
         """
         Construct TextString from several argument types.
@@ -38,21 +53,6 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         """
 
         self.__text_items = []  # init self as an empty list
-
-        _plain: list = opts.get("pandocast", {}).get("types", {}).get("plaintext", [])
-        _other_known_types = [
-            # "Str",
-            # "Space",
-            # "SoftBreak",
-            # "LineBreak",
-            # "Code",
-            "Math",
-            "Image",
-            "Quoted",
-            "Cite",
-            "RawInline",
-            "Note",
-        ]
 
         inlines: list[PandocInlineElement] | list[Text]
 
@@ -72,7 +72,7 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
             elif isinstance(item, PandocInlineElement):
                 etype = item.get_type()
 
-                if etype in _plain:
+                if etype in _PLAIN_TYPES:
                     self.append(String([item]))
 
                 elif etype == "LineBreak":
@@ -81,7 +81,7 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
                 elif etype == "Code":
                     self.append(Code(item))
 
-                elif etype in _other_known_types:
+                elif etype in _OTHER_KNOWN_TYPES:
                     # Not yet supported element types.
                     pass
 
