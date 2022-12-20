@@ -3,14 +3,13 @@ documentparser.py: parse_Document function
 """
 from gdoc.lib.gdoc import Document
 from gdoc.lib.gobj.types import BaseObject
-from gdoc.util import Result
+from gdoc.util import ErrorReport, Result, Settings
 
-from ...util.errorreport import ErrorReport
 from .sectionparser import parse_Section
 
 
 def parse_Document(
-    document: Document, gobj: BaseObject, opts: dict, erpt: ErrorReport
+    document: Document, gobj: BaseObject, opts: Settings, erpt: ErrorReport
 ) -> Result[BaseObject, ErrorReport]:
     """
     parse gdoc.Document

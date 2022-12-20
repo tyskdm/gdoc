@@ -54,6 +54,8 @@ def test_gdParser_1(mocker: mock, filename, formattype, html):
 
 
 def _assert_listed_text(expected, actual):
+    if not isinstance(actual, list):
+        actual = actual.get_text_items()
     assert len(expected) == len(actual)
     for i in range(len(expected)):
         exp = expected[i]

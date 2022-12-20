@@ -21,7 +21,6 @@ import inspect
 import pytest
 
 from gdoc.lib.gdoccompiler.gdexception import *
-from gdoc.lib.gobj.gdsymboltable import GdSymbolTable
 from gdoc.lib.gobj.types.baseobject import BaseObject
 
 
@@ -65,7 +64,6 @@ def spec___init___2():
     assert target.id == "ID"
     assert target.name is None
     assert target.tags == []
-    # assert target._GdObject__type is GdSymbolTable.Type.OBJECT
 
     assert target.class_category == ""
     assert target.class_type == "OBJECT"

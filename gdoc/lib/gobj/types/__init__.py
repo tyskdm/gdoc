@@ -1,20 +1,21 @@
-r"""!
-
-**primitive types**
-
+"""
+types: gobj primitive types
 """
 import sys
 
-from .baseobject import BaseObject, ClassInfo
+from .baseobject import BaseObject
+from .category import Category
 from .importobject import ImportObject
 
-CATEGORY_INFO = {
-    "name": "",
-    "version": "",
-    "module": sys.modules[__name__],
-    "types": {"OBJECT": BaseObject, "IMPORT": ImportObject, "ACCESS": ImportObject},
-    "aliases": {
-        # "OBJ": "OBJECT"
-    },
-    "defaults": {"": "OBJECT", "OBJECT": "OBJECT", "DOCUMENT": "OBJECT"},
-}
+Category(
+    {
+        "name": "",
+        "version": "",
+        "module": sys.modules[__name__],
+        "types": {"OBJECT": BaseObject, "IMPORT": ImportObject, "ACCESS": ImportObject},
+        "aliases": {
+            # "OBJ": "OBJECT"
+        },
+        "defaults": {"": "OBJECT", "OBJECT": "OBJECT", "DOCUMENT": "OBJECT"},
+    }
+)

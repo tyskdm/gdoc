@@ -1,15 +1,15 @@
 """
 result.py: Result related types
 """
-from typing import Final, Generic, Optional, TypeAlias, TypeGuard, TypeVar
+from typing import Final, Generic, Optional, TypeAlias, TypeVar
 
 T = TypeVar("T")
 E = TypeVar("E")
 
 
 class Ok(tuple, Generic[T]):
-    is_ok: Final[TypeGuard["Ok"]] = True
-    is_err: Final[TypeGuard["Err"]] = False
+    is_ok: Final[bool] = True
+    is_err: Final[bool] = False
 
     def __new__(cls, t: T):
         return tuple.__new__(cls, (t, None))
@@ -22,8 +22,8 @@ class Ok(tuple, Generic[T]):
 
 
 class Err(tuple, Generic[E, T]):
-    is_ok: Final[TypeGuard["Ok"]] = False
-    is_err: Final[TypeGuard["Err"]] = True
+    is_ok: Final[bool] = False
+    is_err: Final[bool] = True
 
     def __new__(cls, e: E, t: Optional[T] = None):
         return tuple.__new__(cls, (t, e))

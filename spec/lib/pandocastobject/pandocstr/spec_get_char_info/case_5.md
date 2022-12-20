@@ -1,13 +1,4 @@
-```json
-[
-    "SoftBreaks After: \nTEXT   Emph END",
-    [23, " ", "After TEXT",   [13, 5]],
-    [24, " ", "After Code",   [14, 7]],
-    [25, " ", "After BR",     [15, 5]],
-    [30, " ", "After RAW",    [16, 7]],
-    [29, "h", "h in Emph",    [16, 5]]
-]
-```
+## Test data and Test parameters
 
 SoftBreaks After: \
 TEXT
@@ -15,6 +6,19 @@ TEXT
 <br>
 *Emph*
 END
+
+```json
+{
+    "data_check": "SoftBreaks After: \nTEXT  \n Emph END",
+    "test_params": [
+        [23, [ " ", [4, 5] ], "After TEXT" ],
+        [24, [ " ", [5, 7] ], "After Code" ],
+        [26, [ " ", [6, 5] ], "After BR"   ],
+        [31, [ " ", [7, 7] ], "After Emph" ],
+        [30, [ "h", [7, 5] ], "h in RAW"   ]
+    ]
+}
+```
 
 ### Case #5: SoftBreaks after various Inlines
 
@@ -26,3 +30,12 @@ END
   It doesn't care for now.
 
   - memo: `<strong>` or `<em>`.. are break the paragraph.
+
+## Index
+
+```json
+{
+    "test_block": 1,
+    "test_param": 2
+}
+```
