@@ -4,14 +4,10 @@ string.py: String class
 
 from typing import Optional, cast
 
-from gdoc.lib.pandocastobject.pandocast import (
-    DataPos,
-    PandocAst,
-    PandocInlineElement,
-    Pos,
-)
+from gdoc.lib.pandocastobject.pandocast import PandocAst, PandocInlineElement
 from gdoc.lib.pandocastobject.pandocstr import PandocStr
 
+from .datapos import DataPos
 from .text import Text
 
 

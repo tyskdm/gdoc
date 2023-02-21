@@ -4,13 +4,9 @@ code.py: `Code` inline element class
 
 from typing import Optional, cast
 
-from gdoc.lib.pandocastobject.pandocast import (
-    DataPos,
-    PandocAst,
-    PandocInlineElement,
-    Pos,
-)
+from gdoc.lib.pandocastobject.pandocast import PandocAst, PandocInlineElement
 
+from .datapos import DataPos, Pos
 from .text import Text
 
 

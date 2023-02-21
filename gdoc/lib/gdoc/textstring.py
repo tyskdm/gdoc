@@ -4,11 +4,12 @@ textstring.py: TextString class
 from collections.abc import Sequence
 from typing import Callable, Optional, SupportsIndex, Union, cast, overload
 
-from gdoc.lib.pandocastobject.pandocast import DataPos, PandocInlineElement
+from gdoc.lib.pandocastobject.pandocast import PandocInlineElement
 from gdoc.util.returntype import ReturnType
 
 from .code import Code
 from .config import DEFAULTS
+from .datapos import DataPos
 from .string import String
 from .text import Text
 
