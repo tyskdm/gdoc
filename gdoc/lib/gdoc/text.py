@@ -26,5 +26,5 @@ class Text(ABC):
 
     @classmethod
     @abstractmethod
-    def loadd(self) -> "Text":
+    def loadd(cls, data) -> "Text":
         ...
