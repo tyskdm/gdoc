@@ -2,6 +2,7 @@
 text.py: Text class
 """
 from abc import ABC, abstractmethod
+from typing import Optional
 
 
 class Text(ABC):
@@ -22,9 +23,9 @@ class Text(ABC):
 
     @abstractmethod
     def dumpd(self) -> list:
-        ...
+        ...  # pragma: no cover
 
     @classmethod
     @abstractmethod
-    def loadd(cls, data) -> "Text":
-        ...
+    def loadd(cls, data) -> Optional["Text"]:
+        ...  # pragma: no cover
