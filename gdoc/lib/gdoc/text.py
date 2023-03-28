@@ -4,6 +4,8 @@ text.py: Text class
 from abc import ABC, abstractmethod
 from typing import Optional
 
+from .datapos import DataPos
+
 
 class Text(ABC):
     """
@@ -19,6 +21,12 @@ class Text(ABC):
           (original text data without surrounding char "`").
 
         @return the text data contained in this element.
+        """
+
+    @abstractmethod
+    def get_char_pos(self, index: int) -> Optional[DataPos]:
+        """
+        Return Source mapping info of the char specified by `index`.
         """
 
     @abstractmethod
