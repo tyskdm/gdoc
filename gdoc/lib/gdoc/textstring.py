@@ -487,7 +487,7 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         return result
 
     def dumpd(self) -> list:
-        result: list[list[str | list[str | int]]] = []
+        result: list[list[str | list]] = []
 
         string = String()
         text: Text
@@ -498,14 +498,14 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
 
             else:
                 if len(string) > 0:
-                    result += string.dumpd()
+                    result.append(string.dumpd())
                     string = String()
 
                 result.append(text.dumpd())
 
         else:
             if len(string) > 0:
-                result += string.dumpd()
+                result.append(string.dumpd())
                 string = String()
 
         return ["T", result]
@@ -514,7 +514,7 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
     def loadd(cls, data: list) -> "TextString":
 
         if data[0] != "T":
-            raise TypeError()
+            raise TypeError("invalid data type")
 
         texts: list[Text] = []
         for item in data[-1]:
