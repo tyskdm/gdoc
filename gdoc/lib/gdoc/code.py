@@ -83,11 +83,13 @@ class Code(Text):
         return result
 
     @classmethod
-    def loadd(cls, data: list) -> Optional["Code"]:
+    def loadd(cls, data: list) -> "Code":
         result = None
 
-        if data[0] == "c":
-            dpos = None if data[1] is None else DataPos.loadd(data[1])
-            result = cls(data[-1], dpos)
+        if data[0] != "c":
+            raise TypeError("invalid data type")
+
+        dpos = None if data[1] is None else DataPos.loadd(data[1])
+        result = cls(data[-1], dpos)
 
         return result

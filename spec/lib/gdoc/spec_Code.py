@@ -244,47 +244,62 @@ class Spec_loadd:
     Return the `Code` object loaded from given `data`.
     """
 
-    def spec_1(self):
+    @staticmethod
+    def cases_1():
         r"""
-        ### [\@case 1] with DataPos.
+        ### [\@case 1] Return the `String` object loaded from given `data`.
         """
-        # GIVEN
-        loaddata = ["c", ["FILEPATH", 1, 2, 3, 4], "CONTENT"]
-        # WHEN
-        target = Code.loadd(loaddata)
-        assert target is not None
-        datapos = target.get_data_pos()
-        # THEN
-        assert type(target) is Code
-        assert target.get_str() == "CONTENT"
-        assert datapos is not None
-        assert datapos.dumpd() == ["FILEPATH", 1, 2, 3, 4]
+        return {
+            ##
+            # #### [\@case 1] Normal cases
+            #
+            "Normal(1/)": (
+                # stimulus
+                ["c", ["FILEPATH", 5, 2, 5, 10], "CODE"],
+                # expected
+                {"Exception": None},
+            ),
+            "Normal(2/)": (
+                # stimulus
+                ["c", None, "CODE"],
+                # expected
+                {"Exception": None},
+            ),
+            ##
+            # #### [\@case 1] Error cases
+            #
+            "Error(1/)": (
+                # stimulus
+                ["X", ["FILEPATH", 5, 2, 5, 10], "CODE"],
+                # expected
+                {"Exception": (TypeError, "invalid data type")},
+            ),
+        }
 
-    def spec_2(self):
+    # \cond
+    @pytest.mark.parametrize(
+        "stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, stimulus, expected):
         r"""
-        ### [\@case 2] without DataPos.
+        ### [\@spec 1]
         """
-        # GIVEN
-        loaddata = ["c", None, "CONTENT"]
-        # WHEN
-        target = Code.loadd(loaddata)
-        assert target is not None
-        datapos = target.get_data_pos()
-        # THEN
-        assert type(target) is Code
-        assert target.get_str() == "CONTENT"
-        assert datapos is None
+        if expected["Exception"] is None:
+            # WHEN
+            target = Code.loadd(stimulus)
+            # THEN
+            assert target.dumpd() == stimulus
 
-    def spec_3(self):
-        r"""
-        ### [\@case 2] Invalid data
-        """
-        # GIVEN
-        loaddata = ["INVALID", None, ""]
-        # WHEN
-        target = Code.loadd(loaddata)
-        # THEN
-        assert target is None
+        else:
+            with pytest.raises(expected["Exception"][0]) as exc_info:
+                # WHEN
+                target = Code.loadd(stimulus)
+
+            # THEN
+            assert exc_info.match(expected["Exception"][1])
 
 
 class Spec_get_char_pos:
