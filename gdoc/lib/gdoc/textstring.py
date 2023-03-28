@@ -187,17 +187,6 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
     def get_text_items(self) -> list[Text]:
         return self.__text_items[:]
 
-    def get_data_pos(self, index: int = None):
-        result: Optional[DataPos] = None
-
-        item: Text | None
-        item = self._get_first_text()
-
-        if item is not None:
-            result = item.get_data_pos()
-
-        return result
-
     def get_char_pos(self, index: int):
         result: Optional[DataPos] = None
 

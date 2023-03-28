@@ -44,7 +44,7 @@ class xSpec___init__:
             )
         ]
         # WHEN
-        target = String(items)
+        target = TextString(items)
         # THEN
         assert target == "ELEMENT"
 
@@ -64,7 +64,7 @@ class xSpec___init__:
             ]
         )
         # WHEN
-        target = String(items)
+        target = TextString(items)
         # THEN
         assert target == "PANDOCSTR"
 
@@ -77,7 +77,7 @@ class xSpec___init__:
         # GIVEN
         items = "STRING"
         # WHEN
-        target = String(items)
+        target = TextString(items)
         # THEN
 
         assert target == "STRING"
@@ -91,7 +91,7 @@ class xSpec___init__:
         # GIVEN
         items = "STRING"
         # WHEN
-        target = String(items, 1, -1)
+        target = TextString(items, 1, -1)
         # THEN
 
         assert target == "TRIN"
@@ -104,7 +104,7 @@ class xSpec___init__:
         """
         # GIVEN
         DATA_POS = DataPos.loadd(["FILEPATH", 5, 2, 5, 10])
-        target = String("TESTDATA", dpos=DATA_POS)
+        target = TextString("TESTDATA", dpos=DATA_POS)
         # WHEN
         charpos = target.get_char_pos(4)
         # THEN
@@ -118,38 +118,96 @@ class xSpec___init__:
         """
         # GIVEN
         DATA_POS = DataPos.loadd(["FILEPATH", 5, 2, 5, 10])
-        target = String("TESTDATA", 1, -1, dpos=DATA_POS)
+        target = TextString("TESTDATA", 1, -1, dpos=DATA_POS)
         # WHEN
         charpos = target.get_char_pos(3)
         # THEN
         assert charpos == DataPos.loadd(["FILEPATH", 5, 6, 5, 7])
 
 
-class xSpec_get_str:
+class Spec_get_str:
     r"""
-    ## [\@spec] `get_str`
+    ## [\@spec] `get_str` and `__str__`
 
     ```py
     def get_str(self) -> str:
+    def __str__(self) -> str:
     ```
     """
 
-    def spec_1(self):
+    @staticmethod
+    def cases_1():
         r"""
         ### [\@ 1] Returns content str.
         """
-        # GIVEN
-        items = [
-            cast(
-                PandocInlineElement,
-                PandocAst.create_element({"t": "Str", "c": "CONTENT"}),
-            )
-        ]
-        target = String(items)
+        return {
+            ##
+            # #### [\@case 1] Simple: Only one element
+            #
+            "Simple(1/)": (
+                # stimulus
+                ["T", [["s", [[8, None]], "CONTENTS"]]],
+                # expected
+                "CONTENTS",
+            ),
+            "Simple(2/)": (
+                # stimulus
+                ["T", [["c", None, "CONTENTS"]]],
+                # expected
+                "CONTENTS",
+            ),
+            "Simple(3/)": (
+                # stimulus
+                [
+                    "T",
+                    [],
+                ],
+                # expected
+                "",
+            ),
+            ##
+            # #### [\@case 2] Multiple: Multiple elements
+            #
+            "Multiple(1/)": (
+                # stimulus
+                [
+                    "T",
+                    [
+                        ["s", [[6, None]], "STRING"],
+                        ["c", None, "CODE"],
+                        ["T", [["s", [[6, None]], "STRING"]]],
+                    ],
+                ],
+                # expected
+                "STRINGCODESTRING",
+            ),
+            "Multiple(2/)": (
+                # stimulus
+                [
+                    "T",
+                    [],
+                ],
+                # expected
+                "",
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
         # WHEN
-        content = target.get_str()
+        target = TextString.loadd(stimulus)
         # THEN
-        assert content == "CONTENT"
+        assert target.get_str() == expected
+        assert str(target) == expected
 
 
 class xSpec_dumpd:
@@ -239,9 +297,9 @@ class xSpec_dumpd:
         ### [\@spec 1]
         """
         # GIVEN
-        target = String()
+        target = TextString()
         for args in precondition:
-            target += String(*args)
+            target += TextString(*args)
 
         # WHEN
         dumpdata = target.dumpd()
