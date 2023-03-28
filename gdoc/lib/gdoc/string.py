@@ -2,12 +2,12 @@
 string.py: String class
 """
 
-from typing import Optional, cast
+from typing import Literal, Optional, TypeAlias, cast
 
 from gdoc.lib.pandocastobject.pandocast import PandocAst, PandocInlineElement
 from gdoc.lib.pandocastobject.pandocstr import PandocStr
 
-from .datapos import DataPos
+from .datapos import DataPos, Pos
 from .text import Text
 
 
@@ -16,17 +16,26 @@ class String(PandocStr, Text, ret_subclass=True):
     ImmutableSequence of Character strings of PandocAst inline elements.
     """
 
-    data_pos: Optional[DataPos] | bool
-
     def __init__(
         self,
         items: Optional[PandocStr | str | list[PandocInlineElement]] = None,
         start: int = 0,
-        stop: int = None,
-        dpos: Optional[list[str]] = None,
+        stop: Optional[int] = None,
+        dpos: Optional[DataPos] = None,
     ):
         if type(items) is str:
-            attrs = [dpos] if dpos else []
+            attrs: list = []
+            if dpos:
+                # pos = ".tmp/t.md@1:1-1:3"
+                attrs = [
+                    [
+                        "data-pos",
+                        f"{dpos.path}@"
+                        f"{dpos.start.ln}:{dpos.start.col}-"
+                        f"{dpos.stop.ln}:{dpos.stop.col}",
+                    ]
+                ]
+
             element = cast(
                 PandocInlineElement,
                 PandocAst.create_element(
@@ -41,22 +50,31 @@ class String(PandocStr, Text, ret_subclass=True):
         return str(self)
 
     def dumpd(self) -> list:
-        result: list[list[str | list[str | int]]] = []
-
+        start: int = 0
+        parts: list[list[int | list | None]] = []
         items: list[dict] = self.get_items()
         item: dict
+
         for item in items:
-            pos: list[str | int] = []
-            dpos = cast(PandocInlineElement, item["_item"]).get_data_pos()
-            if dpos is not None:
-                pos = [
+            pos: list | None = None
+
+            dpos = self.get_char_pos(start)
+            epos = self.get_char_pos(start + item["len"] - 1)
+            if (dpos is not None) and (epos is not None):
+                pos = DataPos(
                     dpos.path,
-                    dpos.start.ln,
-                    dpos.start.col,
-                    dpos.stop.ln,
-                    dpos.stop.col,
-                ]
-            result.append(["s", pos, item["text"][item["start"] : item["stop"]]])
+                    Pos(dpos.start.ln, dpos.start.col),
+                    Pos(epos.stop.ln, epos.stop.col),
+                ).dumpd()
+
+            parts.append([item["len"], pos])
+            start += item["len"]
+
+        result: list[str | list[list[int | list | None]]] = [
+            "s",
+            parts,
+            self.get_str(),
+        ]
 
         return result
 
@@ -64,12 +82,21 @@ class String(PandocStr, Text, ret_subclass=True):
     def loadd(cls, data: list) -> "String":
 
         if data[0] != "s":
-            raise TypeError()
+            raise TypeError("invalid data type")
 
-        dpos = data[1]
-        if len(dpos) == 0:
-            dpos = None
-        else:
-            dpos = ["pos", f"{dpos[0]}@{dpos[1]}:{dpos[2]}-{dpos[3]}:{dpos[4]}"]
+        result = String()
+        contents = data[-1]
+        for item in data[1]:
+            substr = contents[: item[0]]
+            if len(substr) < item[0]:
+                raise RuntimeError("invalid data")
 
-        return cls(data[-1], dpos)
+            dpos = DataPos.loadd(item[1]) if item[1] else None
+            result += String(substr, dpos=dpos)
+
+            contents = contents[item[0] :]
+
+        if len(contents) > 0:
+            raise RuntimeError("invalid data")
+
+        return result
