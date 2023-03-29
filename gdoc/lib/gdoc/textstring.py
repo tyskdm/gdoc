@@ -91,101 +91,18 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
             else:
                 raise TypeError()
 
-    ###############################
-    #
-    #  Core methods similar to str
-    #
-    ###############################
-
-    def __str__(self) -> str:
-        return self.get_str()
-
-    def __len__(self):
-        return len(self.__text_items)
-
-    @overload
-    def __getitem__(self, __i: SupportsIndex) -> Text:
-        ...
-
-    @overload
-    def __getitem__(self, __s: slice) -> "TextString":
-        ...
-
-    def __getitem__(self, index: SupportsIndex | slice) -> Union[Text, "TextString"]:
-        """
-        x.__getitem__(y) <==> x[y]
-
-        @param index (SupportsIndex | slice) : _description_
-        @return Text : if type(index) is SupportIndex
-        @return TextString : if type(index) is slice
-        """
-        item: Text | list[Text] = self.__text_items.__getitem__(index)
-        result: Text | TextString
-
-        if isinstance(item, Text):
-            result = item
-        else:
-            result = self.__class__._returntype_(item)
-
-        return result
-
-    def __add__(self, __x: "TextString", /) -> "TextString":
-        texts = self.__text_items[:]
-        if type(__x) is TextString:
-            texts += __x.__text_items
-        else:
-            raise TypeError()
-
-        return self.__class__._returntype_(texts)
-
-    def __radd__(self, __x: "TextString", /) -> "TextString":
-        texts = self.__text_items[:]
-        if type(__x) is TextString:
-            texts = __x.__text_items + texts
-        else:
-            raise TypeError()
-
-        return self.__class__._returntype_(texts)
-
     #########################
     #
     #  Core methods as Text
     #
     #########################
 
-    # @Override(Text(ABC))
     def get_str(self) -> str:
         result = ""
         for text in self.__text_items:
             result += text.get_str()
 
         return result
-
-    ###############################
-    #
-    #  Core methods as TextString
-    #
-    ###############################
-
-    def append(self, text: Text) -> None:
-        """
-        Append `Text` to the end of the list.
-
-        @param text (Text) : text to be added
-        @exception TypeError : text is not subclass of `Text`.
-        """
-        if not isinstance(text, Text):
-            raise TypeError()
-
-        elif type(text) is String:
-            for c in text:
-                self.__text_items.append(c)
-
-        else:
-            self.__text_items.append(text)
-
-    def get_text_items(self) -> list[Text]:
-        return self.__text_items[:]
 
     def get_char_pos(self, index: int) -> Optional[DataPos]:
         result: Optional[DataPos] = None
@@ -224,6 +141,73 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
             item = None
 
         return item, _index
+
+    def dumpd(self) -> list:
+        result: list[list[str | list]] = []
+
+        string = String()
+        text: Text
+        for text in self.__text_items:
+
+            if isinstance(text, String):
+                string += text
+
+            else:
+                if len(string) > 0:
+                    result.append(string.dumpd())
+                    string = String()
+
+                result.append(text.dumpd())
+
+        else:
+            if len(string) > 0:
+                result.append(string.dumpd())
+                string = String()
+
+        return ["T", result]
+
+    @classmethod
+    def loadd(cls, data: list) -> "TextString":
+
+        if data[0] != "T":
+            raise TypeError("invalid data type")
+
+        texts: list[Text] = []
+        for item in data[-1]:
+            if item[0] == "s":
+                texts.append(String.loadd(item))
+            elif item[0] == "c":
+                texts.append(Code.loadd(item))
+            if item[0] == "T":
+                texts.append(TextString.loadd(item))
+
+        return cls(texts)
+
+    ###############################
+    #
+    #  Core methods as TextString
+    #
+    ###############################
+
+    def append(self, text: Text) -> None:
+        """
+        Append `Text` to the end of the list.
+
+        @param text (Text) : text to be added
+        @exception TypeError : text is not subclass of `Text`.
+        """
+        if not isinstance(text, Text):
+            raise TypeError()
+
+        elif type(text) is String:
+            for c in text:
+                self.__text_items.append(c)
+
+        else:
+            self.__text_items.append(text)
+
+    def get_text_items(self) -> list[Text]:
+        return self.__text_items[:]
 
     def clear(self):
         self.__text_items.clear()
@@ -294,6 +278,62 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         del self.__text_items[0 : len(result)]
 
         return result
+
+    ###############################
+    #
+    #  Core methods similar to str
+    #
+    ###############################
+
+    def __str__(self) -> str:
+        return self.get_str()
+
+    def __len__(self):
+        return len(self.__text_items)
+
+    @overload
+    def __getitem__(self, __i: SupportsIndex) -> Text:
+        ...
+
+    @overload
+    def __getitem__(self, __s: slice) -> "TextString":
+        ...
+
+    def __getitem__(self, index: SupportsIndex | slice) -> Union[Text, "TextString"]:
+        """
+        x.__getitem__(y) <==> x[y]
+
+        @param index (SupportsIndex | slice) : _description_
+        @return Text : if type(index) is SupportIndex
+        @return TextString : if type(index) is slice
+        """
+        item: Text | list[Text] = self.__text_items.__getitem__(index)
+        result: Text | TextString
+
+        if isinstance(item, Text):
+            result = item
+        else:
+            result = self.__class__._returntype_(item)
+
+        return result
+
+    def __add__(self, __x: "TextString", /) -> "TextString":
+        texts = self.__text_items[:]
+        if type(__x) is TextString:
+            texts += __x.__text_items
+        else:
+            raise TypeError()
+
+        return self.__class__._returntype_(texts)
+
+    def __radd__(self, __x: "TextString", /) -> "TextString":
+        texts = self.__text_items[:]
+        if type(__x) is TextString:
+            texts = __x.__text_items + texts
+        else:
+            raise TypeError()
+
+        return self.__class__._returntype_(texts)
 
     ############################
     #
@@ -447,44 +487,3 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
             result.append(textstr)
 
         return result
-
-    def dumpd(self) -> list:
-        result: list[list[str | list]] = []
-
-        string = String()
-        text: Text
-        for text in self.__text_items:
-
-            if isinstance(text, String):
-                string += text
-
-            else:
-                if len(string) > 0:
-                    result.append(string.dumpd())
-                    string = String()
-
-                result.append(text.dumpd())
-
-        else:
-            if len(string) > 0:
-                result.append(string.dumpd())
-                string = String()
-
-        return ["T", result]
-
-    @classmethod
-    def loadd(cls, data: list) -> "TextString":
-
-        if data[0] != "T":
-            raise TypeError("invalid data type")
-
-        texts: list[Text] = []
-        for item in data[-1]:
-            if item[0] == "s":
-                texts.append(String.loadd(item))
-            elif item[0] == "c":
-                texts.append(Code.loadd(item))
-            if item[0] == "T":
-                texts.append(TextString.loadd(item))
-
-        return cls(texts)
