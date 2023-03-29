@@ -210,6 +210,154 @@ class Spec_get_str:
         assert str(target) == expected
 
 
+class Spec_get_char_pos:
+    r"""
+    ## [\@spec] `get_char_pos`
+
+    ```py
+    def get_char_pos(self, index: int) -> Optional[DataPos]:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1] Returns content str.
+        """
+        return {
+            ##
+            # #### [\@case 1] Simple: Only one element
+            #
+            "Simple(1/)": (
+                # precondition
+                ["T", [["s", [[8, ["FILEPATH", 5, 4, 5, 12]]], "CONTENTS"]]],
+                # stimulus
+                4,
+                # expected
+                ["FILEPATH", 5, 8, 5, 9],
+            ),
+            "Simple(2/)": (
+                # precondition
+                ["T", [["s", [[1, ["FILEPATH", 5, 4, 5, 6]]], "["]]],
+                # stimulus
+                0,
+                # expected
+                ["FILEPATH", 5, 4, 5, 6],
+            ),
+            "Simple(3/)": (
+                # precondition
+                ["T", [["c", ["FILEPATH", 5, 2, 5, 14], "CONTENTS"]]],
+                # stimulus
+                4,
+                # expected
+                ["FILEPATH", 5, 8, 5, 9],
+            ),
+            "Simple(4/)": (
+                # precondition
+                [
+                    "T",
+                    [],
+                ],
+                # stimulus
+                4,
+                # expected
+                None,
+            ),
+            "Simple(5/)": (
+                # precondition
+                ["T", [["s", [[8, ["FILEPATH", 5, 4, 5, 12]]], "CONTENTS"]]],
+                # stimulus
+                20,
+                # expected
+                None,
+            ),
+            ##
+            # #### [\@case 2] Multiple: Multiple elements
+            #
+            "Multiple(1/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", [[6, None]], "STRING"],
+                        ["c", ["FILEPATH", 5, 4, 5, 12], "CODE"],
+                    ],
+                ],
+                # stimulus
+                8,
+                # expected
+                ["FILEPATH", 5, 8, 5, 9],
+            ),
+            "Multiple(2/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", [[6, None]], "STRING"],
+                        ["c", None, "CODE"],
+                        ["T", [["s", [[6, ["FILEPATH", 5, 4, 5, 10]]], "STRING"]]],
+                    ],
+                ],
+                # stimulus
+                12,
+                # expected
+                ["FILEPATH", 5, 6, 5, 7],
+            ),
+            "Multiple(3/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", [[6, None]], "STRING"],
+                        ["T", [["s", [[6, None]], "STRING"]]],
+                        ["c", ["FILEPATH", 5, 4, 5, 12], "CODE"],
+                    ],
+                ],
+                # stimulus
+                14,
+                # expected
+                ["FILEPATH", 5, 8, 5, 9],
+            ),
+            "Multiple(4/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", [[6, None]], "STRING"],
+                        ["T", [["s", [[6, None]], "STRING"]]],
+                        ["c", None, "CODE"],
+                    ],
+                ],
+                # stimulus
+                200,
+                # expected
+                None,
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(precondition)
+        # WHEN
+        dpos = target.get_char_pos(stimulus)
+        # THEN
+        if expected is None:
+            assert dpos is None
+        else:
+            assert dpos is not None
+            assert dpos.dumpd() == expected
+
+
 class xSpec_dumpd:
     r"""
     ## [\@spec] `dumpd`

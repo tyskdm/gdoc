@@ -187,18 +187,16 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
     def get_text_items(self) -> list[Text]:
         return self.__text_items[:]
 
-    def get_char_pos(self, index: int):
+    def get_char_pos(self, index: int) -> Optional[DataPos]:
         result: Optional[DataPos] = None
 
         item: Text | None
         _index: int
         item, _index = self._get_text_by_charindex(index)
 
-        if item is None:
-            item = self._get_last_text()
-
         if item is not None:
-            result = item.get_char_pos(_index)
+            cpos = item.get_char_pos(_index)
+            result = DataPos(*cpos) if cpos else None
 
         return result
 
@@ -207,6 +205,7 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         _index: int = index
 
         for item in self.__text_items:
+            item = cast(Text, item)
             if not isinstance(item, TextString):
                 l: int = len(item.get_str())
                 if _index >= l:

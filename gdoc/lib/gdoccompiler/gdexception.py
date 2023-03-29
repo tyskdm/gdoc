@@ -4,7 +4,7 @@ Gdoc Exception Classes
 
 from typing import Any, cast, overload
 
-from gdoc.lib.pandocastobject.pandocast import DataPos
+from gdoc.lib.gdoc import DataPos
 
 
 class GdocIdError(KeyError):
