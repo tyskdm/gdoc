@@ -225,32 +225,6 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
 
         return item, _index
 
-    def _get_first_text(self) -> Text | None:
-        text: Text | "TextString" | None = None
-
-        if len(self.__text_items) > 0:
-            for text in self.__text_items:
-                if not isinstance(text, TextString):
-                    break
-                else:
-                    text = text._get_first_text()
-                    if text is not None:
-                        break
-        return text
-
-    def _get_last_text(self) -> Text | None:
-        text: Text | "TextString" | None = None
-
-        if len(self.__text_items) > 0:
-            for text in reversed(self.__text_items):
-                if not isinstance(text, TextString):
-                    break
-                else:
-                    text = text._get_last_text()
-                    if text is not None:
-                        break
-        return text
-
     def clear(self):
         self.__text_items.clear()
 
