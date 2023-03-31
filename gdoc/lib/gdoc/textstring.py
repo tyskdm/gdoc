@@ -335,6 +335,15 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
 
         return self.__class__._returntype_(texts)
 
+    def __iadd__(self, __x: "TextString", /):
+        if not isinstance(__x, TextString):
+            raise TypeError()
+
+        for text in cast(TextString, __x).__text_items:
+            self.append(text)
+
+        return self
+
     ############################
     #
     # Other `str`-like methods
