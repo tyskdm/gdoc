@@ -10,7 +10,7 @@ from typing import cast
 
 import pytest
 
-from gdoc.lib.gdoc import DataPos, TextString
+from gdoc.lib.gdoc import Code, DataPos, String, TextString
 from gdoc.lib.pandocastobject.pandocast import PandocAst, PandocInlineElement
 from gdoc.lib.pandocastobject.pandocstr import PandocStr
 
@@ -559,5 +559,388 @@ class Spec_loadd:
                 # WHEN
                 target = TextString.loadd(stimulus)
 
+            # THEN
+            assert exc_info.match(expected["Exception"][1])
+
+
+class Spec_append:
+    r"""
+    ## [\@spec] `append`
+
+    ```py
+    def append(self, text: Text) -> None:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1]
+            #
+            "Simple(1/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                String("DEF"),
+                # expected
+                {"Exception": None, "items": ["A", "B", "C", "D", "E", "F"]},
+            ),
+            "Simple(2/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                Code("DEF"),
+                # expected
+                {"Exception": None, "items": ["A", "B", "C", "DEF"]},
+            ),
+            "Simple(3/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                TextString([String("DEF")]),
+                # expected
+                {"Exception": None, "items": ["A", "B", "C", "DEF"]},
+            ),
+            "Simple(4/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                "INVALIDTEXT",
+                # expected
+                {"Exception": [TypeError, "invalid data"]},
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(precondition)
+
+        if expected["Exception"] is None:
+            # WHEN
+            target.append(stimulus)
+            # THEN
+            items = target._TextString__text_items
+            assert len(items) == len(expected["items"])
+            for i in range(len(items)):
+                assert items[i].get_str() == expected["items"][i]
+
+        else:
+            # WHEN
+            with pytest.raises(expected["Exception"][0]) as exc_info:
+                target.append(stimulus)
+            # THEN
+            assert exc_info.match(expected["Exception"][1])
+
+
+class Spec_get_text_items:
+    r"""
+    ## [\@spec] `get_text_items`
+
+    ```py
+    def get_text_items(self) -> list[Text]:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1]
+            #
+            "Simple(1/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]]
+                # stimulus
+                # expected
+            ),
+            "Simple(2/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]]
+                # stimulus
+                # expected
+            ),
+            "Simple(3/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"], ["T", [["s", [[3, None]], "DEF"]]]]]
+                # stimulus
+                # expected
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(precondition)
+        # WHEN
+        result = target.get_text_items()
+        # THEN
+        expected = target._TextString__text_items
+        assert len(result) == len(expected)
+        for i in range(len(result)):
+            assert result[i] is expected[i]
+
+
+class Spec_clear:
+    r"""
+    ## [\@spec] `clear`
+
+    ```py
+    def clear(self) -> None:
+    ```
+    """
+
+    def spec_1(self):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(["T", [["s", [[3, None]], "ABC"]]])
+        assert len(target._TextString__text_items) > 0
+        # WHEN
+        target.clear()
+        # THEN
+        assert len(target._TextString__text_items) == 0
+
+
+class Spec_pop_prefix:
+    r"""
+    ## [\@spec] `pop_prefix`
+
+    ```py
+    def pop_prefix(self, prefix: str) -> Optional["TextString"]:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Only String
+            #
+            "String(1/)": (
+                # precondition
+                ["T", [["s", [[6, None]], "ABCDEF"]]],
+                # stimulus
+                "ABC",
+                # expected
+                {
+                    "prefix": ["T", [["s", [[3, None]], "ABC"]]],
+                    "result": ["T", [["s", [[3, None]], "DEF"]]],
+                },
+            ),
+            "String(2/)": (
+                # precondition
+                ["T", [["s", [[6, None]], "ABCDEF"]]],
+                # stimulus
+                "ABCDEF",
+                # expected
+                {
+                    "prefix": ["T", [["s", [[6, None]], "ABCDEF"]]],
+                    "result": ["T", []],
+                },
+            ),
+            "String(3/)": (
+                # precondition
+                ["T", [["s", [[6, None]], "ABCDEF"]]],
+                # stimulus
+                "XYZ",
+                # expected
+                {
+                    "prefix": None,
+                    "result": ["T", [["s", [[6, None]], "ABCDEF"]]],
+                },
+            ),
+            "String(4/)": (
+                # precondition
+                ["T", [["s", [[6, None]], "ABCDEF"]]],
+                # stimulus
+                "ABCDEF_AND_MORE",
+                # expected
+                {
+                    "prefix": None,
+                    "result": ["T", [["s", [[6, None]], "ABCDEF"]]],
+                },
+            ),
+            "String(5/)": (
+                # precondition
+                ["T", [["s", [[6, None]], "ABCDEF"]]],
+                # stimulus
+                "",
+                # expected
+                {
+                    "prefix": None,
+                    "result": ["T", [["s", [[6, None]], "ABCDEF"]]],
+                },
+            ),
+            ##
+            # #### [\@case 2] Mix
+            #
+            "Mix(1/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]],
+                # stimulus
+                "AB",
+                # expected
+                {
+                    "prefix": ["T", [["s", [[2, None]], "AB"]]],
+                    "result": ["T", [["s", [[1, None]], "C"], ["c", None, "DEF"]]],
+                },
+            ),
+            "Mix(2/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]],
+                # stimulus
+                "ABC",
+                # expected
+                {
+                    "prefix": ["T", [["s", [[3, None]], "ABC"]]],
+                    "result": ["T", [["c", None, "DEF"]]],
+                },
+            ),
+            "Mix(3/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]],
+                # stimulus
+                "ABCDEF",
+                # expected
+                {
+                    "prefix": None,
+                    "result": ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]],
+                },
+            ),
+            "Mix(4/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"], ["T", [["s", [[3, None]], "DEF"]]]]],
+                # stimulus
+                "ABCDEF",
+                # expected
+                {
+                    "prefix": None,
+                    "result": [
+                        "T",
+                        [["s", [[3, None]], "ABC"], ["T", [["s", [[3, None]], "DEF"]]]],
+                    ],
+                },
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(precondition)
+
+        # WHEN
+        prefix = target.pop_prefix(stimulus)
+        # THEN
+        assert target.dumpd() == expected["result"]
+
+        if expected["prefix"] is None:
+            assert prefix is None
+        else:
+            assert prefix is not None
+            assert prefix.dumpd() == expected["prefix"]
+
+
+class xSpec_TEMPLATE:
+    r"""
+    ## [\@spec] `append`
+
+    ```py
+    def append(self, text: Text) -> None:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1] Returns content str.
+        """
+        return {
+            ##
+            # #### [\@case 1] Simple: Only one element
+            #
+            "Simple(1/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                String("DEF"),
+                # expected
+                {"Exception": None, "items": ["A", "B", "C", "D", "E", "F"]},
+            ),
+            "Simple(4/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                "INVALIDTEXT",
+                # expected
+                {"Exception": [TypeError, "invalid data"]},
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(precondition)
+
+        if expected["Exception"] is None:
+            # WHEN
+            target.append(stimulus)
+            # THEN
+            items = target._TextString__text_items
+            assert len(items) == len(expected["items"])
+            for i in range(len(items)):
+                assert items[i].get_str() == expected["items"][i]
+
+        else:
+            # WHEN
+            with pytest.raises(expected["Exception"][0]) as exc_info:
+                target.append(stimulus)
             # THEN
             assert exc_info.match(expected["Exception"][1])

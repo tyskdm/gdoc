@@ -197,7 +197,7 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         @exception TypeError : text is not subclass of `Text`.
         """
         if not isinstance(text, Text):
-            raise TypeError()
+            raise TypeError("invalid data")
 
         elif type(text) is String:
             for c in text:
@@ -209,46 +209,41 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
     def get_text_items(self) -> list[Text]:
         return self.__text_items[:]
 
-    def clear(self):
+    def clear(self) -> None:
         self.__text_items.clear()
 
     def pop_prefix(self, prefix: str) -> Optional["TextString"]:
+
+        if prefix == "":
+            return None
+
         result: Optional[TextString] = TextString()
         target: str = prefix
-
-        text: Text
         num_texts: int = 0
-        num_chars: int = 0
+        text: Text
         for text in self.__text_items:
             if type(text) is not String:
                 result = None
                 break
 
-            text_str: str = text.get_str()
-            if not (text_str.startswith(target) or target.startswith(text_str)):
+            text_char: str = text.get_str()
+            if not target.startswith(text_char):
                 result = None
                 break
 
-            if len(text_str) <= len(target):
-                num_texts += 1
-                cast(TextString, result).append(text)
-                target.removeprefix(text_str)
-
-            else:
-                num_chars = len(text_str)
-                cast(TextString, result).append(text[:num_chars])
-                target = ""
+            num_texts += 1
+            cast(TextString, result).append(text)
+            target = target.removeprefix(text_char)
 
             if len(target) == 0:
-                # Setup result
                 break
+
         else:
-            # Not enoufh length of TextString
+            # 'prefix' is longer than target TextString.
             result = None
 
         if result is not None:
-            del self[:num_texts]
-            self[0] = cast(TextString, self[0])[num_chars:]
+            del self.__text_items[:num_texts]
 
         return result
 
