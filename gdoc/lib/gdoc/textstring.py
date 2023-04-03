@@ -279,16 +279,16 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
     def __str__(self) -> str:
         return self.get_str()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.__text_items)
 
     @overload
     def __getitem__(self, __i: SupportsIndex) -> Text:
-        ...
+        ...  # pragma: no cover
 
     @overload
     def __getitem__(self, __s: slice) -> "TextString":
-        ...
+        ...  # pragma: no cover
 
     def __getitem__(self, index: SupportsIndex | slice) -> Union[Text, "TextString"]:
         """

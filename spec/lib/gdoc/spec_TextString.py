@@ -978,6 +978,162 @@ class Spec__deque_while:
         assert target.dumpd() == expected["target"]
 
 
+class Spec___len__:
+    r"""
+    ## [\@spec] `__len__`
+
+    ```py
+    def __len__(self) -> int:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            "String": (
+                # precondition
+                ["T", [["s", [[6, None]], "ABCDEF"]]],
+                # expected
+                6,
+            ),
+            "Code": (
+                # precondition
+                ["T", [["c", None, "ABCDEF"]]],
+                # expected
+                1,
+            ),
+            "TextString": (
+                # precondition
+                ["T", [["T", [["c", None, "ABCDEF"]]]]],
+                # expected
+                1,
+            ),
+            ##
+            # #### [\@case 2] Mix
+            #
+            "Mix(1/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]],
+                # expected
+                4,
+            ),
+            "Mix(2/)": (
+                # precondition
+                ["T", [["c", None, "ABC"], ["s", [[3, None]], "DEF"]]],
+                # expected
+                4,
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(precondition)
+        # WHEN
+        result = target.__len__()
+        # THEN
+        assert result == expected
+
+
+class Spec___getitem__:
+    r"""
+    ## [\@spec] `__getitem__`
+
+    ```py
+    def __getitem__(self, index: SupportsIndex | slice) -> Union[Text, "TextString"]:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Only String
+            #
+            "String(1/)": (
+                # precondition
+                ["T", [["s", [[6, None]], "ABCDEF"]]],
+                # stimulus
+                3,
+                # expected
+                {
+                    "type": String,
+                    "value": "D",
+                },
+            ),
+            "String(2/)": (
+                # precondition
+                ["T", [["s", [[6, None]], "ABCDEF"]]],
+                # stimulus
+                slice(3, 6),
+                # expected
+                {
+                    "type": TextString,
+                    "value": "DEF",
+                },
+            ),
+            ##
+            # #### [\@case 2] Mix
+            #
+            "Mix(1/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]],
+                # stimulus
+                3,
+                # expected
+                {
+                    "type": Code,
+                    "value": "DEF",
+                },
+            ),
+            "Mix(2/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]],
+                # stimulus
+                slice(2, 4),
+                # expected
+                {
+                    "type": TextString,
+                    "value": "CDEF",
+                },
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(precondition)
+        # WHEN
+        result = target.__getitem__(stimulus)
+        # THEN
+        assert type(result) is expected["type"]
+        assert result.get_str() == expected["value"]
+
+
 class xSpec_TEMPLATE:
     r"""
     ## [\@spec] `append`
