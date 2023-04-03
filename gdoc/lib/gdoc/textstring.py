@@ -257,11 +257,7 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
     #         suffix = suffix.data
     #     return self.__class__(self.data.removesuffix(suffix))
 
-    #
-    # pop_while / deque_while
-    #
-    def deque_while(self, cond: Callable[[Text], bool]) -> list[Text]:
-        # TODO: to be removed
+    def _deque_while(self, cond: Callable[[Text], bool]) -> list[Text]:
         result: list = []
 
         for text in self.__text_items:
@@ -270,7 +266,7 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
             else:
                 break
 
-        del self.__text_items[0 : len(result)]
+        del self.__text_items[: len(result)]
 
         return result
 
@@ -461,11 +457,11 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         while (len(target) > 0) and (_max != 0):
 
             textstr += TextString(
-                target.deque_while(lambda text: not (type(text) is String))
+                target._deque_while(lambda text: not (type(text) is String))
             )
 
             texts: TextString = self.__class__._returntype_(
-                target.deque_while(lambda text: (type(text) is String))
+                target._deque_while(lambda text: (type(text) is String))
             )
             parts: list[str] = texts.get_str().split(sep, _max)
             if _max > 0:

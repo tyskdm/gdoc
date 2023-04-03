@@ -879,6 +879,105 @@ class Spec_pop_prefix:
             assert prefix.dumpd() == expected["prefix"]
 
 
+class Spec__deque_while:
+    r"""
+    ## [\@spec] `_deque_while`
+
+    ```py
+    def _deque_while(self, cond: Callable[[Text], bool]) -> list[Text]:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Only String
+            #
+            "String(1/)": (
+                # precondition
+                ["T", [["s", [[6, None]], "ABCDEF"]]],
+                # stimulus
+                lambda text: not (type(text) is String),
+                # expected
+                {
+                    "result": [],
+                    "target": ["T", [["s", [[6, None]], "ABCDEF"]]],
+                },
+            ),
+            "String(2/)": (
+                # precondition
+                ["T", [["s", [[6, None]], "ABCDEF"]]],
+                # stimulus
+                lambda text: text in ("A", "B", "C"),
+                # expected
+                {
+                    "result": ["A", "B", "C"],
+                    "target": ["T", [["s", [[3, None]], "DEF"]]],
+                },
+            ),
+            "String(3/)": (
+                # precondition
+                ["T", [["s", [[6, None]], "ABCDEF"]]],
+                # stimulus
+                lambda text: (type(text) is String),
+                # expected
+                {
+                    "result": ["A", "B", "C", "D", "E", "F"],
+                    "target": ["T", []],
+                },
+            ),
+            ##
+            # #### [\@case 2] Mix
+            #
+            "Mix(1/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]],
+                # stimulus
+                lambda text: (type(text) is String),
+                # expected
+                {
+                    "result": ["A", "B", "C"],
+                    "target": ["T", [["c", None, "DEF"]]],
+                },
+            ),
+            "Mix(2/)": (
+                # precondition
+                ["T", [["c", None, "ABC"], ["s", [[3, None]], "DEF"]]],
+                # stimulus
+                lambda text: (type(text) is String),
+                # expected
+                {
+                    "result": [],
+                    "target": ["T", [["c", None, "ABC"], ["s", [[3, None]], "DEF"]]],
+                },
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(precondition)
+
+        # WHEN
+        result = target._deque_while(stimulus)
+        # THEN
+        assert result == expected["result"]
+        assert target.dumpd() == expected["target"]
+
+
 class xSpec_TEMPLATE:
     r"""
     ## [\@spec] `append`
