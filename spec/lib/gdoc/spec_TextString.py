@@ -1241,6 +1241,172 @@ class Spec___add__:
             assert exc_info.match(expected["Exception"][1])
 
 
+class Spec_startswith:
+    r"""
+    ## [\@spec] `startswith`
+
+    ```py
+    def startswith(self, __prefix: str | tuple[str, ...]) -> bool:
+        return self.__get_leading_str().startswith(__prefix)
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Simple: prefix is `str`
+            #
+            "Simple(1/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                "AB",
+                # expected
+                True,
+            ),
+            "Simple(2/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]],
+                # stimulus
+                "ABCD",
+                # expected
+                False,
+            ),
+            "Simple(3/)": (
+                # precondition
+                ["T", [["c", None, "ABC"]]],
+                # stimulus
+                "",
+                # expected
+                True,
+            ),
+            ##
+            # #### [\@case 1] Simple: prefix is `tuple`
+            #
+            "Tuple(1/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                ("E", "F"),
+                # expected
+                False,
+            ),
+            "Tuple(2/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                ("E", "A"),
+                # expected
+                True,
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(precondition)
+        # WHEN
+        result = target.startswith(stimulus)
+        # THEN
+        assert result is expected
+
+
+class Spec_endswith:
+    r"""
+    ## [\@spec] `endswith`
+
+    ```py
+    def endswith(self, __suffix: str | tuple[str, ...]) -> bool:
+        return self.__get_last_str().endswith(__suffix)
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Simple: suffix is `str`
+            #
+            "Simple(1/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                "BC",
+                # expected
+                True,
+            ),
+            "Simple(2/)": (
+                # precondition
+                ["T", [["c", None, "ABC"], ["s", [[3, None]], "DEF"]]],
+                # stimulus
+                "CDEF",
+                # expected
+                False,
+            ),
+            "Simple(3/)": (
+                # precondition
+                ["T", [["c", None, "ABC"]]],
+                # stimulus
+                "",
+                # expected
+                True,
+            ),
+            ##
+            # #### [\@case 1] Simple: suffix is `tuple`
+            #
+            "Tuple(1/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                ("E", "F"),
+                # expected
+                False,
+            ),
+            "Tuple(2/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                ("E", "C"),
+                # expected
+                True,
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(precondition)
+        # WHEN
+        result = target.endswith(stimulus)
+        # THEN
+        assert result is expected
+
+
 class xSpec_TEMPLATE:
     r"""
     ## [\@spec] `append`
