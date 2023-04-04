@@ -313,27 +313,30 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         if type(__x) is TextString:
             texts += __x.__text_items
         else:
-            raise TypeError()
+            raise TypeError(
+                f"can only concatenate TextString "
+                f'(not "{type(__x).__name__}") to TextString'
+            )
 
         return self.__class__._returntype_(texts)
 
-    def __radd__(self, __x: "TextString", /) -> "TextString":
-        texts = self.__text_items[:]
-        if type(__x) is TextString:
-            texts = __x.__text_items + texts
-        else:
-            raise TypeError()
+    # def __radd__(self, __x: "TextString", /) -> "TextString":
+    #     texts = self.__text_items[:]
+    #     if type(__x) is TextString:
+    #         texts = __x.__text_items + texts
+    #     else:
+    #         raise TypeError()
 
-        return self.__class__._returntype_(texts)
+    #     return self.__class__._returntype_(texts)
 
-    def __iadd__(self, __x: "TextString", /):
-        if not isinstance(__x, TextString):
-            raise TypeError()
+    # def __iadd__(self, __x: "TextString", /):
+    #     if not isinstance(__x, TextString):
+    #         raise TypeError()
 
-        for text in cast(TextString, __x).__text_items:
-            self.append(text)
+    #     for text in cast(TextString, __x).__text_items:
+    #         self.append(text)
 
-        return self
+    #     return self
 
     ############################
     #

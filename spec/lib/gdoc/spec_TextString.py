@@ -1134,6 +1134,113 @@ class Spec___getitem__:
         assert result.get_str() == expected["value"]
 
 
+class Spec___add__:
+    r"""
+    ## [\@spec] `__add__`
+
+    ```py
+    def __add__(self, __x: "TextString", /) -> "TextString":
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Simple: Only one element
+            #
+            "Simple(1/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                TextString.loadd(["T", [["s", [[3, None]], "DEF"]]]),
+                # expected
+                {
+                    "Exception": None,
+                    "result": ["T", [["s", [[6, None]], "ABCDEF"]]],
+                },
+            ),
+            "Simple(2/)": (
+                # precondition
+                ["T", []],
+                # stimulus
+                TextString.loadd(["T", [["s", [[3, None]], "DEF"]]]),
+                # expected
+                {
+                    "Exception": None,
+                    "result": ["T", [["s", [[3, None]], "DEF"]]],
+                },
+            ),
+            "Simple(3/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                TextString.loadd(["T", []]),
+                # expected
+                {
+                    "Exception": None,
+                    "result": ["T", [["s", [[3, None]], "ABC"]]],
+                },
+            ),
+            "Simple(4/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                "INVALIDTEXT",
+                # expected
+                {
+                    "Exception": [
+                        TypeError,
+                        r'can only concatenate TextString \(not "str"\) to TextString',
+                    ],
+                },
+            ),
+            "Simple(5/)": (
+                # precondition
+                ["T", [["s", [[3, None]], "ABC"]]],
+                # stimulus
+                3,
+                # expected
+                {
+                    "Exception": [
+                        TypeError,
+                        r'can only concatenate TextString \(not "int"\) to TextString',
+                    ],
+                },
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target: TextString = TextString.loadd(precondition)
+
+        if expected["Exception"] is None:
+            # WHEN
+            target = target + stimulus
+            # THEN
+            assert target.dumpd() == expected["result"]
+
+        else:
+            # WHEN
+            with pytest.raises(expected["Exception"][0]) as exc_info:
+                target = target + stimulus
+            # THEN
+            assert exc_info.match(expected["Exception"][1])
+
+
 class xSpec_TEMPLATE:
     r"""
     ## [\@spec] `append`
@@ -1158,7 +1265,10 @@ class xSpec_TEMPLATE:
                 # stimulus
                 String("DEF"),
                 # expected
-                {"Exception": None, "items": ["A", "B", "C", "D", "E", "F"]},
+                {
+                    "Exception": None,
+                    "items": ["A", "B", "C", "D", "E", "F"],
+                },
             ),
             "Simple(4/)": (
                 # precondition
@@ -1166,7 +1276,9 @@ class xSpec_TEMPLATE:
                 # stimulus
                 "INVALIDTEXT",
                 # expected
-                {"Exception": [TypeError, "invalid data"]},
+                {
+                    "Exception": [TypeError, "invalid data"],
+                },
             ),
         }
 
