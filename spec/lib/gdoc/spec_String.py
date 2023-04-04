@@ -233,6 +233,38 @@ class Spec_dumpd:
                     "ONTENTEXTLIN",
                 ],
             ),
+            "Multiple(3/)": (
+                # precondition
+                [  # Arguments for creating PandocAst.Str elements
+                    ("CONTENTS", 1, -1, None),
+                    ("NEXTLINE", 1, -1, DataPos.loadd(["FILEPATH", 6, 2, 6, 10])),
+                ],
+                # expected
+                [
+                    "s",
+                    [[6, None], [6, ["FILEPATH", 6, 3, 6, 9]]],
+                    "ONTENTEXTLIN",
+                ],
+            ),
+            "Multiple(4/)": (
+                # precondition
+                [  # Arguments for creating PandocAst.Str elements
+                    ("CONTENTS", 1, -1, None),
+                    ("NEXTLINE", 1, -1, None),
+                ],
+                # expected
+                ["s", [[12, None]], "ONTENTEXTLIN"],
+            ),
+            "Multiple(5/)": (
+                # precondition
+                [  # Arguments for creating PandocAst.Str elements
+                    ("ABC", 0, None, None),
+                    ("DEF", 0, None, None),
+                    ("GHI", 0, None, DataPos.loadd(["FILEPATH", 6, 2, 6, 5])),
+                ],
+                # expected
+                ["s", [[6, None], [3, ["FILEPATH", 6, 2, 6, 5]]], "ABCDEFGHI"],
+            ),
         }
 
     # \cond

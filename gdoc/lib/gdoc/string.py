@@ -70,6 +70,12 @@ class String(PandocStr, Text, ret_subclass=True):
             parts.append([item["len"], pos])
             start += item["len"]
 
+        if len(parts) > 1:
+            for i in reversed(range(1, len(parts))):
+                if (parts[i][1] is None) and (parts[i - 1][1] is None):
+                    parts[i - 1][0] = cast(int, parts[i - 1][0]) + cast(int, parts[i][0])
+                    del parts[i]
+
         result: list[str | list[list[int | list | None]]] = [
             "s",
             parts,
