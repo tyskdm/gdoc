@@ -1407,6 +1407,294 @@ class Spec_endswith:
         assert result is expected
 
 
+class Spec_lstrip:
+    r"""
+    ## [\@spec] `lstrip`
+
+    ```py
+    def lstrip(self, __chars: Optional[str] = None) -> "TextString":
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Simple: Only one element
+            #
+            "Simple(1/)": (
+                # precondition
+                ["T", [["s", [[7, None]], "  ABC  "]]],
+                # stimulus
+                None,
+                # expected
+                ["T", [["s", [[5, None]], "ABC  "]]],
+            ),
+            "Simple(2/)": (
+                # precondition
+                ["T", [["s", [[7, None]], "@@ABC@@"]]],
+                # stimulus
+                "@",
+                # expected
+                ["T", [["s", [[5, None]], "ABC@@"]]],
+            ),
+            ##
+            # #### [\@case 1] Mix: Multiple elements
+            #
+            "Mix(1/)": (
+                # precondition
+                ["T", [["s", [[1, None], [5, None], [1, None]], "  ABC  "]]],
+                # stimulus
+                None,
+                # expected
+                ["T", [["s", [[5, None]], "ABC  "]]],
+            ),
+            "Mix(2/)": (
+                # precondition
+                ["T", [["s", [[2, None], [7, None], [2, None]], "+*+*ABC+*+*"]]],
+                # stimulus
+                "*+",
+                # expected
+                ["T", [["s", [[7, None]], "ABC+*+*"]]],
+            ),
+            "Mix(3/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", [[2, None]], "+*"],
+                        ["c", None, "+*ABC+*"],
+                        ["s", [[2, None]], "+*"],
+                    ],
+                ],
+                # stimulus
+                "*+",
+                # expected
+                [
+                    "T",
+                    [
+                        ["c", None, "+*ABC+*"],
+                        ["s", [[2, None]], "+*"],
+                    ],
+                ],
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(precondition)
+        origin = target.dumpd()
+        # WHEN
+        result = target.lstrip(stimulus)
+        # THEN
+        assert target.dumpd() == origin
+        assert result.dumpd() == expected
+
+
+class Spec_rstrip:
+    r"""
+    ## [\@spec] `rstrip`
+
+    ```py
+    def rstrip(self, __chars: Optional[str] = None) -> "TextString":
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Simple: Only one element
+            #
+            "Simple(1/)": (
+                # precondition
+                ["T", [["s", [[7, None]], "  ABC  "]]],
+                # stimulus
+                None,
+                # expected
+                ["T", [["s", [[5, None]], "  ABC"]]],
+            ),
+            "Simple(2/)": (
+                # precondition
+                ["T", [["s", [[7, None]], "@@ABC@@"]]],
+                # stimulus
+                "@",
+                # expected
+                ["T", [["s", [[5, None]], "@@ABC"]]],
+            ),
+            ##
+            # #### [\@case 1] Mix: Multiple elements
+            #
+            "Mix(1/)": (
+                # precondition
+                ["T", [["s", [[1, None], [5, None], [1, None]], "  ABC  "]]],
+                # stimulus
+                None,
+                # expected
+                ["T", [["s", [[5, None]], "  ABC"]]],
+            ),
+            "Mix(2/)": (
+                # precondition
+                ["T", [["s", [[2, None], [7, None], [2, None]], "+*+*ABC+*+*"]]],
+                # stimulus
+                "*+",
+                # expected
+                ["T", [["s", [[7, None]], "+*+*ABC"]]],
+            ),
+            "Mix(3/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", [[2, None]], "+*"],
+                        ["c", None, "+*ABC+*"],
+                        ["s", [[2, None]], "+*"],
+                    ],
+                ],
+                # stimulus
+                "*+",
+                # expected
+                [
+                    "T",
+                    [
+                        ["s", [[2, None]], "+*"],
+                        ["c", None, "+*ABC+*"],
+                    ],
+                ],
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(precondition)
+        origin = target.dumpd()
+        # WHEN
+        result = target.rstrip(stimulus)
+        # THEN
+        assert target.dumpd() == origin
+        assert result.dumpd() == expected
+
+
+class Spec_strip:
+    r"""
+    ## [\@spec] `strip`
+
+    ```py
+    def strip(self, __chars: Optional[str] = None) -> "TextString":
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Simple: Only one element
+            #
+            "Simple(1/)": (
+                # precondition
+                ["T", [["s", [[7, None]], "  ABC  "]]],
+                # stimulus
+                None,
+                # expected
+                ["T", [["s", [[3, None]], "ABC"]]],
+            ),
+            "Simple(2/)": (
+                # precondition
+                ["T", [["s", [[7, None]], "@@ABC@@"]]],
+                # stimulus
+                "@",
+                # expected
+                ["T", [["s", [[3, None]], "ABC"]]],
+            ),
+            ##
+            # #### [\@case 1] Mix: Multiple elements
+            #
+            "Mix(1/)": (
+                # precondition
+                ["T", [["s", [[1, None], [5, None], [1, None]], "  ABC  "]]],
+                # stimulus
+                None,
+                # expected
+                ["T", [["s", [[3, None]], "ABC"]]],
+            ),
+            "Mix(2/)": (
+                # precondition
+                ["T", [["s", [[2, None], [7, None], [2, None]], "+*+*ABC+*+*"]]],
+                # stimulus
+                "*+",
+                # expected
+                ["T", [["s", [[3, None]], "ABC"]]],
+            ),
+            "Mix(3/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", [[2, None]], "+*"],
+                        ["c", None, "+*ABC+*"],
+                        ["s", [[2, None]], "+*"],
+                    ],
+                ],
+                # stimulus
+                "*+",
+                # expected
+                [
+                    "T",
+                    [["c", None, "+*ABC+*"]],
+                ],
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(precondition)
+        origin = target.dumpd()
+        # WHEN
+        result = target.strip(stimulus)
+        # THEN
+        assert target.dumpd() == origin
+        assert result.dumpd() == expected
+
+
 class xSpec_TEMPLATE:
     r"""
     ## [\@spec] `append`
