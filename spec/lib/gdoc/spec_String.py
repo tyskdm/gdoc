@@ -194,7 +194,7 @@ class Spec_dumpd:
                     ("CONTENTS", 0, None, None)
                 ],
                 # expected
-                ["s", [[8, None]], "CONTENTS"],
+                ["s", None, "CONTENTS"],
             ),
             "Simple(4/)": (
                 # precondition
@@ -253,7 +253,7 @@ class Spec_dumpd:
                     ("NEXTLINE", 1, -1, None),
                 ],
                 # expected
-                ["s", [[12, None]], "ONTENTEXTLIN"],
+                ["s", None, "ONTENTEXTLIN"],
             ),
             "Multiple(5/)": (
                 # precondition
@@ -324,7 +324,7 @@ class Spec_loadd:
             ),
             "Simple(3/)": (
                 # stimulus
-                ["s", [[8, None]], "CONTENTS"],
+                ["s", None, "CONTENTS"],
                 # expected
                 {"Exception": None},
             ),
