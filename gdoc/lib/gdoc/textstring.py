@@ -444,49 +444,120 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         return self.__class__._returntype_(text_items)
 
     def split(
-        self, sep: Optional[str] = None, maxsplit: int = -1, /, retsep: bool = False
+        # self, sep: Optional[str] = None, maxsplit: int = -1, /, retsep: bool = False
+        self,
+        sep: Optional[str] = None,
+        maxsplit: int = -1,
+        retsep: bool = False,
     ) -> list["TextString"]:
-        #
-        #  Replace simple code with self.find() after impl it.
-        #
+
         result: list = []
         target: TextString = self[:]
-        _max: int = maxsplit
+        text_parts: list[tuple[str, TextString]] = []
+        max: int = maxsplit
 
-        # temp
-        sep = sep or " "
+        if sep is None:
+            target = target.lstrip(sep)
 
-        textstr: TextString = self.__class__._returntype_()
-        while (len(target) > 0) and (_max != 0):
+        do: bool = True
+        while do or ((len(target) > 0) and (max != 0)):
+            do = False
 
-            textstr += TextString(
+            # get leading TextString not containing `String`.
+            _word: TextString = self.__class__._returntype_(
                 target._deque_while(lambda text: not (type(text) is String))
             )
+            if len(_word) > 0:
+                text_parts.append(("w", _word))
 
-            texts: TextString = self.__class__._returntype_(
+            # get sub-TextString containing only `String` (len >= 0)
+            _sub_tstr: TextString = self.__class__._returntype_(
                 target._deque_while(lambda text: (type(text) is String))
             )
-            parts: list[str] = texts.get_str().split(sep, _max)
-            if _max > 0:
-                _max = _max - (len(parts) - 1)
+            # and split it as a `str` in util function.
+            text_parts += self._split_tstring(_sub_tstr, sep, max)
 
-            num_seps: int = len(parts) - 1
-            if num_seps == 0:
-                textstr += texts
-            else:
-                for i in range(num_seps):
-                    textstr += target.pop_prefix(parts[i])
-                    result.append(textstr)
-                    textstr = self.__class__._returntype_()
+            # concatenate consecutive words contained in `text_parts`.
+            for i in reversed(range(1, len(text_parts))):
+                if text_parts[i][0] == "w" and text_parts[i - 1][0] == "w":
+                    text_parts[i - 1] = ("w", text_parts[i - 1][1] + text_parts[i][1])
+                    del text_parts[i]
+
+            # move all items from `text_parts` to `result` except the last item
+            # while counting delimiters.
+            for i in range(len(text_parts) - 1):
+                if text_parts[0][0] == "d":
+                    max -= 1
                     if retsep:
-                        result.append(self.__class__._returntype_(target.pop_prefix(sep)))
-                    else:
-                        target.pop_prefix(sep)
+                        result.append(text_parts[0][1])
+                else:
+                    result.append(text_parts[0][1])
+                del text_parts[0]
 
-                textstr += target.pop_prefix(parts[-1])
+            # move the last item if it's delimiter.
+            if text_parts and (text_parts[0][0] == "d"):
+                max -= 1
+                if retsep:
+                    result.append(text_parts[0][1])
+                del text_parts[0]
 
-        textstr += target
-        if len(textstr) > 0:
-            result.append(textstr)
+        if len(text_parts) != 0:
+            # it should be a word.
+            result.append(text_parts[0][1] + target)
+
+        elif len(target) > 0:
+            result.append(target)
+
+        # remove the last item if it's delimiter
+        if (
+            (sep is None)
+            and (len(result) > 0)
+            and (result[-1].get_str().split(sep) == [])
+        ):
+            del result[-1]
+
+        return result
+
+    @staticmethod
+    def _split_tstring(
+        sub_tstr: "TextString", sep: Optional[str], max: int = -1
+    ) -> list[tuple[str, "TextString"]]:
+        """
+        _summary_
+
+        @param sub_tstr : should be `TextString` containing only `String`.
+        @return _type_ : _description_
+        """
+        result: list[tuple[str, "TextString"]] = []
+        sub_str: str = sub_tstr.get_str()
+        parts: list[str] = sub_str.split(sep, max)
+
+        start: int
+        end: int
+        pos: int
+        if sep is None:
+            start = 0
+            for part in parts:
+                pos = sub_str.find(part, start)
+                # pos >= 0 since part should be found
+                if pos > start:
+                    result.append(("d", sub_tstr[start:pos]))
+                end = pos + len(part)
+                result.append(("w", sub_tstr[pos:end]))
+                start = end
+
+            if start < len(sub_tstr):
+                result.append(("d", sub_tstr[start:]))
+
+        else:
+            start = 0
+            for part in parts:
+                end = start + len(part)
+                result.append(("w", sub_tstr[start:end]))
+                start = end
+                if sub_str[start:].startswith(sep):
+                    end = start + len(sep)
+                    result.append(("d", sub_tstr[start:end]))
+                    start = end
 
         return result

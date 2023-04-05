@@ -1695,6 +1695,896 @@ class Spec_strip:
         assert result.dumpd() == expected
 
 
+class Spec_split:
+    r"""
+    ## [\@spec] `split`
+
+    ```py
+    def split(
+        self, sep: Optional[str] = None, maxsplit: int = -1, /, retsep: bool = False
+    ) -> list["TextString"]:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Simple: Only one element
+            #
+            "Simple(1/)": (
+                # precondition
+                ["T", [["s", None, " ABC DEF GHI "]]],
+                # stimulus
+                (),
+                # expected
+                [
+                    ["T", [["s", None, "ABC"]]],
+                    ["T", [["s", None, "DEF"]]],
+                    ["T", [["s", None, "GHI"]]],
+                ],
+            ),
+            "Simple(1a/)": (
+                # precondition
+                ["T", [["s", None, " ABC DEF GHI "]]],
+                # stimulus
+                (None, -1, True),
+                # expected
+                [
+                    ["T", [["s", None, "ABC"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "DEF"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "GHI"]]],
+                ],
+            ),
+            "Simple(1b/)": (
+                # precondition
+                ["T", [["s", None, " ABC DEF GHI "]]],
+                # stimulus
+                (" "),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, "ABC"]]],
+                    ["T", [["s", None, "DEF"]]],
+                    ["T", [["s", None, "GHI"]]],
+                    ["T", []],
+                ],
+            ),
+            "Simple(1c/)": (
+                # precondition
+                ["T", [["s", None, " ABC DEF GHI "]]],
+                # stimulus
+                (" ", -1, True),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "ABC"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "DEF"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "GHI"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", []],
+                ],
+            ),
+            "Simple(2/)": (
+                # precondition
+                ["T", [["s", None, " ABC DEF　GHI　"]]],
+                # stimulus
+                (),
+                # expected
+                [
+                    ["T", [["s", None, "ABC"]]],
+                    ["T", [["s", None, "DEF"]]],
+                    ["T", [["s", None, "GHI"]]],
+                ],
+            ),
+            "Simple(2a/)": (
+                # precondition
+                ["T", [["s", None, " ABC DEF　GHI　"]]],
+                # stimulus
+                (None, -1, True),
+                # expected
+                [
+                    ["T", [["s", None, "ABC"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "DEF"]]],
+                    ["T", [["s", None, "　"]]],
+                    ["T", [["s", None, "GHI"]]],
+                ],
+            ),
+            "Simple(2b/)": (
+                # precondition
+                ["T", [["s", None, " ABC DEF　GHI　"]]],
+                # stimulus
+                (" "),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, "ABC"]]],
+                    ["T", [["s", None, "DEF　GHI　"]]],
+                ],
+            ),
+            "Simple(2c/)": (
+                # precondition
+                ["T", [["s", None, " ABC DEF　GHI　"]]],
+                # stimulus
+                (" ", -1, True),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "ABC"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "DEF　GHI　"]]],
+                ],
+            ),
+            "Simple(3/)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (None, 0),
+                # expected
+                [
+                    ["T", [["s", None, "1 2 3 "]]],
+                ],
+            ),
+            "Simple(3/a)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (None, 0, True),
+                # expected
+                [
+                    ["T", [["s", None, "1 2 3 "]]],
+                ],
+            ),
+            "Simple(3/b)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (" ", 0),
+                # expected
+                [
+                    ["T", [["s", None, " 1 2 3 "]]],
+                ],
+            ),
+            "Simple(3/c)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (" ", 0, True),
+                # expected
+                [
+                    ["T", [["s", None, " 1 2 3 "]]],
+                ],
+            ),
+            "Simple(4/)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (None, 2),
+                # expected
+                [
+                    ["T", [["s", None, "1"]]],
+                    ["T", [["s", None, "2"]]],
+                    ["T", [["s", None, "3 "]]],
+                ],
+            ),
+            "Simple(4/a)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (None, 2, True),
+                # expected
+                [
+                    ["T", [["s", None, "1"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "2"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "3 "]]],
+                ],
+            ),
+            "Simple(4/b)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (" ", 2),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, "1"]]],
+                    ["T", [["s", None, "2 3 "]]],
+                ],
+            ),
+            "Simple(4/c)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (" ", 2, True),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "1"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "2 3 "]]],
+                ],
+            ),
+            "Simple(5/)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (None, 3),
+                # expected
+                [
+                    ["T", [["s", None, "1"]]],
+                    ["T", [["s", None, "2"]]],
+                    ["T", [["s", None, "3"]]],
+                ],
+            ),
+            "Simple(5a/)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (None, 3, True),
+                # expected
+                [
+                    ["T", [["s", None, "1"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "2"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "3"]]],
+                ],
+            ),
+            "Simple(5b/)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (" ", 3),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, "1"]]],
+                    ["T", [["s", None, "2"]]],
+                    ["T", [["s", None, "3 "]]],
+                ],
+            ),
+            "Simple(5c/)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (" ", 3, True),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "1"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "2"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "3 "]]],
+                ],
+            ),
+            "Simple(6/)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (None, 4),
+                # expected
+                [
+                    ["T", [["s", None, "1"]]],
+                    ["T", [["s", None, "2"]]],
+                    ["T", [["s", None, "3"]]],
+                ],
+            ),
+            "Simple(6a/)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (None, 4, True),
+                # expected
+                [
+                    ["T", [["s", None, "1"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "2"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "3"]]],
+                ],
+            ),
+            "Simple(6b/)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (" ", 4),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, "1"]]],
+                    ["T", [["s", None, "2"]]],
+                    ["T", [["s", None, "3"]]],
+                    ["T", []],
+                ],
+            ),
+            "Simple(6c/)": (
+                # precondition
+                ["T", [["s", None, " 1 2 3 "]]],
+                # stimulus
+                (" ", 4, True),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "1"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "2"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "3"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", []],
+                ],
+            ),
+            "Simple(7/)": (
+                # precondition
+                ["T", [["s", None, "   "]]],
+                # stimulus
+                (),
+                # expected
+                [
+                    # empty
+                ],
+            ),
+            "Simple(7a/)": (
+                # precondition
+                ["T", [["s", None, "   "]]],
+                # stimulus
+                (None, -1, True),
+                # expected
+                [
+                    # empty
+                ],
+            ),
+            "Simple(7b/)": (
+                # precondition
+                ["T", [["s", None, "   "]]],
+                # stimulus
+                (" ", -1),
+                # expected
+                [
+                    ["T", []],
+                    ["T", []],
+                    ["T", []],
+                    ["T", []],
+                ],
+            ),
+            "Simple(7c/)": (
+                # precondition
+                ["T", [["s", None, "   "]]],
+                # stimulus
+                (" ", -1, True),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, " "]]],
+                    ["T", []],
+                    ["T", [["s", None, " "]]],
+                    ["T", []],
+                    ["T", [["s", None, " "]]],
+                    ["T", []],
+                ],
+            ),
+            "Simple(8/)": (
+                # precondition
+                ["T", [["c", None, " 1 2 3 "]]],
+                # stimulus
+                (),
+                # expected
+                [
+                    ["T", [["c", None, " 1 2 3 "]]],
+                ],
+            ),
+            "Simple(8/a)": (
+                # precondition
+                ["T", [["c", None, " 1 2 3 "]]],
+                # stimulus
+                (None, -1, True),
+                # expected
+                [
+                    ["T", [["c", None, " 1 2 3 "]]],
+                ],
+            ),
+            "Simple(8/b)": (
+                # precondition
+                ["T", [["c", None, " 1 2 3 "]]],
+                # stimulus
+                (" "),
+                # expected
+                [
+                    ["T", [["c", None, " 1 2 3 "]]],
+                ],
+            ),
+            "Simple(8/c)": (
+                # precondition
+                ["T", [["c", None, " 1 2 3 "]]],
+                # stimulus
+                (" ", -1, True),
+                # expected
+                [
+                    ["T", [["c", None, " 1 2 3 "]]],
+                ],
+            ),
+            "Simple(9/)": (
+                # precondition
+                ["T", []],
+                # stimulus
+                (),
+                # expected
+                [
+                    # empty
+                ],
+            ),
+            "Simple(9/a)": (
+                # precondition
+                ["T", []],
+                # stimulus
+                (None, -1, True),
+                # expected
+                [
+                    # empty
+                ],
+            ),
+            "Simple(9/b)": (
+                # precondition
+                ["T", []],
+                # stimulus
+                (" ", -1),
+                # expected
+                [
+                    ["T", []],
+                ],
+            ),
+            "Simple(9/c)": (
+                # precondition
+                ["T", []],
+                # stimulus
+                (" ", -1, True),
+                # expected
+                [
+                    ["T", []],
+                ],
+            ),
+            ##
+            # #### [\@case 2] Multiple: Multiple String elements
+            #
+            "Multiple(1/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["s", None, " "],
+                        ["s", None, " "],
+                    ],
+                ],
+                # stimulus
+                (),
+                # expected
+                [
+                    # empty
+                ],
+            ),
+            "Multiple(1a/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["s", None, " "],
+                        ["s", None, " "],
+                    ],
+                ],
+                # stimulus
+                (None, -1, True),
+                # expected
+                [
+                    # empty
+                ],
+            ),
+            "Multiple(1b/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["s", None, " "],
+                        ["s", None, " "],
+                    ],
+                ],
+                # stimulus
+                (" "),
+                # expected
+                [
+                    ["T", []],
+                    ["T", []],
+                    ["T", []],
+                    ["T", []],
+                ],
+            ),
+            "Multiple(1c/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["s", None, " "],
+                        ["s", None, " "],
+                    ],
+                ],
+                # stimulus
+                (" ", -1, True),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, " "]]],
+                    ["T", []],
+                    ["T", [["s", None, " "]]],
+                    ["T", []],
+                    ["T", [["s", None, " "]]],
+                    ["T", []],
+                ],
+            ),
+            ##
+            # #### [\@case 1] Mix: Multiple elements
+            #
+            "Mix(1/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["c", None, "1"],
+                        ["s", None, "2"],
+                        ["c", None, "3"],
+                        ["s", None, "4 "],
+                    ],
+                ],
+                # stimulus
+                (),
+                # expected
+                [
+                    [
+                        "T",
+                        [
+                            ["c", None, "1"],
+                            ["s", None, "2"],
+                            ["c", None, "3"],
+                            ["s", None, "4"],
+                        ],
+                    ],
+                ],
+            ),
+            "Mix(1a/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["c", None, "1"],
+                        ["s", None, "2"],
+                        ["c", None, "3"],
+                        ["s", None, "4 "],
+                    ],
+                ],
+                # stimulus
+                (None, -1, True),
+                # expected
+                [
+                    [
+                        "T",
+                        [
+                            ["c", None, "1"],
+                            ["s", None, "2"],
+                            ["c", None, "3"],
+                            ["s", None, "4"],
+                        ],
+                    ],
+                ],
+            ),
+            "Mix(1b/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["c", None, "1"],
+                        ["s", None, "2"],
+                        ["c", None, "3"],
+                        ["s", None, "4 "],
+                    ],
+                ],
+                # stimulus
+                (" "),
+                # expected
+                [
+                    ["T", []],
+                    [
+                        "T",
+                        [
+                            ["c", None, "1"],
+                            ["s", None, "2"],
+                            ["c", None, "3"],
+                            ["s", None, "4"],
+                        ],
+                    ],
+                    ["T", []],
+                ],
+            ),
+            "Mix(1c/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["c", None, "1"],
+                        ["s", None, "2"],
+                        ["c", None, "3"],
+                        ["s", None, "4 "],
+                    ],
+                ],
+                # stimulus
+                (" ", -1, True),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, " "]]],
+                    [
+                        "T",
+                        [
+                            ["c", None, "1"],
+                            ["s", None, "2"],
+                            ["c", None, "3"],
+                            ["s", None, "4"],
+                        ],
+                    ],
+                    ["T", [["s", None, " "]]],
+                    ["T", []],
+                ],
+            ),
+            "Mix(2/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["c", None, "1"],
+                        ["s", None, " "],
+                        ["c", None, "2"],
+                        ["s", None, " "],
+                    ],
+                ],
+                # stimulus
+                (),
+                # expected
+                [
+                    ["T", [["c", None, "1"]]],
+                    ["T", [["c", None, "2"]]],
+                ],
+            ),
+            "Mix(2a/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["c", None, "1"],
+                        ["s", None, " "],
+                        ["c", None, "2"],
+                        ["s", None, " "],
+                    ],
+                ],
+                # stimulus
+                (None, -1, True),
+                # expected
+                [
+                    ["T", [["c", None, "1"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["c", None, "2"]]],
+                ],
+            ),
+            "Mix(2b/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["c", None, "1"],
+                        ["s", None, " "],
+                        ["c", None, "2"],
+                        ["s", None, " "],
+                    ],
+                ],
+                # stimulus
+                (" "),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["c", None, "1"]]],
+                    ["T", [["c", None, "2"]]],
+                    ["T", []],
+                ],
+            ),
+            "Mix(2c/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["c", None, "1"],
+                        ["s", None, " "],
+                        ["c", None, "2"],
+                        ["s", None, " "],
+                    ],
+                ],
+                # stimulus
+                (" ", -1, True),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["c", None, "1"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["c", None, "2"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", []],
+                ],
+            ),
+            "Mix(3/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["c", None, "1"],
+                        ["s", None, " 2 "],
+                        ["c", None, "3"],
+                        ["s", None, " "],
+                    ],
+                ],
+                # stimulus
+                (None, 2),
+                # expected
+                [
+                    ["T", [["c", None, "1"]]],
+                    ["T", [["s", None, "2"]]],
+                    [
+                        "T",
+                        [
+                            ["c", None, "3"],
+                            ["s", None, " "],
+                        ],
+                    ],
+                ],
+            ),
+            "Mix(3a/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["c", None, "1"],
+                        ["s", None, " 2 "],
+                        ["c", None, "3"],
+                        ["s", None, " "],
+                    ],
+                ],
+                # stimulus
+                (None, 2, True),
+                # expected
+                [
+                    ["T", [["c", None, "1"]]],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["s", None, "2"]]],
+                    ["T", [["s", None, " "]]],
+                    [
+                        "T",
+                        [
+                            ["c", None, "3"],
+                            ["s", None, " "],
+                        ],
+                    ],
+                ],
+            ),
+            "Mix(3b/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["c", None, "1"],
+                        ["s", None, " 2 "],
+                        ["c", None, "3"],
+                        ["s", None, " "],
+                    ],
+                ],
+                # stimulus
+                (" ", 2),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["c", None, "1"]]],
+                    [
+                        "T",
+                        [
+                            ["s", None, "2 "],
+                            ["c", None, "3"],
+                            ["s", None, " "],
+                        ],
+                    ],
+                ],
+            ),
+            "Mix(3c/)": (
+                # precondition
+                [
+                    "T",
+                    [
+                        ["s", None, " "],
+                        ["c", None, "1"],
+                        ["s", None, " 2 "],
+                        ["c", None, "3"],
+                        ["s", None, " "],
+                    ],
+                ],
+                # stimulus
+                (" ", 2, True),
+                # expected
+                [
+                    ["T", []],
+                    ["T", [["s", None, " "]]],
+                    ["T", [["c", None, "1"]]],
+                    ["T", [["s", None, " "]]],
+                    [
+                        "T",
+                        [
+                            ["s", None, "2 "],
+                            ["c", None, "3"],
+                            ["s", None, " "],
+                        ],
+                    ],
+                ],
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        target = TextString.loadd(precondition)
+
+        # WHEN
+        items = target.split(*stimulus)
+
+        # THEN
+        result = []
+        for item in items:
+            result.append(item.dumpd())
+
+        assert result == expected
+
+
 class xSpec_TEMPLATE:
     r"""
     ## [\@spec] `append`
