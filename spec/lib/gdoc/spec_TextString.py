@@ -6,123 +6,231 @@ r"""
 ## ADDITIONAL STRUCTURE
 
 """
+import inspect
 from typing import cast
 
 import pytest
 
 from gdoc.lib.gdoc import Code, DataPos, String, TextString
 from gdoc.lib.pandocastobject.pandocast import PandocAst, PandocInlineElement
-from gdoc.lib.pandocastobject.pandocstr import PandocStr
 
 
-class xSpec___init__:
+class Spec___init__:
     r"""
-    ## [\@spec] `__init__`
+    ## [\@spec] `append`
 
     ```py
-    def __init__(
-        self,
-        items: Optional[PandocStr | str | list[PandocInlineElement]] = None,
-        start: int = 0,
-        stop: Optional[int] = None,
-        dpos: Optional[list[str]] = None,
-    ):
+    def append(self, text: Text) -> None:
     ```
     """
 
-    def spec_1(self):
+    @staticmethod
+    def cases_1():
         r"""
-        ### [\@case 1] `items` can be a list of PandocInlineElement.
-
-        This has been implemented and tested as a feature of 'PandocStr.'
+        ### [\@ 1] Returns content str.
         """
+        return {
+            ##
+            # #### [\@case 1] Basic
+            #
+            "Basic(1/)": (
+                # stimulus
+                [],
+                # expected
+                {
+                    "Exception": None,
+                    "target": ["T", []],
+                },
+            ),
+            "Basic(2/)": (
+                # stimulus
+                "INVALIDTEXT",
+                # expected
+                {
+                    "Exception": [TypeError, "invalid initial data"],
+                },
+            ),
+            "Basic(3/)": (
+                # stimulus
+                ["INVALIDTEXT"],
+                # expected
+                {
+                    "Exception": [TypeError, "invalid initial data"],
+                },
+            ),
+            ##
+            # #### [\@case 2] PandocAst elements
+            #
+            "PandocAst(1/)": (
+                # stimulus
+                [
+                    PandocAst.create_element({"t": "Str", "c": "ABC"}),
+                ],
+                # expected
+                {
+                    "Exception": None,
+                    "target": ["T", [["s", None, "ABC"]]],
+                },
+            ),
+            "PandocAst(2/)": (
+                # stimulus
+                [
+                    PandocAst.create_element({"t": "Code", "c": [["", [], []], "ABC"]}),
+                ],
+                # expected
+                {
+                    "Exception": None,
+                    "target": ["T", [["c", None, "ABC"]]],
+                },
+            ),
+            "PandocAst(3/)": (
+                # stimulus
+                [
+                    PandocAst.create_element({"t": "Str", "c": "A"}),
+                    PandocAst.create_element({"t": "Str", "c": "B"}),
+                    PandocAst.create_element({"t": "Code", "c": [["", [], []], "CD"]}),
+                    PandocAst.create_element({"t": "Str", "c": "EF"}),
+                ],
+                # expected
+                {
+                    "Exception": None,
+                    "target": [
+                        "T",
+                        [["s", None, "AB"], ["c", None, "CD"], ["s", None, "EF"]],
+                    ],
+                },
+            ),
+            "PandocAst(4/) Math to be ignored for now": (
+                # stimulus
+                [PandocAst.create_element({"t": "LineBreak"})],
+                # expected
+                {
+                    "Exception": None,
+                    "target": ["T", [["s", None, "\n"]]],
+                },
+            ),
+            "PandocAst(5/) Math to be ignored for now": (
+                # stimulus
+                [
+                    PandocAst.create_element(
+                        {"t": "Math", "c": [{"t": "InlineMath"}, "y = x^2"]}
+                    )
+                ],
+                # expected
+                {
+                    "Exception": None,
+                    "target": ["T", []],
+                },
+            ),
+            ##
+            # #### [\@case 3] Gdoc Text elements
+            #
+            "GdocText(1/)": (
+                # stimulus
+                [
+                    String("ABC"),
+                ],
+                # expected
+                {
+                    "Exception": None,
+                    "target": ["T", [["s", None, "ABC"]]],
+                },
+            ),
+            "GdocText(2/)": (
+                # stimulus
+                [
+                    Code("ABC"),
+                ],
+                # expected
+                {
+                    "Exception": None,
+                    "target": ["T", [["c", None, "ABC"]]],
+                },
+            ),
+            "GdocText(3/)": (
+                # stimulus
+                [
+                    String("ABC"),
+                    Code("DEF"),
+                ],
+                # expected
+                {
+                    "Exception": None,
+                    "target": ["T", [["s", None, "ABC"], ["c", None, "DEF"]]],
+                },
+            ),
+            ##
+            # #### [\@case 4] Gdoc TextString
+            #
+            "TextString(1/)": (
+                # stimulus
+                TextString.loadd(["T", [["s", None, "ABC"]]]),
+                # expected
+                {
+                    "Exception": None,
+                    "target": ["T", [["s", None, "ABC"]]],
+                },
+            ),
+            "TextString(2/)": (
+                # stimulus
+                [
+                    TextString.loadd(["T", [["s", None, "ABC"]]]),
+                ],
+                # expected
+                {
+                    "Exception": None,
+                    "target": ["T", [["T", [["s", None, "ABC"]]]]],
+                },
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+
+        if expected["Exception"] is None:
+            # WHEN
+            target = TextString(stimulus)
+            # THEN
+            assert target.dumpd() == expected["target"]
+
+        else:
+            # WHEN
+            with pytest.raises(expected["Exception"][0]) as exc_info:
+                TextString(stimulus)
+            # THEN
+            assert exc_info.match(expected["Exception"][1])
+
+    def spec_2(self, mocker):
+        r"""
+        ### [\@spec 1]
+        """
+
         # GIVEN
-        items = [
-            cast(
-                PandocInlineElement,
-                PandocAst.create_element({"t": "Str", "c": "ELEMENT"}),
+        mocker.patch.object(inspect.getmodule(TextString), "_OTHER_KNOWN_TYPES", [])
+
+        # WHEN
+        with pytest.raises(TypeError) as exc_info:
+            TextString(
+                [
+                    cast(
+                        PandocInlineElement,
+                        PandocAst.create_element(
+                            {"t": "Math", "c": [{"t": "InlineMath"}, "y = x^2"]}
+                        ),
+                    )
+                ]
             )
-        ]
-        # WHEN
-        target = TextString(items)
         # THEN
-        assert target == "ELEMENT"
-
-    def spec_2(self):
-        r"""
-        ### [\@case 2] `items` can be a PandocStr.
-
-        This has been implemented and tested as a feature of 'PandocStr.'
-        """
-        # GIVEN
-        items = PandocStr(
-            [
-                cast(
-                    PandocInlineElement,
-                    PandocAst.create_element({"t": "Str", "c": "PANDOCSTR"}),
-                )
-            ]
-        )
-        # WHEN
-        target = TextString(items)
-        # THEN
-        assert target == "PANDOCSTR"
-
-    def spec_3(self):
-        r"""
-        ### [\@case 3] `items` can be a str.
-
-        - If items is str, it generates PandocInlineElement from the str.
-        """
-        # GIVEN
-        items = "STRING"
-        # WHEN
-        target = TextString(items)
-        # THEN
-
-        assert target == "STRING"
-
-    def spec_4(self):
-        r"""
-        ### [\@case 4] `items` can be a str.
-
-        - If items is str, it generates PandocInlineElement from the str.
-        """
-        # GIVEN
-        items = "STRING"
-        # WHEN
-        target = TextString(items, 1, -1)
-        # THEN
-
-        assert target == "TRIN"
-
-    def spec_5(self):
-        r"""
-        ### [\@case 5] `dpos` can be DataPos.
-
-        If DataPos is given, save it in the object.
-        """
-        # GIVEN
-        DATA_POS = DataPos.loadd(["FILEPATH", 5, 2, 5, 10])
-        target = TextString("TESTDATA", dpos=DATA_POS)
-        # WHEN
-        charpos = target.get_char_pos(4)
-        # THEN
-        assert charpos == DataPos.loadd(["FILEPATH", 5, 6, 5, 7])
-
-    def spec_6(self):
-        r"""
-        ### [\@case 5] `dpos` can be DataPos.
-
-        If DataPos is given, save it in the object.
-        """
-        # GIVEN
-        DATA_POS = DataPos.loadd(["FILEPATH", 5, 2, 5, 10])
-        target = TextString("TESTDATA", 1, -1, dpos=DATA_POS)
-        # WHEN
-        charpos = target.get_char_pos(3)
-        # THEN
-        assert charpos == DataPos.loadd(["FILEPATH", 5, 6, 5, 7])
+        assert exc_info.match("invalid initial data")
 
 
 class Spec_get_str:

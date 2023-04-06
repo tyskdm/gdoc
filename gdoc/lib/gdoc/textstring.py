@@ -64,7 +64,7 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
             inlines = items
 
         else:
-            raise TypeError()
+            raise TypeError("invalid initial data")
 
         for item in inlines:
             if isinstance(item, Text):
@@ -87,9 +87,9 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
                     pass
 
                 else:
-                    raise TypeError()
+                    raise TypeError("invalid initial data")
             else:
-                raise TypeError()
+                raise TypeError("invalid initial data")
 
     #########################
     #
