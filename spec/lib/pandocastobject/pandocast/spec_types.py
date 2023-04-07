@@ -38,7 +38,7 @@ def spec_create_element_1(mocker):
     mocker.patch("gdoc.lib.pandocastobject.pandocast.types._ELEMENT_TYPES", elem_types)
 
     pan_elem = {"t": "TARGET"}
-    element = types.create_element(pan_elem)
+    element = types.PandocAst.create_element(pan_elem)
 
     assert element == "INSTANCE"
 
@@ -46,7 +46,7 @@ def spec_create_element_1(mocker):
 
     assert Class_mock.call_count == 1
     assert args[0] == [
-        (pan_elem, "TARGET", elem_types["TARGET"], types.create_element),
+        (pan_elem, "TARGET", elem_types["TARGET"], types.PandocAst.create_element),
         {},
     ]
 
@@ -60,7 +60,7 @@ def spec_create_element_2(mocker):
     mocker.patch("gdoc.lib.pandocastobject.pandocast.types._ELEMENT_TYPES", elem_types)
 
     pan_elem = {"pandoc-api-version": [1, 22]}
-    element = types.create_element(pan_elem)
+    element = types.PandocAst.create_element(pan_elem)
 
     assert element == "INSTANCE"
 
@@ -68,7 +68,7 @@ def spec_create_element_2(mocker):
 
     assert Class_mock.call_count == 1
     assert args[0] == [
-        (pan_elem, "Pandoc", elem_types["Pandoc"], types.create_element),
+        (pan_elem, "Pandoc", elem_types["Pandoc"], types.PandocAst.create_element),
         {},
     ]
 
@@ -82,7 +82,7 @@ def spec_create_element_3(mocker):
     mocker.patch("gdoc.lib.pandocastobject.pandocast.types._ELEMENT_TYPES", elem_types)
 
     pan_elem = []
-    element = types.create_element(pan_elem, "TARGET")
+    element = types.PandocAst.create_element(pan_elem, "TARGET")
 
     assert element == "INSTANCE"
 
@@ -90,7 +90,7 @@ def spec_create_element_3(mocker):
 
     assert Class_mock.call_count == 1
     assert args[0] == [
-        (pan_elem, "TARGET", elem_types["TARGET"], types.create_element),
+        (pan_elem, "TARGET", elem_types["TARGET"], types.PandocAst.create_element),
         {},
     ]
 
@@ -106,7 +106,7 @@ def spec_create_element_4(mocker):
     pan_elem = []
 
     with pytest.raises(Exception) as e:
-        element = types.create_element(pan_elem)
+        element = types.PandocAst.create_element(pan_elem)
 
     assert str(e.value) == "'ELEMENT TYPE MISSING'"
 
@@ -122,7 +122,7 @@ def spec_create_element_5(mocker):
     pan_elem = []
 
     with pytest.raises(Exception) as e:
-        element = types.create_element(pan_elem, "TEST_INVALID_ELEMENT_TYPE")
+        element = types.PandocAst.create_element(pan_elem, "TEST_INVALID_ELEMENT_TYPE")
 
     assert str(e.value) == "'TEST_INVALID_ELEMENT_TYPE'"
 

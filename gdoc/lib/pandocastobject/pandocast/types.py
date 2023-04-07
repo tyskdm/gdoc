@@ -1,6 +1,7 @@
 r"""
 PandocAst Type definitions and Utilities.
 """
+from typing import Callable, cast
 
 from .blocklist import BlockList
 from .element import Element
@@ -9,41 +10,41 @@ from .inlinelist import InlineList
 from .pandoc import Pandoc
 
 
-def create_element(pan_elem, elem_type=None) -> Element:
-    """
-    Find the element type and call constructor specified by it.
-    """
-    etype = "ELEMENT TYPE MISSING"
-
-    if elem_type is not None:
-        etype = elem_type
-
-    elif "t" in pan_elem:
-        etype = pan_elem["t"]
-
-    elif "pandoc-api-version" in pan_elem:
-        etype = "Pandoc"
-
-    if etype not in _ELEMENT_TYPES:
-        # Invalid etype( = 'ELEMENT TYPE MISSING' or invalid `elem_type`)
-        raise KeyError(etype)
-
-    element = _ELEMENT_TYPES[etype]["class"](
-        pan_elem, etype, _ELEMENT_TYPES[etype], create_element
-    )
-
-    return element
-
-
 class PandocAst(Pandoc):
     def __init__(self, pan_elem):
         """Constructor
         @param pan_elem(Dict)
             PandocAST Element
         """
-        super().__init__(pan_elem, "Pandoc", _ELEMENT_TYPES["Pandoc"], create_element)
+        super().__init__(
+            pan_elem, "Pandoc", _ELEMENT_TYPES["Pandoc"], PandocAst.create_element
+        )
 
-    create_element = create_element
+    @staticmethod
+    def create_element(pan_elem, elem_type=None) -> Element:
+        """
+        Find the element type and call constructor specified by it.
+        """
+        etype = "ELEMENT TYPE MISSING"
+
+        if elem_type is not None:
+            etype = elem_type
+
+        elif "t" in pan_elem:
+            etype = pan_elem["t"]
+
+        elif "pandoc-api-version" in pan_elem:
+            etype = "Pandoc"
+
+        if etype not in _ELEMENT_TYPES:
+            # Invalid etype( = 'ELEMENT TYPE MISSING' or invalid `elem_type`)
+            raise KeyError(etype)
+
+        element = cast(Callable, _ELEMENT_TYPES[etype]["class"])(
+            pan_elem, etype, _ELEMENT_TYPES[etype], PandocAst.create_element
+        )
+
+        return element
 
 
 # Text.Pandoc.Definition
@@ -155,7 +156,8 @@ _ELEMENT_TYPES = {
     },
     # 'Table':  {
     #     # Table Attr Caption [ColSpec] TableHead [TableBody] TableFoot
-    #     # - Table, with attributes, caption, optional short caption, column alignments and widths (required), table head, table bodies, and table foot
+    #     # - Table, with attributes, caption, optional short caption, column alignments
+    #     #   and widths (required), table head, table bodies, and table foot
     #     'class':  Table,
     #     'content':  {
     #         'key':      'c',
@@ -389,7 +391,7 @@ _ELEMENT_TYPES = {
     #         'type':     '[Cell]'
     #     },
     #     'struct': {
-    #         # 'Attr':     0,    Commented out because of issue about handling Rows in Table.
+    #         # 'Attr': 0, Commented out because of issue about handling Rows in Table.
     #         'Cells':    1
     #     }
     # },
