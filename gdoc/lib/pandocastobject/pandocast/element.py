@@ -185,6 +185,30 @@ class Element:
 
         return content
 
+    def set_content(self, value):
+        """returns main content data in the element.
+        @return Main content data of the element.
+        """
+        TYPEDEF: dict = self.type_def
+
+        if not self.hascontent():
+            raise TypeError(f'"{self.type}" can not set content')
+
+        index: Optional[int] = None
+        if ("main" in TYPEDEF["content"]) and (TYPEDEF["content"]["main"] is not None):
+            index = TYPEDEF["content"]["main"]
+
+        if ("key" in TYPEDEF["content"]) and (TYPEDEF["content"]["key"] is not None):
+            if index is not None:
+                self.pan_element[TYPEDEF["content"]["key"]][index] = value
+            else:
+                self.pan_element[TYPEDEF["content"]["key"]] = value
+        else:
+            if index is not None:
+                self.pan_element[index] = value
+            else:
+                self.pan_element = value
+
     def get_content_type(self) -> Union[str, None]:
         """returns type of main content in the element.
         @return String : The type of main content in the element.

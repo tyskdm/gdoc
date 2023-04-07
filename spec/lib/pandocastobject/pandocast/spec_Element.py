@@ -563,6 +563,157 @@ def spec_get_content_1(pan_elem, elem_type, TYPE_DEFS, expect):
 
 
 ## @}
+
+
+class Spec_set_content:
+    r"""
+    ## [\@spec] `set_content`
+
+    ```py
+    def get_content(self, value: Any):
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1] Returns content str.
+        """
+        return {
+            "Case: No Content dict": (
+                # precondition
+                (
+                    {"t": "Space"},
+                    "Space",
+                    {"content": None},
+                ),
+                # stimulus
+                "TESTDATA",
+                # expected
+                {"Exception": (TypeError, '"Space" can not set content')},
+            ),
+            "Case: has Content(Dict)": (
+                # precondition
+                (
+                    {"t": "Str", "c": "String"},
+                    "Str",
+                    {"content": {"key": "c", "type": "Text"}},
+                ),
+                # stimulus
+                "TESTDATA",
+                # expected
+                {"Exception": None},
+            ),
+            "Case: has Content(Array)": (
+                # precondition
+                (
+                    [],
+                    "BlockList",
+                    {"content": {"type": "[Block]"}},
+                ),
+                # stimulus
+                ["TESTDATA"],
+                # expected
+                {"Exception": None},
+            ),
+            "Case: has Content(Array) with key": (
+                # precondition
+                (
+                    [],
+                    "BlockList",
+                    {"content": {"key": None, "type": "[Block]"}},
+                ),
+                # stimulus
+                ["TESTDATA"],
+                # expected
+                {"Exception": None},
+            ),
+            "Case: has Main Content(Dict)": (
+                # precondition
+                (
+                    {"t": "Code", "c": [["", [], []], "CodeString"]},
+                    "Code",
+                    {
+                        # CodeBlock Attr Text
+                        # - Code block (literal) with attributes
+                        "content": {"key": "c", "main": 1, "type": "Text"},
+                        "struct": {"Attr": 0, "Text": 1},
+                    },
+                ),
+                # stimulus
+                "TESTDATA",
+                # expected
+                {"Exception": None},
+            ),
+            "Case: has Main Content(Array)": (
+                # precondition
+                (
+                    [["", [], []], "[RowData]"],
+                    "Row",
+                    {
+                        # Row Attr [Cell]
+                        # A table row.
+                        "content": {"key": None, "main": 1, "type": "[Cell]"},
+                        "struct": {"Attr": 0, "Cells": 1},
+                    },
+                ),
+                # stimulus
+                "TESTDATA",
+                # expected
+                {"Exception": None},
+            ),
+            "Case has Main Content(Pandoc)": (
+                # precondition
+                (
+                    {"pandoc-api-version": [1, 22], "meta": {}, "blocks": []},
+                    "Pandoc",
+                    {
+                        # 'class':  BlockList,
+                        "content": {"key": None, "main": "blocks", "type": "[Block]"},
+                        "struct": {
+                            "Version": "pandoc-api-version",
+                            "Meta": "meta",
+                            "Blocks": "blocks",
+                        },
+                    },
+                ),
+                # stimulus
+                ["TESTDATA"],
+                # expected
+                {"Exception": None},
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        [\@Spec get_content.1] get_content() returns main content data in the element.
+        """
+        # GIVEN
+        target = Element(*precondition)
+        original = target.get_content()
+
+        if expected["Exception"] is None:
+            # WHEN
+            target.set_content(stimulus)
+            # THEN
+            assert target.get_content() is not original
+            assert target.get_content() is stimulus
+
+        else:
+            with pytest.raises(expected["Exception"][0]) as exc_info:
+                # WHEN
+                target.set_content(stimulus)
+            # THEN
+            assert exc_info.match(expected["Exception"][1])
+
+
 ## @{ @name get_content_type(self)
 ## [\@spec get_content_type] returns type of main content in the element.
 
