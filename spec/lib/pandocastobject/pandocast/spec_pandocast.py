@@ -22,7 +22,7 @@ import inspect
 
 import pytest
 
-from gdoc.lib.pandocastobject.pandocast import PandocAst
+from gdoc.lib.pandocastobject.pandocast.pandocast import PandocAst
 
 
 class Spec_create_element:
