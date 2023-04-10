@@ -2,6 +2,7 @@ r"""
 PandocAst Utility Class
 """
 from typing import Callable, cast
+import copy
 
 from .element import Element
 from .pandoc import Pandoc
@@ -38,7 +39,10 @@ class PandocAst(Pandoc):
             # Invalid etype( = 'ELEMENT TYPE MISSING' or invalid `elem_type`)
             raise KeyError(etype)
 
-        elem = pan_elem if pan_elem is not None else _ELEMENT_TYPES[etype]["new"]
+        if pan_elem is not None:
+            elem = pan_elem
+        else:
+            elem = copy.deepcopy(_ELEMENT_TYPES[etype]["new"])
 
         element: Element = cast(Callable, _ELEMENT_TYPES[etype]["class"])(
             elem, etype, _ELEMENT_TYPES[etype], PandocAst.create_element

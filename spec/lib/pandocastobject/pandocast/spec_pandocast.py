@@ -211,6 +211,12 @@ class Spec_create_element:
             element = PandocAst.create_element(**stimulus)
             # THEN
             assert element.get_type() == expected["element_type"]
+            assert (
+                element.pan_element
+                is not inspect.getmodule(PandocAst)._ELEMENT_TYPES[
+                    expected["element_type"]
+                ]["new"]
+            )
             assert element.get_content() == expected["content"]
 
         else:
