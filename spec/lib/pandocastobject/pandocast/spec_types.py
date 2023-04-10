@@ -142,3 +142,80 @@ class Spec_create_element:
                 PandocAst.create_element(**stimulus)
             # THEN
             assert exc_info.match(expected["Exception"][1])
+
+    @staticmethod
+    def cases_2():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Normal
+            #
+            "Normal(1/)": (
+                # stimulus
+                {
+                    "pan_elem": None,
+                    "elem_type": "Str",
+                },
+                # expected
+                {
+                    "Exception": None,
+                    "element_type": "Str",
+                    "content": "",
+                },
+            ),
+            "Normal(2/)": (
+                # stimulus
+                {
+                    "pan_elem": None,
+                    "elem_type": "Str",
+                    "content": "TEST_VALUE",
+                },
+                # expected
+                {
+                    "Exception": None,
+                    "element_type": "Str",
+                    "content": "TEST_VALUE",
+                },
+            ),
+            ##
+            # #### [\@case 2] Error
+            #
+            "Error(1/)": (
+                # stimulus
+                {
+                    "pan_elem": None,
+                    "elem_type": "TEST_INVALID_TYPE",
+                },
+                # expected
+                {
+                    "Exception": [KeyError, "TEST_INVALID_TYPE"],
+                },
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "stimulus, expected",
+        list(cases_2().values()),
+        ids=list(cases_2().keys()),
+    )
+    # \endcond
+    def spec_2(self, mocker, stimulus, expected):
+        r"""
+        ### [\@spec 2]
+        """
+        if expected["Exception"] is None:
+            # WHEN
+            element = PandocAst.create_element(**stimulus)
+            # THEN
+            assert element.get_type() == expected["element_type"]
+            assert element.get_content() == expected["content"]
+
+        else:
+            # WHEN
+            with pytest.raises(expected["Exception"][0]) as exc_info:
+                PandocAst.create_element(**stimulus)
+            # THEN
+            assert exc_info.match(expected["Exception"][1])

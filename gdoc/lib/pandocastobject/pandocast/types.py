@@ -21,7 +21,7 @@ class PandocAst(Pandoc):
         )
 
     @staticmethod
-    def create_element(pan_elem, elem_type=None) -> Element:
+    def create_element(pan_elem, elem_type=None, content=None) -> Element:
         """
         Find the element type and call constructor specified by it.
         """
@@ -40,9 +40,14 @@ class PandocAst(Pandoc):
             # Invalid etype( = 'ELEMENT TYPE MISSING' or invalid `elem_type`)
             raise KeyError(etype)
 
-        element = cast(Callable, _ELEMENT_TYPES[etype]["class"])(
-            pan_elem, etype, _ELEMENT_TYPES[etype], PandocAst.create_element
+        elem = pan_elem if pan_elem is not None else _ELEMENT_TYPES[etype]["new"]
+
+        element: Element = cast(Callable, _ELEMENT_TYPES[etype]["class"])(
+            elem, etype, _ELEMENT_TYPES[etype], PandocAst.create_element
         )
+
+        if pan_elem is None and content is not None:
+            element.set_content(content)
 
         return element
 
@@ -62,12 +67,14 @@ _ELEMENT_TYPES = {
         "content": {"key": None, "type": None},
         "struct": None,
         "separator": "",
+        "new": [],
     },
     "ListItem": {
         # [Block]   is not ListItem object, just an Array of Blocks.
         "class": BlockList,
         "content": {"key": None, "type": None},
         "struct": None,
+        "new": [],
     },
     #
     # Pandoc
@@ -77,6 +84,7 @@ _ELEMENT_TYPES = {
         "class": Pandoc,
         "content": {"key": None, "main": "blocks", "type": None},
         "struct": {"Version": "pandoc-api-version", "Meta": "meta", "Blocks": "blocks"},
+        "new": {"pandoc-api-version": [1, 22, 2, 1], "meta": {}, "blocks": []},
     },
     #
     # Blocks
@@ -88,6 +96,7 @@ _ELEMENT_TYPES = {
         "content": {"key": "c", "type": None},
         "struct": None,
         "separator": "",
+        "new": {"t": "Plain", "c": []},
     },
     "Para": {
         # Para [Inline]
@@ -96,6 +105,7 @@ _ELEMENT_TYPES = {
         "content": {"key": "c", "type": None},
         "struct": None,
         "separator": "",
+        "new": {"t": "Para", "c": []},
     },
     "LineBlock": {
         # LineBlock [[Inline]]
@@ -104,6 +114,7 @@ _ELEMENT_TYPES = {
         "content": {"key": "c", "type": "Line"},
         "struct": None,
         "separator": "\n",
+        "new": {"t": "LineBlock", "c": []},
     },
     "CodeBlock": {
         # CodeBlock Attr Text
@@ -111,6 +122,7 @@ _ELEMENT_TYPES = {
         "class": InlineList,
         "content": {"key": "c", "main": 1, "type": "Text"},
         "struct": {"Attr": 0, "Text": 1},
+        "new": {"t": "CodeBlock", "c": [["", [], []], ""]},
     },
     "RawBlock": {
         # RawBlock Format Text
@@ -125,6 +137,7 @@ _ELEMENT_TYPES = {
         "class": BlockList,
         "content": {"key": "c", "type": None},
         "struct": None,
+        "new": {"t": "BlockQuote", "c": []},
     },
     "OrderedList": {
         # OrderedList ListAttributes [[Block]]
@@ -132,6 +145,7 @@ _ELEMENT_TYPES = {
         "class": BlockList,
         "content": {"key": "c", "main": 1, "type": "ListItem"},
         "struct": {"ListAttributes": 0, "ListItems": 1},
+        "new": {"t": "OrderedList", "c": [[1, {"t": "Decimal"}, {"t": "Period"}], []]},
     },
     "BulletList": {
         # BulletList [[Block]]
@@ -139,6 +153,7 @@ _ELEMENT_TYPES = {
         "class": BlockList,
         "content": {"key": "c", "type": "ListItem"},
         "struct": None,
+        "new": {"t": "BulletList", "c": []},
     },
     "Header": {
         # Header Int Attr [Inline]
@@ -147,6 +162,7 @@ _ELEMENT_TYPES = {
         "content": {"key": "c", "main": 2, "type": None},
         "struct": {"Level": 0, "Attr": 1, "[Inline]": 2},
         "separator": "",
+        "new": {"t": "Header", "c": [1, ["", [], []], []]},
     },
     "HorizontalRule": {
         # HorizontalRule
@@ -188,6 +204,7 @@ _ELEMENT_TYPES = {
         "class": Inline,
         "content": {"key": "c", "type": "Text"},
         "struct": None,
+        "new": {"t": "Str", "c": ""},
     },
     "Emph": {
         # Emph [Inline]
@@ -258,6 +275,7 @@ _ELEMENT_TYPES = {
         "class": Inline,
         "content": {"key": "c", "main": 1, "type": "Text"},
         "struct": {"Attr": 0, "Text": 1},
+        "new": {"t": "Code", "c": [["", [], []], ""]},
     },
     "Space": {
         # Space
@@ -283,6 +301,8 @@ _ELEMENT_TYPES = {
         "class": Inline,
         "content": {"key": "c", "main": 1, "type": "Text"},
         "struct": {"MathType": 0, "Text": 1},
+        "new": {"t": "Math", "c": [{"t": "InlineMath"}, "y = x^2"]},
+        # or {"t": "Math", "c": [{"t": "DisplayMath"}, " y = x^2 "]},
     },
     "RawInline": {
         # RawInline Format Text
@@ -290,6 +310,7 @@ _ELEMENT_TYPES = {
         "class": Inline,
         "content": {"key": "c", "main": 1, "type": "Text"},
         "struct": {"Format": 0, "Text": 1},
+        "new": {"t": "RawInline", "c": ["html", ""]},
     },
     "Link": {
         # Link Attr [Inline] Target
