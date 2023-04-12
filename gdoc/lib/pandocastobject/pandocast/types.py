@@ -237,18 +237,21 @@ _ELEMENT_TYPES = {
         # Inter-word space
         "class": Inline,
         "alt": " ",
+        "new": {"t": "Space"},
     },
     "SoftBreak": {
         # SoftBreak
         # Soft line break
         "class": Inline,
         "alt": " ",
+        "new": {"t": "SoftBreak"},
     },
     "LineBreak": {
         # LineBreak
         # Hard line break
         "class": Inline,
         "alt": "\n",
+        "new": {"t": "LineBreak"},
     },
     "Math": {
         # Math MathType Text

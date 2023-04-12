@@ -50,5 +50,7 @@ class PandocAst(Pandoc):
 
         if pan_elem is None and content is not None:
             element.set_content(content)
+            # The following line is inefficient and not a good way.
+            element = PandocAst.create_element(element.pan_element, etype)
 
         return element

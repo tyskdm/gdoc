@@ -193,6 +193,60 @@ class Spec_create_element:
                     "Exception": [KeyError, "TEST_INVALID_TYPE"],
                 },
             ),
+            ##
+            # #### [\@case 1] List[PandocAstObject]
+            #
+            "List[PandocAstObject](1/)": (
+                # stimulus
+                {
+                    "pan_elem": None,
+                    "elem_type": "Para",
+                },
+                # expected
+                {
+                    "Exception": None,
+                    "element_type": "Para",
+                    "content": [],
+                    "num_child": 0,
+                },
+            ),
+            "List[PandocAstObject](2/)": (
+                # stimulus
+                {
+                    "pan_elem": None,
+                    "elem_type": "Para",
+                    "content": [
+                        PandocAst.create_element(
+                            {"t": "Str", "c": "String"}, "Str"
+                        ).pan_element
+                    ],
+                },
+                # expected
+                {
+                    "Exception": None,
+                    "element_type": "Para",
+                    "content": [{"t": "Str", "c": "String"}],
+                    "num_child": 1,
+                },
+            ),
+            ##
+            # #### [\@case 1] List[Element]
+            #
+            "List[Element](1/)": (
+                # stimulus
+                {
+                    "pan_elem": None,
+                    "elem_type": "Para",
+                    "content": [PandocAst.create_element(None, "Str").pan_element],
+                },
+                # expected
+                {
+                    "Exception": None,
+                    "element_type": "Para",
+                    "content": [{"t": "Str", "c": ""}],
+                    "num_child": 1,
+                },
+            ),
         }
 
     # \cond
@@ -218,6 +272,10 @@ class Spec_create_element:
                 ]["new"]
             )
             assert element.get_content() == expected["content"]
+            if "num_child" in expected:
+                children = element.get_children()
+                assert type(children) is list
+                assert len(children) == expected["num_child"]
 
         else:
             # WHEN
