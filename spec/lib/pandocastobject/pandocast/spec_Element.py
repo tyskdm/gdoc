@@ -714,6 +714,211 @@ class Spec_set_content:
             assert exc_info.match(expected["Exception"][1])
 
 
+class Spec_append_content:
+    r"""
+    ## [\@spec] `append_content`
+
+    ```py
+    def append_content(self, value: Any):
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1] Returns content str.
+        """
+        return {
+            "Case: No Content": (
+                # precondition
+                (
+                    {"t": "Space"},
+                    "Space",
+                    {"content": None},
+                ),
+                # stimulus
+                "TESTDATA",
+                # expected
+                {"Exception": (TypeError, 'can not append content to "Space"')},
+            ),
+            "Case: has Content(1/8) key - noindex - not List": (
+                # precondition
+                (
+                    {"t": "Str", "c": "AAA"},
+                    "Str",
+                    {"content": {"key": "c", "type": "Text"}},
+                ),
+                # stimulus
+                "BBB",
+                # expected
+                {"Exception": (TypeError, 'can not append content to "Str"')},
+            ),
+            "Case: has Content(2/8) key - noindex - List": (
+                # precondition
+                (
+                    {"t": "Str", "c": ["AAA"]},
+                    "Str",
+                    {"content": {"key": "c", "type": "Text"}},
+                ),
+                # stimulus
+                "BBB",
+                # expected
+                {
+                    "Exception": None,
+                    "content": ["AAA", "BBB"],
+                },
+            ),
+            "Case: has Content(3/8) nokey - noindex - not List": (
+                # precondition
+                (
+                    "AAA",
+                    "BlockList",
+                    {"content": {"type": "[Block]"}},
+                ),
+                # stimulus
+                "BBB",
+                # expected
+                {"Exception": (TypeError, 'can not append content to "BlockList"')},
+            ),
+            "Case: has Content(4/8) nokey - noindex - List": (
+                # precondition
+                (
+                    ["AAA"],
+                    "BlockList",
+                    {"content": {"type": "[Block]"}},
+                ),
+                # stimulus
+                "BBB",
+                # expected
+                {
+                    "Exception": None,
+                    "content": ["AAA", "BBB"],
+                },
+            ),
+            "Case: has Content(5/8) nokey - index - List": (
+                # precondition
+                (
+                    [["", [], []], ["AAA"]],
+                    "BBB",
+                    {
+                        # Row Attr [Cell]
+                        # A table row.
+                        "content": {"key": None, "main": 1, "type": "[Cell]"},
+                        "struct": {"Attr": 0, "Cells": 1},
+                    },
+                ),
+                # stimulus
+                "BBB",
+                # expected
+                {
+                    "Exception": None,
+                    "content": ["AAA", "BBB"],
+                },
+            ),
+            "Case: has Content(6/8) nokey - index - not List": (
+                # precondition
+                (
+                    [["", [], []], "AAA"],
+                    "BlockList",
+                    {
+                        # Row Attr [Cell]
+                        # A table row.
+                        "content": {"key": None, "main": 1, "type": "[Cell]"},
+                        "struct": {"Attr": 0, "Cells": 1},
+                    },
+                ),
+                # stimulus
+                "BBB",
+                # expected
+                {"Exception": (TypeError, 'can not append content to "BlockList"')},
+            ),
+            "Case: has Content(7/8) key - index - List": (
+                # precondition
+                (
+                    {"t": "Code", "c": [["", [], []], ["AAA"]]},
+                    "Code",
+                    {
+                        # CodeBlock Attr Text
+                        # - Code block (literal) with attributes
+                        "content": {"key": "c", "main": 1, "type": "Text"},
+                        "struct": {"Attr": 0, "Text": 1},
+                    },
+                ),
+                # stimulus
+                "BBB",
+                # expected
+                {
+                    "Exception": None,
+                    "content": ["AAA", "BBB"],
+                },
+            ),
+            "Case: has Content(7/8) key - index - not List": (
+                # precondition
+                (
+                    {"t": "Code", "c": [["", [], []], "AAA"]},
+                    "Code",
+                    {
+                        # CodeBlock Attr Text
+                        # - Code block (literal) with attributes
+                        "content": {"key": "c", "main": 1, "type": "Text"},
+                        "struct": {"Attr": 0, "Text": 1},
+                    },
+                ),
+                # stimulus
+                "BBB",
+                # expected
+                {"Exception": (TypeError, 'can not append content to "Code"')},
+            ),
+            "Case has Main Content(Pandoc)": (
+                # precondition
+                (
+                    {"pandoc-api-version": [1, 22], "meta": {}, "blocks": ["AAA"]},
+                    "Pandoc",
+                    {
+                        # 'class':  BlockList,
+                        "content": {"key": None, "main": "blocks", "type": "[Block]"},
+                        "struct": {
+                            "Version": "pandoc-api-version",
+                            "Meta": "meta",
+                            "Blocks": "blocks",
+                        },
+                    },
+                ),
+                # stimulus
+                "BBB",
+                # expected
+                {"Exception": None, "content": ["AAA", "BBB"]},
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        [\@Spec get_content.1] get_content() returns main content data in the element.
+        """
+        # GIVEN
+        target = Element(*precondition)
+
+        if expected["Exception"] is None:
+            # WHEN
+            target.append_content(stimulus)
+            # THEN
+            assert target.get_content() == expected["content"]
+
+        else:
+            with pytest.raises(expected["Exception"][0]) as exc_info:
+                # WHEN
+                target.append_content(stimulus)
+            # THEN
+            assert exc_info.match(expected["Exception"][1])
+
+
 ## @{ @name get_content_type(self)
 ## [\@spec get_content_type] returns type of main content in the element.
 

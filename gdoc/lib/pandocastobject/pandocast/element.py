@@ -72,17 +72,12 @@ class Element:
         """
         return self.parent
 
-    def get_children(self) -> Union[List["Element"], None]:
+    def get_children(self) -> List["Element"]:
         """returns new copied list of child elements.
         @return [Element] :
             new list copied from children.
         """
-        children = None
-
-        if self.children is not None:
-            children = self.children[:]
-
-        return children
+        return self.children[:]
 
     def get_first_child(self) -> Union["Element", None]:
         """returns the first child elements.
@@ -209,6 +204,42 @@ class Element:
             else:
                 self.pan_element = value
 
+    def append_content(self, value):
+        """returns main content data in the element.
+        @return Main content data of the element.
+        """
+        TYPEDEF: dict = self.type_def
+
+        if not self.hascontent():
+            raise TypeError(f'can not append content to "{self.type}"')
+
+        index: Optional[int] = None
+        if ("main" in TYPEDEF["content"]) and (TYPEDEF["content"]["main"] is not None):
+            index = TYPEDEF["content"]["main"]
+
+        if ("key" in TYPEDEF["content"]) and (TYPEDEF["content"]["key"] is not None):
+            if index is not None:
+                if type(self.pan_element[TYPEDEF["content"]["key"]][index]) is list:
+                    self.pan_element[TYPEDEF["content"]["key"]][index].append(value)
+                else:
+                    raise TypeError(f'can not append content to "{self.type}"')
+            else:
+                if type(self.pan_element[TYPEDEF["content"]["key"]]) is list:
+                    self.pan_element[TYPEDEF["content"]["key"]].append(value)
+                else:
+                    raise TypeError(f'can not append content to "{self.type}"')
+        else:
+            if index is not None:
+                if type(self.pan_element[index]) is list:
+                    self.pan_element[index].append(value)
+                else:
+                    raise TypeError(f'can not append content to "{self.type}"')
+            else:
+                if type(self.pan_element) is list:
+                    self.pan_element.append(value)
+                else:
+                    raise TypeError(f'can not append content to "{self.type}"')
+
     def get_content_type(self) -> Union[str, None]:
         """returns type of main content in the element.
         @return String : The type of main content in the element.
@@ -231,9 +262,8 @@ class Element:
         """
         action(self, opt)
 
-        if self.children is not None:
-            for child in self.children[:]:
-                child.walk(action, post_action, opt)
+        for child in self.children[:]:
+            child.walk(action, post_action, opt)
 
         if post_action is not None:
             post_action(self, opt)
@@ -333,9 +363,8 @@ class Element:
         if self.type not in ignore:
             action(self, opt)
 
-        if self.children is not None:
-            for child in self.children[:]:
-                child.walk_items(action, post_action, opt, ignore)
+        for child in self.children[:]:
+            child.walk_items(action, post_action, opt, ignore)
 
         if post_action is not None and self.type not in ignore:
             post_action(self, opt)
