@@ -167,6 +167,7 @@ _ELEMENT_TYPES = {
         "class": Inline,
         "content": {"key": "c", "type": None},
         "struct": None,
+        "new": {"t": "Emph", "c": []},
     },
     "Underline": {
         # Underline [Inline]
@@ -174,6 +175,7 @@ _ELEMENT_TYPES = {
         "class": Inline,
         "content": {"key": "c", "type": None},
         "struct": None,
+        "new": {"t": "Underline", "c": []},
     },
     "Strong": {
         # Strong [Inline]
@@ -181,6 +183,7 @@ _ELEMENT_TYPES = {
         "class": Inline,
         "content": {"key": "c", "type": None},
         "struct": None,
+        "new": {"t": "Strong", "c": []},
     },
     "Strikeout": {
         # Strikeout [Inline]
@@ -188,6 +191,7 @@ _ELEMENT_TYPES = {
         "class": Inline,
         "content": {"key": "c", "type": None},
         "struct": None,
+        "new": {"t": "Strikeout", "c": []},
     },
     "Superscript": {
         # Superscript [Inline]
@@ -195,6 +199,7 @@ _ELEMENT_TYPES = {
         "class": Inline,
         "content": {"key": "c", "type": None},
         "struct": None,
+        "new": {"t": "Superscript", "c": []},
     },
     "Subscript": {
         # Subscript [Inline]
@@ -202,6 +207,7 @@ _ELEMENT_TYPES = {
         "class": Inline,
         "content": {"key": "c", "type": None},
         "struct": None,
+        "new": {"t": "Subscript", "c": []},
     },
     "SmallCaps": {
         # SmallCaps [Inline]
@@ -209,6 +215,7 @@ _ELEMENT_TYPES = {
         "class": Inline,
         "content": {"key": "c", "type": None},
         "struct": None,
+        "new": {"t": "SmallCaps", "c": []},
     },
     "Quoted": {
         # Quoted QuoteType [Inline]

@@ -1,43 +1,41 @@
 """
 section.py: Section class
 """
+from gdoc.lib.pandocastobject.pandocast import PandocElement
 
-import copy
-
-from ..pandocastobject.pandocast.element import Element
 from .config import DEFAULTS
 from .textstring import TextString
 
-# fmt: off
 _REMOVE_TYPES: list = DEFAULTS.get("pandocast", {}).get("types", {}).get("remove", [])
-_IGNORE_TYPES: list = (
-    DEFAULTS.get("pandocast", {}).get("types", {}).get("ignore", [])
-    + DEFAULTS.get("pandocast", {}).get("types", {}).get("decorator", [])
-)
-# fmt: on
+
+_IGNORE_TYPES: list = DEFAULTS.get("pandocast", {}).get("types", {}).get("ignore", [])
+_IGNORE_TYPES += DEFAULTS.get("pandocast", {}).get("types", {}).get("decorator", [])
 
 
 class TextBlock(list):
     """ """
 
-    def __init__(self, textblock=None):
+    _element: PandocElement
+
+    def __init__(self, textblock: PandocElement) -> None:
         super().__init__()
-        self.__element = textblock
+        self._element = textblock
 
         inlines = textblock.get_child_items(ignore=_IGNORE_TYPES)
 
-        item: Element = None
+        item: PandocElement
         line: list = []
         for item in inlines:
             type = item.get_type()
+
             if type in _REMOVE_TYPES:
-                pass
-            elif type == "LineBreak":
-                line.append(item)
+                continue
+
+            line.append(item)
+
+            if type == "LineBreak":
                 self.append(TextString(line))
                 line = []
-            else:
-                line.append(item)
 
         if len(line) > 0:
             self.append(TextString(line))
