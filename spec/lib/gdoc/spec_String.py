@@ -10,7 +10,7 @@ from typing import cast
 
 import pytest
 
-from gdoc.lib.gdoc import DataPos, Pos, String
+from gdoc.lib.gdoc import DataPos, String
 from gdoc.lib.pandocastobject.pandocast import PandocAst, PandocInlineElement
 from gdoc.lib.pandocastobject.pandocstr import PandocStr
 

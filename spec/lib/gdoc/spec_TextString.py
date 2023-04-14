@@ -11,7 +11,7 @@ from typing import cast
 
 import pytest
 
-from gdoc.lib.gdoc import Code, DataPos, String, TextString
+from gdoc.lib.gdoc import Code, String, TextString
 from gdoc.lib.pandocastobject.pandocast import (
     PandocAst,
     PandocElement,
@@ -749,7 +749,7 @@ class Spec_append:
             # WHEN
             target.append(stimulus)
             # THEN
-            items = target._TextString__text_items
+            items: list = target._TextString__text_items  # type: ignore
             assert len(items) == len(expected["items"])
             for i in range(len(items)):
                 assert items[i].get_str() == expected["items"][i]
@@ -816,7 +816,7 @@ class Spec_get_text_items:
         # WHEN
         result = target.get_text_items()
         # THEN
-        expected = target._TextString__text_items
+        expected = target._TextString__text_items  # type: ignore
         assert len(result) == len(expected)
         for i in range(len(result)):
             assert result[i] is expected[i]
@@ -837,11 +837,11 @@ class Spec_clear:
         """
         # GIVEN
         target = TextString.loadd(["T", [["s", [[3, None]], "ABC"]]])
-        assert len(target._TextString__text_items) > 0
+        assert len(target._TextString__text_items) > 0  # type: ignore
         # WHEN
         target.clear()
         # THEN
-        assert len(target._TextString__text_items) == 0
+        assert len(target._TextString__text_items) == 0  # type: ignore
 
 
 class Spec_pop_prefix:
@@ -2760,7 +2760,7 @@ class xSpec_TEMPLATE:
             # WHEN
             target.append(stimulus)
             # THEN
-            items = target._TextString__text_items
+            items = target._TextString__text_items  # type: ignore
             assert len(items) == len(expected["items"])
             for i in range(len(items)):
                 assert items[i].get_str() == expected["items"][i]

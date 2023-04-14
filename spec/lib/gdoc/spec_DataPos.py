@@ -6,8 +6,6 @@ r"""
 ## ADDITIONAL STRUCTURE
 
 """
-import pytest
-
 from gdoc.lib.gdoc import DataPos, Pos
 
 

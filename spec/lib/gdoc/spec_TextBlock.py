@@ -541,7 +541,7 @@ class xSpec_TEMPLATE:
             # WHEN
             target.append(stimulus)
             # THEN
-            items = target._TextString__text_items
+            items = target._TextString__text_items  # type: ignore
             assert len(items) == len(expected["items"])
             for i in range(len(items)):
                 assert items[i].get_str() == expected["items"][i]
