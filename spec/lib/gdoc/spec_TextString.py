@@ -12,7 +12,11 @@ from typing import cast
 import pytest
 
 from gdoc.lib.gdoc import Code, DataPos, String, TextString
-from gdoc.lib.pandocastobject.pandocast import PandocAst, PandocInlineElement
+from gdoc.lib.pandocastobject.pandocast import (
+    PandocAst,
+    PandocElement,
+    PandocInlineElement,
+)
 
 
 class Spec___init__:
@@ -466,7 +470,18 @@ class Spec_get_char_pos:
             assert dpos.dumpd() == expected
 
 
-class xSpec_dumpd:
+def create_new_element(item: list) -> PandocElement:
+    if type(item[1]) is not list:
+        content = item[1]
+    else:
+        content = []
+        for i in item[1]:
+            content.append(create_new_element(i).pan_element)
+
+    return PandocAst.create_element(None, item[0], content)
+
+
+class Spec_dumpd:
     r"""
     ## [\@spec] `dumpd`
 
@@ -488,55 +503,47 @@ class xSpec_dumpd:
             #
             "Simple(1/)": (
                 # precondition
-                [  # Arguments for creating PandocAst.Str elements
-                    ("CONTENTS", 0, None, DataPos.loadd(["FILEPATH", 5, 2, 5, 10]))
+                [
+                    ["Str", "First"],
+                    ["LineBreak", None],
+                    ["Str", "Second"],
                 ],
                 # expected
-                ["s", [[8, ["FILEPATH", 5, 2, 5, 10]]], "CONTENTS"],
+                [
+                    "T",
+                    [["s", None, "First\nSecond"]],
+                ],
             ),
             "Simple(2/)": (
                 # precondition
-                [  # Arguments for creating PandocAst.Str elements
-                    ("CONTENTS", 1, -1, DataPos.loadd(["FILEPATH", 5, 2, 5, 10]))
+                [
+                    ["Str", "First"],
+                    ["Code", "Second"],
                 ],
                 # expected
-                ["s", [[6, ["FILEPATH", 5, 3, 5, 9]]], "ONTENT"],
+                [
+                    "T",
+                    [
+                        ["s", None, "First"],
+                        ["c", None, "Second"],
+                    ],
+                ],
             ),
             "Simple(3/)": (
                 # precondition
-                [  # Arguments for creating PandocAst.Str elements
-                    ("CONTENTS", 0, None, None)
-                ],
-                # expected
-                ["s", [[8, None]], "CONTENTS"],
-            ),
-            ##
-            # #### [\@case 2] Multiple: Multiple elements
-            #
-            "Multiple(1/)": (
-                # precondition
-                [  # Arguments for creating PandocAst.Str elements
-                    ("CONTENTS", 0, None, DataPos.loadd(["FILEPATH", 5, 2, 5, 10])),
-                    ("NEXTLINE", 0, None, DataPos.loadd(["FILEPATH", 6, 2, 6, 10])),
+                [
+                    ["Str", "First"],
+                    ["Code", "Second"],
+                    ["Str", "Third"],
                 ],
                 # expected
                 [
-                    "s",
-                    [[8, ["FILEPATH", 5, 2, 5, 10]], [8, ["FILEPATH", 6, 2, 6, 10]]],
-                    "CONTENTSNEXTLINE",
-                ],
-            ),
-            "Multiple(2/)": (
-                # precondition
-                [  # Arguments for creating PandocAst.Str elements
-                    ("CONTENTS", 1, -1, DataPos.loadd(["FILEPATH", 5, 2, 5, 10])),
-                    ("NEXTLINE", 1, -1, DataPos.loadd(["FILEPATH", 6, 2, 6, 10])),
-                ],
-                # expected
-                [
-                    "s",
-                    [[6, ["FILEPATH", 5, 3, 5, 9]], [6, ["FILEPATH", 6, 3, 6, 9]]],
-                    "ONTENTEXTLIN",
+                    "T",
+                    [
+                        ["s", None, "First"],
+                        ["c", None, "Second"],
+                        ["s", None, "Third"],
+                    ],
                 ],
             ),
         }
@@ -553,9 +560,10 @@ class xSpec_dumpd:
         ### [\@spec 1]
         """
         # GIVEN
-        target = TextString()
-        for args in precondition:
-            target += TextString(*args)
+        items: list[PandocInlineElement] = []
+        for arg in precondition:
+            items.append(cast(PandocInlineElement, create_new_element(arg)))
+        target = TextString(items)
 
         # WHEN
         dumpdata = target.dumpd()
