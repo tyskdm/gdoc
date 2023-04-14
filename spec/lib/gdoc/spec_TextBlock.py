@@ -6,13 +6,21 @@ r"""
 ## ADDITIONAL STRUCTURE
 
 """
-import inspect
-from typing import cast
-
 import pytest
 
 from gdoc.lib.gdoc import String, TextBlock, TextString
 from gdoc.lib.pandocastobject.pandocast import PandocAst, PandocElement
+
+
+def create_new_element(item: list) -> PandocElement:
+    if type(item[1]) is not list:
+        content = item[1]
+    else:
+        content = []
+        for i in item[1]:
+            content.append(create_new_element(i).pan_element)
+
+    return PandocAst.create_element(None, item[0], content)
 
 
 class Spec___init__:
@@ -154,16 +162,324 @@ class Spec___init__:
         for i in range(len(expected)):
             assert target[i].dumpd() == expected[i]
 
+    @staticmethod
+    def cases_2():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Simple:
+            #
+            "Simple(1/)": (
+                # stimulus
+                [
+                    ["T", [["s", None, "First line.\n"]]],
+                    ["T", [["s", None, "Second line."]]],
+                ],
+                # expected
+                [
+                    ["T", [["s", None, "First line.\n"]]],
+                    ["T", [["s", None, "Second line."]]],
+                ],
+            ),
+            "Simple(2/)": (
+                # stimulus
+                [],
+                # expected
+                [],
+            ),
+            "Simple(3/)": (
+                # stimulus
+                [
+                    ["T", [["c", None, "First Code"], ["s", None, "\n"]]],
+                    ["T", [["s", None, "Second line."]]],
+                ],
+                # expected
+                [
+                    ["T", [["c", None, "First Code"], ["s", None, "\n"]]],
+                    ["T", [["s", None, "Second line."]]],
+                ],
+            ),
+        }
 
-def create_new_element(item: list) -> PandocElement:
-    if type(item[1]) is not list:
-        content = item[1]
-    else:
-        content = []
-        for i in item[1]:
-            content.append(create_new_element(i).pan_element)
+    # \cond
+    @pytest.mark.parametrize(
+        "stimulus, expected",
+        list(cases_2().values()),
+        ids=list(cases_2().keys()),
+    )
+    # \endcond
+    def spec_2(self, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # WHEN
+        text_strings: list = []
+        for item in stimulus:
+            text_strings.append(TextString.loadd(item))
 
-    return PandocAst.create_element(None, item[0], content)
+        # WHEN
+        target = TextBlock(text_strings)
+
+        # THEN
+        assert len(target) == len(expected)
+        for i in range(len(expected)):
+            assert target[i].dumpd() == expected[i]
+
+    @staticmethod
+    def cases_3():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Error:
+            #
+            "Error(1/)": (
+                # stimulus
+                "INVALID DATA(NOT LIST)",
+                # expected
+                {
+                    "Exception": [TypeError, "invalid initial data"],
+                },
+            ),
+            "Error(2/)": (
+                # stimulus
+                ["INVALID DATA(NOT TEXTSTRING)"],
+                # expected
+                {
+                    "Exception": [TypeError, "invalid initial data"],
+                },
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "stimulus, expected",
+        list(cases_3().values()),
+        ids=list(cases_3().keys()),
+    )
+    # \endcond
+    def spec_3(self, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # WHEN
+        with pytest.raises(expected["Exception"][0]) as exc_info:
+            TextBlock(stimulus)
+        # THEN
+        assert exc_info.match(expected["Exception"][1])
+
+
+class Spec_dumpd:
+    r"""
+    ## [\@spec] `dumpd`
+
+    ```py
+    def dumpd(self) -> list:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Simple:
+            #
+            "Simple(1/)": (
+                # precondition
+                [
+                    "Plain",
+                    [
+                        ["Str", "First line."],
+                        ["LineBreak", None],
+                        ["Str", "Second line."],
+                    ],
+                ],
+                # expected
+                [
+                    "TextBlock",
+                    [
+                        ["T", [["s", None, "First line.\n"]]],
+                        ["T", [["s", None, "Second line."]]],
+                    ],
+                ],
+            ),
+            "Simple(2/)": (
+                # precondition
+                [
+                    "Para",
+                    [
+                        ["Code", "First"],
+                        ["LineBreak", None],
+                        ["Str", "Second"],
+                        ["LineBreak", None],
+                    ],
+                ],
+                # expected
+                [
+                    "TextBlock",
+                    [
+                        ["T", [["c", None, "First"], ["s", None, "\n"]]],
+                        ["T", [["s", None, "Second\n"]]],
+                    ],
+                ],
+            ),
+            "Simple(3/)": (
+                # precondition
+                [
+                    "Para",
+                    [],
+                ],
+                # expected
+                [
+                    "TextBlock",
+                    [],
+                ],
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        pandoc_param = create_new_element(precondition)
+        target = TextBlock(pandoc_param)
+
+        # WHEN
+        dumpdata = target.dumpd()
+
+        # THEN
+        assert dumpdata == expected
+
+
+class Spec_loadd:
+    r"""
+    ## [\@spec] `loadd`
+
+    ```py
+    def loadd(cls, data: list) -> "TextBlock":
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Normal:
+            #
+            "Normal(1/)": (
+                # stimulus
+                [
+                    "TextBlock",
+                    [
+                        ["T", [["s", None, "First line.\n"]]],
+                        ["T", [["s", None, "Second line."]]],
+                    ],
+                ],
+                # expected
+                {
+                    "Exception": None,
+                    "result": [
+                        "TextBlock",
+                        [
+                            ["T", [["s", None, "First line.\n"]]],
+                            ["T", [["s", None, "Second line."]]],
+                        ],
+                    ],
+                },
+            ),
+            "Normal(2/)": (
+                # stimulus
+                [
+                    "TextBlock",
+                    [
+                        ["T", [["c", None, "First"], ["s", None, "\n"]]],
+                        ["T", [["s", None, "Second\n"]]],
+                    ],
+                ],
+                # expected
+                {
+                    "Exception": None,
+                    "result": [
+                        "TextBlock",
+                        [
+                            ["T", [["c", None, "First"], ["s", None, "\n"]]],
+                            ["T", [["s", None, "Second\n"]]],
+                        ],
+                    ],
+                },
+            ),
+            "Normal(3/)": (
+                # stimulus
+                [
+                    "TextBlock",
+                    [],
+                ],
+                # expected
+                {
+                    "Exception": None,
+                    "result": [
+                        "TextBlock",
+                        [],
+                    ],
+                },
+            ),
+            ##
+            # #### [\@case 1] Error:
+            #
+            "Error(1/)": (
+                # stimulus
+                [
+                    "INVALID-TYPE",
+                    [],
+                ],
+                # expected
+                {
+                    "Exception": [TypeError, 'invalid data type "INVALID-TYPE"'],
+                },
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        if expected["Exception"] is None:
+            # WHEN
+            target: TextBlock = TextBlock.loadd(stimulus)
+            # THEN
+            dumpdata = target.dumpd()
+            assert dumpdata == expected["result"]
+
+        else:
+            # WHEN
+            with pytest.raises(expected["Exception"][0]) as exc_info:
+                TextBlock.loadd(stimulus)
+            # THEN
+            assert exc_info.match(expected["Exception"][1])
 
 
 class xSpec_TEMPLATE:
