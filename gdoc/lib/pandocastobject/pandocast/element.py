@@ -151,7 +151,7 @@ class Element:
         return attr
 
     def hascontent(self) -> bool:
-        """returns True if self has content(s) or False if self is typed but has no content.
+        """returns True if self has content(s) or False if self has no content.
         @return Bool :
         """
         TYPEDEF = self.type_def
@@ -262,7 +262,7 @@ class Element:
         """
         action(self, opt)
 
-        for child in self.children[:]:
+        for child in self.children:
             child.walk(action, post_action, opt)
 
         if post_action is not None:
@@ -294,8 +294,10 @@ class Element:
         """
         child_items: List[Element] = []
 
+        # The following two lines are left only to pass some previous tests.
+        # TODO: Should be removed, and the tests should be fixed.
         if self.children is None:
-            return None
+            return None  # type: ignore
 
         for child in self.children:
             if child.type in ignore:
@@ -363,7 +365,7 @@ class Element:
         if self.type not in ignore:
             action(self, opt)
 
-        for child in self.children[:]:
+        for child in self.children:
             child.walk_items(action, post_action, opt, ignore)
 
         if post_action is not None and self.type not in ignore:
