@@ -1,8 +1,8 @@
 r"""
 PandocAst Utility Class
 """
-from typing import Callable, cast
 import copy
+from typing import Callable, cast
 
 from .element import Element
 from .pandoc import Pandoc
