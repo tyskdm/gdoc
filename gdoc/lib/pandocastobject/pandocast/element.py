@@ -126,6 +126,28 @@ class Element:
 
         return property
 
+    def set_prop(self, key: str, value):
+        """sets a property of the element specified by key string.
+        @param key(Str)
+            Key string of the property.
+        @param value(Str)
+            Value of the property.
+        """
+        TYPEDEF = self.type_def
+
+        if "struct" not in TYPEDEF:
+            raise TypeError(f'can not set property to "{self.type}" element.')
+
+        if key not in TYPEDEF["struct"]:
+            raise KeyError(f'can not set property "{key}" to "{self.type}" element.')
+
+        index = TYPEDEF["struct"][key]
+
+        if ("key" in TYPEDEF["content"]) and (TYPEDEF["content"]["key"] is not None):
+            self.pan_element[TYPEDEF["content"]["key"]][index] = value
+        else:
+            self.pan_element[index] = value
+
     def get_attr(self, name):
         """returns a attribute of the element specified by key string.
         @param key(Str or tuple)

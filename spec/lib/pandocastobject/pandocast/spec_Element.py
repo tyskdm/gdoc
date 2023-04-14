@@ -340,6 +340,156 @@ def spec_get_prop_1(pan_elem, elem_type, TYPE_DEFS, TESTS):
         assert target.get_prop(test[0]) == test[1]
 
 
+class Spec_set_prop:
+    r"""
+    ## [\@spec] `set_prop`
+
+    ```py
+    def get_content(self, value: Any):
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1] Returns content str.
+        """
+        return {
+            "Case: No Properties - no content": (
+                # precondition
+                (
+                    {"t": "Space"},
+                    "Space",
+                    {"content": None},
+                ),
+                # stimulus
+                ("TESTKEY", "TESTDATA"),
+                # expected
+                {"Exception": (TypeError, 'can not set property to "Space" element.')},
+            ),
+            "Case: No Properties - has content": (
+                # precondition
+                (
+                    {"t": "Str", "c": "String"},
+                    "Str",
+                    {"content": {"key": "c", "type": "Text"}},
+                ),
+                # stimulus
+                ("TESTKEY", "TESTDATA"),
+                # expected
+                {"Exception": (TypeError, 'can not set property to "Str" element.')},
+            ),
+            "Case: has Properties - Invalid Key": (
+                # precondition
+                (
+                    {"pandoc-api-version": [1, 22], "meta": {}, "blocks": []},
+                    "Pandoc",
+                    {
+                        # 'class':  BlockList,
+                        "content": {"key": None, "main": "blocks", "type": "[Block]"},
+                        "struct": {
+                            "Version": "pandoc-api-version",
+                            "Meta": "meta",
+                            "Blocks": "blocks",
+                        },
+                    },
+                ),
+                # stimulus
+                ("INVALID_KEY", "TESTDATA"),
+                # expected
+                {
+                    "Exception": (
+                        KeyError,
+                        'can not set property "INVALID_KEY" to "Pandoc" element.',
+                    )
+                },
+            ),
+            "Case: has Properties - has key": (
+                # precondition
+                (
+                    {"t": "Code", "c": [["", [], []], "CodeString"]},
+                    "Code",
+                    {
+                        # CodeBlock Attr Text
+                        # - Code block (literal) with attributes
+                        "content": {"key": "c", "main": 1, "type": "Text"},
+                        "struct": {"Attr": 0, "Text": 1},
+                    },
+                ),
+                # stimulus
+                ("Attr", "TESTDATA"),
+                # expected
+                {"Exception": None},
+            ),
+            "Case: has Properties - No key": (
+                # precondition
+                (
+                    [["", [], []], "[RowData]"],
+                    "Row",
+                    {
+                        # Row Attr [Cell]
+                        # A table row.
+                        "content": {"key": None, "main": 1, "type": "[Cell]"},
+                        "struct": {"Attr": 0, "Cells": 1},
+                    },
+                ),
+                # stimulus
+                ("Attr", "TESTDATA"),
+                # expected
+                {"Exception": None},
+            ),
+            "Case: has Properties - Pandoc": (
+                # precondition
+                (
+                    {"pandoc-api-version": [1, 22], "meta": {}, "blocks": []},
+                    "Pandoc",
+                    {
+                        # 'class':  BlockList,
+                        "content": {"key": None, "main": "blocks", "type": "[Block]"},
+                        "struct": {
+                            "Version": "pandoc-api-version",
+                            "Meta": "meta",
+                            "Blocks": "blocks",
+                        },
+                    },
+                ),
+                # stimulus
+                ("Meta", "TESTDATA"),
+                # expected
+                {"Exception": None},
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition, stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition, stimulus, expected):
+        r"""
+        [\@Spec get_content.1] get_content() returns main content data in the element.
+        """
+        # GIVEN
+        target = Element(*precondition)
+
+        if expected["Exception"] is None:
+            original = target.get_prop(stimulus[0])
+            # WHEN
+            target.set_prop(*stimulus)
+            # THEN
+            assert target.get_prop(stimulus[0]) is not original
+            assert target.get_prop(stimulus[0]) is stimulus[1]
+
+        else:
+            with pytest.raises(expected["Exception"][0]) as exc_info:
+                # WHEN
+                target.set_prop(*stimulus)
+            # THEN
+            assert exc_info.match(expected["Exception"][1])
+
+
 ## @}
 ## @{ @name get_attr(self, key)
 ## [\@spec get_attr] returns a attrbute of the element specified by key string.
@@ -570,7 +720,7 @@ class Spec_set_content:
     ## [\@spec] `set_content`
 
     ```py
-    def get_content(self, value: Any):
+    def set_content(self, value: Any):
     ```
     """
 
