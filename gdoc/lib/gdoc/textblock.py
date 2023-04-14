@@ -2,6 +2,7 @@
 section.py: Section class
 """
 from typing import Union
+
 from gdoc.lib.pandocastobject.pandocast import PandocElement
 
 from .config import DEFAULTS
