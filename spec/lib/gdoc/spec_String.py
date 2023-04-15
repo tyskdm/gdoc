@@ -194,7 +194,7 @@ class Spec_dumpd:
                     ("CONTENTS", 0, None, None)
                 ],
                 # expected
-                ["s", None, "CONTENTS"],
+                ["s", "CONTENTS"],
             ),
             "Simple(4/)": (
                 # precondition
@@ -253,7 +253,7 @@ class Spec_dumpd:
                     ("NEXTLINE", 1, -1, None),
                 ],
                 # expected
-                ["s", None, "ONTENTEXTLIN"],
+                ["s", "ONTENTEXTLIN"],
             ),
             "Multiple(5/)": (
                 # precondition
@@ -320,25 +320,46 @@ class Spec_loadd:
                 # stimulus
                 ["s", [[8, ["FILEPATH", 5, 2, 5, 10]]], "CONTENTS"],
                 # expected
-                {"Exception": None},
+                {
+                    "Exception": None,
+                    "result": ["s", [[8, ["FILEPATH", 5, 2, 5, 10]]], "CONTENTS"],
+                },
             ),
             "Simple(3/)": (
                 # stimulus
                 ["s", None, "CONTENTS"],
                 # expected
-                {"Exception": None},
+                {
+                    "Exception": None,
+                    "result": ["s", "CONTENTS"],
+                },
             ),
             "Simple(4/)": (
+                # stimulus
+                ["s", "CONTENTS"],
+                # expected
+                {
+                    "Exception": None,
+                    "result": ["s", "CONTENTS"],
+                },
+            ),
+            "Simple(5/)": (
                 # stimulus
                 ["s", [[2, None]], "CONTENTS"],
                 # expected
                 {"Exception": (RuntimeError, "invalid data")},
             ),
-            "Simple(5/)": (
+            "Simple(6/)": (
                 # stimulus
                 ["s", [[20, None]], "CONTENTS"],
                 # expected
                 {"Exception": (RuntimeError, "invalid data")},
+            ),
+            "Simple(7/)": (
+                # stimulus
+                ["s", "INVALID DATAPOS", "CONTENTS"],
+                # expected
+                {"Exception": (TypeError, "invalid DataPos data")},
             ),
             ##
             # #### [\@case 2] Multiple: Multiple elements
@@ -351,7 +372,14 @@ class Spec_loadd:
                     "CONTENTSNEXTLINE",
                 ],
                 # expected
-                {"Exception": None},
+                {
+                    "Exception": None,
+                    "result": [
+                        "s",
+                        [[8, ["FILEPATH", 5, 2, 5, 10]], [8, ["FILEPATH", 6, 2, 6, 10]]],
+                        "CONTENTSNEXTLINE",
+                    ],
+                },
             ),
             "Multiple(2/)": (
                 # stimulus
@@ -361,7 +389,14 @@ class Spec_loadd:
                     "CONTENTSNEXTLINE",
                 ],
                 # expected
-                {"Exception": None},
+                {
+                    "Exception": None,
+                    "result": [
+                        "s",
+                        [[8, None], [8, ["FILEPATH", 6, 2, 6, 10]]],
+                        "CONTENTSNEXTLINE",
+                    ],
+                },
             ),
         }
 
@@ -380,7 +415,7 @@ class Spec_loadd:
             # WHEN
             target = String.loadd(stimulus)
             # THEN
-            assert target.dumpd() == stimulus
+            assert target.dumpd() == expected["result"]
 
         else:
             with pytest.raises(expected["Exception"][0]) as exc_info:

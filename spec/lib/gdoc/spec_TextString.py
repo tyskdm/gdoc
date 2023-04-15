@@ -73,7 +73,7 @@ class Spec___init__:
                 # expected
                 {
                     "Exception": None,
-                    "target": ["T", [["s", None, "ABC"]]],
+                    "target": ["T", [["s", "ABC"]]],
                 },
             ),
             "PandocAst(2/)": (
@@ -100,7 +100,7 @@ class Spec___init__:
                     "Exception": None,
                     "target": [
                         "T",
-                        [["s", None, "AB"], ["c", "CD"], ["s", None, "EF"]],
+                        [["s", "AB"], ["c", "CD"], ["s", "EF"]],
                     ],
                 },
             ),
@@ -110,7 +110,7 @@ class Spec___init__:
                 # expected
                 {
                     "Exception": None,
-                    "target": ["T", [["s", None, "\n"]]],
+                    "target": ["T", [["s", "\n"]]],
                 },
             ),
             "PandocAst(5/) Math to be ignored for now": (
@@ -137,7 +137,7 @@ class Spec___init__:
                 # expected
                 {
                     "Exception": None,
-                    "target": ["T", [["s", None, "ABC"]]],
+                    "target": ["T", [["s", "ABC"]]],
                 },
             ),
             "GdocText(2/)": (
@@ -160,7 +160,7 @@ class Spec___init__:
                 # expected
                 {
                     "Exception": None,
-                    "target": ["T", [["s", None, "ABC"], ["c", "DEF"]]],
+                    "target": ["T", [["s", "ABC"], ["c", "DEF"]]],
                 },
             ),
             ##
@@ -168,22 +168,22 @@ class Spec___init__:
             #
             "TextString(1/)": (
                 # stimulus
-                TextString.loadd(["T", [["s", None, "ABC"]]]),
+                TextString.loadd(["T", [["s", "ABC"]]]),
                 # expected
                 {
                     "Exception": None,
-                    "target": ["T", [["s", None, "ABC"]]],
+                    "target": ["T", [["s", "ABC"]]],
                 },
             ),
             "TextString(2/)": (
                 # stimulus
                 [
-                    TextString.loadd(["T", [["s", None, "ABC"]]]),
+                    TextString.loadd(["T", [["s", "ABC"]]]),
                 ],
                 # expected
                 {
                     "Exception": None,
-                    "target": ["T", [["T", [["s", None, "ABC"]]]]],
+                    "target": ["T", [["T", [["s", "ABC"]]]]],
                 },
             ),
         }
@@ -511,7 +511,7 @@ class Spec_dumpd:
                 # expected
                 [
                     "T",
-                    [["s", None, "First\nSecond"]],
+                    [["s", "First\nSecond"]],
                 ],
             ),
             "Simple(2/)": (
@@ -524,7 +524,7 @@ class Spec_dumpd:
                 [
                     "T",
                     [
-                        ["s", None, "First"],
+                        ["s", "First"],
                         ["c", "Second"],
                     ],
                 ],
@@ -540,9 +540,9 @@ class Spec_dumpd:
                 [
                     "T",
                     [
-                        ["s", None, "First"],
+                        ["s", "First"],
                         ["c", "Second"],
-                        ["s", None, "Third"],
+                        ["s", "Third"],
                     ],
                 ],
             ),
@@ -606,7 +606,7 @@ class Spec_loadd:
             ),
             "Simple(3/)": (
                 # stimulus
-                ["T", [["s", None, "CONTENTS"]]],
+                ["T", [["s", "CONTENTS"]]],
                 # expected
                 {"Exception": None},
             ),
@@ -643,9 +643,9 @@ class Spec_loadd:
                 [
                     "T",
                     [
-                        ["s", None, "STRING"],
+                        ["s", "STRING"],
                         ["c", "CODE"],
-                        ["T", [["s", None, "CONTENTS"]]],
+                        ["T", [["s", "CONTENTS"]]],
                     ],
                 ],
                 # expected
@@ -864,57 +864,57 @@ class Spec_pop_prefix:
             #
             "String(1/)": (
                 # precondition
-                ["T", [["s", None, "ABCDEF"]]],
+                ["T", [["s", "ABCDEF"]]],
                 # stimulus
                 "ABC",
                 # expected
                 {
-                    "prefix": ["T", [["s", None, "ABC"]]],
-                    "result": ["T", [["s", None, "DEF"]]],
+                    "prefix": ["T", [["s", "ABC"]]],
+                    "result": ["T", [["s", "DEF"]]],
                 },
             ),
             "String(2/)": (
                 # precondition
-                ["T", [["s", None, "ABCDEF"]]],
+                ["T", [["s", "ABCDEF"]]],
                 # stimulus
                 "ABCDEF",
                 # expected
                 {
-                    "prefix": ["T", [["s", None, "ABCDEF"]]],
+                    "prefix": ["T", [["s", "ABCDEF"]]],
                     "result": ["T", []],
                 },
             ),
             "String(3/)": (
                 # precondition
-                ["T", [["s", None, "ABCDEF"]]],
+                ["T", [["s", "ABCDEF"]]],
                 # stimulus
                 "XYZ",
                 # expected
                 {
                     "prefix": None,
-                    "result": ["T", [["s", None, "ABCDEF"]]],
+                    "result": ["T", [["s", "ABCDEF"]]],
                 },
             ),
             "String(4/)": (
                 # precondition
-                ["T", [["s", None, "ABCDEF"]]],
+                ["T", [["s", "ABCDEF"]]],
                 # stimulus
                 "ABCDEF_AND_MORE",
                 # expected
                 {
                     "prefix": None,
-                    "result": ["T", [["s", None, "ABCDEF"]]],
+                    "result": ["T", [["s", "ABCDEF"]]],
                 },
             ),
             "String(5/)": (
                 # precondition
-                ["T", [["s", None, "ABCDEF"]]],
+                ["T", [["s", "ABCDEF"]]],
                 # stimulus
                 "",
                 # expected
                 {
                     "prefix": None,
-                    "result": ["T", [["s", None, "ABCDEF"]]],
+                    "result": ["T", [["s", "ABCDEF"]]],
                 },
             ),
             ##
@@ -922,40 +922,40 @@ class Spec_pop_prefix:
             #
             "Mix(1/)": (
                 # precondition
-                ["T", [["s", None, "ABC"], ["c", "DEF"]]],
+                ["T", [["s", "ABC"], ["c", "DEF"]]],
                 # stimulus
                 "AB",
                 # expected
                 {
-                    "prefix": ["T", [["s", None, "AB"]]],
-                    "result": ["T", [["s", None, "C"], ["c", "DEF"]]],
+                    "prefix": ["T", [["s", "AB"]]],
+                    "result": ["T", [["s", "C"], ["c", "DEF"]]],
                 },
             ),
             "Mix(2/)": (
                 # precondition
-                ["T", [["s", None, "ABC"], ["c", "DEF"]]],
+                ["T", [["s", "ABC"], ["c", "DEF"]]],
                 # stimulus
                 "ABC",
                 # expected
                 {
-                    "prefix": ["T", [["s", None, "ABC"]]],
+                    "prefix": ["T", [["s", "ABC"]]],
                     "result": ["T", [["c", "DEF"]]],
                 },
             ),
             "Mix(3/)": (
                 # precondition
-                ["T", [["s", None, "ABC"], ["c", "DEF"]]],
+                ["T", [["s", "ABC"], ["c", "DEF"]]],
                 # stimulus
                 "ABCDEF",
                 # expected
                 {
                     "prefix": None,
-                    "result": ["T", [["s", None, "ABC"], ["c", "DEF"]]],
+                    "result": ["T", [["s", "ABC"], ["c", "DEF"]]],
                 },
             ),
             "Mix(4/)": (
                 # precondition
-                ["T", [["s", None, "ABC"], ["T", [["s", None, "DEF"]]]]],
+                ["T", [["s", "ABC"], ["T", [["s", "DEF"]]]]],
                 # stimulus
                 "ABCDEF",
                 # expected
@@ -963,7 +963,7 @@ class Spec_pop_prefix:
                     "prefix": None,
                     "result": [
                         "T",
-                        [["s", None, "ABC"], ["T", [["s", None, "DEF"]]]],
+                        [["s", "ABC"], ["T", [["s", "DEF"]]]],
                     ],
                 },
             ),
@@ -1015,29 +1015,29 @@ class Spec__deque_while:
             #
             "String(1/)": (
                 # precondition
-                ["T", [["s", None, "ABCDEF"]]],
+                ["T", [["s", "ABCDEF"]]],
                 # stimulus
                 lambda text: not (type(text) is String),
                 # expected
                 {
                     "result": [],
-                    "target": ["T", [["s", None, "ABCDEF"]]],
+                    "target": ["T", [["s", "ABCDEF"]]],
                 },
             ),
             "String(2/)": (
                 # precondition
-                ["T", [["s", None, "ABCDEF"]]],
+                ["T", [["s", "ABCDEF"]]],
                 # stimulus
                 lambda text: text in ("A", "B", "C"),
                 # expected
                 {
                     "result": ["A", "B", "C"],
-                    "target": ["T", [["s", None, "DEF"]]],
+                    "target": ["T", [["s", "DEF"]]],
                 },
             ),
             "String(3/)": (
                 # precondition
-                ["T", [["s", None, "ABCDEF"]]],
+                ["T", [["s", "ABCDEF"]]],
                 # stimulus
                 lambda text: (type(text) is String),
                 # expected
@@ -1051,7 +1051,7 @@ class Spec__deque_while:
             #
             "Mix(1/)": (
                 # precondition
-                ["T", [["s", None, "ABC"], ["c", "DEF"]]],
+                ["T", [["s", "ABC"], ["c", "DEF"]]],
                 # stimulus
                 lambda text: (type(text) is String),
                 # expected
@@ -1062,13 +1062,13 @@ class Spec__deque_while:
             ),
             "Mix(2/)": (
                 # precondition
-                ["T", [["c", "ABC"], ["s", None, "DEF"]]],
+                ["T", [["c", "ABC"], ["s", "DEF"]]],
                 # stimulus
                 lambda text: (type(text) is String),
                 # expected
                 {
                     "result": [],
-                    "target": ["T", [["c", "ABC"], ["s", None, "DEF"]]],
+                    "target": ["T", [["c", "ABC"], ["s", "DEF"]]],
                 },
             ),
         }
@@ -1270,40 +1270,40 @@ class Spec___add__:
             #
             "Simple(1/)": (
                 # precondition
-                ["T", [["s", None, "ABC"]]],
+                ["T", [["s", "ABC"]]],
                 # stimulus
-                TextString.loadd(["T", [["s", None, "DEF"]]]),
+                TextString.loadd(["T", [["s", "DEF"]]]),
                 # expected
                 {
                     "Exception": None,
-                    "result": ["T", [["s", None, "ABCDEF"]]],
+                    "result": ["T", [["s", "ABCDEF"]]],
                 },
             ),
             "Simple(2/)": (
                 # precondition
                 ["T", []],
                 # stimulus
-                TextString.loadd(["T", [["s", None, "DEF"]]]),
+                TextString.loadd(["T", [["s", "DEF"]]]),
                 # expected
                 {
                     "Exception": None,
-                    "result": ["T", [["s", None, "DEF"]]],
+                    "result": ["T", [["s", "DEF"]]],
                 },
             ),
             "Simple(3/)": (
                 # precondition
-                ["T", [["s", None, "ABC"]]],
+                ["T", [["s", "ABC"]]],
                 # stimulus
                 TextString.loadd(["T", []]),
                 # expected
                 {
                     "Exception": None,
-                    "result": ["T", [["s", None, "ABC"]]],
+                    "result": ["T", [["s", "ABC"]]],
                 },
             ),
             "Simple(4/)": (
                 # precondition
-                ["T", [["s", None, "ABC"]]],
+                ["T", [["s", "ABC"]]],
                 # stimulus
                 "INVALIDTEXT",
                 # expected
@@ -1316,7 +1316,7 @@ class Spec___add__:
             ),
             "Simple(5/)": (
                 # precondition
-                ["T", [["s", None, "ABC"]]],
+                ["T", [["s", "ABC"]]],
                 # stimulus
                 3,
                 # expected
@@ -1543,19 +1543,19 @@ class Spec_lstrip:
             #
             "Simple(1/)": (
                 # precondition
-                ["T", [["s", None, "  ABC  "]]],
+                ["T", [["s", "  ABC  "]]],
                 # stimulus
                 None,
                 # expected
-                ["T", [["s", None, "ABC  "]]],
+                ["T", [["s", "ABC  "]]],
             ),
             "Simple(2/)": (
                 # precondition
-                ["T", [["s", None, "@@ABC@@"]]],
+                ["T", [["s", "@@ABC@@"]]],
                 # stimulus
                 "@",
                 # expected
-                ["T", [["s", None, "ABC@@"]]],
+                ["T", [["s", "ABC@@"]]],
             ),
             ##
             # #### [\@case 1] Mix: Multiple elements
@@ -1566,7 +1566,7 @@ class Spec_lstrip:
                 # stimulus
                 None,
                 # expected
-                ["T", [["s", None, "ABC  "]]],
+                ["T", [["s", "ABC  "]]],
             ),
             "Mix(2/)": (
                 # precondition
@@ -1574,16 +1574,16 @@ class Spec_lstrip:
                 # stimulus
                 "*+",
                 # expected
-                ["T", [["s", None, "ABC+*+*"]]],
+                ["T", [["s", "ABC+*+*"]]],
             ),
             "Mix(3/)": (
                 # precondition
                 [
                     "T",
                     [
-                        ["s", None, "+*"],
+                        ["s", "+*"],
                         ["c", "+*ABC+*"],
-                        ["s", None, "+*"],
+                        ["s", "+*"],
                     ],
                 ],
                 # stimulus
@@ -1593,7 +1593,7 @@ class Spec_lstrip:
                     "T",
                     [
                         ["c", "+*ABC+*"],
-                        ["s", None, "+*"],
+                        ["s", "+*"],
                     ],
                 ],
             ),
@@ -1640,19 +1640,19 @@ class Spec_rstrip:
             #
             "Simple(1/)": (
                 # precondition
-                ["T", [["s", None, "  ABC  "]]],
+                ["T", [["s", "  ABC  "]]],
                 # stimulus
                 None,
                 # expected
-                ["T", [["s", None, "  ABC"]]],
+                ["T", [["s", "  ABC"]]],
             ),
             "Simple(2/)": (
                 # precondition
-                ["T", [["s", None, "@@ABC@@"]]],
+                ["T", [["s", "@@ABC@@"]]],
                 # stimulus
                 "@",
                 # expected
-                ["T", [["s", None, "@@ABC"]]],
+                ["T", [["s", "@@ABC"]]],
             ),
             ##
             # #### [\@case 1] Mix: Multiple elements
@@ -1663,7 +1663,7 @@ class Spec_rstrip:
                 # stimulus
                 None,
                 # expected
-                ["T", [["s", None, "  ABC"]]],
+                ["T", [["s", "  ABC"]]],
             ),
             "Mix(2/)": (
                 # precondition
@@ -1671,16 +1671,16 @@ class Spec_rstrip:
                 # stimulus
                 "*+",
                 # expected
-                ["T", [["s", None, "+*+*ABC"]]],
+                ["T", [["s", "+*+*ABC"]]],
             ),
             "Mix(3/)": (
                 # precondition
                 [
                     "T",
                     [
-                        ["s", None, "+*"],
+                        ["s", "+*"],
                         ["c", "+*ABC+*"],
-                        ["s", None, "+*"],
+                        ["s", "+*"],
                     ],
                 ],
                 # stimulus
@@ -1689,7 +1689,7 @@ class Spec_rstrip:
                 [
                     "T",
                     [
-                        ["s", None, "+*"],
+                        ["s", "+*"],
                         ["c", "+*ABC+*"],
                     ],
                 ],
@@ -1737,19 +1737,19 @@ class Spec_strip:
             #
             "Simple(1/)": (
                 # precondition
-                ["T", [["s", None, "  ABC  "]]],
+                ["T", [["s", "  ABC  "]]],
                 # stimulus
                 None,
                 # expected
-                ["T", [["s", None, "ABC"]]],
+                ["T", [["s", "ABC"]]],
             ),
             "Simple(2/)": (
                 # precondition
-                ["T", [["s", None, "@@ABC@@"]]],
+                ["T", [["s", "@@ABC@@"]]],
                 # stimulus
                 "@",
                 # expected
-                ["T", [["s", None, "ABC"]]],
+                ["T", [["s", "ABC"]]],
             ),
             ##
             # #### [\@case 1] Mix: Multiple elements
@@ -1760,7 +1760,7 @@ class Spec_strip:
                 # stimulus
                 None,
                 # expected
-                ["T", [["s", None, "ABC"]]],
+                ["T", [["s", "ABC"]]],
             ),
             "Mix(2/)": (
                 # precondition
@@ -1768,16 +1768,16 @@ class Spec_strip:
                 # stimulus
                 "*+",
                 # expected
-                ["T", [["s", None, "ABC"]]],
+                ["T", [["s", "ABC"]]],
             ),
             "Mix(3/)": (
                 # precondition
                 [
                     "T",
                     [
-                        ["s", None, "+*"],
+                        ["s", "+*"],
                         ["c", "+*ABC+*"],
-                        ["s", None, "+*"],
+                        ["s", "+*"],
                     ],
                 ],
                 # stimulus
@@ -1833,322 +1833,322 @@ class Spec_split:
             #
             "Simple(1/)": (
                 # precondition
-                ["T", [["s", None, " ABC DEF GHI "]]],
+                ["T", [["s", " ABC DEF GHI "]]],
                 # stimulus
                 (),
                 # expected
                 [
-                    ["T", [["s", None, "ABC"]]],
-                    ["T", [["s", None, "DEF"]]],
-                    ["T", [["s", None, "GHI"]]],
+                    ["T", [["s", "ABC"]]],
+                    ["T", [["s", "DEF"]]],
+                    ["T", [["s", "GHI"]]],
                 ],
             ),
             "Simple(1a/)": (
                 # precondition
-                ["T", [["s", None, " ABC DEF GHI "]]],
+                ["T", [["s", " ABC DEF GHI "]]],
                 # stimulus
                 (None, -1, True),
                 # expected
                 [
-                    ["T", [["s", None, "ABC"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "DEF"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "GHI"]]],
+                    ["T", [["s", "ABC"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "DEF"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "GHI"]]],
                 ],
             ),
             "Simple(1b/)": (
                 # precondition
-                ["T", [["s", None, " ABC DEF GHI "]]],
+                ["T", [["s", " ABC DEF GHI "]]],
                 # stimulus
                 (" "),
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, "ABC"]]],
-                    ["T", [["s", None, "DEF"]]],
-                    ["T", [["s", None, "GHI"]]],
+                    ["T", [["s", "ABC"]]],
+                    ["T", [["s", "DEF"]]],
+                    ["T", [["s", "GHI"]]],
                     ["T", []],
                 ],
             ),
             "Simple(1c/)": (
                 # precondition
-                ["T", [["s", None, " ABC DEF GHI "]]],
+                ["T", [["s", " ABC DEF GHI "]]],
                 # stimulus
                 (" ", -1, True),
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "ABC"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "DEF"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "GHI"]]],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "ABC"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "DEF"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "GHI"]]],
+                    ["T", [["s", " "]]],
                     ["T", []],
                 ],
             ),
             "Simple(2/)": (
                 # precondition
-                ["T", [["s", None, " ABC DEF　GHI　"]]],
+                ["T", [["s", " ABC DEF　GHI　"]]],
                 # stimulus
                 (),
                 # expected
                 [
-                    ["T", [["s", None, "ABC"]]],
-                    ["T", [["s", None, "DEF"]]],
-                    ["T", [["s", None, "GHI"]]],
+                    ["T", [["s", "ABC"]]],
+                    ["T", [["s", "DEF"]]],
+                    ["T", [["s", "GHI"]]],
                 ],
             ),
             "Simple(2a/)": (
                 # precondition
-                ["T", [["s", None, " ABC DEF　GHI　"]]],
+                ["T", [["s", " ABC DEF　GHI　"]]],
                 # stimulus
                 (None, -1, True),
                 # expected
                 [
-                    ["T", [["s", None, "ABC"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "DEF"]]],
-                    ["T", [["s", None, "　"]]],
-                    ["T", [["s", None, "GHI"]]],
+                    ["T", [["s", "ABC"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "DEF"]]],
+                    ["T", [["s", "　"]]],
+                    ["T", [["s", "GHI"]]],
                 ],
             ),
             "Simple(2b/)": (
                 # precondition
-                ["T", [["s", None, " ABC DEF　GHI　"]]],
+                ["T", [["s", " ABC DEF　GHI　"]]],
                 # stimulus
                 (" "),
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, "ABC"]]],
-                    ["T", [["s", None, "DEF　GHI　"]]],
+                    ["T", [["s", "ABC"]]],
+                    ["T", [["s", "DEF　GHI　"]]],
                 ],
             ),
             "Simple(2c/)": (
                 # precondition
-                ["T", [["s", None, " ABC DEF　GHI　"]]],
+                ["T", [["s", " ABC DEF　GHI　"]]],
                 # stimulus
                 (" ", -1, True),
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "ABC"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "DEF　GHI　"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "ABC"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "DEF　GHI　"]]],
                 ],
             ),
             "Simple(3/)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (None, 0),
                 # expected
                 [
-                    ["T", [["s", None, "1 2 3 "]]],
+                    ["T", [["s", "1 2 3 "]]],
                 ],
             ),
             "Simple(3/a)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (None, 0, True),
                 # expected
                 [
-                    ["T", [["s", None, "1 2 3 "]]],
+                    ["T", [["s", "1 2 3 "]]],
                 ],
             ),
             "Simple(3/b)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (" ", 0),
                 # expected
                 [
-                    ["T", [["s", None, " 1 2 3 "]]],
+                    ["T", [["s", " 1 2 3 "]]],
                 ],
             ),
             "Simple(3/c)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (" ", 0, True),
                 # expected
                 [
-                    ["T", [["s", None, " 1 2 3 "]]],
+                    ["T", [["s", " 1 2 3 "]]],
                 ],
             ),
             "Simple(4/)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (None, 2),
                 # expected
                 [
-                    ["T", [["s", None, "1"]]],
-                    ["T", [["s", None, "2"]]],
-                    ["T", [["s", None, "3 "]]],
+                    ["T", [["s", "1"]]],
+                    ["T", [["s", "2"]]],
+                    ["T", [["s", "3 "]]],
                 ],
             ),
             "Simple(4/a)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (None, 2, True),
                 # expected
                 [
-                    ["T", [["s", None, "1"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "2"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "3 "]]],
+                    ["T", [["s", "1"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "2"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "3 "]]],
                 ],
             ),
             "Simple(4/b)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (" ", 2),
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, "1"]]],
-                    ["T", [["s", None, "2 3 "]]],
+                    ["T", [["s", "1"]]],
+                    ["T", [["s", "2 3 "]]],
                 ],
             ),
             "Simple(4/c)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (" ", 2, True),
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "1"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "2 3 "]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "1"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "2 3 "]]],
                 ],
             ),
             "Simple(5/)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (None, 3),
                 # expected
                 [
-                    ["T", [["s", None, "1"]]],
-                    ["T", [["s", None, "2"]]],
-                    ["T", [["s", None, "3"]]],
+                    ["T", [["s", "1"]]],
+                    ["T", [["s", "2"]]],
+                    ["T", [["s", "3"]]],
                 ],
             ),
             "Simple(5a/)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (None, 3, True),
                 # expected
                 [
-                    ["T", [["s", None, "1"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "2"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "3"]]],
+                    ["T", [["s", "1"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "2"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "3"]]],
                 ],
             ),
             "Simple(5b/)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (" ", 3),
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, "1"]]],
-                    ["T", [["s", None, "2"]]],
-                    ["T", [["s", None, "3 "]]],
+                    ["T", [["s", "1"]]],
+                    ["T", [["s", "2"]]],
+                    ["T", [["s", "3 "]]],
                 ],
             ),
             "Simple(5c/)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (" ", 3, True),
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "1"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "2"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "3 "]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "1"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "2"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "3 "]]],
                 ],
             ),
             "Simple(6/)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (None, 4),
                 # expected
                 [
-                    ["T", [["s", None, "1"]]],
-                    ["T", [["s", None, "2"]]],
-                    ["T", [["s", None, "3"]]],
+                    ["T", [["s", "1"]]],
+                    ["T", [["s", "2"]]],
+                    ["T", [["s", "3"]]],
                 ],
             ),
             "Simple(6a/)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (None, 4, True),
                 # expected
                 [
-                    ["T", [["s", None, "1"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "2"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "3"]]],
+                    ["T", [["s", "1"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "2"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "3"]]],
                 ],
             ),
             "Simple(6b/)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (" ", 4),
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, "1"]]],
-                    ["T", [["s", None, "2"]]],
-                    ["T", [["s", None, "3"]]],
+                    ["T", [["s", "1"]]],
+                    ["T", [["s", "2"]]],
+                    ["T", [["s", "3"]]],
                     ["T", []],
                 ],
             ),
             "Simple(6c/)": (
                 # precondition
-                ["T", [["s", None, " 1 2 3 "]]],
+                ["T", [["s", " 1 2 3 "]]],
                 # stimulus
                 (" ", 4, True),
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "1"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "2"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "3"]]],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "1"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "2"]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "3"]]],
+                    ["T", [["s", " "]]],
                     ["T", []],
                 ],
             ),
             "Simple(7/)": (
                 # precondition
-                ["T", [["s", None, "   "]]],
+                ["T", [["s", "   "]]],
                 # stimulus
                 (),
                 # expected
@@ -2158,7 +2158,7 @@ class Spec_split:
             ),
             "Simple(7a/)": (
                 # precondition
-                ["T", [["s", None, "   "]]],
+                ["T", [["s", "   "]]],
                 # stimulus
                 (None, -1, True),
                 # expected
@@ -2168,7 +2168,7 @@ class Spec_split:
             ),
             "Simple(7b/)": (
                 # precondition
-                ["T", [["s", None, "   "]]],
+                ["T", [["s", "   "]]],
                 # stimulus
                 (" ", -1),
                 # expected
@@ -2181,17 +2181,17 @@ class Spec_split:
             ),
             "Simple(7c/)": (
                 # precondition
-                ["T", [["s", None, "   "]]],
+                ["T", [["s", "   "]]],
                 # stimulus
                 (" ", -1, True),
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
                     ["T", []],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
                     ["T", []],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
                     ["T", []],
                 ],
             ),
@@ -2283,9 +2283,9 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
-                        ["s", None, " "],
-                        ["s", None, " "],
+                        ["s", " "],
+                        ["s", " "],
+                        ["s", " "],
                     ],
                 ],
                 # stimulus
@@ -2300,9 +2300,9 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
-                        ["s", None, " "],
-                        ["s", None, " "],
+                        ["s", " "],
+                        ["s", " "],
+                        ["s", " "],
                     ],
                 ],
                 # stimulus
@@ -2317,9 +2317,9 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
-                        ["s", None, " "],
-                        ["s", None, " "],
+                        ["s", " "],
+                        ["s", " "],
+                        ["s", " "],
                     ],
                 ],
                 # stimulus
@@ -2337,9 +2337,9 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
-                        ["s", None, " "],
-                        ["s", None, " "],
+                        ["s", " "],
+                        ["s", " "],
+                        ["s", " "],
                     ],
                 ],
                 # stimulus
@@ -2347,11 +2347,11 @@ class Spec_split:
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
                     ["T", []],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
                     ["T", []],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
                     ["T", []],
                 ],
             ),
@@ -2363,11 +2363,11 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "1"],
-                        ["s", None, "2"],
+                        ["s", "2"],
                         ["c", "3"],
-                        ["s", None, "4 "],
+                        ["s", "4 "],
                     ],
                 ],
                 # stimulus
@@ -2378,9 +2378,9 @@ class Spec_split:
                         "T",
                         [
                             ["c", "1"],
-                            ["s", None, "2"],
+                            ["s", "2"],
                             ["c", "3"],
-                            ["s", None, "4"],
+                            ["s", "4"],
                         ],
                     ],
                 ],
@@ -2390,11 +2390,11 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "1"],
-                        ["s", None, "2"],
+                        ["s", "2"],
                         ["c", "3"],
-                        ["s", None, "4 "],
+                        ["s", "4 "],
                     ],
                 ],
                 # stimulus
@@ -2405,9 +2405,9 @@ class Spec_split:
                         "T",
                         [
                             ["c", "1"],
-                            ["s", None, "2"],
+                            ["s", "2"],
                             ["c", "3"],
-                            ["s", None, "4"],
+                            ["s", "4"],
                         ],
                     ],
                 ],
@@ -2417,11 +2417,11 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "1"],
-                        ["s", None, "2"],
+                        ["s", "2"],
                         ["c", "3"],
-                        ["s", None, "4 "],
+                        ["s", "4 "],
                     ],
                 ],
                 # stimulus
@@ -2433,9 +2433,9 @@ class Spec_split:
                         "T",
                         [
                             ["c", "1"],
-                            ["s", None, "2"],
+                            ["s", "2"],
                             ["c", "3"],
-                            ["s", None, "4"],
+                            ["s", "4"],
                         ],
                     ],
                     ["T", []],
@@ -2446,11 +2446,11 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "1"],
-                        ["s", None, "2"],
+                        ["s", "2"],
                         ["c", "3"],
-                        ["s", None, "4 "],
+                        ["s", "4 "],
                     ],
                 ],
                 # stimulus
@@ -2458,17 +2458,17 @@ class Spec_split:
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
                     [
                         "T",
                         [
                             ["c", "1"],
-                            ["s", None, "2"],
+                            ["s", "2"],
                             ["c", "3"],
-                            ["s", None, "4"],
+                            ["s", "4"],
                         ],
                     ],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
                     ["T", []],
                 ],
             ),
@@ -2477,11 +2477,11 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "1"],
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "2"],
-                        ["s", None, " "],
+                        ["s", " "],
                     ],
                 ],
                 # stimulus
@@ -2497,11 +2497,11 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "1"],
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "2"],
-                        ["s", None, " "],
+                        ["s", " "],
                     ],
                 ],
                 # stimulus
@@ -2509,7 +2509,7 @@ class Spec_split:
                 # expected
                 [
                     ["T", [["c", "1"]]],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
                     ["T", [["c", "2"]]],
                 ],
             ),
@@ -2518,11 +2518,11 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "1"],
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "2"],
-                        ["s", None, " "],
+                        ["s", " "],
                     ],
                 ],
                 # stimulus
@@ -2540,11 +2540,11 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "1"],
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "2"],
-                        ["s", None, " "],
+                        ["s", " "],
                     ],
                 ],
                 # stimulus
@@ -2552,11 +2552,11 @@ class Spec_split:
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
                     ["T", [["c", "1"]]],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
                     ["T", [["c", "2"]]],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
                     ["T", []],
                 ],
             ),
@@ -2565,11 +2565,11 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "1"],
-                        ["s", None, " 2 "],
+                        ["s", " 2 "],
                         ["c", "3"],
-                        ["s", None, " "],
+                        ["s", " "],
                     ],
                 ],
                 # stimulus
@@ -2577,12 +2577,12 @@ class Spec_split:
                 # expected
                 [
                     ["T", [["c", "1"]]],
-                    ["T", [["s", None, "2"]]],
+                    ["T", [["s", "2"]]],
                     [
                         "T",
                         [
                             ["c", "3"],
-                            ["s", None, " "],
+                            ["s", " "],
                         ],
                     ],
                 ],
@@ -2592,11 +2592,11 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "1"],
-                        ["s", None, " 2 "],
+                        ["s", " 2 "],
                         ["c", "3"],
-                        ["s", None, " "],
+                        ["s", " "],
                     ],
                 ],
                 # stimulus
@@ -2604,14 +2604,14 @@ class Spec_split:
                 # expected
                 [
                     ["T", [["c", "1"]]],
-                    ["T", [["s", None, " "]]],
-                    ["T", [["s", None, "2"]]],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
+                    ["T", [["s", "2"]]],
+                    ["T", [["s", " "]]],
                     [
                         "T",
                         [
                             ["c", "3"],
-                            ["s", None, " "],
+                            ["s", " "],
                         ],
                     ],
                 ],
@@ -2621,11 +2621,11 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "1"],
-                        ["s", None, " 2 "],
+                        ["s", " 2 "],
                         ["c", "3"],
-                        ["s", None, " "],
+                        ["s", " "],
                     ],
                 ],
                 # stimulus
@@ -2637,9 +2637,9 @@ class Spec_split:
                     [
                         "T",
                         [
-                            ["s", None, "2 "],
+                            ["s", "2 "],
                             ["c", "3"],
-                            ["s", None, " "],
+                            ["s", " "],
                         ],
                     ],
                 ],
@@ -2649,11 +2649,11 @@ class Spec_split:
                 [
                     "T",
                     [
-                        ["s", None, " "],
+                        ["s", " "],
                         ["c", "1"],
-                        ["s", None, " 2 "],
+                        ["s", " 2 "],
                         ["c", "3"],
-                        ["s", None, " "],
+                        ["s", " "],
                     ],
                 ],
                 # stimulus
@@ -2661,15 +2661,15 @@ class Spec_split:
                 # expected
                 [
                     ["T", []],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
                     ["T", [["c", "1"]]],
-                    ["T", [["s", None, " "]]],
+                    ["T", [["s", " "]]],
                     [
                         "T",
                         [
-                            ["s", None, "2 "],
+                            ["s", "2 "],
                             ["c", "3"],
-                            ["s", None, " "],
+                            ["s", " "],
                         ],
                     ],
                 ],

@@ -78,14 +78,20 @@ class String(PandocStr, Text, ret_subclass=True):
                     parts[i - 1][0] = cast(int, parts[i - 1][0]) + cast(int, parts[i][0])
                     del parts[i]
 
-        if (len(parts) == 1) and (parts[0][1] is None):
-            parts = None
+        result: list[str | list[list[int | list | None]] | None]
 
-        result: list[str | list[list[int | list | None]] | None] = [
-            "s",
-            parts,
-            self.get_str(),
-        ]
+        if (len(parts) == 1) and (parts[0][1] is None):
+            result = [
+                "s",
+                self.get_str(),
+            ]
+
+        else:
+            result = [
+                "s",
+                parts,
+                self.get_str(),
+            ]
 
         return result
 
@@ -98,13 +104,20 @@ class String(PandocStr, Text, ret_subclass=True):
         result: String
         contents = data[-1]
 
-        if data[1] is None:
+        dpos_data = None
+        if len(data) > 2:  # not only content
+            if type(data[1]) is list:
+                dpos_data = data[1]
+            elif data[1] is not None:
+                raise TypeError("invalid DataPos data")
+
+        if dpos_data is None:
             result = String(contents)
 
         else:
             result = String()
 
-            for item in data[1]:
+            for item in dpos_data:
                 substr = contents[: item[0]]
                 if len(substr) < item[0]:
                     raise RuntimeError("invalid data")

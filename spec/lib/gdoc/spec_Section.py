@@ -69,8 +69,8 @@ class Spec___init__:
                     "Section",
                     {"hlevel": 0},
                     [
-                        ["TextBlock", [["T", [["s", None, "Block 1"]]]]],
-                        ["TextBlock", [["T", [["s", None, "Block 2"]]]]],
+                        ["TextBlock", [["T", [["s", "Block 1"]]]]],
+                        ["TextBlock", [["T", [["s", "Block 2"]]]]],
                     ],
                 ],
             ),
@@ -86,13 +86,13 @@ class Spec___init__:
                     "Section",
                     {"hlevel": 0},
                     [
-                        ["TextBlock", [["T", [["s", None, "Block 1"]]]]],
+                        ["TextBlock", [["T", [["s", "Block 1"]]]]],
                         [
                             "Section",
                             {"hlevel": 1},
                             [
-                                ["TextBlock", [["T", [["s", None, "Head 1"]]]]],
-                                ["TextBlock", [["T", [["s", None, "Block 2"]]]]],
+                                ["TextBlock", [["T", [["s", "Head 1"]]]]],
+                                ["TextBlock", [["T", [["s", "Block 2"]]]]],
                             ],
                         ],
                     ],
@@ -115,16 +115,16 @@ class Spec___init__:
                             "Section",
                             {"hlevel": 1},
                             [
-                                ["TextBlock", [["T", [["s", None, "Head 1"]]]]],
-                                ["TextBlock", [["T", [["s", None, "Block 1"]]]]],
+                                ["TextBlock", [["T", [["s", "Head 1"]]]]],
+                                ["TextBlock", [["T", [["s", "Block 1"]]]]],
                             ],
                         ],
                         [
                             "Section",
                             {"hlevel": 1},
                             [
-                                ["TextBlock", [["T", [["s", None, "Head 2"]]]]],
-                                ["TextBlock", [["T", [["s", None, "Block 2"]]]]],
+                                ["TextBlock", [["T", [["s", "Head 2"]]]]],
+                                ["TextBlock", [["T", [["s", "Block 2"]]]]],
                             ],
                         ],
                     ],
@@ -148,12 +148,12 @@ class Spec___init__:
                             "Section",
                             {"hlevel": 1},
                             [
-                                ["TextBlock", [["T", [["s", None, "Head 1"]]]]],
+                                ["TextBlock", [["T", [["s", "Head 1"]]]]],
                                 [
                                     "Section",
                                     {"hlevel": 2},
                                     [
-                                        ["TextBlock", [["T", [["s", None, "Head 2"]]]]],
+                                        ["TextBlock", [["T", [["s", "Head 2"]]]]],
                                     ],
                                 ],
                             ],
@@ -177,12 +177,12 @@ class Spec___init__:
                             "Section",
                             {"hlevel": 1},
                             [
-                                ["TextBlock", [["T", [["s", None, "Head 1"]]]]],
+                                ["TextBlock", [["T", [["s", "Head 1"]]]]],
                                 [
                                     "Section",
                                     {"hlevel": 2},
                                     [
-                                        ["TextBlock", [["T", [["s", None, "Head 2"]]]]],
+                                        ["TextBlock", [["T", [["s", "Head 2"]]]]],
                                     ],
                                 ],
                             ],
@@ -191,7 +191,7 @@ class Spec___init__:
                             "Section",
                             {"hlevel": 1},
                             [
-                                ["TextBlock", [["T", [["s", None, "Head 3"]]]]],
+                                ["TextBlock", [["T", [["s", "Head 3"]]]]],
                             ],
                         ],
                     ],
@@ -213,19 +213,19 @@ class Spec___init__:
                             "Section",
                             {"hlevel": 1},
                             [
-                                ["TextBlock", [["T", [["s", None, "Head 1"]]]]],
+                                ["TextBlock", [["T", [["s", "Head 1"]]]]],
                                 [
                                     "Section",
                                     {"hlevel": 2},
                                     [
-                                        ["TextBlock", [["T", [["s", None, "Head 2"]]]]],
+                                        ["TextBlock", [["T", [["s", "Head 2"]]]]],
                                     ],
                                 ],
                                 [
                                     "Section",
                                     {"hlevel": 2},
                                     [
-                                        ["TextBlock", [["T", [["s", None, "Head 3"]]]]],
+                                        ["TextBlock", [["T", [["s", "Head 3"]]]]],
                                     ],
                                 ],
                             ],
@@ -249,19 +249,19 @@ class Spec___init__:
                             "Section",
                             {"hlevel": 1},
                             [
-                                ["TextBlock", [["T", [["s", None, "Head 1"]]]]],
+                                ["TextBlock", [["T", [["s", "Head 1"]]]]],
                                 [
                                     "Section",
                                     {"hlevel": 2},
                                     [
-                                        ["TextBlock", [["T", [["s", None, "Head 2"]]]]],
+                                        ["TextBlock", [["T", [["s", "Head 2"]]]]],
                                         [
                                             "Section",
                                             {"hlevel": 3},
                                             [
                                                 [
                                                     "TextBlock",
-                                                    [["T", [["s", None, "Head 3"]]]],
+                                                    [["T", [["s", "Head 3"]]]],
                                                 ],
                                             ],
                                         ],
@@ -288,14 +288,14 @@ class Spec___init__:
                             "Section",
                             {"hlevel": 3},
                             [
-                                ["TextBlock", [["T", [["s", None, "Head 1"]]]]],
+                                ["TextBlock", [["T", [["s", "Head 1"]]]]],
                             ],
                         ],
                         [
                             "Section",
                             {"hlevel": 2},
                             [
-                                ["TextBlock", [["T", [["s", None, "Head 2"]]]]],
+                                ["TextBlock", [["T", [["s", "Head 2"]]]]],
                             ],
                         ],
                         [
@@ -304,7 +304,7 @@ class Spec___init__:
                             [
                                 [
                                     "TextBlock",
-                                    [["T", [["s", None, "Head 3"]]]],
+                                    [["T", [["s", "Head 3"]]]],
                                 ],
                             ],
                         ],

@@ -53,8 +53,8 @@ class Spec___init__:
                 ],
                 # expected
                 [
-                    ["T", [["s", None, "First line.\n"]]],
-                    ["T", [["s", None, "Second line."]]],
+                    ["T", [["s", "First line.\n"]]],
+                    ["T", [["s", "Second line."]]],
                 ],
             ),
             "Simple(2/)": (
@@ -70,8 +70,8 @@ class Spec___init__:
                 ],
                 # expected
                 [
-                    ["T", [["s", None, "First line.\n"]]],
-                    ["T", [["s", None, "Second line.\n"]]],
+                    ["T", [["s", "First line.\n"]]],
+                    ["T", [["s", "Second line.\n"]]],
                 ],
             ),
             "Simple(3/)": (
@@ -86,8 +86,8 @@ class Spec___init__:
                 ],
                 # expected
                 [
-                    ["T", [["c", "First Code"], ["s", None, "\n"]]],
-                    ["T", [["s", None, "Second line."]]],
+                    ["T", [["c", "First Code"], ["s", "\n"]]],
+                    ["T", [["s", "Second line."]]],
                 ],
             ),
             ##
@@ -110,7 +110,7 @@ class Spec___init__:
                 ],
                 # expected
                 [
-                    ["T", [["s", None, "Second line."]]],
+                    ["T", [["s", "Second line."]]],
                 ],
             ),
             "Remove(2/)": (
@@ -135,7 +135,7 @@ class Spec___init__:
                 ],
                 # expected
                 [
-                    ["T", [["s", None, "Second line."]]],
+                    ["T", [["s", "Second line."]]],
                 ],
             ),
         }
@@ -174,13 +174,13 @@ class Spec___init__:
             "Simple(1/)": (
                 # stimulus
                 [
-                    ["T", [["s", None, "First line.\n"]]],
-                    ["T", [["s", None, "Second line."]]],
+                    ["T", [["s", "First line.\n"]]],
+                    ["T", [["s", "Second line."]]],
                 ],
                 # expected
                 [
-                    ["T", [["s", None, "First line.\n"]]],
-                    ["T", [["s", None, "Second line."]]],
+                    ["T", [["s", "First line.\n"]]],
+                    ["T", [["s", "Second line."]]],
                 ],
             ),
             "Simple(2/)": (
@@ -192,13 +192,13 @@ class Spec___init__:
             "Simple(3/)": (
                 # stimulus
                 [
-                    ["T", [["c", "First Code"], ["s", None, "\n"]]],
-                    ["T", [["s", None, "Second line."]]],
+                    ["T", [["c", "First Code"], ["s", "\n"]]],
+                    ["T", [["s", "Second line."]]],
                 ],
                 # expected
                 [
-                    ["T", [["c", "First Code"], ["s", None, "\n"]]],
-                    ["T", [["s", None, "Second line."]]],
+                    ["T", [["c", "First Code"], ["s", "\n"]]],
+                    ["T", [["s", "Second line."]]],
                 ],
             ),
         }
@@ -304,8 +304,8 @@ class Spec_dumpd:
                 [
                     "TextBlock",
                     [
-                        ["T", [["s", None, "First line.\n"]]],
-                        ["T", [["s", None, "Second line."]]],
+                        ["T", [["s", "First line.\n"]]],
+                        ["T", [["s", "Second line."]]],
                     ],
                 ],
             ),
@@ -324,8 +324,8 @@ class Spec_dumpd:
                 [
                     "TextBlock",
                     [
-                        ["T", [["c", "First"], ["s", None, "\n"]]],
-                        ["T", [["s", None, "Second\n"]]],
+                        ["T", [["c", "First"], ["s", "\n"]]],
+                        ["T", [["s", "Second\n"]]],
                     ],
                 ],
             ),
@@ -388,8 +388,8 @@ class Spec_loadd:
                 [
                     "TextBlock",
                     [
-                        ["T", [["s", None, "First line.\n"]]],
-                        ["T", [["s", None, "Second line."]]],
+                        ["T", [["s", "First line.\n"]]],
+                        ["T", [["s", "Second line."]]],
                     ],
                 ],
                 # expected
@@ -398,8 +398,8 @@ class Spec_loadd:
                     "result": [
                         "TextBlock",
                         [
-                            ["T", [["s", None, "First line.\n"]]],
-                            ["T", [["s", None, "Second line."]]],
+                            ["T", [["s", "First line.\n"]]],
+                            ["T", [["s", "Second line."]]],
                         ],
                     ],
                 },
@@ -409,8 +409,8 @@ class Spec_loadd:
                 [
                     "TextBlock",
                     [
-                        ["T", [["c", "First"], ["s", None, "\n"]]],
-                        ["T", [["s", None, "Second\n"]]],
+                        ["T", [["c", "First"], ["s", "\n"]]],
+                        ["T", [["s", "Second\n"]]],
                     ],
                 ],
                 # expected
@@ -419,8 +419,8 @@ class Spec_loadd:
                     "result": [
                         "TextBlock",
                         [
-                            ["T", [["c", "First"], ["s", None, "\n"]]],
-                            ["T", [["s", None, "Second\n"]]],
+                            ["T", [["c", "First"], ["s", "\n"]]],
+                            ["T", [["s", "Second\n"]]],
                         ],
                     ],
                 },
