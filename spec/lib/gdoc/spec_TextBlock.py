@@ -86,7 +86,7 @@ class Spec___init__:
                 ],
                 # expected
                 [
-                    ["T", [["c", None, "First Code"], ["s", None, "\n"]]],
+                    ["T", [["c", "First Code"], ["s", None, "\n"]]],
                     ["T", [["s", None, "Second line."]]],
                 ],
             ),
@@ -192,12 +192,12 @@ class Spec___init__:
             "Simple(3/)": (
                 # stimulus
                 [
-                    ["T", [["c", None, "First Code"], ["s", None, "\n"]]],
+                    ["T", [["c", "First Code"], ["s", None, "\n"]]],
                     ["T", [["s", None, "Second line."]]],
                 ],
                 # expected
                 [
-                    ["T", [["c", None, "First Code"], ["s", None, "\n"]]],
+                    ["T", [["c", "First Code"], ["s", None, "\n"]]],
                     ["T", [["s", None, "Second line."]]],
                 ],
             ),
@@ -324,7 +324,7 @@ class Spec_dumpd:
                 [
                     "TextBlock",
                     [
-                        ["T", [["c", None, "First"], ["s", None, "\n"]]],
+                        ["T", [["c", "First"], ["s", None, "\n"]]],
                         ["T", [["s", None, "Second\n"]]],
                     ],
                 ],
@@ -409,7 +409,7 @@ class Spec_loadd:
                 [
                     "TextBlock",
                     [
-                        ["T", [["c", None, "First"], ["s", None, "\n"]]],
+                        ["T", [["c", "First"], ["s", None, "\n"]]],
                         ["T", [["s", None, "Second\n"]]],
                     ],
                 ],
@@ -419,7 +419,7 @@ class Spec_loadd:
                     "result": [
                         "TextBlock",
                         [
-                            ["T", [["c", None, "First"], ["s", None, "\n"]]],
+                            ["T", [["c", "First"], ["s", None, "\n"]]],
                             ["T", [["s", None, "Second\n"]]],
                         ],
                     ],

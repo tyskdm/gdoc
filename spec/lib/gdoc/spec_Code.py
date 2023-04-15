@@ -215,7 +215,7 @@ class Spec_dumpd:
         # WHEN
         dumpdata = target.dumpd()
         # THEN
-        assert dumpdata == ["c", None, "CONTENT"]
+        assert dumpdata == ["c", "CONTENT"]
 
     def spec_3(self):
         r"""
@@ -230,7 +230,7 @@ class Spec_dumpd:
         # WHEN
         dumpdata = target.dumpd()
         # THEN
-        assert dumpdata == ["c", None, "CONTENT"]
+        assert dumpdata == ["c", "CONTENT"]
 
 
 class Spec_loadd:
@@ -257,13 +257,28 @@ class Spec_loadd:
                 # stimulus
                 ["c", ["FILEPATH", 5, 2, 5, 10], "CODE"],
                 # expected
-                {"Exception": None},
+                {
+                    "Exception": None,
+                    "result": ["c", ["FILEPATH", 5, 2, 5, 10], "CODE"],
+                },
             ),
             "Normal(2/)": (
                 # stimulus
                 ["c", None, "CODE"],
                 # expected
-                {"Exception": None},
+                {
+                    "Exception": None,
+                    "result": ["c", "CODE"],
+                },
+            ),
+            "Normal(3/)": (
+                # stimulus
+                ["c", "CODE"],
+                # expected
+                {
+                    "Exception": None,
+                    "result": ["c", "CODE"],
+                },
             ),
             ##
             # #### [\@case 1] Error cases
@@ -273,6 +288,12 @@ class Spec_loadd:
                 ["X", ["FILEPATH", 5, 2, 5, 10], "CODE"],
                 # expected
                 {"Exception": (TypeError, "invalid data type")},
+            ),
+            "Error(2/)": (
+                # stimulus
+                ["c", "INVALID DATA", "CODE"],
+                # expected
+                {"Exception": (TypeError, "invalid DataPos data")},
             ),
         }
 
@@ -291,7 +312,7 @@ class Spec_loadd:
             # WHEN
             target = Code.loadd(stimulus)
             # THEN
-            assert target.dumpd() == stimulus
+            assert target.dumpd() == expected["result"]
 
         else:
             with pytest.raises(expected["Exception"][0]) as exc_info:

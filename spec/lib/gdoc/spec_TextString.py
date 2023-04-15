@@ -84,7 +84,7 @@ class Spec___init__:
                 # expected
                 {
                     "Exception": None,
-                    "target": ["T", [["c", None, "ABC"]]],
+                    "target": ["T", [["c", "ABC"]]],
                 },
             ),
             "PandocAst(3/)": (
@@ -100,7 +100,7 @@ class Spec___init__:
                     "Exception": None,
                     "target": [
                         "T",
-                        [["s", None, "AB"], ["c", None, "CD"], ["s", None, "EF"]],
+                        [["s", None, "AB"], ["c", "CD"], ["s", None, "EF"]],
                     ],
                 },
             ),
@@ -148,7 +148,7 @@ class Spec___init__:
                 # expected
                 {
                     "Exception": None,
-                    "target": ["T", [["c", None, "ABC"]]],
+                    "target": ["T", [["c", "ABC"]]],
                 },
             ),
             "GdocText(3/)": (
@@ -160,7 +160,7 @@ class Spec___init__:
                 # expected
                 {
                     "Exception": None,
-                    "target": ["T", [["s", None, "ABC"], ["c", None, "DEF"]]],
+                    "target": ["T", [["s", None, "ABC"], ["c", "DEF"]]],
                 },
             ),
             ##
@@ -264,7 +264,7 @@ class Spec_get_str:
             ),
             "Simple(2/)": (
                 # stimulus
-                ["T", [["c", None, "CONTENTS"]]],
+                ["T", [["c", "CONTENTS"]]],
                 # expected
                 "CONTENTS",
             ),
@@ -286,7 +286,7 @@ class Spec_get_str:
                     "T",
                     [
                         ["s", [[6, None]], "STRING"],
-                        ["c", None, "CODE"],
+                        ["c", "CODE"],
                         ["T", [["s", [[6, None]], "STRING"]]],
                     ],
                 ],
@@ -406,7 +406,7 @@ class Spec_get_char_pos:
                     "T",
                     [
                         ["s", [[6, None]], "STRING"],
-                        ["c", None, "CODE"],
+                        ["c", "CODE"],
                         ["T", [["s", [[6, ["FILEPATH", 5, 4, 5, 10]]], "STRING"]]],
                     ],
                 ],
@@ -437,7 +437,7 @@ class Spec_get_char_pos:
                     [
                         ["s", [[6, None]], "STRING"],
                         ["T", [["s", [[6, None]], "STRING"]]],
-                        ["c", None, "CODE"],
+                        ["c", "CODE"],
                     ],
                 ],
                 # stimulus
@@ -525,7 +525,7 @@ class Spec_dumpd:
                     "T",
                     [
                         ["s", None, "First"],
-                        ["c", None, "Second"],
+                        ["c", "Second"],
                     ],
                 ],
             ),
@@ -541,7 +541,7 @@ class Spec_dumpd:
                     "T",
                     [
                         ["s", None, "First"],
-                        ["c", None, "Second"],
+                        ["c", "Second"],
                         ["s", None, "Third"],
                     ],
                 ],
@@ -612,7 +612,7 @@ class Spec_loadd:
             ),
             "Simple(4/)": (
                 # stimulus
-                ["T", [["c", None, "CONTENTS"]]],
+                ["T", [["c", "CONTENTS"]]],
                 # expected
                 {"Exception": None},
             ),
@@ -644,7 +644,7 @@ class Spec_loadd:
                     "T",
                     [
                         ["s", None, "STRING"],
-                        ["c", None, "CODE"],
+                        ["c", "CODE"],
                         ["T", [["s", None, "CONTENTS"]]],
                     ],
                 ],
@@ -788,7 +788,7 @@ class Spec_get_text_items:
             ),
             "Simple(2/)": (
                 # precondition
-                ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]]
+                ["T", [["s", [[3, None]], "ABC"], ["c", "DEF"]]]
                 # stimulus
                 # expected
             ),
@@ -922,35 +922,35 @@ class Spec_pop_prefix:
             #
             "Mix(1/)": (
                 # precondition
-                ["T", [["s", None, "ABC"], ["c", None, "DEF"]]],
+                ["T", [["s", None, "ABC"], ["c", "DEF"]]],
                 # stimulus
                 "AB",
                 # expected
                 {
                     "prefix": ["T", [["s", None, "AB"]]],
-                    "result": ["T", [["s", None, "C"], ["c", None, "DEF"]]],
+                    "result": ["T", [["s", None, "C"], ["c", "DEF"]]],
                 },
             ),
             "Mix(2/)": (
                 # precondition
-                ["T", [["s", None, "ABC"], ["c", None, "DEF"]]],
+                ["T", [["s", None, "ABC"], ["c", "DEF"]]],
                 # stimulus
                 "ABC",
                 # expected
                 {
                     "prefix": ["T", [["s", None, "ABC"]]],
-                    "result": ["T", [["c", None, "DEF"]]],
+                    "result": ["T", [["c", "DEF"]]],
                 },
             ),
             "Mix(3/)": (
                 # precondition
-                ["T", [["s", None, "ABC"], ["c", None, "DEF"]]],
+                ["T", [["s", None, "ABC"], ["c", "DEF"]]],
                 # stimulus
                 "ABCDEF",
                 # expected
                 {
                     "prefix": None,
-                    "result": ["T", [["s", None, "ABC"], ["c", None, "DEF"]]],
+                    "result": ["T", [["s", None, "ABC"], ["c", "DEF"]]],
                 },
             ),
             "Mix(4/)": (
@@ -1051,24 +1051,24 @@ class Spec__deque_while:
             #
             "Mix(1/)": (
                 # precondition
-                ["T", [["s", None, "ABC"], ["c", None, "DEF"]]],
+                ["T", [["s", None, "ABC"], ["c", "DEF"]]],
                 # stimulus
                 lambda text: (type(text) is String),
                 # expected
                 {
                     "result": ["A", "B", "C"],
-                    "target": ["T", [["c", None, "DEF"]]],
+                    "target": ["T", [["c", "DEF"]]],
                 },
             ),
             "Mix(2/)": (
                 # precondition
-                ["T", [["c", None, "ABC"], ["s", None, "DEF"]]],
+                ["T", [["c", "ABC"], ["s", None, "DEF"]]],
                 # stimulus
                 lambda text: (type(text) is String),
                 # expected
                 {
                     "result": [],
-                    "target": ["T", [["c", None, "ABC"], ["s", None, "DEF"]]],
+                    "target": ["T", [["c", "ABC"], ["s", None, "DEF"]]],
                 },
             ),
         }
@@ -1117,13 +1117,13 @@ class Spec___len__:
             ),
             "Code": (
                 # precondition
-                ["T", [["c", None, "ABCDEF"]]],
+                ["T", [["c", "ABCDEF"]]],
                 # expected
                 1,
             ),
             "TextString": (
                 # precondition
-                ["T", [["T", [["c", None, "ABCDEF"]]]]],
+                ["T", [["T", [["c", "ABCDEF"]]]]],
                 # expected
                 1,
             ),
@@ -1132,13 +1132,13 @@ class Spec___len__:
             #
             "Mix(1/)": (
                 # precondition
-                ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]],
+                ["T", [["s", [[3, None]], "ABC"], ["c", "DEF"]]],
                 # expected
                 4,
             ),
             "Mix(2/)": (
                 # precondition
-                ["T", [["c", None, "ABC"], ["s", [[3, None]], "DEF"]]],
+                ["T", [["c", "ABC"], ["s", [[3, None]], "DEF"]]],
                 # expected
                 4,
             ),
@@ -1208,7 +1208,7 @@ class Spec___getitem__:
             #
             "Mix(1/)": (
                 # precondition
-                ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]],
+                ["T", [["s", [[3, None]], "ABC"], ["c", "DEF"]]],
                 # stimulus
                 3,
                 # expected
@@ -1219,7 +1219,7 @@ class Spec___getitem__:
             ),
             "Mix(2/)": (
                 # precondition
-                ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]],
+                ["T", [["s", [[3, None]], "ABC"], ["c", "DEF"]]],
                 # stimulus
                 slice(2, 4),
                 # expected
@@ -1386,7 +1386,7 @@ class Spec_startswith:
             ),
             "Simple(2/)": (
                 # precondition
-                ["T", [["s", [[3, None]], "ABC"], ["c", None, "DEF"]]],
+                ["T", [["s", [[3, None]], "ABC"], ["c", "DEF"]]],
                 # stimulus
                 "ABCD",
                 # expected
@@ -1394,7 +1394,7 @@ class Spec_startswith:
             ),
             "Simple(3/)": (
                 # precondition
-                ["T", [["c", None, "ABC"]]],
+                ["T", [["c", "ABC"]]],
                 # stimulus
                 "",
                 # expected
@@ -1469,7 +1469,7 @@ class Spec_endswith:
             ),
             "Simple(2/)": (
                 # precondition
-                ["T", [["c", None, "ABC"], ["s", [[3, None]], "DEF"]]],
+                ["T", [["c", "ABC"], ["s", [[3, None]], "DEF"]]],
                 # stimulus
                 "CDEF",
                 # expected
@@ -1477,7 +1477,7 @@ class Spec_endswith:
             ),
             "Simple(3/)": (
                 # precondition
-                ["T", [["c", None, "ABC"]]],
+                ["T", [["c", "ABC"]]],
                 # stimulus
                 "",
                 # expected
@@ -1582,7 +1582,7 @@ class Spec_lstrip:
                     "T",
                     [
                         ["s", None, "+*"],
-                        ["c", None, "+*ABC+*"],
+                        ["c", "+*ABC+*"],
                         ["s", None, "+*"],
                     ],
                 ],
@@ -1592,7 +1592,7 @@ class Spec_lstrip:
                 [
                     "T",
                     [
-                        ["c", None, "+*ABC+*"],
+                        ["c", "+*ABC+*"],
                         ["s", None, "+*"],
                     ],
                 ],
@@ -1679,7 +1679,7 @@ class Spec_rstrip:
                     "T",
                     [
                         ["s", None, "+*"],
-                        ["c", None, "+*ABC+*"],
+                        ["c", "+*ABC+*"],
                         ["s", None, "+*"],
                     ],
                 ],
@@ -1690,7 +1690,7 @@ class Spec_rstrip:
                     "T",
                     [
                         ["s", None, "+*"],
-                        ["c", None, "+*ABC+*"],
+                        ["c", "+*ABC+*"],
                     ],
                 ],
             ),
@@ -1776,7 +1776,7 @@ class Spec_strip:
                     "T",
                     [
                         ["s", None, "+*"],
-                        ["c", None, "+*ABC+*"],
+                        ["c", "+*ABC+*"],
                         ["s", None, "+*"],
                     ],
                 ],
@@ -1785,7 +1785,7 @@ class Spec_strip:
                 # expected
                 [
                     "T",
-                    [["c", None, "+*ABC+*"]],
+                    [["c", "+*ABC+*"]],
                 ],
             ),
         }
@@ -2197,42 +2197,42 @@ class Spec_split:
             ),
             "Simple(8/)": (
                 # precondition
-                ["T", [["c", None, " 1 2 3 "]]],
+                ["T", [["c", " 1 2 3 "]]],
                 # stimulus
                 (),
                 # expected
                 [
-                    ["T", [["c", None, " 1 2 3 "]]],
+                    ["T", [["c", " 1 2 3 "]]],
                 ],
             ),
             "Simple(8/a)": (
                 # precondition
-                ["T", [["c", None, " 1 2 3 "]]],
+                ["T", [["c", " 1 2 3 "]]],
                 # stimulus
                 (None, -1, True),
                 # expected
                 [
-                    ["T", [["c", None, " 1 2 3 "]]],
+                    ["T", [["c", " 1 2 3 "]]],
                 ],
             ),
             "Simple(8/b)": (
                 # precondition
-                ["T", [["c", None, " 1 2 3 "]]],
+                ["T", [["c", " 1 2 3 "]]],
                 # stimulus
                 (" "),
                 # expected
                 [
-                    ["T", [["c", None, " 1 2 3 "]]],
+                    ["T", [["c", " 1 2 3 "]]],
                 ],
             ),
             "Simple(8/c)": (
                 # precondition
-                ["T", [["c", None, " 1 2 3 "]]],
+                ["T", [["c", " 1 2 3 "]]],
                 # stimulus
                 (" ", -1, True),
                 # expected
                 [
-                    ["T", [["c", None, " 1 2 3 "]]],
+                    ["T", [["c", " 1 2 3 "]]],
                 ],
             ),
             "Simple(9/)": (
@@ -2364,9 +2364,9 @@ class Spec_split:
                     "T",
                     [
                         ["s", None, " "],
-                        ["c", None, "1"],
+                        ["c", "1"],
                         ["s", None, "2"],
-                        ["c", None, "3"],
+                        ["c", "3"],
                         ["s", None, "4 "],
                     ],
                 ],
@@ -2377,9 +2377,9 @@ class Spec_split:
                     [
                         "T",
                         [
-                            ["c", None, "1"],
+                            ["c", "1"],
                             ["s", None, "2"],
-                            ["c", None, "3"],
+                            ["c", "3"],
                             ["s", None, "4"],
                         ],
                     ],
@@ -2391,9 +2391,9 @@ class Spec_split:
                     "T",
                     [
                         ["s", None, " "],
-                        ["c", None, "1"],
+                        ["c", "1"],
                         ["s", None, "2"],
-                        ["c", None, "3"],
+                        ["c", "3"],
                         ["s", None, "4 "],
                     ],
                 ],
@@ -2404,9 +2404,9 @@ class Spec_split:
                     [
                         "T",
                         [
-                            ["c", None, "1"],
+                            ["c", "1"],
                             ["s", None, "2"],
-                            ["c", None, "3"],
+                            ["c", "3"],
                             ["s", None, "4"],
                         ],
                     ],
@@ -2418,9 +2418,9 @@ class Spec_split:
                     "T",
                     [
                         ["s", None, " "],
-                        ["c", None, "1"],
+                        ["c", "1"],
                         ["s", None, "2"],
-                        ["c", None, "3"],
+                        ["c", "3"],
                         ["s", None, "4 "],
                     ],
                 ],
@@ -2432,9 +2432,9 @@ class Spec_split:
                     [
                         "T",
                         [
-                            ["c", None, "1"],
+                            ["c", "1"],
                             ["s", None, "2"],
-                            ["c", None, "3"],
+                            ["c", "3"],
                             ["s", None, "4"],
                         ],
                     ],
@@ -2447,9 +2447,9 @@ class Spec_split:
                     "T",
                     [
                         ["s", None, " "],
-                        ["c", None, "1"],
+                        ["c", "1"],
                         ["s", None, "2"],
-                        ["c", None, "3"],
+                        ["c", "3"],
                         ["s", None, "4 "],
                     ],
                 ],
@@ -2462,9 +2462,9 @@ class Spec_split:
                     [
                         "T",
                         [
-                            ["c", None, "1"],
+                            ["c", "1"],
                             ["s", None, "2"],
-                            ["c", None, "3"],
+                            ["c", "3"],
                             ["s", None, "4"],
                         ],
                     ],
@@ -2478,9 +2478,9 @@ class Spec_split:
                     "T",
                     [
                         ["s", None, " "],
-                        ["c", None, "1"],
+                        ["c", "1"],
                         ["s", None, " "],
-                        ["c", None, "2"],
+                        ["c", "2"],
                         ["s", None, " "],
                     ],
                 ],
@@ -2488,8 +2488,8 @@ class Spec_split:
                 (),
                 # expected
                 [
-                    ["T", [["c", None, "1"]]],
-                    ["T", [["c", None, "2"]]],
+                    ["T", [["c", "1"]]],
+                    ["T", [["c", "2"]]],
                 ],
             ),
             "Mix(2a/)": (
@@ -2498,9 +2498,9 @@ class Spec_split:
                     "T",
                     [
                         ["s", None, " "],
-                        ["c", None, "1"],
+                        ["c", "1"],
                         ["s", None, " "],
-                        ["c", None, "2"],
+                        ["c", "2"],
                         ["s", None, " "],
                     ],
                 ],
@@ -2508,9 +2508,9 @@ class Spec_split:
                 (None, -1, True),
                 # expected
                 [
-                    ["T", [["c", None, "1"]]],
+                    ["T", [["c", "1"]]],
                     ["T", [["s", None, " "]]],
-                    ["T", [["c", None, "2"]]],
+                    ["T", [["c", "2"]]],
                 ],
             ),
             "Mix(2b/)": (
@@ -2519,9 +2519,9 @@ class Spec_split:
                     "T",
                     [
                         ["s", None, " "],
-                        ["c", None, "1"],
+                        ["c", "1"],
                         ["s", None, " "],
-                        ["c", None, "2"],
+                        ["c", "2"],
                         ["s", None, " "],
                     ],
                 ],
@@ -2530,8 +2530,8 @@ class Spec_split:
                 # expected
                 [
                     ["T", []],
-                    ["T", [["c", None, "1"]]],
-                    ["T", [["c", None, "2"]]],
+                    ["T", [["c", "1"]]],
+                    ["T", [["c", "2"]]],
                     ["T", []],
                 ],
             ),
@@ -2541,9 +2541,9 @@ class Spec_split:
                     "T",
                     [
                         ["s", None, " "],
-                        ["c", None, "1"],
+                        ["c", "1"],
                         ["s", None, " "],
-                        ["c", None, "2"],
+                        ["c", "2"],
                         ["s", None, " "],
                     ],
                 ],
@@ -2553,9 +2553,9 @@ class Spec_split:
                 [
                     ["T", []],
                     ["T", [["s", None, " "]]],
-                    ["T", [["c", None, "1"]]],
+                    ["T", [["c", "1"]]],
                     ["T", [["s", None, " "]]],
-                    ["T", [["c", None, "2"]]],
+                    ["T", [["c", "2"]]],
                     ["T", [["s", None, " "]]],
                     ["T", []],
                 ],
@@ -2566,9 +2566,9 @@ class Spec_split:
                     "T",
                     [
                         ["s", None, " "],
-                        ["c", None, "1"],
+                        ["c", "1"],
                         ["s", None, " 2 "],
-                        ["c", None, "3"],
+                        ["c", "3"],
                         ["s", None, " "],
                     ],
                 ],
@@ -2576,12 +2576,12 @@ class Spec_split:
                 (None, 2),
                 # expected
                 [
-                    ["T", [["c", None, "1"]]],
+                    ["T", [["c", "1"]]],
                     ["T", [["s", None, "2"]]],
                     [
                         "T",
                         [
-                            ["c", None, "3"],
+                            ["c", "3"],
                             ["s", None, " "],
                         ],
                     ],
@@ -2593,9 +2593,9 @@ class Spec_split:
                     "T",
                     [
                         ["s", None, " "],
-                        ["c", None, "1"],
+                        ["c", "1"],
                         ["s", None, " 2 "],
-                        ["c", None, "3"],
+                        ["c", "3"],
                         ["s", None, " "],
                     ],
                 ],
@@ -2603,14 +2603,14 @@ class Spec_split:
                 (None, 2, True),
                 # expected
                 [
-                    ["T", [["c", None, "1"]]],
+                    ["T", [["c", "1"]]],
                     ["T", [["s", None, " "]]],
                     ["T", [["s", None, "2"]]],
                     ["T", [["s", None, " "]]],
                     [
                         "T",
                         [
-                            ["c", None, "3"],
+                            ["c", "3"],
                             ["s", None, " "],
                         ],
                     ],
@@ -2622,9 +2622,9 @@ class Spec_split:
                     "T",
                     [
                         ["s", None, " "],
-                        ["c", None, "1"],
+                        ["c", "1"],
                         ["s", None, " 2 "],
-                        ["c", None, "3"],
+                        ["c", "3"],
                         ["s", None, " "],
                     ],
                 ],
@@ -2633,12 +2633,12 @@ class Spec_split:
                 # expected
                 [
                     ["T", []],
-                    ["T", [["c", None, "1"]]],
+                    ["T", [["c", "1"]]],
                     [
                         "T",
                         [
                             ["s", None, "2 "],
-                            ["c", None, "3"],
+                            ["c", "3"],
                             ["s", None, " "],
                         ],
                     ],
@@ -2650,9 +2650,9 @@ class Spec_split:
                     "T",
                     [
                         ["s", None, " "],
-                        ["c", None, "1"],
+                        ["c", "1"],
                         ["s", None, " 2 "],
-                        ["c", None, "3"],
+                        ["c", "3"],
                         ["s", None, " "],
                     ],
                 ],
@@ -2662,13 +2662,13 @@ class Spec_split:
                 [
                     ["T", []],
                     ["T", [["s", None, " "]]],
-                    ["T", [["c", None, "1"]]],
+                    ["T", [["c", "1"]]],
                     ["T", [["s", None, " "]]],
                     [
                         "T",
                         [
                             ["s", None, "2 "],
-                            ["c", None, "3"],
+                            ["c", "3"],
                             ["s", None, " "],
                         ],
                     ],

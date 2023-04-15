@@ -75,8 +75,6 @@ class Code(Text):
         dpos = self.get_data_pos()
         if dpos is not None:
             result.append(dpos.dumpd())
-        else:
-            result.append(None)
 
         result.append(self.get_str())
 
@@ -89,7 +87,13 @@ class Code(Text):
         if data[0] != "c":
             raise TypeError("invalid data type")
 
-        dpos = None if data[1] is None else DataPos.loadd(data[1])
+        dpos = None
+        if len(data) > 2:  # not only content
+            if type(data[1]) is list:
+                dpos = DataPos.loadd(data[1])
+            elif data[1] is not None:
+                raise TypeError("invalid DataPos data")
+
         result = cls(data[-1], dpos)
 
         return result
