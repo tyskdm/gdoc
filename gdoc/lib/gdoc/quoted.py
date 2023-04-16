@@ -32,7 +32,7 @@ class Quoted(TextString):
         if not (textstr.startswith(('"', "'")) and (textstr[0] == textstr[-1])):
             raise TypeError("Quoted() argument must be quoted by \" or '")
 
-        super().__init__(textstr, opts)
+        super().__init__(textstr)
         self.quote_type = str(self[0])
         self._quote_char = (cast(String, self[0]), cast(String, self[-1]))
 
