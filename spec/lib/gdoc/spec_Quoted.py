@@ -342,7 +342,6 @@ class Spec_get_textstr:
         result = quoted.get_textstr()
         # THEN
         assert result is not quoted._content_textstr
-        assert len(result) == len(quoted._content_textstr)
         assert result.dumpd() == quoted._content_textstr.dumpd()
 
 
@@ -370,100 +369,7 @@ class Spec_get_quote_chars:
         assert result is quoted._quote_char
 
 
-class xSpec_dumpd:
-    r"""
-    ## [\@spec] `dumpd`
-
-    ```py
-    def dumpd(self) -> list:
-    ```
-    """
-
-    @staticmethod
-    def cases_1():
-        r"""
-        ### [\@ 1]
-        """
-        return {
-            ##
-            # #### [\@case 1] Simple:
-            #
-            "Simple(1/)": (
-                # precondition
-                [
-                    "Plain",
-                    [
-                        ["Str", "First line."],
-                        ["LineBreak", None],
-                        ["Str", "Second line."],
-                    ],
-                ],
-                # expected
-                [
-                    "TextBlock",
-                    [
-                        ["T", [["s", "First line.\n"]]],
-                        ["T", [["s", "Second line."]]],
-                    ],
-                ],
-            ),
-            "Simple(2/)": (
-                # precondition
-                [
-                    "Para",
-                    [
-                        ["Code", "First"],
-                        ["LineBreak", None],
-                        ["Str", "Second"],
-                        ["LineBreak", None],
-                    ],
-                ],
-                # expected
-                [
-                    "TextBlock",
-                    [
-                        ["T", [["c", "First"], ["s", "\n"]]],
-                        ["T", [["s", "Second\n"]]],
-                    ],
-                ],
-            ),
-            "Simple(3/)": (
-                # precondition
-                [
-                    "Para",
-                    [],
-                ],
-                # expected
-                [
-                    "TextBlock",
-                    [],
-                ],
-            ),
-        }
-
-    # \cond
-    @pytest.mark.parametrize(
-        "precondition, expected",
-        list(cases_1().values()),
-        ids=list(cases_1().keys()),
-    )
-    # \endcond
-    def spec_1(self, precondition, expected):
-        r"""
-        ### [\@spec 1]
-        """
-        # GIVEN
-        pandoc_param = create_new_element(precondition)
-        target = TextBlock(pandoc_param)
-
-        # WHEN
-        dumpdata = target.dumpd()
-
-        # THEN
-        assert dumpdata == expected
-
-
-class xSpec_loadd:
+class Spec_loadd:
     r"""
     ## [\@spec] `loadd`
 
@@ -483,67 +389,34 @@ class xSpec_loadd:
             #
             "Normal(1/)": (
                 # stimulus
-                ["Q", [["s", "First line.\n"]]],
+                ["Q", [["s", '"ABC"']]],
                 # expected
                 {
                     "Exception": None,
-                    "result": [
-                        "TextBlock",
-                        [
-                            ["T", [["s", "First line.\n"]]],
-                            ["T", [["s", "Second line."]]],
-                        ],
-                    ],
+                    "_content_textstr": ["T", [["s", "ABC"]]],
                 },
             ),
             "Normal(2/)": (
                 # stimulus
-                [
-                    "TextBlock",
-                    [
-                        ["T", [["c", "First"], ["s", "\n"]]],
-                        ["T", [["s", "Second\n"]]],
-                    ],
-                ],
+                ["Q", [["s", '"AB'], ["c", '"'], ["s", 'CD"']]],
                 # expected
                 {
                     "Exception": None,
-                    "result": [
-                        "TextBlock",
-                        [
-                            ["T", [["c", "First"], ["s", "\n"]]],
-                            ["T", [["s", "Second\n"]]],
-                        ],
-                    ],
-                },
-            ),
-            "Normal(3/)": (
-                # stimulus
-                [
-                    "TextBlock",
-                    [],
-                ],
-                # expected
-                {
-                    "Exception": None,
-                    "result": [
-                        "TextBlock",
-                        [],
-                    ],
+                    "_content_textstr": ["T", [["s", "AB"], ["c", '"'], ["s", "CD"]]],
                 },
             ),
             ##
-            # #### [\@case 1] Error:
+            # #### [\@case 2] Error:
             #
             "Error(1/)": (
                 # stimulus
-                [
-                    "INVALID-TYPE",
-                    [],
-                ],
+                ["T", [["s", "ABC"]]],
                 # expected
                 {
-                    "Exception": [TypeError, 'invalid data type "INVALID-TYPE"'],
+                    "Exception": [
+                        TypeError,
+                        "invalid data type",
+                    ],
                 },
             ),
         }
@@ -561,17 +434,64 @@ class xSpec_loadd:
         """
         if expected["Exception"] is None:
             # WHEN
-            target: TextBlock = TextBlock.loadd(stimulus)
+            target: Quoted = Quoted.loadd(stimulus)
             # THEN
-            dumpdata = target.dumpd()
-            assert dumpdata == expected["result"]
+            assert target._content_textstr.dumpd() == expected["_content_textstr"]
 
         else:
             # WHEN
             with pytest.raises(expected["Exception"][0]) as exc_info:
-                TextBlock.loadd(stimulus)
+                Quoted.loadd(stimulus)
             # THEN
             assert exc_info.match(expected["Exception"][1])
+
+
+class Spec_dumpd:
+    r"""
+    ## [\@spec] `dumpd`
+
+    ```py
+    def dumpd(self) -> list:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Normal:
+            #
+            "Normal(1/)":
+            # precondition
+            ["Q", [["s", '"ABC"']]],
+            "Normal(2/)":
+            # precondition
+            ["Q", [["s", '"AB'], ["c", '"'], ["s", 'CD"']]],
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "precondition",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, precondition):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        quoted = Quoted.loadd(precondition)
+
+        # WHEN
+        dumpdata = quoted.dumpd()
+
+        # THEN
+        assert dumpdata is not precondition
+        assert dumpdata == precondition
 
 
 class xSpec_TEMPLATE:

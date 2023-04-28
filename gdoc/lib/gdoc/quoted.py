@@ -6,9 +6,7 @@ Usage:
 > from gdoc.lib.gdoc import Quoted
 > ```
 """
-from typing import Union, cast
-
-from gdoc.lib.pandocastobject.pandocast import PandocInlineElement
+from typing import cast
 
 from .string import String
 from .text import Text
@@ -71,3 +69,18 @@ class Quoted(TextString):
 
     def get_quote_chars(self) -> tuple[String, String]:
         return self._quote_char
+
+    def dumpd(self) -> list:
+        textstr_dumpdata: list = super().dumpd()
+        textstr_dumpdata[0] = "Q"
+        return textstr_dumpdata
+
+    @classmethod
+    def loadd(cls, data: list) -> "Quoted":
+
+        if data[0] != "Q":
+            raise TypeError("invalid data type")
+
+        textstr: TextString = TextString.loadd(["T"] + data[1:])
+
+        return cls(textstr)
