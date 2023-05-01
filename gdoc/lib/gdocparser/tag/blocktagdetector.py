@@ -4,11 +4,12 @@ blocktagdetector.py: detect_BlockTag function
 from typing import Any, Optional, TypeAlias, cast
 
 from gdoc.lib.gdoc import Quoted, String, Text, TextString
+from gdoc.lib.gdocparser.quotedstringdetector import QuotedStringDetector
 from gdoc.util.fsm import NEXT, State, StateMachine
 
 
 def detect_BlockTag(
-    textstr: TextString, start: int
+    textstr: TextString, start: int = 0
 ) -> tuple[Optional[slice], Optional[TextString]]:
     result: tuple[Optional[slice], Optional[TextString]]
     tagpos: list[int]
@@ -168,38 +169,27 @@ class _String(BlockTagDetector._CHILD_STATE_):
     _String
     """
 
-    tagstr: TextString
-    quoted: TextString
-    escape: bool
-    quote_char: str
+    detector = QuotedStringDetector()
 
     def start(self, param: tuple[TextString, list[int]]):
         self.tagstr, _ = param
 
     def on_entry(self, event: tuple[int, Text]):  # type: ignore
-        _, token = event
-        self.quoted = TextString()
-        self.quoted.append(token)
-        self.quote_char = str(token)
-        self.escape = False
-
+        _, text = event
+        self.detector.on_entry(text)
         return self
 
     def on_event(self, event: tuple[int, Text]):
-        next: NEXT = self
-        _, token = event
+        _, text = event
 
-        self.quoted.append(token)
+        next: NEXT = self.detector.on_event(text)
 
-        if self.escape:
-            self.escape = False
+        if next is not None:
+            next = self
 
-        elif isinstance(token, String) and (token == "\\"):
-            self.escape = True
-
-        elif isinstance(token, String) and (token == self.quote_char):
-            self.tagstr.append(Quoted(self.quoted))
-            # self.quoted = None
+        else:
+            quotedtext: TextString = cast(TextString, self.detector.on_exit())
+            self.tagstr.append(Quoted(quotedtext))
             next = None
 
         return next

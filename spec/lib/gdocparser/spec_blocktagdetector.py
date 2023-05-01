@@ -30,68 +30,62 @@ class Spec_detect_BlockTag:
         """
         return {
             ##
-            # #### [\@case 1] Nothing:
+            # #### [\@case 1] NoTags:
             #
-            "Nothing(1/)": (
+            "NoTags(1/)": (
                 # stimulus
-                [
-                    ["T", []],
-                    0,
-                ],
+                [["T", []]],
                 # expected
                 [None, None],
             ),
-            "Nothing(2/)": (
+            "NoTags(2/)": (
                 # stimulus
-                [
-                    ["T", [["s", "NOTHING"]]],
-                    0,
-                ],
+                [["T", [["s", "NOTAGS"]]]],
                 # expected
                 [None, None],
             ),
-            "Nothing(3/)": (
+            "NoTags(3/)": (
                 # stimulus
-                [
-                    ["T", [["c", "[@Class id]"]]],
-                    0,
-                ],
+                [["T", [["c", "[@AB]"]]]],  # Code
+                # expected
+                [None, None],
+            ),
+            "NoTags(4/)": (
+                # stimulus
+                [["T", [["s", "[@AB."]]]],
+                # expected
+                [None, None],
+            ),
+            "NoTags(5/)": (
+                # stimulus
+                [["T", [["s", "[ @AB]"]]]],
                 # expected
                 [None, None],
             ),
             ##
-            # #### [\@case 2] String:
+            # #### [\@case 2] Simple:
             #
-            "String(1/)": (
+            "Simple(1/)": (
                 # stimulus
-                [
-                    ["T", [["s", "012[@AB]890"]]],
-                    0,
-                ],
+                [["T", [["s", "[@AB]"]]]],
                 # expected
                 [
-                    slice(3, 8),
+                    slice(0, 5),
                     ["T", [["s", "[@AB]"]]],
                 ],
             ),
-            "String(2/)": (
+            "Simple(2/)": (
                 # stimulus
-                [
-                    ["T", [["s", "012[@  ]890"]]],
-                    0,
-                ],
+                [["T", [["s", "...[@  ]..."]]]],
                 # expected
                 [
                     slice(3, 8),
                     ["T", [["s", "[@  ]"]]],
                 ],
             ),
-            "String(3/): contains Quoted string": (
+            "Simple(3/): contains Quoted string": (
                 # stimulus
-                [
-                    ["T", [["s", '..[@ "]" ]..']]],
-                    0,
-                ],
+                [["T", [["s", '..[@ "]" ]..']]]],
                 # expected
                 [
                     slice(2, 10),
@@ -105,43 +99,39 @@ class Spec_detect_BlockTag:
                     ],
                 ],
             ),
-            "String(4/): contains Quoted string": (
+            "Simple(4/): contains Code": (
                 # stimulus
-                [
-                    ["T", [["s", '..[@ "\\"]" ]..']]],
-                    0,
-                ],
+                [["T", [["s", "..[@ "], ["c", "]"], ["s", " ].."]]]],
                 # expected
                 [
-                    slice(2, 12),
+                    slice(2, 8),
                     [
                         "T",
                         [
                             ["s", "[@ "],
-                            ["Q", [["s", '"\\"]"']]],
+                            ["c", "]"],
                             ["s", " ]"],
                         ],
                     ],
                 ],
             ),
-            "String(5/): contains Quoted string": (
+            ##
+            # #### [\@case 3] Nested:
+            #
+            "Nested(1/)": (
                 # stimulus
-                [
-                    ["T", [["s", "..[@ '\\']' ].."]]],
-                    0,
-                ],
+                [["T", [["s", "..[@AB[CD[]]].."]]]],
                 # expected
                 [
-                    slice(2, 12),
-                    [
-                        "T",
-                        [
-                            ["s", "[@ "],
-                            ["Q", [["s", "'\\']'"]]],
-                            ["s", " ]"],
-                        ],
-                    ],
+                    slice(2, 13),
+                    ["T", [["s", "[@AB[CD[]]]"]]],
                 ],
+            ),
+            "Nested(2/)": (
+                # stimulus
+                [["T", [["s", "..[@AB[CD[ ]].."]]]],
+                # expected
+                [None, None],
             ),
         }
 
@@ -157,7 +147,7 @@ class Spec_detect_BlockTag:
         ### [\@spec 1]
         """
         # WHEN
-        result = detect_BlockTag(TextString.loadd(stimulus[0]), stimulus[1])
+        result = detect_BlockTag(TextString.loadd(stimulus[0]), *stimulus[1:])
 
         # THEN
         pos: slice | None = result[0] if result[0] is not None else None
