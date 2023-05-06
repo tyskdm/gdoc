@@ -13,9 +13,14 @@ class ErrorReport:
     Error handling
     """
 
-    def __init__(self, cont: bool = False) -> None:
-        self._errordata: list[Exception | "ErrorReport"] = []
-        self._exit: bool = not cont
+    _errordata: list[Union[Exception, "ErrorReport"]]
+    _filename: str
+    _exit: bool
+
+    def __init__(self, cont: bool = False, filename: str = "") -> None:
+        self._errordata = []
+        self._filename = filename
+        self._exit = not cont
 
     def submit(self, err: Union[Exception, "ErrorReport", None] = None) -> bool:
         if (err is not None) and (err is not self):
@@ -24,7 +29,7 @@ class ErrorReport:
         return self._exit
 
     def new_subreport(self) -> "ErrorReport":
-        return self.__class__(not self._exit)
+        return self.__class__(not self._exit, self._filename)
 
     def haserror(self) -> bool:
         return len(self._errordata) > 0
@@ -48,7 +53,7 @@ class ErrorReport:
         errors: list[Exception] = self.get_errors()
         for err in errors:
             if isinstance(err, GdocSyntaxError):
-                err_info: list[str] = err.dump()
+                err_info: list[str] = err.dump(self._filename)
 
                 errstr = err_info[0]
                 if len(err_info) > 1:

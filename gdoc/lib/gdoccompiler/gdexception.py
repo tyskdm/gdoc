@@ -102,6 +102,17 @@ class GdocSyntaxError(SyntaxError):
             else:
                 self.err_info = None
 
+        elif pos is None:
+            super().__init__(message)
+
+            if info is not None:
+                text = info[0] or ""
+                offset = info[1] or 0
+                end_offset = info[2] or 0
+                self.err_info = (text, offset, end_offset)
+            else:
+                self.err_info = None
+
         else:
             pos = cast(tuple[str, int, int, str], pos)
             super().__init__(message, pos)
@@ -113,13 +124,27 @@ class GdocSyntaxError(SyntaxError):
             else:
                 self.err_info = None
 
-    def dump(self) -> list[str]:
+    def dump(self, filename: str = "") -> list[str]:
         result: list[str] = []
+        errstr: str = ""
 
-        errstr = f"{self.filename}:{self.lineno}:{self.offset}"
-        if (self.end_offset is not None) and (self.end_offset != 0):
-            errstr += f"-{self.end_lineno}:{self.end_offset}"
-        errstr += f" {type(self).__name__}: {str(self.msg)}"
+        if (
+            (self.filename is not None)
+            and (self.lineno is not None)
+            and (self.offset is not None)
+        ):
+            errstr += f"{self.filename}:{self.lineno}:{self.offset}"
+
+            if (self.end_offset is not None) and (self.end_offset != 0):
+                errstr += f"-{self.end_lineno}:{self.end_offset}"
+
+        elif filename != "":
+            errstr += f"{filename}:"
+
+        if errstr != "":
+            errstr += " "
+
+        errstr += f"{type(self).__name__}: {str(self.msg)}"
         result.append(errstr)
 
         if self.err_info is not None:
