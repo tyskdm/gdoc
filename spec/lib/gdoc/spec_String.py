@@ -424,3 +424,52 @@ class Spec_loadd:
 
             # THEN
             assert exc_info.match(expected["Exception"][1])
+
+
+class Spec_get_char_pos:
+    r"""
+    ## [\@spec] `get_char_pos`
+
+    ```py
+    def get_char_pos(self, index: int = 0) -> Optional[DataPos]:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@case 1]
+        """
+        return {
+            ##
+            # #### [\@case 1]
+            #
+            "Normal(1/): Return type is DataPos": (
+                # stimulus
+                ["s", [[8, ["FILEPATH", 5, 2, 5, 10]]], "CONTENTS"],
+                # expected
+                DataPos,
+            ),
+            "Normal(2/): Return type is None": (
+                # stimulus
+                ["s", "CONTENTS"],
+                # expected
+                type(None),
+            ),
+        }
+
+    # \cond
+    @pytest.mark.parametrize(
+        "stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    # \endcond
+    def spec_1(self, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # WHEN
+        target = String.loadd(stimulus)
+        # THEN
+        assert type(target.get_char_pos()) is expected

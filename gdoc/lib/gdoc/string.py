@@ -2,8 +2,9 @@
 string.py: String class
 """
 
-from typing import Literal, Optional, TypeAlias, cast
+from typing import Optional, cast
 
+from gdoc.lib.pandocastobject.pandocast import DataPos as PandocDataPos
 from gdoc.lib.pandocastobject.pandocast import PandocAst, PandocInlineElement
 from gdoc.lib.pandocastobject.pandocstr import PandocStr
 
@@ -44,7 +45,11 @@ class String(PandocStr, Text, ret_subclass=True):
             )
             items = [element]
 
-        super().__init__(items, start, stop)
+        super().__init__(
+            cast(Optional[PandocStr | list[PandocInlineElement]], items),
+            start,
+            stop,
+        )
 
     def get_str(self) -> str:
         return str(self)
@@ -131,3 +136,7 @@ class String(PandocStr, Text, ret_subclass=True):
                 raise RuntimeError("invalid data")
 
         return result
+
+    def get_char_pos(self, index: int = 0) -> Optional[DataPos]:
+        pos: Optional[PandocDataPos] = super().get_char_pos(index)
+        return DataPos(*pos) if pos else None
