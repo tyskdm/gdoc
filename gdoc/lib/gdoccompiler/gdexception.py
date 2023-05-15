@@ -147,7 +147,7 @@ class GdocSyntaxError(SyntaxError):
         errstr += f"{type(self).__name__}: {str(self.msg)}"
         result.append(errstr)
 
-        if self.err_info is not None:
+        if self.err_info is not None and self.err_info[0] != "":
             result.append(f"{self.err_info[0]}")
 
             errstr = " " * (self.err_info[1])

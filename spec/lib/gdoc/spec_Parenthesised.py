@@ -7,6 +7,7 @@ r"""
 
 """
 import pytest
+
 from gdoc.lib.gdoc.parenthesized import Parenthesized, TextString
 
 
