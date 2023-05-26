@@ -10,12 +10,11 @@ from gdoc.util import Err, ErrorReport, Ok, Result
 _PARENTHESES: dict[str, str] = {"(": ")", "[": "]", "{": "}"}
 
 
-def detect_parentheses(
+def detect_Parentheses(
     targetstring: TextString,
     erpt: ErrorReport,
     opening_chars: str = "([{",
 ) -> Result[TextString, ErrorReport]:
-
     result: TextString = TextString()
     closing_chars: str = ""
 
@@ -29,8 +28,7 @@ def detect_parentheses(
 
         # if token is opening parentheses
         if type(text) is String and str(text) in opening_chars:
-
-            parenthesized, e = parentheses_detector(
+            parenthesized, e = _parentheses_detector(
                 targetstring,
                 i,
                 opening_chars,
@@ -62,14 +60,13 @@ def detect_parentheses(
     return Ok(result)
 
 
-def parentheses_detector(
+def _parentheses_detector(
     targetstring: TextString,
     start: int,
     opening_chars: str,
     closing_chars: str,
     erpt: ErrorReport,
 ) -> Result[tuple[Parenthesized, int], ErrorReport]:
-
     result: Parenthesized = Parenthesized()
     end: int = start
 
@@ -84,8 +81,7 @@ def parentheses_detector(
 
         # if token is opening parentheses
         if type(text) is String and str(text) in opening_chars:
-
-            parenthesized, e = parentheses_detector(
+            parenthesized, e = _parentheses_detector(
                 targetstring,
                 i,
                 opening_chars,
