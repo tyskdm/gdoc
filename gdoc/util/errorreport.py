@@ -14,13 +14,20 @@ class ErrorReport:
     """
 
     _errordata: list[Union[Exception, "ErrorReport"]]
-    _filename: str
     _exit: bool
+    _filename: str
+    _enclosure: list[str]
 
-    def __init__(self, cont: bool = False, filename: str = "") -> None:
+    def __init__(
+        self,
+        cont: bool = False,
+        filename: str = "",
+        info_enclosure: list[str] = ["", ""],
+    ) -> None:
         self._errordata = []
         self._filename = filename
         self._exit = not cont
+        self._enclosure = info_enclosure
 
     def submit(self, err: Union[Exception, "ErrorReport", None] = None) -> bool:
         if (err is not None) and (err is not self):
@@ -46,22 +53,37 @@ class ErrorReport:
 
         return errors
 
-    def dump(self) -> str:
+    def dump(self, info: bool = False) -> str:
+        return "\n".join(self._dump(info))
+
+    def _dump(self, info: bool, info_enclosure: list[str] = ["", ""]) -> list[str]:
         dumpstrings: list[str] = []
-        errstr: str
+        enclosure: list[str] = (
+            [
+                self._enclosure[0] + info_enclosure[0],
+                info_enclosure[1] + self._enclosure[1],
+            ]
+            if info
+            else self._enclosure
+        )
 
-        errors: list[Exception] = self.get_errors()
-        for err in errors:
+        err_str: str
+        err_info: list[str] = []
+        for err in self._errordata:
             if isinstance(err, GdocSyntaxError):
-                err_info: list[str] = err.dump(self._filename)
+                err_info = err._dump(self._filename, info, enclosure)
 
-                errstr = err_info[0]
+                err_str: str = err_info[0]
                 if len(err_info) > 1:
-                    for info in err_info[1:]:
-                        errstr += "\n> " + info
+                    for infostr in err_info[1:]:
+                        err_str += "\n> " + infostr
+
+                dumpstrings.append(err_str)
+
+            elif type(err) is ErrorReport:
+                err_info += err._dump(info, enclosure)
+
             else:
-                errstr = str(err)
+                err_info.append(str(err))
 
-            dumpstrings.append(errstr)
-
-        return "\n".join(dumpstrings)
+        return dumpstrings

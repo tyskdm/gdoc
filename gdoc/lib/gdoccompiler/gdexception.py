@@ -81,7 +81,6 @@ class GdocSyntaxError(SyntaxError):
             self.err_info = (text, offset - 1, end_offset - 1)
 
         elif type(pos) is DataPos:
-
             super().__init__(
                 message,
                 (
@@ -124,7 +123,15 @@ class GdocSyntaxError(SyntaxError):
             else:
                 self.err_info = None
 
-    def dump(self, filename: str = "") -> list[str]:
+    def dump(self, filename: str = "", info: bool = False) -> str:
+        return "\n".join(self._dump(filename, info))
+
+    def _dump(
+        self,
+        filename: str = "",
+        info: bool = False,
+        info_enclosure: list[str] = ["", ""],
+    ) -> list[str]:
         result: list[str] = []
         errstr: str = ""
 
@@ -147,10 +154,10 @@ class GdocSyntaxError(SyntaxError):
         errstr += f"{type(self).__name__}: {str(self.msg)}"
         result.append(errstr)
 
-        if self.err_info is not None and self.err_info[0] != "":
-            result.append(f"{self.err_info[0]}")
+        if info and self.err_info is not None and self.err_info[0] != "":
+            result.append(info_enclosure[0] + f"{self.err_info[0]}" + info_enclosure[1])
 
-            errstr = " " * (self.err_info[1])
+            errstr = " " * (len(info_enclosure[0]) + self.err_info[1])
             # stop: int = self.err_info[2] or 0
             stop: int = self.err_info[2]
             if stop > self.err_info[1]:
