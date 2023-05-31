@@ -35,8 +35,11 @@ class ErrorReport:
 
         return self._exit
 
-    def new_subreport(self) -> "ErrorReport":
-        return self.__class__(not self._exit, self._filename)
+    def new_subreport(self, info_enclosure: list[str] = ["", ""]) -> "ErrorReport":
+        return self.__class__(not self._exit, self._filename, info_enclosure)
+
+    def add_enclosure(self, enclosure: list[str]) -> None:
+        self._enclosure = enclosure
 
     def haserror(self) -> bool:
         return len(self._errordata) > 0
