@@ -48,7 +48,7 @@ def detect_Parentheses(
                 GdocSyntaxError(
                     f"unmatched '{text.get_str()}'",
                     text.get_char_pos(),
-                    None,
+                    (targetstring.get_str(), i, 0),
                 )
             )
             return Err(erpt)
@@ -108,7 +108,7 @@ def _parentheses_detector(
                     f"closing parenthesis '{text.get_str()}' does not match opening "
                     f"parenthesis '{opening_char.get_str()}'",
                     text.get_char_pos(),
-                    None,
+                    (targetstring.get_str(), i, 0),
                 )
             )
             return Err(erpt)
@@ -123,7 +123,7 @@ def _parentheses_detector(
         GdocSyntaxError(
             f"'{opening_char.get_str()}' was never closed",
             opening_char.get_char_pos(),
-            None,
+            (targetstring.get_str(), start, 0),
         )
     )
     return Err(erpt)

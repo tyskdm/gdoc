@@ -361,14 +361,16 @@ class Spec_detect_parentheses:
                 # precondition
                 [
                     ["T", [["s", "(ABC]"]]],
-                    ErrorReport(False, "FILENAME"),
+                    ErrorReport(False, "FILENAME", [">> ", " <<"]),
                     "({[",
                 ],
                 # expected
                 {
                     "err": (
                         "FILENAME: GdocSyntaxError: closing parenthesis ']' does not "
-                        "match opening parenthesis '('"
+                        "match opening parenthesis '('\n"
+                        "> >> (ABC] <<\n"
+                        ">        ^"
                     ),
                     "result": None,
                 },
@@ -377,12 +379,16 @@ class Spec_detect_parentheses:
                 # precondition
                 [
                     ["T", [["s", "ABC]"]]],
-                    ErrorReport(False, "FILENAME"),
+                    ErrorReport(False, "FILENAME", [">> ", " <<"]),
                     "({[",
                 ],
                 # expected
                 {
-                    "err": ("FILENAME: GdocSyntaxError: unmatched ']'"),
+                    "err": (
+                        "FILENAME: GdocSyntaxError: unmatched ']'\n"
+                        "> >> ABC] <<\n"
+                        ">       ^"
+                    ),
                     "result": None,
                 },
             ),
@@ -390,12 +396,16 @@ class Spec_detect_parentheses:
                 # precondition
                 [
                     ["T", [["s", [[5, ["filename", 5, 10, 5, 15]]], "(ABCD"]]],
-                    ErrorReport(False, "FILENAME"),
+                    ErrorReport(False, "FILENAME", [">> ", " <<"]),
                     "({[",
                 ],
                 # expected
                 {
-                    "err": ("filename:5:10-5:11 GdocSyntaxError: '(' was never closed"),
+                    "err": (
+                        "filename:5:10-5:11 GdocSyntaxError: '(' was never closed\n"
+                        "> >> (ABCD <<\n"
+                        ">    ^"
+                    ),
                     "result": None,
                 },
             ),
@@ -426,7 +436,7 @@ class Spec_detect_parentheses:
             assert err is None
         else:
             assert err is not None
-            assert err.dump() == expected["err"]
+            assert err.dump(True) == expected["err"]
 
         if expected["result"] is None:
             assert result is None
