@@ -7,7 +7,7 @@ T = TypeVar("T")
 E = TypeVar("E")
 
 
-class Ok(tuple, Generic[T]):
+class Ok(tuple[T, None], Generic[T]):
     is_ok: Final[bool] = True
     is_err: Final[bool] = False
 
@@ -21,7 +21,7 @@ class Ok(tuple, Generic[T]):
         return self[1]
 
 
-class Err(tuple, Generic[E, T]):
+class Err(tuple[T, E], Generic[E, T]):
     is_ok: Final[bool] = False
     is_err: Final[bool] = True
 
