@@ -36,8 +36,8 @@ def parse_ObjectTagInfo(
     r = parse_Parentheses(textstring, srpt)
     if r.is_ok():
         textstring = r.unwrap()
-    elif erpt.should_exit(srpt):
-        return Err(erpt)
+    elif srpt.should_exit(r.err()):
+        return Err(erpt.submit(srpt))
 
     #
     # parse Class Info
@@ -50,26 +50,26 @@ def parse_ObjectTagInfo(
         class_txtstr.append(elem)
 
     if len(class_txtstr) > 0:
-        r = parse_ClassInfo(class_txtstr, srpt, opts)
+        r = parse_ClassInfo(class_txtstr, srpt.new_subreport(), opts)
         if r.is_ok():
             class_info = r.unwrap()
-        elif erpt.should_exit(srpt.add_enclosure(["", textstring[next:].get_str()])):
-            return Err(erpt)
+        elif srpt.should_exit(r.err().add_enclosure(["", textstring[next:].get_str()])):
+            return Err(erpt.submit(srpt))
 
     #
     # parse Arguments
     #
     args_txtstr: TextString = textstring[next:]
-    r = parse_Arguments(args_txtstr, srpt, opts)
+    r = parse_Arguments(args_txtstr, srpt.new_subreport(), opts)
     if r.is_ok():
         class_args, class_kwargs = r.unwrap()
-    elif erpt.should_exit(srpt.add_enclosure([textstring[:next].get_str(), ""])):
-        return Err(erpt)
+    elif srpt.should_exit(r.err().add_enclosure([textstring[:next].get_str(), ""])):
+        return Err(erpt.submit(srpt))
 
     #
     # return Result
     #
     if srpt.haserror():
-        return Err(erpt)
+        return Err(erpt.submit(srpt))
 
     return Ok(ObjectTagInfo(class_info, class_args, class_kwargs))

@@ -41,8 +41,9 @@ class ErrorReport:
     def new_subreport(self, info_enclosure: list[str] = ["", ""]) -> "ErrorReport":
         return self.__class__(not self._exit, self._filename, info_enclosure)
 
-    def add_enclosure(self, enclosure: list[str]) -> None:
+    def add_enclosure(self, enclosure: list[str]) -> "ErrorReport":
         self._enclosure = enclosure
+        return self  # for chaining
 
     def haserror(self) -> bool:
         return len(self._errordata) > 0
