@@ -19,6 +19,7 @@ from gdoc.lib.gdoc import Document
 from gdoc.lib.gdocparser.textblock import parse_TextBlock
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
+from gdoc.util import ErrorReport
 
 ## @{ @name Inline
 ## [\@test Inline] creates a new instance.
@@ -49,8 +50,10 @@ def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
     # Mock
     gdobject = mocker.Mock(["create_object"])
     gdobject.create_object.return_value = (None, None)
-    erpt_mock = mocker.Mock()
-    erpt_mock.submit = mocker.Mock(return_value=True)
+
+    # erpt_mock = mocker.Mock()
+    # erpt_mock.submit = mocker.Mock(return_value=True)
+    erpt_mock = ErrorReport()
 
     # Execution
     parse_TextBlock(target_data, gdobject, {}, erpt_mock)
