@@ -8,8 +8,8 @@ E = TypeVar("E")
 
 
 class Ok(tuple[T, None], Generic[T]):
-    is_ok: Final[bool] = True
-    is_err: Final[bool] = False
+    _is_ok: Final[bool] = True
+    _is_err: Final[bool] = False
 
     def __new__(cls, t: T):
         return tuple.__new__(cls, (t, None))
@@ -20,10 +20,19 @@ class Ok(tuple[T, None], Generic[T]):
     def err(self) -> None:
         return self[1]
 
+    def is_ok(self) -> bool:
+        return True
 
-class Err(tuple[T, E], Generic[E, T]):
-    is_ok: Final[bool] = False
-    is_err: Final[bool] = True
+    def is_err(self) -> bool:
+        return False
+
+    def unwrap(self) -> T:
+        return self[0]
+
+
+class Err(tuple[T | None, E], Generic[E, T]):
+    _is_ok: Final[bool] = False
+    _is_err: Final[bool] = True
 
     def __new__(cls, e: E, t: Optional[T] = None):
         return tuple.__new__(cls, (t, e))
@@ -33,6 +42,15 @@ class Err(tuple[T, E], Generic[E, T]):
 
     def err(self) -> E:
         return self[1]
+
+    def is_ok(self) -> bool:
+        return False
+
+    def is_err(self) -> bool:
+        return True
+
+    def unwrap(self) -> T:
+        raise TypeError("unwrap() called on an Err value")
 
 
 Result: TypeAlias = Ok[T] | Err[E, T]

@@ -29,6 +29,10 @@ class ErrorReport:
         self._exit = not cont
         self._enclosure = info_enclosure
 
+    def should_exit(self, err: Union[Exception, "ErrorReport", None] = None) -> bool:
+        self.submit(err)
+        return self._exit
+
     def submit(self, err: Union[Exception, "ErrorReport", None] = None) -> bool:
         if (err is not None) and (err is not self):
             self._errordata.append(err)

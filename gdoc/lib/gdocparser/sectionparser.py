@@ -14,39 +14,43 @@ def parse_Section(
     """ """
     srpt: ErrorReport = erpt.new_subreport()
     context: BaseObject = gobj
-    num_blocks: int = len(section)
-    i = 0
 
-    if num_blocks > 0:
-        if type(section[0]) is TextBlock:
-            #
-            # The first block
-            #
-            context, e = parse_TextBlock(section[0], context, opts, srpt)
-            if e and srpt.submit(e):
+    if len(section) == 0:
+        return Ok(gobj)
+
+    next: int = 0
+    if type(section[0]) is TextBlock:
+        next += 1
+        #
+        # The first block
+        #
+        r = parse_TextBlock(section[0], context, opts, srpt)
+        if r.is_ok():
+            context = r.unwrap() or gobj
+        elif srpt.should_exit(r.err()):
+            erpt.submit(srpt)
+            return Err(erpt)
+
+    i: int
+    for i in range(next, len(section)):
+        #
+        # Following blocks
+        #
+        blocktype = type(section[i])
+        if blocktype is TextBlock:
+            r = parse_TextBlock(section[i], context, opts, srpt)
+            if r.is_err() and srpt.should_exit(r.err()):
+                erpt.submit(srpt)
                 return Err(srpt)
 
-            context = context or gobj
-            i += 1
-
-        while i < num_blocks:
-            #
-            # Following blocks
-            #
-            blocktype = type(section[i])
-            if blocktype is TextBlock:
-                _, e = parse_TextBlock(section[i], context, opts, srpt)
-                if e and srpt.submit(e):
-                    return Err(srpt)
-
-            elif blocktype is Section:
-                _, e = parse_Section(section[i], context, opts, srpt)
-                if e and srpt.submit(e):
-                    return Err(srpt)
-
-            i += 1
+        elif blocktype is Section:
+            r = parse_Section(section[i], context, opts, srpt)
+            if r.is_err() and srpt.should_exit(r.err()):
+                erpt.submit(srpt)
+                return Err(srpt)
 
     if srpt.haserror():
-        return Err(srpt, gobj)
+        erpt.submit(srpt)
+        return Err(erpt, gobj)
 
     return Ok(gobj)
