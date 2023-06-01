@@ -36,7 +36,7 @@ def parse_ObjectTagInfo(
     r = parse_Parentheses(textstring, srpt)
     if r.is_ok():
         textstring = r.unwrap()
-    elif erpt.submit(srpt):
+    elif erpt.should_exit(srpt):
         return Err(erpt)
 
     #
@@ -53,7 +53,7 @@ def parse_ObjectTagInfo(
         r = parse_ClassInfo(class_txtstr, srpt, opts)
         if r.is_ok():
             class_info = r.unwrap()
-        elif erpt.submit(srpt.add_enclosure(["", textstring[next:].get_str()])):
+        elif erpt.should_exit(srpt.add_enclosure(["", textstring[next:].get_str()])):
             return Err(erpt)
 
     #
@@ -63,7 +63,7 @@ def parse_ObjectTagInfo(
     r = parse_Arguments(args_txtstr, srpt, opts)
     if r.is_ok():
         class_args, class_kwargs = r.unwrap()
-    elif erpt.submit(srpt.add_enclosure([textstring[:next].get_str(), ""])):
+    elif erpt.should_exit(srpt.add_enclosure([textstring[:next].get_str(), ""])):
         return Err(erpt)
 
     #

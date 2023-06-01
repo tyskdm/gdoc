@@ -33,11 +33,10 @@ class ErrorReport:
         self.submit(err)
         return self._exit
 
-    def submit(self, err: Union[Exception, "ErrorReport", None] = None) -> bool:
+    def submit(self, err: Union[Exception, "ErrorReport", None] = None) -> "ErrorReport":
         if (err is not None) and (err is not self):
             self._errordata.append(err)
-
-        return self._exit
+        return self  # for chaining
 
     def new_subreport(self, info_enclosure: list[str] = ["", ""]) -> "ErrorReport":
         return self.__class__(not self._exit, self._filename, info_enclosure)
