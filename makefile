@@ -90,10 +90,14 @@ test-cov:
 	@pytest $(PYTESTFLAGS) --cov $(SRCDIR) --cov-branch
 
 cov:
+	@pytest $(SPECDIR) $(PYTESTFLAGS) --cov $(SRCDIR) --cov-branch --cov-report=xml
+
+cov-report:
 	@pytest $(SPECDIR) $(PYTESTFLAGS) --cov $(SRCDIR) --cov-branch --cov-report=html
 
 cov-clean:
 	@$(RM) -rf $(PYTESTDIR)
+	@$(RM) ./.coverage ./coverage.xml
 
 style:
 	isort $(SRCDIR) $(SPECDIR) $(TESTDIR)
