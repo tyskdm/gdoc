@@ -10,7 +10,7 @@ from gdoc.util import Err, ErrorReport, Ok, Result
 _PARENTHESES: dict[str, str] = {"(": ")", "[": "]", "{": "}"}
 
 
-def detect_Parentheses(
+def parse_Parentheses(
     targetstring: TextString,
     erpt: ErrorReport,
     opening_chars: str = "([{",
@@ -28,7 +28,7 @@ def detect_Parentheses(
 
         # if token is opening parentheses
         if type(text) is String and str(text) in opening_chars:
-            parenthesized, e = _parentheses_detector(
+            parenthesized, e = _parentheses_parser(
                 targetstring,
                 i,
                 opening_chars,
@@ -60,7 +60,7 @@ def detect_Parentheses(
     return Ok(result)
 
 
-def _parentheses_detector(
+def _parentheses_parser(
     targetstring: TextString,
     start: int,
     opening_chars: str,
@@ -81,7 +81,7 @@ def _parentheses_detector(
 
         # if token is opening parentheses
         if type(text) is String and str(text) in opening_chars:
-            parenthesized, e = _parentheses_detector(
+            parenthesized, e = _parentheses_parser(
                 targetstring,
                 i,
                 opening_chars,

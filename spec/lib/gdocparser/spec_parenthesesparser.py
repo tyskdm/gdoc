@@ -9,10 +9,7 @@ r"""
 import pytest
 
 from gdoc.lib.gdoc import TextString
-from gdoc.lib.gdocparser.parenthesesdetector import (
-    _parentheses_detector,
-    detect_Parentheses,
-)
+from gdoc.lib.gdocparser.parenthesesparser import _parentheses_parser, parse_Parentheses
 from gdoc.util import ErrorReport
 
 
@@ -264,7 +261,7 @@ class Spec_parentheses_detector:
         # WHEN
         result: tuple[TextString, int] | None
         err: ErrorReport | None
-        result, err = _parentheses_detector(*arguments)
+        result, err = _parentheses_parser(*arguments)
 
         # THEN
         if expected["err"] is None:
@@ -429,7 +426,7 @@ class Spec_detect_parentheses:
         # WHEN
         result: TextString | None
         err: ErrorReport | None
-        result, err = detect_Parentheses(*arguments)
+        result, err = parse_Parentheses(*arguments)
 
         # THEN
         if expected["err"] is None:
