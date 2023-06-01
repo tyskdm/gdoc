@@ -7,8 +7,8 @@ from gdoc.lib.gdoc import String, Text, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from .objecttaginfoparser import ObjectTagInfo, parse_ObjectTagInfo
 from .blocktagdetector import detect_BlockTag
+from .objecttaginfoparser import ObjectTagInfo, parse_ObjectTagInfo
 
 
 def parse_BlockTag(
