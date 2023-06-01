@@ -28,8 +28,7 @@ def parse_Section(
         if r.is_ok():
             context = r.unwrap() or gobj
         elif srpt.should_exit(r.err()):
-            erpt.submit(srpt)
-            return Err(erpt)
+            return Err(erpt.submit(srpt))
 
     i: int
     for i in range(next, len(section)):
@@ -40,17 +39,14 @@ def parse_Section(
         if blocktype is TextBlock:
             r = parse_TextBlock(section[i], context, opts, srpt)
             if r.is_err() and srpt.should_exit(r.err()):
-                erpt.submit(srpt)
-                return Err(srpt)
+                return Err(erpt.submit(srpt))
 
         elif blocktype is Section:
             r = parse_Section(section[i], context, opts, srpt)
             if r.is_err() and srpt.should_exit(r.err()):
-                erpt.submit(srpt)
-                return Err(srpt)
+                return Err(erpt.submit(srpt))
 
     if srpt.haserror():
-        erpt.submit(srpt)
-        return Err(erpt, gobj)
+        return Err(erpt.submit(srpt), gobj)
 
     return Ok(gobj)

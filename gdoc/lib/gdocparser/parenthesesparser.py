@@ -28,17 +28,17 @@ def parse_Parentheses(
 
         # if token is opening parentheses
         if type(text) is String and str(text) in opening_chars:
-            parenthesized, e = _parentheses_parser(
+            r = _parentheses_parser(
                 targetstring,
                 i,
                 opening_chars,
                 closing_chars,
                 erpt,
             )
-            # Error:
-            if e:
-                return Err(e)
+            if r.is_err():
+                return Err(erpt.submit(r.err()))
 
+            parenthesized = r.unwrap()
             result.append(parenthesized[0])
             i = parenthesized[1]
 
@@ -81,17 +81,17 @@ def _parentheses_parser(
 
         # if token is opening parentheses
         if type(text) is String and str(text) in opening_chars:
-            parenthesized, e = _parentheses_parser(
+            r = _parentheses_parser(
                 targetstring,
                 i,
                 opening_chars,
                 closing_chars,
                 erpt,
             )
-            # Error:
-            if e:
-                return Err(e)
+            if r.is_err():
+                return Err(erpt.submit(r.err()))
 
+            parenthesized = r.unwrap()
             result.append(parenthesized[0])
             i = parenthesized[1]
             continue
