@@ -47,7 +47,7 @@ def parse_name(textstr: TextString, erpt: ErrorReport) -> Result[NAME_INFO, Erro
     tag_tstr: TextString | None
     text: Text
     for i, text in enumerate(textstr):
-        if ((type(text) is String) or (type(text) is TextString)) and (
+        if ((type(text) is String) or (isinstance(text, TextString))) and (
             text.startswith("(")
         ):
             name_tstr = textstr[:i]
@@ -64,6 +64,8 @@ def parse_name(textstr: TextString, erpt: ErrorReport) -> Result[NAME_INFO, Erro
 
     tag_list: list[TextString] = []
     if tag_tstr is not None:
+        if len(tag_tstr) == 1:
+            tag_tstr = cast(TextString, tag_tstr[0])
         tag_list, e = parse_tag_str(tag_tstr, subrpt)
         if e and subrpt.submit(e):
             return Err(subrpt)
@@ -185,8 +187,10 @@ def parse_tag_str(
     # Split `textstr` by `,` and ` `.
     tag_list: list[TextString] = []
     tag: TextString
-    for tag in textstr.split(","):
-        tag_list += tag.split()
+    # for tag in textstr.split(","):
+    #     tag_list += tag.split()
+
+    tag_list = [tag.strip() for tag in textstr[1:-1].split(",")]
 
     for i, tag in enumerate(tag_list):
         # Each name must be at least one character in length.
@@ -259,7 +263,6 @@ def parse_tag_str(
 def _get_err_info(
     words: list[TextString], windex: int, cindex: int | None = None
 ) -> tuple[tuple[str, int, int], DataPos]:
-
     textstr = TextString(cast(list[Text], words))
 
     start = 0
