@@ -84,9 +84,9 @@ class ErrorReport:
                 dumpstrings.append(err_str)
 
             elif type(err) is ErrorReport:
-                err_info += err._dump(info, enclosure)
+                dumpstrings += err._dump(info, enclosure)
 
             else:
-                err_info.append(str(err))
+                dumpstrings.append(str(err))
 
         return dumpstrings
