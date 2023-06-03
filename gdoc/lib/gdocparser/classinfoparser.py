@@ -112,7 +112,7 @@ def is_single_element(
                         (
                             textstring.get_str(),
                             1 + i,
-                            1 + i + len(char.get_str()),
+                            len(char.get_str()),
                         ),
                     )
                 )
@@ -131,7 +131,7 @@ def is_single_element(
                     (
                         textstring.get_str(),
                         len(textstring[0].get_str()),
-                        len(textstring[0].get_str()) + len(textstring[1].get_str()),
+                        len(textstring[1].get_str()),
                     ),
                 )
             )
@@ -145,7 +145,11 @@ def is_single_element(
                     if hasattr(textstring[0], "get_data_pos")
                     else textstring[0].get_char_pos(0)
                 ),
-                (textstring.get_str(), 0, len(textstring[0].get_str())),
+                (
+                    textstring.get_str(),
+                    0,
+                    len(textstring[0].get_str()),
+                ),
             )
         )
         return Err(erpt)
