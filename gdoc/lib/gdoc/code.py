@@ -4,6 +4,7 @@ code.py: `Code` inline element class
 
 from typing import Literal, Optional, TypeAlias, cast
 
+from gdoc.lib.pandocastobject.pandocast import DataPos as PandocDataPos
 from gdoc.lib.pandocastobject.pandocast import PandocAst, PandocInlineElement
 
 from .datapos import DataPos, Pos
@@ -48,7 +49,8 @@ class Code(Text):
 
     def get_data_pos(self) -> Optional[DataPos]:
         if self.data_pos is _NOT_SET_:
-            self.data_pos = cast(Optional[DataPos], self.element.get_data_pos())
+            ppos: PandocDataPos | None = self.element.get_data_pos()
+            self.data_pos = DataPos(*ppos) if ppos is not None else None
 
         return self.data_pos
 
