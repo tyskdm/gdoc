@@ -64,11 +64,14 @@ class ErrorReport:
         return "\n".join(self._dump(info))
 
     def _dump(self, info: bool, info_enclosure: list[str] = ["", ""]) -> list[str]:
+        #
+        # todo: check info first to avoid unnecessary string concatenation.
+        #
         dumpstrings: list[str] = []
         enclosure: list[str] = (
             [
-                self._enclosure[0] + info_enclosure[0],
-                info_enclosure[1] + self._enclosure[1],
+                info_enclosure[0] + self._enclosure[0],
+                self._enclosure[1] + info_enclosure[1],
             ]
             if info
             else self._enclosure
