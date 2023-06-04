@@ -39,10 +39,17 @@ def parse_BlockTag(
         # remove the first "[@" and the last "]"
         # TODO: Replace with removeprefix("[@") and removesuffix("]")
 
-        taginfo: ObjectTagInfo
+        taginfo: ObjectTagInfo | None
         taginfo, e = parse_ObjectTagInfo(tokens, opts, erpt)
         if e:
-            erpt.submit(e)
+            erpt.submit(
+                e.add_enclosure(
+                    [
+                        tagstr[:2].get_str(),
+                        tagstr[-1:].get_str(),
+                    ]
+                )
+            )
             return Err(erpt)
 
         class_info: tuple[String | None, String | None, String | None]
