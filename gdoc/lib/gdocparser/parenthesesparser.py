@@ -48,7 +48,11 @@ def parse_Parentheses(
                 GdocSyntaxError(
                     f"unmatched '{text.get_str()}'",
                     text.get_char_pos(),
-                    (targetstring.get_str(), i, 0),
+                    (
+                        targetstring.get_str(),
+                        len(targetstring[:i].get_str()),
+                        0,
+                    ),
                 )
             )
             return Err(erpt)
@@ -108,7 +112,11 @@ def _parentheses_parser(
                     f"closing parenthesis '{text.get_str()}' does not match opening "
                     f"parenthesis '{opening_char.get_str()}'",
                     text.get_char_pos(),
-                    (targetstring.get_str(), i, 0),
+                    (
+                        targetstring.get_str(),
+                        len(targetstring[:i].get_str()),
+                        0,
+                    ),
                 )
             )
             return Err(erpt)
@@ -123,7 +131,11 @@ def _parentheses_parser(
         GdocSyntaxError(
             f"'{opening_char.get_str()}' was never closed",
             opening_char.get_char_pos(),
-            (targetstring.get_str(), start, 0),
+            (
+                targetstring.get_str(),
+                len(targetstring[:start].get_str()),
+                0,
+            ),
         )
     )
     return Err(erpt)

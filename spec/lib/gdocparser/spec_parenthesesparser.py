@@ -185,7 +185,9 @@ class Spec_parentheses_detector:
                 {
                     "err": (
                         "FILENAME: GdocSyntaxError: closing parenthesis ']' does not "
-                        "match opening parenthesis '('"
+                        "match opening parenthesis '('\n"
+                        "> (ABC]\n"
+                        ">     ^"
                     ),
                     "result": None,
                 },
@@ -203,7 +205,9 @@ class Spec_parentheses_detector:
                 {
                     "err": (
                         "filename:5:14-5:15 GdocSyntaxError: closing parenthesis ']' "
-                        "does not match opening parenthesis '('"
+                        "does not match opening parenthesis '('\n"
+                        "> (ABC]\n"
+                        ">     ^"
                     ),
                     "result": None,
                 },
@@ -219,7 +223,11 @@ class Spec_parentheses_detector:
                 ],
                 # expected
                 {
-                    "err": ("filename:5:10-5:11 GdocSyntaxError: '(' was never closed"),
+                    "err": (
+                        "filename:5:10-5:11 GdocSyntaxError: '(' was never closed\n"
+                        "> (ABCD\n"
+                        "> ^"
+                    ),
                     "result": None,
                 },
             ),
@@ -236,7 +244,115 @@ class Spec_parentheses_detector:
                 {
                     "err": (
                         "filename:5:14-5:15 GdocSyntaxError: closing parenthesis '}' "
-                        "does not match opening parenthesis '['"
+                        "does not match opening parenthesis '['\n"
+                        "> {A[B}\n"
+                        ">     ^"
+                    ),
+                    "result": None,
+                },
+            ),
+            ##
+            # #### [\@case 1] MixedElements:
+            #
+            "MixedElements(1/)": (
+                # precondition
+                [
+                    [
+                        "T",
+                        [
+                            ["s", "("],
+                            ["c", "ABC"],
+                            ["s", "]"],
+                        ],
+                    ],
+                    0,
+                    "({[",
+                    ")}]",
+                    ErrorReport(False, "FILENAME"),
+                ],
+                # expected
+                {
+                    "err": (
+                        "FILENAME: GdocSyntaxError: closing parenthesis ']' does not "
+                        "match opening parenthesis '('\n"
+                        "> (ABC]\n"
+                        ">     ^"
+                    ),
+                    "result": None,
+                },
+            ),
+            "MixedElements(2/)": (
+                # precondition
+                [
+                    [
+                        "T",
+                        [
+                            ["s", [[1, ["filename", 5, 10, 5, 11]]], "("],
+                            ["c", ["filename", 5, 11, 5, 17], "ABCD"],
+                        ],
+                    ],
+                    0,
+                    "({[",
+                    ")}]",
+                    ErrorReport(False, "FILENAME"),
+                ],
+                # expected
+                {
+                    "err": (
+                        "filename:5:10-5:11 GdocSyntaxError: '(' was never closed\n"
+                        "> (ABCD\n"
+                        "> ^"
+                    ),
+                    "result": None,
+                },
+            ),
+            "MixedElements(3/)": (
+                # precondition
+                [
+                    [
+                        "T",
+                        [
+                            ["s", [[3, ["filename", 5, 10, 5, 13]]], "(A("],
+                            ["c", ["filename", 5, 13, 5, 18], "BCD"],
+                        ],
+                    ],
+                    0,
+                    "({[",
+                    ")}]",
+                    ErrorReport(False, "FILENAME"),
+                ],
+                # expected
+                {
+                    "err": (
+                        "filename:5:12-5:13 GdocSyntaxError: '(' was never closed\n"
+                        "> (A(BCD\n"
+                        ">   ^"
+                    ),
+                    "result": None,
+                },
+            ),
+            "MixedElements(3/)": (
+                # precondition
+                [
+                    [
+                        "T",
+                        [
+                            ["s", [[3, ["filename", 5, 10, 5, 13]]], "(AB"],
+                            ["c", ["filename", 5, 13, 5, 18], "CDE"],
+                            ["s", [[2, ["filename", 5, 18, 5, 20]]], "[F"],
+                        ],
+                    ],
+                    0,
+                    "({[",
+                    ")}]",
+                    ErrorReport(True, "FILENAME"),  # cont = True
+                ],
+                # expected
+                {
+                    "err": (
+                        "filename:5:18-5:19 GdocSyntaxError: '[' was never closed\n"
+                        "> (ABCDE[F\n"
+                        ">       ^"
                     ),
                     "result": None,
                 },
@@ -268,7 +384,7 @@ class Spec_parentheses_detector:
             assert err is None
         else:
             assert err is not None
-            assert err.dump() == expected["err"]
+            assert err.dump(True) == expected["err"]
 
         if expected["result"] is None:
             assert result is None
