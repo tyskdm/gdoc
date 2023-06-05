@@ -105,8 +105,8 @@ def is_single_element(
                     GdocSyntaxError(
                         "invalid syntax",
                         (
-                            char.get_data_pos()
-                            if hasattr(char, "get_data_pos")
+                            get_data_pos()
+                            if (get_data_pos := getattr(char, "get_data_pos", None))
                             else char.get_char_pos(0)
                         ),
                         (
@@ -124,8 +124,8 @@ def is_single_element(
                 GdocSyntaxError(
                     "invalid syntax",
                     (
-                        textstring[1].get_data_pos()
-                        if hasattr(textstring[1], "get_data_pos")
+                        get_data_pos()
+                        if (get_data_pos := getattr(textstring[1], "get_data_pos", None))
                         else textstring[1].get_char_pos(0)
                     ),
                     (
@@ -141,8 +141,8 @@ def is_single_element(
             GdocSyntaxError(
                 "invalid syntax",
                 (
-                    textstring[0].get_data_pos()
-                    if hasattr(textstring[0], "get_data_pos")
+                    get_data_pos()
+                    if (get_data_pos := getattr(textstring[0], "get_data_pos", None))
                     else textstring[0].get_char_pos(0)
                 ),
                 (
