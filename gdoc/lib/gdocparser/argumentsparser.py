@@ -21,14 +21,10 @@ def parse_Arguments(
         parser.start().on_entry()
 
         for i, e in enumerate(elements):
-            if parser.on_event(e) is None:
-                # "positional argument follows keyword argument"
-                break
+            parser.on_event(e)
         else:
             i += 1
-            if parser.on_event(None) is None:  # End Of Elements
-                # "positional argument follows keyword argument"
-                pass
+            parser.on_event(None)
 
         result: tuple[list[TextString], list[list[TextString]]] = parser.on_exit()
 
@@ -209,12 +205,14 @@ class _AfterKey(ArgumentParser._STATE_TYPE):
     arg_word: list[TextString]
     args: list[TextString]
     kwargs: list[list[TextString]]
+    last_element: Text | None
 
     def start(self, param):
         param = cast(_PARAM_TYPE, param)
         self.arg_word, self.args, self.kwargs = param
 
     def on_entry(self, element):
+        self.last_element = element
         return self.on_event(element)
 
     def on_event(self, element):
@@ -227,21 +225,28 @@ class _AfterKey(ArgumentParser._STATE_TYPE):
         elif element == "=":
             next = ("Value", element)
 
-        elif element is None:
-            if len(self.arg_word[0]) > 0:
-                self.args.append(self.arg_word[0])
-
         else:
+            self.args.append(self.arg_word[0])
+
             if kwargs:
+                if self.last_element is not None:
+                    self.last_element = cast(Text, self.last_element)
+                    dpos = self.last_element.get_char_pos(0)
+                    dpos = dpos.get_last_pos() if dpos else None
+                else:
+                    # todo: get_char_pos should be replaced with get_data_pos.
+                    dpos = self.arg_word[0].get_char_pos(len(self.arg_word[0]) - 1)
+                    dpos = dpos.get_last_pos() if dpos else None
                 raise GdocSyntaxError(
-                    "Unexpected argument. (keyword argument is already exists.)",
-                    element.get_char_pos(0),
-                    None,
+                    "positional argument follows keyword argument",
+                    dpos,
+                    ("", 0, 0),
                 )
 
-            self.args.append(self.arg_word[0])
-            next = ("Idle", element)
+            if element is not None:
+                next = ("Idle", element)
 
+        self.last_element = element
         return next
 
 

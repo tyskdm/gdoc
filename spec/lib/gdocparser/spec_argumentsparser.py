@@ -138,6 +138,24 @@ class Spec_parse_Arguments:
                     "err": None,
                 },
             ),
+            "Normal(5/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[6, ["file", 5, 10, 5, 16]]], " a1 a2"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "results": {
+                        "args": [
+                            ["T", [["s", [[2, ["file", 5, 11, 5, 13]]], "a1"]]],
+                            ["T", [["s", [[2, ["file", 5, 14, 5, 16]]], "a2"]]],
+                        ],
+                        "kwargs": [],
+                    },
+                    "err": None,
+                },
+            ),
             ##
             # #### [\@case 1] Error:
             #
@@ -268,9 +286,7 @@ class Spec_parse_Arguments:
                 {
                     "results": None,
                     "err": (
-                        "file:5:14 GdocSyntaxError: invalid syntax\n"
-                        "> k1 =\n"
-                        ">     ^"
+                        "file:5:14 GdocSyntaxError: invalid syntax\n" "> k1 =\n" ">     ^"
                     ),
                 },
             ),
@@ -358,27 +374,50 @@ class Spec_parse_Arguments:
                     ),
                 },
             ),
-            # "Error(8/)": (
-            #     # stimulus
-            #     [
-            #         [
-            #             "T",
-            #             [
-            #                 ["s", [[5, ["file", 5, 10, 5, 15]]], "k1=v1, a1"],
-            #             ],
-            #         ],
-            #         ErrorReport(cont=False),
-            #     ],
-            #     # expected
-            #     {
-            #         "results": None,
-            #         "err": (
-            #             "file:5:14-5:15 GdocSyntaxError: unexpected comma\n"
-            #             "> k1 =,\n"
-            #             ">     ^"
-            #         ),
-            #     },
-            # ),
+            "Error(12/)": (
+                # stimulus
+                [
+                    [
+                        "T",
+                        [
+                            ["s", [[10, ["file", 5, 10, 5, 20]]], "k1=v1, a1 "],
+                        ],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "results": None,
+                    "err": (
+                        "file:5:20 GdocSyntaxError: positional argument follows "
+                        "keyword argument\n"
+                        "> k1=v1, a1 \n"
+                        ">           ^"
+                    ),
+                },
+            ),
+            "Error(13/)": (
+                # stimulus
+                [
+                    [
+                        "T",
+                        [
+                            ["s", [[9, ["file", 5, 10, 5, 19]]], "k1=v1, a1"],
+                        ],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "results": None,
+                    "err": (
+                        "file:5:19 GdocSyntaxError: positional argument follows "
+                        "keyword argument\n"
+                        "> k1=v1, a1\n"
+                        ">          ^"
+                    ),
+                },
+            ),
         }
 
     # \cond
