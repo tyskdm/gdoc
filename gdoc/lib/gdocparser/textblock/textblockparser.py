@@ -30,7 +30,7 @@ def parse_TextBlock(
     parsed_line: TextString
     for line in textblock:
         parsed_line, e = parse_Line(line, opts, srpt)
-        if e and srpt.submit(e):
+        if e and srpt.should_exit(e):
             return Err(srpt)
 
         if parsed_line:

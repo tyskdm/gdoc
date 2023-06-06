@@ -13,18 +13,37 @@ class ErrorReport:
     Error handling
     """
 
-    def __init__(self, cont: bool = False) -> None:
-        self._errordata: list[Exception | "ErrorReport"] = []
-        self._exit: bool = not cont
+    _errordata: list[Union[Exception, "ErrorReport"]]
+    _exit: bool
+    _filename: str
+    _enclosure: list[str]
 
-    def submit(self, err: Union[Exception, "ErrorReport", None] = None) -> bool:
-        if (err is not None) and (err is not self):
-            self._errordata.append(err)
+    def __init__(
+        self,
+        cont: bool = False,
+        filename: str = "",
+        info_enclosure: list[str] = ["", ""],
+    ) -> None:
+        self._errordata = []
+        self._filename = filename
+        self._exit = not cont
+        self._enclosure = info_enclosure
 
+    def should_exit(self, err: Union[Exception, "ErrorReport", None] = None) -> bool:
+        self.submit(err)
         return self._exit
 
-    def new_subreport(self) -> "ErrorReport":
-        return self.__class__(not self._exit)
+    def submit(self, err: Union[Exception, "ErrorReport", None] = None) -> "ErrorReport":
+        if (err is not None) and (err is not self):
+            self._errordata.append(err)
+        return self  # for chaining
+
+    def new_subreport(self, info_enclosure: list[str] = ["", ""]) -> "ErrorReport":
+        return self.__class__(not self._exit, self._filename, info_enclosure)
+
+    def add_enclosure(self, enclosure: list[str]) -> "ErrorReport":
+        self._enclosure = enclosure
+        return self  # for chaining
 
     def haserror(self) -> bool:
         return len(self._errordata) > 0
@@ -41,22 +60,40 @@ class ErrorReport:
 
         return errors
 
-    def dump(self) -> str:
+    def dump(self, info: bool = False) -> str:
+        return "\n".join(self._dump(info))
+
+    def _dump(self, info: bool, info_enclosure: list[str] = ["", ""]) -> list[str]:
+        #
+        # todo: check info first to avoid unnecessary string concatenation.
+        #
         dumpstrings: list[str] = []
-        errstr: str
+        enclosure: list[str] = (
+            [
+                info_enclosure[0] + self._enclosure[0],
+                self._enclosure[1] + info_enclosure[1],
+            ]
+            if info
+            else self._enclosure
+        )
 
-        errors: list[Exception] = self.get_errors()
-        for err in errors:
+        err_str: str
+        err_info: list[str] = []
+        for err in self._errordata:
             if isinstance(err, GdocSyntaxError):
-                err_info: list[str] = err.dump()
+                err_info = err._dump(self._filename, info, enclosure)
 
-                errstr = err_info[0]
+                err_str: str = err_info[0]
                 if len(err_info) > 1:
-                    for info in err_info[1:]:
-                        errstr += "\n> " + info
+                    for infostr in err_info[1:]:
+                        err_str += "\n> " + infostr
+
+                dumpstrings.append(err_str)
+
+            elif type(err) is ErrorReport:
+                dumpstrings += err._dump(info, enclosure)
+
             else:
-                errstr = str(err)
+                dumpstrings.append(str(err))
 
-            dumpstrings.append(errstr)
-
-        return "\n".join(dumpstrings)
+        return dumpstrings

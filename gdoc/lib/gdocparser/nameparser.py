@@ -47,7 +47,7 @@ def parse_name(textstr: TextString, erpt: ErrorReport) -> Result[NAME_INFO, Erro
     tag_tstr: TextString | None
     text: Text
     for i, text in enumerate(textstr):
-        if ((type(text) is String) or (type(text) is TextString)) and (
+        if ((type(text) is String) or (isinstance(text, TextString))) and (
             text.startswith("(")
         ):
             name_tstr = textstr[:i]
@@ -59,13 +59,15 @@ def parse_name(textstr: TextString, erpt: ErrorReport) -> Result[NAME_INFO, Erro
 
     name_list: list[TextString]
     name_list, e = parse_name_str(name_tstr, subrpt)
-    if e and subrpt.submit(e):
+    if e and subrpt.should_exit(e):
         return Err(subrpt)
 
     tag_list: list[TextString] = []
     if tag_tstr is not None:
+        if len(tag_tstr) == 1:
+            tag_tstr = cast(TextString, tag_tstr[0])
         tag_list, e = parse_tag_str(tag_tstr, subrpt)
-        if e and subrpt.submit(e):
+        if e and subrpt.should_exit(e):
             return Err(subrpt)
 
     if subrpt.haserror():
@@ -96,7 +98,7 @@ def parse_name_str(
             # Each name must be at least one character in length.
             if len(name) == 0:
                 errinfo, pos = _get_err_info(name_list, i, 0)
-                if subrpt.submit(GdocSyntaxError("Invalid name ''", pos, errinfo)):
+                if subrpt.should_exit(GdocSyntaxError("Invalid name ''", pos, errinfo)):
                     return Err(subrpt)
 
             # String
@@ -108,7 +110,7 @@ def parse_name_str(
                         namestr += char
                     else:
                         errinfo, pos = _get_err_info(name_list, i, j)
-                        if subrpt.submit(
+                        if subrpt.should_exit(
                             GdocSyntaxError("Invalid name ''", pos, errinfo)
                         ):
                             return Err(subrpt)
@@ -117,7 +119,9 @@ def parse_name_str(
                     j = is_basic_name(str(namestr))
                     if not (j is True):
                         errinfo, pos = _get_err_info(name_list, i, j)
-                        if subrpt.submit(GdocSyntaxError("Invalid name", pos, errinfo)):
+                        if subrpt.should_exit(
+                            GdocSyntaxError("Invalid name", pos, errinfo)
+                        ):
                             return Err(subrpt)
                         continue
 
@@ -127,7 +131,7 @@ def parse_name_str(
             elif type(name[0]) is Code:
                 if len(name) > 1:
                     errinfo, pos = _get_err_info(name_list, i, None)
-                    if subrpt.submit(GdocSyntaxError("Invalid name", pos, errinfo)):
+                    if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
                         return Err(subrpt)
                     continue
 
@@ -137,13 +141,13 @@ def parse_name_str(
             elif isinstance(name[0], TextString):
                 if len(name) > 1:
                     errinfo, pos = _get_err_info(name_list, i, None)
-                    if subrpt.submit(GdocSyntaxError("Invalid name", pos, errinfo)):
+                    if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
                         return Err(subrpt)
                     continue
 
                 if not (name.startswith('"') and name.endswith('"')):
                     errinfo, pos = _get_err_info(name_list, i, None)
-                    if subrpt.submit(GdocSyntaxError("Invalid name", pos, errinfo)):
+                    if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
                         return Err(subrpt)
                     continue
 
@@ -153,7 +157,7 @@ def parse_name_str(
 
             else:
                 errinfo, pos = _get_err_info(name_list, i, None)
-                if subrpt.submit(GdocSyntaxError("Invalid name", pos, errinfo)):
+                if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
                     return Err(subrpt)
 
         sep = not sep
@@ -185,14 +189,16 @@ def parse_tag_str(
     # Split `textstr` by `,` and ` `.
     tag_list: list[TextString] = []
     tag: TextString
-    for tag in textstr.split(","):
-        tag_list += tag.split()
+    # for tag in textstr.split(","):
+    #     tag_list += tag.split()
+
+    tag_list = [tag.strip() for tag in textstr[1:-1].split(",")]
 
     for i, tag in enumerate(tag_list):
         # Each name must be at least one character in length.
         if len(tag) == 0:
             errinfo, pos = _get_err_info(tag_list, i, 0)
-            if subrpt.submit(GdocSyntaxError("Invalid name ''", pos, errinfo)):
+            if subrpt.should_exit(GdocSyntaxError("Invalid name ''", pos, errinfo)):
                 return Err(subrpt)
 
         # String
@@ -204,14 +210,16 @@ def parse_tag_str(
                     tagstr += char
                 else:
                     errinfo, pos = _get_err_info(tag_list, i, j)
-                    if subrpt.submit(GdocSyntaxError("Invalid name ''", pos, errinfo)):
+                    if subrpt.should_exit(
+                        GdocSyntaxError("Invalid name ''", pos, errinfo)
+                    ):
                         return Err(subrpt)
                     break
             else:
                 j = is_tag_str(str(tagstr))
                 if not (j is True):
                     errinfo, pos = _get_err_info(tag_list, i, j)
-                    if subrpt.submit(GdocSyntaxError("Invalid name", pos, errinfo)):
+                    if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
                         return Err(subrpt)
                     continue
 
@@ -221,7 +229,7 @@ def parse_tag_str(
         elif type(tag[0]) is Code:
             if len(tag) > 1:
                 errinfo, pos = _get_err_info(tag_list, i, None)
-                if subrpt.submit(GdocSyntaxError("Invalid name", pos, errinfo)):
+                if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
                     return Err(subrpt)
                 continue
 
@@ -231,13 +239,13 @@ def parse_tag_str(
         elif isinstance(tag[0], TextString):
             if len(tag) > 1:
                 errinfo, pos = _get_err_info(tag_list, i, None)
-                if subrpt.submit(GdocSyntaxError("Invalid name", pos, errinfo)):
+                if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
                     return Err(subrpt)
                 continue
 
             if not (tag.startswith('"') and tag.endswith('"')):
                 errinfo, pos = _get_err_info(tag_list, i, None)
-                if subrpt.submit(GdocSyntaxError("Invalid name", pos, errinfo)):
+                if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
                     return Err(subrpt)
                 continue
 
@@ -247,7 +255,7 @@ def parse_tag_str(
 
         else:
             errinfo, pos = _get_err_info(tag_list, i, None)
-            if subrpt.submit(GdocSyntaxError("Invalid name", pos, errinfo)):
+            if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
                 return Err(subrpt)
 
     if subrpt.haserror():
@@ -259,7 +267,6 @@ def parse_tag_str(
 def _get_err_info(
     words: list[TextString], windex: int, cindex: int | None = None
 ) -> tuple[tuple[str, int, int], DataPos]:
-
     textstr = TextString(cast(list[Text], words))
 
     start = 0

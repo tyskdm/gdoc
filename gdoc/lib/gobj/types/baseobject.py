@@ -203,7 +203,7 @@ class BaseObject(GdObject):
             id,
             scope=scope,
             name=tag_opts.get("name"),
-            tags=tags,
+            tags=[tag.get_str() for tag in tags],
             ref=ref,
             type_args=tag_opts,
         )

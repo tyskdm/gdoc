@@ -2,6 +2,9 @@
 text.py: Text class
 """
 from abc import ABC, abstractmethod
+from typing import Optional
+
+from .datapos import DataPos
 
 
 class Text(ABC):
@@ -21,10 +24,22 @@ class Text(ABC):
         """
 
     @abstractmethod
+    def get_char_pos(self, index: int) -> Optional[DataPos]:
+        """
+        Return Source mapping info of the char specified by `index`.
+        """
+
+    @abstractmethod
+    def get_data_pos(self) -> Optional[DataPos]:
+        """
+        Return Source mapping info of the Text.
+        """
+
+    @abstractmethod
     def dumpd(self) -> list:
-        ...
+        ...  # pragma: no cover
 
     @classmethod
     @abstractmethod
-    def loadd(self) -> "Text":
-        ...
+    def loadd(cls, data) -> Optional["Text"]:
+        ...  # pragma: no cover

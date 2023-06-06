@@ -30,7 +30,8 @@ def parse_Line(
         parseresults: Optional[tuple[TextString, Optional[int]]]
         parseresults, e = parse_BlockTag(_textstr, tag_pos + 1, opts, erpt)
 
-        if e and erpt.submit(e):
+        # if e and erpt.submit(e):
+        if e:
             return Err(erpt)
 
         if parseresults is None:
