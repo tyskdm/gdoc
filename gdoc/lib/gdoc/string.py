@@ -140,3 +140,21 @@ class String(PandocStr, Text, ret_subclass=True):
     def get_char_pos(self, index: int = 0) -> Optional[DataPos]:
         pos: Optional[PandocDataPos] = super().get_char_pos(index)
         return DataPos(*pos) if pos else None
+
+    def get_data_pos(self) -> Optional[DataPos]:
+        if len(self) == 0:
+            return None
+
+        start = self[0].get_char_pos()
+        if start is None:
+            return None
+
+        if len(self) == 1:
+            return start
+
+        # len(items) > 1
+        stop = self[-1].get_char_pos()
+        if stop is None:
+            return DataPos(start.path, start.start, Pos(0, 0))
+
+        return DataPos(start.path, start.start, stop.stop)

@@ -9,7 +9,7 @@ from gdoc.util.returntype import ReturnType
 
 from .code import Code
 from .config import DEFAULTS
-from .datapos import DataPos
+from .datapos import DataPos, Pos
 from .string import String
 from .text import Text
 
@@ -141,6 +141,26 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
             item = None
 
         return item, _index
+
+    def get_data_pos(self) -> Optional[DataPos]:
+        if len(self.__text_items) == 0:
+            return None
+
+        start = self.__text_items[0].get_data_pos()
+        if start is None:
+            return None
+
+        start = cast(DataPos, start)
+        if len(self.__text_items) == 1:
+            return start
+
+        # len(self.__text_items) > 1
+        stop = self.__text_items[-1].get_data_pos()
+        if stop is None:
+            return DataPos(start.path, start.start, Pos(0, 0))
+
+        stop = cast(DataPos, stop)
+        return DataPos(start.path, start.start, stop.stop)
 
     def dumpd(self) -> list:
         result: list[list[str | list]] = []

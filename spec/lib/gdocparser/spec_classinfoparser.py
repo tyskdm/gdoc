@@ -239,7 +239,7 @@ class Spec_parse_ClassInfo:
                 {
                     "result": None,
                     "err": (
-                        "file:5:14-5:15 GdocSyntaxError: invalid syntax\n"
+                        "file:5:14-5:18 GdocSyntaxError: invalid syntax\n"
                         "> cat:type\n"
                         ">     ^^^^"
                     ),

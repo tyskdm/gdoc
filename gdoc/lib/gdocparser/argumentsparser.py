@@ -234,8 +234,7 @@ class _AfterKey(ArgumentParser._STATE_TYPE):
                     dpos = self.last_element.get_char_pos(0)
                     dpos = dpos.get_last_pos() if dpos else None
                 else:
-                    # todo: get_char_pos should be replaced with get_data_pos.
-                    dpos = self.arg_word[0].get_char_pos(len(self.arg_word[0]) - 1)
+                    dpos = self.arg_word[0].get_data_pos()
                     dpos = dpos.get_last_pos() if dpos else None
                 raise GdocSyntaxError(
                     "positional argument follows keyword argument",

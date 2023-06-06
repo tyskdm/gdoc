@@ -30,6 +30,12 @@ class Text(ABC):
         """
 
     @abstractmethod
+    def get_data_pos(self) -> Optional[DataPos]:
+        """
+        Return Source mapping info of the Text.
+        """
+
+    @abstractmethod
     def dumpd(self) -> list:
         ...  # pragma: no cover
 

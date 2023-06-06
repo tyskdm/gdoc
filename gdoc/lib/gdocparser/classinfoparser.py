@@ -104,11 +104,7 @@ def is_single_element(
                 erpt.submit(
                     GdocSyntaxError(
                         "invalid syntax",
-                        (
-                            get_data_pos()
-                            if (get_data_pos := getattr(char, "get_data_pos", None))
-                            else char.get_char_pos(0)
-                        ),
+                        char.get_data_pos(),
                         (
                             textstring.get_str(),
                             1 + i,
@@ -123,11 +119,7 @@ def is_single_element(
             erpt.submit(
                 GdocSyntaxError(
                     "invalid syntax",
-                    (
-                        get_data_pos()
-                        if (get_data_pos := getattr(textstring[1], "get_data_pos", None))
-                        else textstring[1].get_char_pos(0)
-                    ),
+                    textstring[1].get_data_pos(),
                     (
                         textstring.get_str(),
                         len(textstring[0].get_str()),
@@ -140,11 +132,7 @@ def is_single_element(
         erpt.submit(
             GdocSyntaxError(
                 "invalid syntax",
-                (
-                    get_data_pos()
-                    if (get_data_pos := getattr(textstring[0], "get_data_pos", None))
-                    else textstring[0].get_char_pos(0)
-                ),
+                textstring[0].get_data_pos(),
                 (
                     textstring.get_str(),
                     0,
