@@ -22,7 +22,9 @@ class State(Generic[PARAM, EVENT, RESULT]):
     @param Generic (RESULT) : Type of result returned by the state
     """
 
-    def __init__(self, name: str = None) -> None:
+    name: str
+
+    def __init__(self, name: Optional[str] = None) -> None:
         """
         A State of StateMachine
 
@@ -30,7 +32,7 @@ class State(Generic[PARAM, EVENT, RESULT]):
         """
         self.name = name or self.__class__.__name__
 
-    def start(self, param: Optional[PARAM] = None) -> "State":
+    def start(self, param: PARAM) -> "State[PARAM, EVENT, RESULT]":
         """
         Set the state to be enable with parameter.
 
@@ -80,7 +82,7 @@ class State(Generic[PARAM, EVENT, RESULT]):
 
         @return RESULT : Subclass can return result value.
         """
-        pass
+        return cast(RESULT, None)
 
     def stop(self) -> RESULT:
         """
@@ -88,7 +90,7 @@ class State(Generic[PARAM, EVENT, RESULT]):
 
         @return RESULT : Subclass can return result value.
         """
-        pass
+        return cast(RESULT, None)
 
     def _continue(self) -> "State":
         return self
@@ -106,7 +108,7 @@ class State(Generic[PARAM, EVENT, RESULT]):
         return (state, event)
 
 
-class StateMachine(State[PARAM, EVENT, Optional[RESULT]]):
+class StateMachine(State[PARAM, EVENT, RESULT]):
     """
     StateMachine to handle states and events
 
@@ -121,13 +123,15 @@ class StateMachine(State[PARAM, EVENT, Optional[RESULT]]):
     __next_state: dict["State", STATE]
     __current_state: Optional["State"]
 
-    def __init__(self, name: str = None) -> None:
+    def __init__(self, name: Optional[str] = None) -> None:
         super().__init__(name or self.__class__.__name__)
         self.__state_list = []
         self.__next_state = {}
         self.__current_state = None
 
-    def add_state(self, state: State, next: STATE = None) -> "StateMachine":
+    def add_state(
+        self, state: State, next: STATE = None
+    ) -> "StateMachine[PARAM, EVENT, RESULT]":
         if isinstance(state, State):
             self.__state_list.append(state)
             self.__next_state[state] = next
@@ -136,7 +140,9 @@ class StateMachine(State[PARAM, EVENT, Optional[RESULT]]):
 
         return self  # `self` for chaining
 
-    def start(self, param: PARAM = None) -> "StateMachine":
+    def start(
+        self, param: PARAM = cast(PARAM, None)
+    ) -> "StateMachine[PARAM, EVENT, RESULT]":
         """
         Set child states to be enable with parameter and
         set the current state to the initial state.
@@ -152,7 +158,7 @@ class StateMachine(State[PARAM, EVENT, Optional[RESULT]]):
 
         return self  # `self` for chaining
 
-    def on_entry(self, event: EVENT = None) -> NEXT:
+    def on_entry(self, event: Optional[EVENT] = None) -> NEXT:
         """
         Called on entry the state.
 
@@ -196,26 +202,26 @@ class StateMachine(State[PARAM, EVENT, Optional[RESULT]]):
 
         return self.__move_to(next)
 
-    def on_exit(self) -> Optional[RESULT]:
+    def on_exit(self) -> RESULT:
         """
         Called on exit the state
 
-        @return Optional[RESULT] : Subclass can return result value.
+        @return RESULT : Subclass can return result value.
         """
-        result: Optional[RESULT] = None
+        result: RESULT = cast(RESULT, None)
 
         if self.__current_state is not None:
             result = self.__current_state.on_exit()
 
         return result
 
-    def stop(self) -> Optional[RESULT]:
+    def stop(self) -> RESULT:
         """
         Set the state to be disable
 
-        @return Optional[RESULT] : Subclass can return result value.
+        @return RESULT : Subclass can return result value.
         """
-        result: Optional[RESULT] = None
+        result: RESULT = cast(RESULT, None)
 
         state: State
         for state in self.__state_list:

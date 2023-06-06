@@ -49,4 +49,4 @@ def run(args):
             print(json.dumps(data, indent=2, ensure_ascii=False))
 
         if erpt is not None:
-            print(erpt.dump())
+            print(erpt.dump(True))

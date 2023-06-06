@@ -2,16 +2,16 @@
 code.py: `Code` inline element class
 """
 
-from typing import Optional, cast
+from typing import Literal, Optional, TypeAlias, cast
 
-from gdoc.lib.pandocastobject.pandocast import (
-    DataPos,
-    PandocAst,
-    PandocInlineElement,
-    Pos,
-)
+from gdoc.lib.pandocastobject.pandocast import DataPos as PandocDataPos
+from gdoc.lib.pandocastobject.pandocast import PandocAst, PandocInlineElement
 
+from .datapos import DataPos, Pos
 from .text import Text
+
+NOT_SET: TypeAlias = Literal[False]
+_NOT_SET_: NOT_SET = False
 
 
 class Code(Text):
@@ -20,10 +20,12 @@ class Code(Text):
     """
 
     element: PandocInlineElement
-    data_pos: Optional[DataPos] | bool
+    data_pos: Optional[DataPos] | NOT_SET
 
     def __init__(
-        self, item: PandocInlineElement | str, dpos: Optional[DataPos] | bool = False
+        self,
+        item: PandocInlineElement | str,
+        dpos: Optional[DataPos] | NOT_SET = _NOT_SET_,
     ):
         _element: PandocInlineElement
 
@@ -35,51 +37,46 @@ class Code(Text):
         elif isinstance(item, PandocInlineElement):
             _element = cast(PandocInlineElement, item)
             if _element.get_type() != "Code":
-                raise RuntimeError()
+                raise RuntimeError(f"Invalid PandocElement type({_element.get_type()})")
         else:
-            raise RuntimeError()
+            raise RuntimeError("Invalid item type")
 
         self.data_pos = dpos
         self.element = _element
 
-    def get_str(self):
-        return self.element.get_content()
+    def get_str(self) -> str:
+        return cast(str, self.element.get_content())
 
     def get_data_pos(self) -> Optional[DataPos]:
-        if self.data_pos is False:
-            self.data_pos = self.element.get_data_pos()
+        if self.data_pos is _NOT_SET_:
+            ppos: PandocDataPos | None = self.element.get_data_pos()
+            self.data_pos = DataPos(*ppos) if ppos is not None else None
 
-        return cast(Optional[DataPos], self.data_pos)
+        return self.data_pos
 
-    def get_char_pos(self, index: int):
+    def get_char_pos(self, index: int) -> Optional[DataPos]:
         result: Optional[DataPos] = None
 
         datapos: Optional[DataPos] = self.get_data_pos()
         if datapos is not None:
             data_len: int = datapos.stop.col - datapos.start.col
-            text_len: int = len(self.element.text)
-            if index > text_len:
-                raise IndexError()
-
-            char_index: int = int((data_len - text_len) / 2) + index
-            result = DataPos(
-                datapos.path,
-                Pos(datapos.start.ln, char_index),
-                Pos(datapos.start.ln, char_index + 1),
-            )
+            text_len: int = len(self.get_str())
+            if (0 <= index) and (index < text_len):
+                char_index: int = int((data_len - text_len) / 2) + index
+                result = DataPos(
+                    datapos.path,
+                    Pos(datapos.start.ln, datapos.start.col + char_index),
+                    Pos(datapos.start.ln, datapos.start.col + char_index + 1),
+                )
 
         return result
 
     def dumpd(self) -> list:
-        result: list[str | list[str | int]] = ["c"]
+        result: list[str | list[str | int] | None] = ["c"]
 
         dpos = self.get_data_pos()
         if dpos is not None:
-            result.append(
-                [dpos.path, dpos.start.ln, dpos.start.col, dpos.stop.ln, dpos.stop.col]
-            )
-        else:
-            result.append([])
+            result.append(dpos.dumpd())
 
         result.append(self.get_str())
 
@@ -87,14 +84,18 @@ class Code(Text):
 
     @classmethod
     def loadd(cls, data: list) -> "Code":
+        result = None
 
         if data[0] != "c":
-            raise TypeError()
+            raise TypeError("invalid data type")
 
-        dpos = data[1]
-        if len(dpos) == 0:
-            dpos = None
-        else:
-            dpos = DataPos(dpos[0], Pos(dpos[1], dpos[2]), Pos(dpos[3], dpos[4]))
+        dpos = None
+        if len(data) > 2:  # not only content
+            if type(data[1]) is list:
+                dpos = DataPos.loadd(data[1])
+            elif data[1] is not None:
+                raise TypeError("invalid DataPos data")
 
-        return cls(data[-1], dpos)
+        result = cls(data[-1], dpos)
+
+        return result

@@ -3,7 +3,8 @@ section.py: Section class
 """
 from typing import cast
 
-from ..pandocastobject.pandocast.element import Element
+from gdoc.lib.pandocastobject.pandocast import PandocElement
+
 from .config import DEFAULTS
 from .textblock import TextBlock
 
@@ -15,37 +16,48 @@ _TEXT_BLOCK_TYPES: list = (
 class Section(list):
     """ """
 
-    def __init__(self, iterable=[], level=0):
-        super().__init__(iterable)
-        self.level = level
+    # Header level:
+    # > 0, if this section is a logical section delimited by a Header.
+    # == 0, if this section is a BlockList such as Document, ListItem, etc.
+    hlevel: int
 
-        block: Element = None
+    def __init__(self, iterable=[], level: int = 0):
+        super().__init__(iterable)
+        self.hlevel = level
+
+        block: PandocElement
         i = 0
         while i < len(self):
             block = self[i]
             block_type = block.get_type()
 
-            if (block_type == "Header") and (not (self.level > 0 and i == 0)):
+            # Sub Section
+            if (block_type == "Header") and (
+                # fmt: off
+                # To avoid infinite recursive calls, make sure that this header is
+                # NOT the one that caused this constructor call to create a Section.
+                not (
+                    i == 0                  # Here is the top of this section
+                    and self.hlevel != 0    # and Section level is set(== sub-section).
+                )
+                # fmt: on
+            ):
+                sublevel = cast(int, block.get_prop("Level"))
 
-                lv = cast(int, block.get_prop("Level"))
-                if self.level > 0:
-                    if (lv < self.level) or ((i > 0) and (lv == self.level)):
-
-                        raise RuntimeError()
-
-                sublevel = lv
+                # Find out the range of this logical subsection.
                 subend = i + 1
                 while subend < len(self):
-                    subblock: Element = self[subend]
-                    if (subblock.get_type() == "Header") and (
-                        cast(int, subblock.get_prop("Level")) <= sublevel
-                    ):
+                    subblock: PandocElement = self[subend]
+                    lv: int = cast(int, subblock.get_prop("Level"))
+                    if (subblock.get_type() == "Header") and (lv <= sublevel):
                         break
                     subend += 1
 
+                # Replace the range of blocks with the new Section.
                 section = Section(self[i:subend], sublevel)
                 self[i:subend] = [section]
 
+            # Text Block
             elif block_type in _TEXT_BLOCK_TYPES:
                 self[i] = TextBlock(block)
 
