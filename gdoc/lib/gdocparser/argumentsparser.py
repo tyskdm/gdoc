@@ -229,6 +229,16 @@ class _AfterKey(ArgumentParser._STATE_TYPE):
             self.args.append(self.arg_word[0])
 
             if kwargs:
+                if element is not None:
+                    self.last_element = cast(Text, self.last_element)
+                    dpos = self.last_element.get_char_pos(0)
+                    dpos = dpos.get_last_pos() if dpos else None
+                    raise GdocSyntaxError(
+                        "positional argument follows keyword argument",
+                        dpos,
+                        (element.get_str(), 0, 0),
+                    )
+
                 if self.last_element is not None:
                     self.last_element = cast(Text, self.last_element)
                     dpos = self.last_element.get_char_pos(0)

@@ -418,6 +418,28 @@ class Spec_parse_Arguments:
                     ),
                 },
             ),
+            "Error(14/)": (
+                # stimulus
+                [
+                    [
+                        "T",
+                        [
+                            ["s", [[12, ["file", 5, 10, 5, 22]]], "k1=v1, a1 a2"],
+                        ],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "results": None,
+                    "err": (
+                        "file:5:20 GdocSyntaxError: positional argument follows "
+                        "keyword argument\n"
+                        "> k1=v1, a1 a2\n"
+                        ">           ^"
+                    ),
+                },
+            ),
         }
 
     # \cond
