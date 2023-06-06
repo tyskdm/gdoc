@@ -16,3 +16,12 @@ class DataPos(PandocDataPos):
     @classmethod
     def loadd(cls, data: list) -> "DataPos":
         return DataPos(data[0], Pos(data[1], data[2]), Pos(data[3], data[4]))
+
+    def get_last_pos(self) -> "DataPos":
+        start: Pos
+        if (self.stop.ln > 0) and (self.stop.col > 0):
+            start = Pos(self.stop.ln, self.stop.col)
+        else:
+            start = Pos(self.start.ln, self.start.col)
+
+        return DataPos(self.path, start, Pos(0, 0))
