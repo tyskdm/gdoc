@@ -454,7 +454,7 @@ class Spec_parse_Arguments:
         ### [\@spec 1]
         """
         args: list[TextString]
-        kwargs: list[list[TextString]]
+        kwargs: list[tuple[TextString, TextString]]
 
         # WHEN
         arguments: list = [
