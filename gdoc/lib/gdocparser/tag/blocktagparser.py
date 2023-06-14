@@ -40,7 +40,7 @@ def parse_BlockTag(
         # TODO: Replace with removeprefix("[@") and removesuffix("]")
 
         taginfo: ObjectTagInfo | None
-        taginfo, e = parse_ObjectTagInfo(tokens, opts, erpt)
+        taginfo, e = parse_ObjectTagInfo(tokens, erpt, opts)
         if e:
             erpt.submit(
                 e.add_enclosure(

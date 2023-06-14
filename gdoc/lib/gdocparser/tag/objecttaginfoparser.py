@@ -1,5 +1,5 @@
 """
-blocktagparser.py: parse_BlockTag function
+objecttaginfoparser.py: parse_ObjectTagInfo function
 """
 
 from typing import NamedTuple
@@ -19,12 +19,13 @@ class ObjectTagInfo(NamedTuple):
 
 
 def parse_ObjectTagInfo(
-    textstring: TextString, opts: Settings, erpt: ErrorReport
+    textstring: TextString, erpt: ErrorReport, opts: Settings | None = None
 ) -> Result[ObjectTagInfo, ErrorReport]:
     """
     parse_ObjectTagInfo
     """
     srpt: ErrorReport = erpt.new_subreport()
+    targetstring: TextString = textstring
     class_info: ClassInfo = ClassInfo(None, None, None)
     class_args: list[TextString] = []
     class_kwargs: list[tuple[TextString, TextString]] = []
@@ -33,38 +34,38 @@ def parse_ObjectTagInfo(
     #
     # parse Parentheses
     #
-    r = parse_Parentheses(textstring, srpt)
-    if r.is_ok():
-        textstring = r.unwrap()
-    elif srpt.should_exit(r.err()):
+    r, e = parse_Parentheses(targetstring, srpt)
+    if e and srpt.should_exit(e):
         return Err(erpt.submit(srpt))
+    if r:
+        targetstring = r
 
     #
     # parse Class Info
     #
     elem: Text
     class_txtstr: TextString = TextString()
-    for next, elem in enumerate(textstring):
+    for next, elem in enumerate(targetstring):
         if isinstance(elem, String) and (elem == " "):
             break
         class_txtstr.append(elem)
 
     if len(class_txtstr) > 0:
-        r = parse_ClassInfo(class_txtstr, srpt.new_subreport(), opts)
-        if r.is_ok():
-            class_info = r.unwrap()
-        elif srpt.should_exit(r.err().add_enclosure(["", textstring[next:].get_str()])):
+        r, e = parse_ClassInfo(class_txtstr, srpt.new_subreport(), opts)
+        if e and srpt.should_exit(e.add_enclosure(["", targetstring[next:].get_str()])):
             return Err(erpt.submit(srpt))
+        if r:
+            class_info = r
 
     #
     # parse Arguments
     #
-    args_txtstr: TextString = textstring[next:]
-    r = parse_Arguments(args_txtstr, srpt.new_subreport(), opts)
-    if r.is_ok():
-        class_args, class_kwargs = r.unwrap()
-    elif srpt.should_exit(r.err().add_enclosure([textstring[:next].get_str(), ""])):
+    args_txtstr: TextString = targetstring[next:]
+    r, e = parse_Arguments(args_txtstr, srpt.new_subreport(), opts)
+    if e and srpt.should_exit(e.add_enclosure([targetstring[:next].get_str(), ""])):
         return Err(erpt.submit(srpt))
+    if r:
+        class_args, class_kwargs = r
 
     #
     # return Result
