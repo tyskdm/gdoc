@@ -36,7 +36,10 @@ def parse_Parentheses(
                 erpt,
             )
             if r.is_err():
-                return Err(erpt.submit(r.err()))
+                if erpt.should_exit(r.err()):
+                    return Err(erpt)
+                else:
+                    return Err(erpt, result + targetstring[i:])
 
             parenthesized = r.unwrap()
             result.append(parenthesized[0])
@@ -44,7 +47,7 @@ def parse_Parentheses(
 
         elif type(text) is String and str(text) in closing_chars:
             # Error:
-            erpt.submit(
+            if erpt.should_exit(
                 GdocSyntaxError(
                     f"unmatched '{text.get_str()}'",
                     text.get_char_pos(),
@@ -54,8 +57,10 @@ def parse_Parentheses(
                         0,
                     ),
                 )
-            )
-            return Err(erpt)
+            ):
+                return Err(erpt)
+            else:
+                return Err(erpt, result + targetstring[i:])
 
         else:
             result.append(text)
