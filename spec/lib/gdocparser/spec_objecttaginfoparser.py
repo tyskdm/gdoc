@@ -41,7 +41,7 @@ class Spec_parse_ObjectTagInfo:
             # #### [\@case 1] Normal:
             #
             "Normal(1/)": (
-                # precondition
+                # stimulus
                 [
                     ["T", [["s", "cat:type& arg, key=val"]]],
                     ErrorReport(cont=False),
@@ -67,42 +67,73 @@ class Spec_parse_ObjectTagInfo:
             ##
             # #### [\@case 1] Error:
             #
-            # "Error(1/)": (
-            #     # precondition
-            #     [
-            #         ["T", [["s", "(ABC]"]]],
-            #         0,
-            #         "({[",
-            #         ")}]",
-            #         ErrorReport(False, "FILENAME"),
-            #     ],
-            #     # expected
-            #     {
-            #         "err": (
-            #             "FILENAME: GdocSyntaxError: closing parenthesis ']' does not "
-            #             "match opening parenthesis '('\n"
-            #             "> (ABC]\n"
-            #             ">     ^"
-            #         ),
-            #         "result": None,
-            #     },
-            # ),
+            "Error(1/)": (
+                # stimulus
+                [
+                    ["T", [["s", "("]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": "SOME ERROR",
+                    "result": None,
+                },
+            ),
+            "Error(2/)": (
+                # stimulus
+                [
+                    ["T", [["s", "::"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": "SOME ERROR",
+                    "result": None,
+                },
+            ),
+            "Error(3/)": (
+                # stimulus
+                [
+                    ["T", [["s", " Key="]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": "SOME ERROR",
+                    "result": None,
+                },
+            ),
+            ##
+            # #### [\@case 1] Multi Error:
+            #
+            "MultiError(1/)": (
+                # stimulus
+                [
+                    ["T", [["s", ":: k= )"]]],
+                    ErrorReport(cont=True),
+                ],
+                # expected
+                {
+                    "err": "SOME ERROR",
+                    "result": None,
+                },
+            ),
         }
 
     # \cond
     @pytest.mark.parametrize(
-        "precondition, expected",
+        "stimulus, expected",
         list(cases_1().values()),
         ids=list(cases_1().keys()),
     )
     # \endcond
-    def spec_1(self, precondition, expected):
+    def spec_1(self, stimulus, expected):
         r"""
         ### [\@spec 1]
         """
         # GIVEN
-        textstr = TextString.loadd(precondition[0])
-        arguments = [textstr] + precondition[1:]
+        textstr = TextString.loadd(stimulus[0])
+        arguments = [textstr] + stimulus[1:]
 
         # WHEN
         result: ObjectTagInfo | None
@@ -113,8 +144,9 @@ class Spec_parse_ObjectTagInfo:
         if expected["err"] is None:
             assert err is None
         else:
-            assert err is not None
-            assert err.dump(True) == expected["err"]
+            if expected["err"] != "SOME ERROR":
+                assert err is not None
+                assert err.dump(True) == expected["err"]
 
         if expected["result"] is None:
             assert result is None
