@@ -11,7 +11,7 @@ from ..tag.blocktagparser import parse_BlockTag
 
 def parse_Line(
     textstr: TextString, opts: Settings, erpt: ErrorReport
-) -> Result[TextString, ErrorReport]:
+) -> Result[list[TextString], ErrorReport]:
     """
     _summary_
 
@@ -19,26 +19,24 @@ def parse_Line(
     @param opts (dict) : _description_
     @param erpt (ErrorReport) : _description_
 
-    @return Result[TextString, ErrorReport] : _description_
+    @return Result[list[TextString], ErrorReport] : _description_
     """
-    _textstr: TextString = textstr[:]
-    tag_pos: Optional[int]
+    srpt = erpt.new_subreport()
+    result: list[TextString] = [textstr]
 
-    # Parse BlockTag(s) in TextString
-    tag_pos = -1
-    while tag_pos is not None:  # if None, parsed to the EOL.
-        parseresults: Optional[tuple[TextString, Optional[int]]]
-        parseresults, e = parse_BlockTag(_textstr, tag_pos + 1, opts, erpt)
+    while True:
+        parseresults: Optional[list[TextString]]
+        parseresults, e = parse_BlockTag(result[-1], 0, srpt, opts)
 
-        # if e and erpt.submit(e):
-        if e:
-            return Err(erpt)
+        if e and srpt.should_exit(e):
+            return Err(erpt.submit(srpt))
 
-        if parseresults is None:
-            break
+        if parseresults and (len(parseresults) > 0):
+            result[-1:] = parseresults
+            continue
 
-        _textstr, tag_pos = parseresults
-        # a part of _textstr was replaced with a BlockTag.
+        # no BlockTag is detected
+        break
 
     # Detect InlineTags
     # tag_index = -1
@@ -46,4 +44,7 @@ def parse_Line(
     #     _textstr, tag_index = parse_InlineTag(_textstr, tag_index + 1)
     #     # replaced a part of _textstr to with a InlineTag.
 
-    return Ok(_textstr)
+    if srpt.haserror():
+        return Err(erpt.submit(srpt), result)
+
+    return Ok(result)

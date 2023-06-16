@@ -1,7 +1,7 @@
 """
 textblockparser.py: parse_TextBlock function
 """
-from gdoc.lib.gdoc import String, Text, TextBlock, TextString
+from gdoc.lib.gdoc import String, TextBlock, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag, BlockTagInfo
 from gdoc.lib.gobj.types import BaseObject
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
@@ -25,50 +25,68 @@ def parse_TextBlock(
     """
     srpt = erpt.new_subreport()
 
-    parsed_lines: list[TextString] = []
+    #
+    # Parse each line
+    #
+    parsed_lines: list[list[TextString]] = []
+    parsed_line_items: list[TextString] | None
     line: TextString
-    parsed_line: TextString
     for line in textblock:
-        parsed_line, e = parse_Line(line, opts, srpt)
+        parsed_line_items, e = parse_Line(line, opts, srpt)
         if e and srpt.should_exit(e):
-            return Err(srpt)
+            return Err(erpt.submit(srpt))
 
-        if parsed_line:
-            parsed_lines.append(parsed_line)
+        assert parsed_line_items
+        parsed_lines.append(parsed_line_items)
 
+    #
+    # Prepare for creating Gobj
+    #
     preceding_lines: list[TextString] = []
     following_lines: list[TextString] = []
     preceding_text: TextString | None = None
     following_text: TextString | None = None
-    block_tag: BlockTag | None = None
-    for parsed_line in parsed_lines:
-        #
-        # TODO: Add a check for double tagging
-        #
-        if block_tag is None:
+    target_tag: BlockTag | None = None
+    # next_tag: BlockTag | None = None
+
+    for parsed_line_items in parsed_lines:
+        if target_tag is None:
+            _line = TextString()
+
             i: int
-            text: Text
-            for i, text in enumerate(parsed_line):
-                if isinstance(text, BlockTag):
-                    block_tag = text
+            tstr: TextString
+            for i, tstr in enumerate(parsed_line_items):
+                if isinstance(tstr, BlockTag):
+                    target_tag = tstr
                     break
-
-            if block_tag is None:
-                preceding_lines.append(parsed_line)
+                _line += tstr
             else:
-                preceding_text = parsed_line[:i]
-                following_text = parsed_line[i + 1 :]
-        else:
-            following_lines.append(parsed_line)
+                preceding_lines.append(_line)
+                continue  # next line
 
+            # if target_tag:  # tag is found
+            preceding_text = _line
+            following_text = TextString()
+            j: int
+            for j, tstr in enumerate(parsed_line_items[i + 1 :]):
+                following_text += tstr
+        else:
+            _line = TextString()
+            for tstr in parsed_line_items:
+                _line += tstr
+            following_lines.append(_line)
+
+    #
+    # Create Gobj
+    #
     child: BaseObject | None = None
-    if block_tag is not None:
+    if target_tag is not None:
         class_info: tuple[String | None, String | None, String | None]
         class_args: list[TextString]
         class_kwargs: list[tuple[TextString, TextString]]
-        class_info, class_args, class_kwargs = block_tag.get_class_arguments()
+        class_info, class_args, class_kwargs = target_tag.get_class_arguments()
 
-        block_tag.tag_info = BlockTagInfo(
+        target_tag.tag_info = BlockTagInfo(
             textblock, preceding_lines, following_lines, preceding_text, following_text
         )
 
@@ -77,14 +95,14 @@ def parse_TextBlock(
         )
 
         child, e = gobj.create_object(
-            class_info, class_args, class_kwargs, tag_opts, block_tag, opts, srpt
+            class_info, class_args, class_kwargs, tag_opts, target_tag, opts, srpt
         )
 
         if e:
             srpt.submit(e)
 
     if srpt.haserror():
-        return Err(srpt, child)
+        return Err(erpt.submit(srpt), child)
 
     return Ok(child)
 
