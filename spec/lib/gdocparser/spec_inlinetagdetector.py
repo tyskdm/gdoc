@@ -80,6 +80,12 @@ class Spec_detect_InlineTag:
                 # expected
                 [None, None],
             ),
+            "NoTags(9/)": (
+                # stimulus
+                [["T", [["s", "@"], ["T", [["s", "AB"]]], ["s", ":"]]]],
+                # expected
+                [None, None],
+            ),
             ##
             # #### [\@case 2] Simple: No arguments
             #
@@ -271,6 +277,21 @@ class Spec_detect_InlineTag:
                     slice(4, 8),
                     ["T", [["s", "@CD:"]]],
                 ],
+            ),
+            "Retry(7/): EdgeCase(1/2)": (
+                # stimulus
+                [["T", [["s", "@AB(@:)"]]]],
+                # expected
+                [
+                    slice(4, 6),
+                    ["T", [["s", "@:"]]],
+                ],
+            ),
+            "Retry(8/): EdgeCase(2/2)": (
+                # stimulus
+                [["T", [["s", "@AB(@)"]]]],
+                # expected
+                [None, None],
             ),
         }
 
