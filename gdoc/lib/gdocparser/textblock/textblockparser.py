@@ -32,7 +32,7 @@ def parse_TextBlock(
     parsed_line_items: list[TextString] | None
     line: TextString
     for line in textblock:
-        parsed_line_items, e = parse_Line(line, opts, srpt)
+        parsed_line_items, e = parse_Line(line, srpt, opts)
         if e and srpt.should_exit(e):
             return Err(erpt.submit(srpt))
 

@@ -10,14 +10,14 @@ from ..tag.blocktagparser import parse_BlockTag
 
 
 def parse_Line(
-    textstr: TextString, opts: Settings, erpt: ErrorReport
+    textstr: TextString, erpt: ErrorReport, opts: Settings
 ) -> Result[list[TextString], ErrorReport]:
     """
     _summary_
 
-    @param textstr (TextString) : Tokenized TextString
-    @param opts (dict) : _description_
+    @param textstr (TextString) : TextString
     @param erpt (ErrorReport) : _description_
+    @param opts (Settings) : _description_
 
     @return Result[list[TextString], ErrorReport] : _description_
     """
