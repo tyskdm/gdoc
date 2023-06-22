@@ -49,6 +49,7 @@ def parse_ObjectTagInfo(
         if isinstance(elem, String) and (elem == " "):
             break
         class_txtstr.append(elem)
+    next += 1
 
     if len(class_txtstr) > 0:
         r, e = parse_ClassInfo(class_txtstr, srpt.new_subreport(), opts)

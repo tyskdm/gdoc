@@ -64,6 +64,46 @@ class Spec_parse_ObjectTagInfo:
                     },
                 },
             ),
+            "Normal(2/)": (
+                # stimulus
+                [
+                    ["T", [["s", "type"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": None,
+                    "result": {
+                        "class_info": {
+                            "category": None,
+                            "type": ["T", [["s", "type"]]],
+                            "is_reference": None,
+                        },
+                        "class_args": [],
+                        "class_kwargs": [],
+                    },
+                },
+            ),
+            "Normal(3/)": (
+                # stimulus
+                [
+                    ["T", [["s", " arg"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": None,
+                    "result": {
+                        "class_info": {
+                            "category": None,
+                            "type": None,
+                            "is_reference": None,
+                        },
+                        "class_args": [["T", [["s", "arg"]]]],
+                        "class_kwargs": [],
+                    },
+                },
+            ),
             ##
             # #### [\@case 1] Error:
             #
