@@ -59,7 +59,7 @@ def parse_TextBlock(
                 if isinstance(tstr, BlockTag):
                     target_tag = tstr
                     break
-                _line += tstr
+                _line += TextString(tstr.get_text_items())
             else:
                 preceding_lines.append(_line)
                 continue  # next line
