@@ -5,7 +5,7 @@ from typing import Optional
 
 from gdoc.lib.gdoc import String, TextString
 
-from .parenthesesdetector import ParenthesesDetector
+from ..parenthesesdetector import ParenthesesDetector
 
 
 def detect_BlockTag(

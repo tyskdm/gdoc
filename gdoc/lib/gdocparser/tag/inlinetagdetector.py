@@ -6,7 +6,7 @@ from typing import Optional
 
 from gdoc.lib.gdoc import Code, String, TextString
 
-from .parenthesesdetector import ParenthesesDetector
+from ..parenthesesdetector import ParenthesesDetector
 
 
 class _State(Enum):
