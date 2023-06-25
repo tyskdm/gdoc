@@ -132,9 +132,14 @@ def _get_blocktag_params(
     #
     tag_params["name"] = None
     if type(following_text) is TextString:
-        name = following_text.strip()
+        parts: list[TextString] = following_text.split(":", 1)
+        name: TextString = parts[0].strip()
         if len(name) > 0:
             tag_params["name"] = name
+
+        if len(parts) > 1:
+            brief: TextString = parts[1].strip()
+            tag_params["brief"] = brief if len(brief) > 0 else None
 
     #
     # Set "text"

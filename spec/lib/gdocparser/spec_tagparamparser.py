@@ -145,78 +145,78 @@ class Spec__get_blocktag_params:
             ##
             # #### [\@case 1] Brief description:
             #
-            # "Brief(1/)": (
-            #     # stimulus
-            #     [
-            #         [],
-            #         None,
-            #         ["T", [["s", " Name String : Brief Description.\n"]]],
-            #         [],
-            #     ],
-            #     # expected
-            #     {
-            #         "tag_params": {
-            #             "name": ["T", [["s", "Name String"]]],
-            #             "brief": ["T", [["s", "Brief Description."]]],
-            #             "text": [],
-            #         },
-            #         "pre_lines": [],
-            #     },
-            # ),
-            # "Brief(2/)": (
-            #     # stimulus
-            #     [
-            #         [],
-            #         None,
-            #         ["T", [["s", ": Brief Description.\n"]]],
-            #         [],
-            #     ],
-            #     # expected
-            #     {
-            #         "tag_params": {
-            #             "name": None,
-            #             "brief": ["T", [["s", "Brief Description."]]],
-            #             "text": [],
-            #         },
-            #         "pre_lines": [],
-            #     },
-            # ),
-            # "Brief(3/)": (
-            #     # stimulus
-            #     [
-            #         [],
-            #         None,
-            #         ["T", [["s", " : \n"]]],
-            #         [],
-            #     ],
-            #     # expected
-            #     {
-            #         "tag_params": {
-            #             "name": None,
-            #             "brief": None,
-            #             "text": [],
-            #         },
-            #         "pre_lines": [],
-            #     },
-            # ),
-            # "Brief(4/)": (
-            #     # stimulus
-            #     [
-            #         [],
-            #         None,
-            #         ["T", [["s", " : Brief : Description. \n"]]],
-            #         [],
-            #     ],
-            #     # expected
-            #     {
-            #         "tag_params": {
-            #             "name": None,
-            #             "brief": ["T", [["s", "Brief : Description."]]],
-            #             "text": [],
-            #         },
-            #         "pre_lines": [],
-            #     },
-            # ),
+            "Brief(1/)": (
+                # stimulus
+                [
+                    [],
+                    None,
+                    ["T", [["s", " Name String : Brief Description.\n"]]],
+                    [],
+                ],
+                # expected
+                {
+                    "tag_params": {
+                        "name": ["T", [["s", "Name String"]]],
+                        "brief": ["T", [["s", "Brief Description."]]],
+                        "text": [],
+                    },
+                    "pre_lines": [],
+                },
+            ),
+            "Brief(2/)": (
+                # stimulus
+                [
+                    [],
+                    None,
+                    ["T", [["s", ": Brief Description.\n"]]],
+                    [],
+                ],
+                # expected
+                {
+                    "tag_params": {
+                        "name": None,
+                        "brief": ["T", [["s", "Brief Description."]]],
+                        "text": [],
+                    },
+                    "pre_lines": [],
+                },
+            ),
+            "Brief(3/)": (
+                # stimulus
+                [
+                    [],
+                    None,
+                    ["T", [["s", " : \n"]]],
+                    [],
+                ],
+                # expected
+                {
+                    "tag_params": {
+                        "name": None,
+                        "brief": None,
+                        "text": [],
+                    },
+                    "pre_lines": [],
+                },
+            ),
+            "Brief(4/)": (
+                # stimulus
+                [
+                    [],
+                    None,
+                    ["T", [["s", " : Brief : Description. \n"]]],
+                    [],
+                ],
+                # expected
+                {
+                    "tag_params": {
+                        "name": None,
+                        "brief": ["T", [["s", "Brief : Description."]]],
+                        "text": [],
+                    },
+                    "pre_lines": [],
+                },
+            ),
         }
 
     # \cond
