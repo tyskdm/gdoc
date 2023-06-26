@@ -64,7 +64,10 @@ def parse_TagParameter(
 
             if following_text is None:
                 if len(line.strip()) > 0:
-                    following_text = line.lstrip()
+                    # remove leading spaces after the tag.
+                    # if target_tag is None, the line is the first line of the textblock
+                    # that will not be the following text. So, keep the leading spaces.
+                    following_text = line.lstrip() if target_tag else line
             else:
                 following_lines.append(line)
 

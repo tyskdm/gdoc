@@ -484,7 +484,7 @@ class Spec_parse_TagParameter:
                 # stimulus
                 [
                     [
-                        ["T", [["s", "PRECEDING_TEXT [@] FOLLOWING_TEXT"]]],
+                        ["T", [["s", " PRECEDING_TEXT [@] FOLLOWING_TEXT "]]],
                     ],
                     ErrorReport(cont=False),
                 ],
@@ -521,7 +521,44 @@ class Spec_parse_TagParameter:
                 # stimulus
                 [
                     [
-                        ["T", [["s", "PRECEDING_TEXT @: FOLLOWING_TEXT"]]],
+                        ["T", [["s", " PRECEDING_TEXT -- [@] FOLLOWING_TEXT "]]],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": None,
+                    "result": [
+                        # BlockTag
+                        [
+                            [
+                                "BlockTag",
+                                {
+                                    "class_info": {
+                                        "category": None,
+                                        "type": None,
+                                        "is_reference": None,
+                                    },
+                                    "class_args": [],
+                                    "class_kwargs": [],
+                                },
+                                [["s", "[@]"]],
+                            ],
+                            {
+                                "name": ["T", [["s", "FOLLOWING_TEXT"]]],
+                                "text": ["T", [["s", " PRECEDING_TEXT"]]],
+                            },
+                        ],
+                        # InlineTag(s)
+                        [],
+                    ],
+                },
+            ),
+            "Simple(4/)": (
+                # stimulus
+                [
+                    [
+                        ["T", [["s", " PRECEDING_TEXT @: FOLLOWING_TEXT "]]],
                     ],
                     ErrorReport(cont=False),
                 ],
@@ -543,84 +580,185 @@ class Spec_parse_TagParameter:
                                     },
                                     [["s", "@:"]],
                                 ],
-                                {"text": ["T", [["s", "FOLLOWING_TEXT"]]]},
+                                {"text": ["T", [["s", "FOLLOWING_TEXT "]]]},
                             ]
                         ],
                     ],
                 },
             ),
-            # "Normal(2/)": (
-            #     # stimulus
-            #     [
-            #         ["T", [["s", "@:"]]],
-            #         0,
-            #         ErrorReport(cont=False),
-            #     ],
-            #     # expected
-            #     {
-            #         "err": None,
-            #         "result": [
-            #             [
-            #                 "InlineTag",
-            #                 {
-            #                     "prop_type": ["T", []],
-            #                     "prop_args": [],
-            #                     "prop_kwargs": [],
-            #                 },
-            #                 [["s", "@:"]],
-            #             ],
-            #         ],
-            #     },
-            # ),
-            # "Normal(3/)": (
-            #     # stimulus
-            #     [
-            #         ["T", [["s", "NO TAG"]]],
-            #         0,
-            #         ErrorReport(cont=False),
-            #     ],
-            #     # expected
-            #     {
-            #         "err": None,
-            #         "result": [],
-            #     },
-            # ),
-            # ##
-            # # #### [\@case 1] Error:
-            # #
-            # "Error(1/)": (
-            #     # stimulus
-            #     [
-            #         ["T", [["s", "@( ] ):"]]],
-            #         0,
-            #         ErrorReport(cont=False),
-            #     ],
-            #     # expected
-            #     {
-            #         "err": "SOME ERROR",
-            #         "result": None,
-            #     },
-            # ),
-            # ##
-            # # #### [\@case 1] Multi Error:
-            # #
-            # "MultiError(1/)": (
-            #     # stimulus
-            #     [
-            #         ["T", [["s", ">>@( ] ):<<"]]],
-            #         0,
-            #         ErrorReport(cont=True),
-            #     ],
-            #     # expected
-            #     {
-            #         "err": "SOME ERROR",
-            #         "result": [
-            #             ["T", [["s", ">>"]]],
-            #             ["T", [["s", "@"], ["T", [["s", "( ] )"]]], ["s", ":"]]],
-            #             ["T", [["s", "<<"]]],
-            #         ],
-            #     },
-            # ),
+            "Simple(5/)": (
+                # stimulus
+                [
+                    [
+                        ["T", [["s", " PRECEDING_TEXT -- @: FOLLOWING_TEXT "]]],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": None,
+                    "result": [
+                        # BlockTag
+                        None,
+                        # InlineTag(s)
+                        [
+                            [
+                                [
+                                    "InlineTag",
+                                    {
+                                        "prop_type": None,
+                                        "prop_args": [],
+                                        "prop_kwargs": [],
+                                    },
+                                    [["s", "@:"]],
+                                ],
+                                {"text": ["T", [["s", " PRECEDING_TEXT"]]]},
+                            ]
+                        ],
+                    ],
+                },
+            ),
+            ##
+            # #### [\@case 1] Multiple Tags:
+            #
+            "MultipleTags(1/)": (
+                # stimulus
+                [
+                    [
+                        ["T", [["s", " 1 [@2] 3 @4: 5 \n"]]],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": None,
+                    "result": [
+                        # BlockTag
+                        [
+                            [
+                                "BlockTag",
+                                {
+                                    "class_info": {
+                                        "category": None,
+                                        "type": ["T", [["s", "2"]]],
+                                        "is_reference": None,
+                                    },
+                                    "class_args": [],
+                                    "class_kwargs": [],
+                                },
+                                [["s", "[@2]"]],
+                            ],
+                            {
+                                "name": ["T", [["s", "3"]]],
+                                "text": None,
+                            },
+                        ],
+                        # InlineTag(s)
+                        [
+                            [
+                                [
+                                    "InlineTag",
+                                    {
+                                        "prop_type": ["T", [["s", "4"]]],
+                                        "prop_args": [],
+                                        "prop_kwargs": [],
+                                    },
+                                    [["s", "@4:"]],
+                                ],
+                                {"text": ["T", [["s", "5 \n"]]]},
+                            ]
+                        ],
+                    ],
+                },
+            ),
+            "MultipleTags(2/)": (
+                # stimulus
+                [
+                    [
+                        ["T", [["s", " 1 -- @2: 3 \n"]]],
+                        ["T", [["s", " 4 -- [@5] 6 @7: 8 \n"]]],
+                        ["T", [["s", " 9 @10: 11 -- @12: 13 "]]],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": None,
+                    "result": [
+                        # BlockTag
+                        [
+                            [
+                                "BlockTag",
+                                {
+                                    "class_info": {
+                                        "category": None,
+                                        "type": ["T", [["s", "5"]]],
+                                        "is_reference": None,
+                                    },
+                                    "class_args": [],
+                                    "class_kwargs": [],
+                                },
+                                [["s", "[@5]"]],
+                            ],
+                            {
+                                "name": ["T", [["s", "6"]]],
+                                "text": ["T", [["s", "3 \n 4"]]],
+                            },
+                        ],
+                        # InlineTag(s)
+                        [
+                            [
+                                [
+                                    "InlineTag",
+                                    {
+                                        "prop_type": ["T", [["s", "2"]]],
+                                        "prop_args": [],
+                                        "prop_kwargs": [],
+                                    },
+                                    [["s", "@2:"]],
+                                ],
+                                {"text": ["T", [["s", " 1"]]]},
+                            ],
+                            [
+                                [
+                                    "InlineTag",
+                                    {
+                                        "prop_type": ["T", [["s", "7"]]],
+                                        "prop_args": [],
+                                        "prop_kwargs": [],
+                                    },
+                                    [["s", "@7:"]],
+                                ],
+                                {"text": ["T", [["s", "8 \n 9 "]]]},
+                            ],
+                            [
+                                [
+                                    "InlineTag",
+                                    {
+                                        "prop_type": ["T", [["s", "10"]]],
+                                        "prop_args": [],
+                                        "prop_kwargs": [],
+                                    },
+                                    [["s", "@10:"]],
+                                ],
+                                {"text": ["T", [["s", "11 -- "]]]},
+                            ],
+                            [
+                                [
+                                    "InlineTag",
+                                    {
+                                        "prop_type": ["T", [["s", "12"]]],
+                                        "prop_args": [],
+                                        "prop_kwargs": [],
+                                    },
+                                    [["s", "@12:"]],
+                                ],
+                                {"text": ["T", [["s", "13 "]]]},
+                            ],
+                        ],
+                    ],
+                },
+            ),
         }
 
     @pytest.mark.parametrize(
