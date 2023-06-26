@@ -184,7 +184,13 @@ def _get_blocktag_params(
         following_lines = []
         # following_lines was consumed
 
-    tag_params["text"] = textstrs
+    if len(textstrs) > 0:
+        textstr = TextString()
+        for t in textstrs:
+            textstr = textstr + t
+        tag_params["text"] = textstr
+    else:
+        tag_params["text"] = None
 
     #
     # return results
@@ -226,7 +232,13 @@ def _get_inlinetag_params(
         following_lines = []
         # following_lines was consumed
 
-    tag_params["text"] = textstrs
+    if len(textstrs) > 0:
+        textstr = TextString()
+        for t in textstrs:
+            textstr = textstr + t
+        tag_params["text"] = textstr
+    else:
+        tag_params["text"] = None
 
     #
     # return results

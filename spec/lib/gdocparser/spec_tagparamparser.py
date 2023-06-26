@@ -55,16 +55,15 @@ class Spec__get_blocktag_params:
                     ["T", [["s", "PRECEDING TEXT"]]],
                     ["T", [["s", "FOLLOWING TEXT\n"]]],
                     [
-                        ["T", [["s", "FOLLOWING LINE"]]],
+                        ["T", [["s", "FOLLOWING LINE 1\n"]]],
+                        ["T", [["s", "FOLLOWING LINE 2"]]],
                     ],
                 ],
                 # expected
                 {
                     "tag_params": {
                         "name": ["T", [["s", "FOLLOWING TEXT"]]],
-                        "text": [
-                            ["T", [["s", "FOLLOWING LINE"]]],
-                        ],
+                        "text": ["T", [["s", "FOLLOWING LINE 1\nFOLLOWING LINE 2"]]],
                     },
                     "pre_lines": [],
                 },
@@ -81,7 +80,7 @@ class Spec__get_blocktag_params:
                 {
                     "tag_params": {
                         "name": None,
-                        "text": [],
+                        "text": None,
                     },
                     "pre_lines": [],
                 },
@@ -98,7 +97,7 @@ class Spec__get_blocktag_params:
                 {
                     "tag_params": {
                         "name": None,
-                        "text": [],
+                        "text": None,
                     },
                     "pre_lines": [],
                 },
@@ -115,20 +114,19 @@ class Spec__get_blocktag_params:
                     ["T", [["s", "PRECEDING TEXT -- "]]],
                     ["T", [["s", "FOLLOWING TEXT\n"]]],
                     [
-                        ["T", [["s", "FOLLOWING LINE"]]],
+                        ["T", [["s", "FOLLOWING LINE 1\n"]]],
+                        ["T", [["s", "FOLLOWING LINE 2"]]],
                     ],
                 ],
                 # expected
                 {
                     "tag_params": {
                         "name": ["T", [["s", "FOLLOWING TEXT"]]],
-                        "text": [
-                            ["T", [["s", "PRECEDING LINE\n"]]],
-                            ["T", [["s", "PRECEDING TEXT"]]],
-                        ],
+                        "text": ["T", [["s", "PRECEDING LINE\nPRECEDING TEXT"]]],
                     },
                     "pre_lines": [
-                        ["T", [["s", "FOLLOWING LINE"]]],
+                        ["T", [["s", "FOLLOWING LINE 1\n"]]],
+                        ["T", [["s", "FOLLOWING LINE 2"]]],
                     ],
                 },
             ),
@@ -144,7 +142,7 @@ class Spec__get_blocktag_params:
                 {
                     "tag_params": {
                         "name": None,
-                        "text": [],
+                        "text": None,
                     },
                     "pre_lines": [],
                 },
@@ -165,7 +163,7 @@ class Spec__get_blocktag_params:
                     "tag_params": {
                         "name": ["T", [["s", "Name String"]]],
                         "brief": ["T", [["s", "Brief Description."]]],
-                        "text": [],
+                        "text": None,
                     },
                     "pre_lines": [],
                 },
@@ -183,7 +181,7 @@ class Spec__get_blocktag_params:
                     "tag_params": {
                         "name": None,
                         "brief": ["T", [["s", "Brief Description."]]],
-                        "text": [],
+                        "text": None,
                     },
                     "pre_lines": [],
                 },
@@ -201,7 +199,7 @@ class Spec__get_blocktag_params:
                     "tag_params": {
                         "name": None,
                         "brief": None,
-                        "text": [],
+                        "text": None,
                     },
                     "pre_lines": [],
                 },
@@ -219,7 +217,7 @@ class Spec__get_blocktag_params:
                     "tag_params": {
                         "name": None,
                         "brief": ["T", [["s", "Brief : Description."]]],
-                        "text": [],
+                        "text": None,
                     },
                     "pre_lines": [],
                 },
@@ -309,10 +307,7 @@ class Spec__get_inlinetag_params:
                 # expected
                 {
                     "tag_params": {
-                        "text": [
-                            ["T", [["s", "FOLLOWING TEXT\n"]]],
-                            ["T", [["s", "FOLLOWING LINE"]]],
-                        ],
+                        "text": ["T", [["s", "FOLLOWING TEXT\nFOLLOWING LINE"]]],
                     },
                     "pre_lines": [],
                 },
@@ -328,7 +323,7 @@ class Spec__get_inlinetag_params:
                 # expected
                 {
                     "tag_params": {
-                        "text": [],
+                        "text": None,
                     },
                     "pre_lines": [],
                 },
@@ -344,7 +339,7 @@ class Spec__get_inlinetag_params:
                 # expected
                 {
                     "tag_params": {
-                        "text": [],
+                        "text": None,
                     },
                     "pre_lines": [],
                 },
@@ -367,10 +362,7 @@ class Spec__get_inlinetag_params:
                 # expected
                 {
                     "tag_params": {
-                        "text": [
-                            ["T", [["s", "PRECEDING LINE\n"]]],
-                            ["T", [["s", "PRECEDING TEXT"]]],
-                        ],
+                        "text": ["T", [["s", "PRECEDING LINE\nPRECEDING TEXT"]]],
                     },
                     "pre_lines": [
                         ["T", [["s", "FOLLOWING TEXT\n"]]],
@@ -389,86 +381,11 @@ class Spec__get_inlinetag_params:
                 # expected
                 {
                     "tag_params": {
-                        "text": [],
+                        "text": None,
                     },
                     "pre_lines": [],
                 },
             ),
-            ##
-            # #### [\@case 1] Brief description:
-            #
-            # "Brief(1/)": (
-            #     # stimulus
-            #     [
-            #         [],
-            #         None,
-            #         ["T", [["s", " Name String : Brief Description.\n"]]],
-            #         [],
-            #     ],
-            #     # expected
-            #     {
-            #         "tag_params": {
-            #             "name": ["T", [["s", "Name String"]]],
-            #             "brief": ["T", [["s", "Brief Description."]]],
-            #             "text": [],
-            #         },
-            #         "pre_lines": [],
-            #     },
-            # ),
-            # "Brief(2/)": (
-            #     # stimulus
-            #     [
-            #         [],
-            #         None,
-            #         ["T", [["s", ": Brief Description.\n"]]],
-            #         [],
-            #     ],
-            #     # expected
-            #     {
-            #         "tag_params": {
-            #             "name": None,
-            #             "brief": ["T", [["s", "Brief Description."]]],
-            #             "text": [],
-            #         },
-            #         "pre_lines": [],
-            #     },
-            # ),
-            # "Brief(3/)": (
-            #     # stimulus
-            #     [
-            #         [],
-            #         None,
-            #         ["T", [["s", " : \n"]]],
-            #         [],
-            #     ],
-            #     # expected
-            #     {
-            #         "tag_params": {
-            #             "name": None,
-            #             "brief": None,
-            #             "text": [],
-            #         },
-            #         "pre_lines": [],
-            #     },
-            # ),
-            # "Brief(4/)": (
-            #     # stimulus
-            #     [
-            #         [],
-            #         None,
-            #         ["T", [["s", " : Brief : Description. \n"]]],
-            #         [],
-            #     ],
-            #     # expected
-            #     {
-            #         "tag_params": {
-            #             "name": None,
-            #             "brief": ["T", [["s", "Brief : Description."]]],
-            #             "text": [],
-            #         },
-            #         "pre_lines": [],
-            #     },
-            # ),
         }
 
     @pytest.mark.parametrize(
@@ -542,41 +459,9 @@ class Spec_parse_TagParameter:
         """
         return {
             ##
-            # #### [\@case 1] Normal:
+            # #### [\@case 1] Simple:
             #
-            "Normal(1/)": (
-                # stimulus
-                [
-                    [
-                        ["T", [["s", "PRECEDING_TEXT @tag: FOLLOWING_TEXT"]]],
-                    ],
-                    ErrorReport(cont=False),
-                ],
-                # expected
-                {
-                    "err": None,
-                    "result": [
-                        # BlockTag
-                        None,
-                        # InlineTag(s)
-                        [
-                            [
-                                [
-                                    "InlineTag",
-                                    {
-                                        "prop_type": ["T", [["s", "tag"]]],
-                                        "prop_args": [],
-                                        "prop_kwargs": [],
-                                    },
-                                    [["s", "@tag:"]],
-                                ],
-                                {"text": [["T", [["s", "FOLLOWING_TEXT"]]]]},
-                            ]
-                        ],
-                    ],
-                },
-            ),
-            "Normal(2/)": (
+            "Simple(1/)": (
                 # stimulus
                 [
                     [
@@ -592,6 +477,75 @@ class Spec_parse_TagParameter:
                         None,
                         # InlineTag(s)
                         [],
+                    ],
+                },
+            ),
+            "Simple(2/)": (
+                # stimulus
+                [
+                    [
+                        ["T", [["s", "PRECEDING_TEXT [@] FOLLOWING_TEXT"]]],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": None,
+                    "result": [
+                        # BlockTag
+                        [
+                            [
+                                "BlockTag",
+                                {
+                                    "class_info": {
+                                        "category": None,
+                                        "type": None,
+                                        "is_reference": None,
+                                    },
+                                    "class_args": [],
+                                    "class_kwargs": [],
+                                },
+                                [["s", "[@]"]],
+                            ],
+                            {
+                                "name": ["T", [["s", "FOLLOWING_TEXT"]]],
+                                "text": None,
+                            },
+                        ],
+                        # InlineTag(s)
+                        [],
+                    ],
+                },
+            ),
+            "Simple(3/)": (
+                # stimulus
+                [
+                    [
+                        ["T", [["s", "PRECEDING_TEXT @: FOLLOWING_TEXT"]]],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": None,
+                    "result": [
+                        # BlockTag
+                        None,
+                        # InlineTag(s)
+                        [
+                            [
+                                [
+                                    "InlineTag",
+                                    {
+                                        "prop_type": None,
+                                        "prop_args": [],
+                                        "prop_kwargs": [],
+                                    },
+                                    [["s", "@:"]],
+                                ],
+                                {"text": ["T", [["s", "FOLLOWING_TEXT"]]]},
+                            ]
+                        ],
                     ],
                 },
             ),
@@ -708,43 +662,61 @@ class Spec_parse_TagParameter:
             assert result is None
         else:
             assert result is not None
-            btag_param = expected["result"][0]
-            itag_params = expected["result"][1]
+            exp_btag_param = expected["result"][0]
+            exp_itag_params = expected["result"][1]
 
             #
             # BlockTag
             #
-            if btag_param is None:
+            if exp_btag_param is None:
                 assert result[0] is None
             else:
                 assert result[0] is not None
-                assert len(result[0]) == len(btag_param)
-                for key in btag_param:
-                    if btag_param[key] is None:
-                        assert result[0][key] is None
-                    elif type(btag_param[key]) is list:
-                        assert type(result[0][key]) is list
-                        assert [r.dumpd() for r in result[0][key]] == btag_param[key]
-                    else:
-                        assert result[0][key].dumpd() == btag_param[key]
+                _asert_parameter(result[0], exp_btag_param)
+                # assert result[0] is not None
+                # assert len(result[0]) == len(exp_btag_param)
+                # for key in exp_btag_param:
+                #     if exp_btag_param[key] is None:
+                #         assert result[0][key] is None
+                #     elif type(exp_btag_param[key]) is list:
+                #         assert type(result[0][key]) is list
+                #         assert [r.dumpd() for r in result[0][key]] == exp_btag_param[key]
+                #     else:
+                #         assert result[0][key].dumpd() == exp_btag_param[key]
 
             #
             # InlineTag(s)
             #
             result_params = result[1]
-            assert len(result_params) == len(itag_params)
-            for i, itag_param in enumerate(itag_params):
-                result_param = result_params[i]
-                # inline tag
-                assert result_param[0].dumpd() == itag_param[0]
-                # tag parameter
-                for key in itag_param[1]:
-                    if itag_param[1][key] is None:
-                        assert result_param[1][key] is None
-                    elif type(itag_param[1][key]) is list:
-                        assert type(result_param[1][key]) is list
-                        assert [r.dumpd() for r in result_param[1][key]] == itag_param[1][
-                            key
-                        ]
-                    else:
-                        assert result_param[1][key].dumpd() == itag_param[key]
+            assert len(result_params) == len(exp_itag_params)
+            for i, exp_param in enumerate(exp_itag_params):
+                _asert_parameter(result_params[i], exp_param)
+
+
+def _asert_parameter(actual, expected):
+    #
+    # tag
+    #
+    assert actual[0].dumpd() == expected[0]
+
+    #
+    # tag parameter
+    #
+    for key in expected[1]:
+        exp = expected[1][key]
+        act = actual[1][key]
+
+        if exp is None:
+            assert act is None
+
+        elif (len(exp) == 0) or (type(exp[0]) is list):
+            # param[1][key] = [ ["T", []] ]
+            assert type(act) is list
+            assert [r.dumpd() for r in act] == exp
+
+        else:
+            # param[1][key] = [ "T", [] ]
+            assert type(act) is TextString
+            assert act.dumpd() == exp
+
+    return True

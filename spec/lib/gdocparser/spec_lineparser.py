@@ -89,7 +89,7 @@ class Spec_parse_Line:
                         [
                             "InlineTag",
                             {
-                                "prop_type": ["T", []],
+                                "prop_type": None,
                                 "prop_args": [],
                                 "prop_kwargs": [],
                             },
@@ -200,7 +200,7 @@ class Spec_parse_Line:
                         [
                             "InlineTag",
                             {
-                                "prop_type": ["T", []],
+                                "prop_type": None,
                                 "prop_args": [],
                                 "prop_kwargs": [],
                             },
@@ -210,7 +210,7 @@ class Spec_parse_Line:
                         [
                             "InlineTag",
                             {
-                                "prop_type": ["T", []],
+                                "prop_type": None,
                                 "prop_args": [],
                                 "prop_kwargs": [],
                             },
@@ -233,7 +233,7 @@ class Spec_parse_Line:
                         [
                             "InlineTag",
                             {
-                                "prop_type": ["T", []],
+                                "prop_type": None,
                                 "prop_args": [],
                                 "prop_kwargs": [],
                             },
@@ -242,7 +242,7 @@ class Spec_parse_Line:
                         [
                             "InlineTag",
                             {
-                                "prop_type": ["T", []],
+                                "prop_type": None,
                                 "prop_args": [],
                                 "prop_kwargs": [],
                             },

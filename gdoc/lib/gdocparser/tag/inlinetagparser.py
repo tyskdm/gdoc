@@ -13,7 +13,7 @@ from .inlinetagdetector import detect_InlineTag
 
 
 class PropertyTagInfo(NamedTuple):
-    prop_type: TextString
+    prop_type: TextString | None
     prop_args: list[TextString] = []
     prop_kwargs: list[tuple[TextString, TextString]] = []
 
@@ -58,7 +58,7 @@ def parse_InlineTag(
                 return Err(erpt, result)
 
         assert taginfo
-        prop_type: TextString = TextString()
+        prop_type: TextString | None = TextString()
         prop_args: list[TextString] = []
         prop_kwargs: list[tuple[TextString, TextString]] = []
         prop_type, prop_args, prop_kwargs = taginfo
@@ -83,7 +83,7 @@ def parse_PropertyTagInfo(
     2. With args: ["T", ["@type", ["T", ["(arg1, key=val)"]], ":"]]
     """
     targetstring: TextString = textstring
-    prop_type: TextString = TextString()
+    prop_type: TextString | None = TextString()
     prop_args: list[TextString] = []
     prop_kwargs: list[tuple[TextString, TextString]] = []
 
@@ -98,6 +98,8 @@ def parse_PropertyTagInfo(
         # 1. No args: ["T", ["@type:"]]
         prop_type = targetstring[1:-1]
         substr = None
+
+    prop_type = prop_type if len(prop_type) > 0 else None
 
     #
     # parse Parenthese

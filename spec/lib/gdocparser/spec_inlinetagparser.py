@@ -52,7 +52,7 @@ class Spec_parse_PropertyTagInfo:
                 {
                     "err": None,
                     "result": {
-                        "prop_type": ["T", []],
+                        "prop_type": None,
                         "prop_args": [],
                         "prop_kwargs": [],
                     },
@@ -91,7 +91,7 @@ class Spec_parse_PropertyTagInfo:
                 {
                     "err": None,
                     "result": {
-                        "prop_type": ["T", []],
+                        "prop_type": None,
                         "prop_args": [],
                         "prop_kwargs": [],
                     },
@@ -404,7 +404,7 @@ class Spec_parse_InlineTag:
                         [
                             "InlineTag",
                             {
-                                "prop_type": ["T", []],
+                                "prop_type": None,
                                 "prop_args": [],
                                 "prop_kwargs": [],
                             },

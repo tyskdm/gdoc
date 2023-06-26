@@ -18,14 +18,14 @@ class InlineTag(TextString):
     InlineTag class
     """
 
-    _prop_type: TextString
+    _prop_type: TextString | None
     _prop_args: list[TextString]
     _prop_kwargs: list[tuple[TextString, TextString]]
     tag_info: InlineTagInfo | None = None
 
     def __init__(
         self,
-        prop_type: TextString,
+        prop_type: TextString | None,
         prop_args: list[TextString],
         prop_kwargs: list[tuple[TextString, TextString]],
         tag_text: TextString,
@@ -40,7 +40,7 @@ class InlineTag(TextString):
 
     def get_class_arguments(
         self,
-    ) -> tuple[TextString, list[TextString], list[tuple[TextString, TextString]]]:
+    ) -> tuple[TextString | None, list[TextString], list[tuple[TextString, TextString]]]:
         """
         _summary_
 
@@ -53,7 +53,7 @@ class InlineTag(TextString):
         textstr_dumpdata[:1] = [
             "InlineTag",
             {
-                "prop_type": self._prop_type.dumpd(),
+                "prop_type": self._prop_type.dumpd() if self._prop_type else None,
                 "prop_args": [a.dumpd() for a in self._prop_args],
                 "prop_kwargs": [(k[0].dumpd(), k[1].dumpd()) for k in self._prop_kwargs],
             },
