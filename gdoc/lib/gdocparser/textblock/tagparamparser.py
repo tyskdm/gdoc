@@ -174,7 +174,14 @@ def _get_inlinetag_params(
     following_text: TextString | None,
     following_lines: list[TextString],
 ) -> tuple[dict[str, TextString | list[TextString] | None], list[TextString]]:
+    """
+    _summary_
+    """
     tag_params: dict[str, TextString | list[TextString] | None] = {}
+
+    # Add following_text to the top of following_lines
+    if (following_text is not None) and (len(following_text.strip()) > 0):
+        following_lines = [following_text] + following_lines
 
     #
     # Set "text"
@@ -187,12 +194,11 @@ def _get_inlinetag_params(
         pretext = pretext.rstrip("-")
         pretext = pretext.rstrip()
         textstrs = preceding_lines[:]
-        textstrs.append(pretext)
+        if len(pretext) > 0:
+            textstrs.append(pretext)
         # following_lines was not consumed
     else:
         textstrs = following_lines[:]
-        if following_text is not None:
-            textstrs.insert(0, following_text)
         following_lines = []
         # following_lines was consumed
 
