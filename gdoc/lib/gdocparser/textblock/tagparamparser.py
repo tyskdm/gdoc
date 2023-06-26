@@ -9,7 +9,7 @@ TagParameter: TypeAlias = dict[str, TextString | list[TextString] | None]
 
 
 def parse_TagParameter(
-    parsed_lines: list[list[TextString]], opts: Settings, erpt: ErrorReport
+    parsed_lines: list[list[TextString]], erpt: ErrorReport, opts: Settings | None = None
 ) -> Result[
     tuple[Optional[tuple[BlockTag, TagParameter]], list[tuple[InlineTag, TagParameter]]],
     ErrorReport,
@@ -29,43 +29,69 @@ def parse_TagParameter(
         ErrorReport
     ] : _description_
     """
+    # Results
     blocktag_param: Optional[tuple[BlockTag, TagParameter]] = None
     inlinetag_params: list[tuple[InlineTag, TagParameter]] = []
 
+    # Precedings
     preceding_lines: list[TextString] = []
     preceding_text: TextString | None = None
-    following_text: TextString | None = None
-    following_lines: list[TextString] = []
     target_tag: TextString | None = None
-    next_tag: TextString | None = None
-    tag_param: TagParameter
+    # Followings
+    following_text: TextString | None
+    following_lines: list[TextString]
+    next_tag: TextString | None
 
+    # Other variables
+    tag_param: TagParameter
+    line: TextString
     line_items: list[TextString]
+    item: TextString
     row: int = 0
     col: int = 0
     while True:
+        following_text = None
+        following_lines = []
+        next_tag = None
         for row, line_items in enumerate(parsed_lines[row:], row):
-            _line = TextString()
+            line = TextString()
 
-            item: TextString
-            for col, item in enumerate(line_items, col):
+            for col, item in enumerate(line_items[col:], col):
                 if type(item) in (BlockTag, InlineTag):
                     next_tag = item
-                    following_text = _line
-                    col += 1
                     break
-                _line += item
+                line += item
+
+            if following_text is None:
+                if len(line.strip()) > 0:
+                    following_text = line.lstrip()
             else:
-                following_lines.append(_line)
-                col = 0
-                continue  # to next line
+                following_lines.append(line)
 
-            # next_tag was fonud.
-            break
+            if next_tag is not None:
+                # Start with the next column for the next time
+                col += 1
+                break
 
-        if target_tag is None and next_tag is not None:
+            # continue to the top of next line
+            col = 0
+
+        if (target_tag is None) and (next_tag is not None):
+            #
+            # The first tag found in the textblock:
+            # Move followings to precedings and continue to get followings
+            #
+            if following_text is not None:
+                following_lines = [following_text] + following_lines
+
             preceding_lines = following_lines
-            preceding_text = following_text
+            following_lines = []
+            following_text = None
+
+            preceding_text = None
+            if (len(preceding_lines) > 0) and (not preceding_lines[-1].endswith("\n")):
+                preceding_text = preceding_lines.pop()
+
             target_tag = next_tag
             next_tag = None
             continue
@@ -101,16 +127,14 @@ def parse_TagParameter(
                 if (len(preceding_lines) > 0) and (
                     not preceding_lines[-1].endswith("\n")
                 ):
-                    preceding_text = preceding_lines.pop()
+                    preceding_text = preceding_lines.pop().rstrip()
                 else:
                     preceding_text = None
 
-                following_text = None
-                following_lines = []
                 continue
 
         # elif target_tag is None and next_tag is None:
-        # - No any/more tags was found in the textblock.
+        # -> No any/more tags was found in the textblock.
         break
 
     return Ok((blocktag_param, inlinetag_params))
