@@ -3,6 +3,7 @@ from typing import Optional, TypeAlias, cast
 from gdoc.lib.gdoc import TextString
 from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.lib.gdoc.inlinetag import InlineTag
+from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 TagParameter: TypeAlias = dict[str, TextString | list[TextString] | None]
@@ -32,6 +33,7 @@ def parse_TagParameter(
     # Results
     blocktag_param: Optional[tuple[BlockTag, TagParameter]] = None
     inlinetag_params: list[tuple[InlineTag, TagParameter]] = []
+    srpt: ErrorReport = erpt.new_subreport()
 
     # Precedings
     preceding_lines: list[TextString] = []
@@ -111,7 +113,18 @@ def parse_TagParameter(
                     blocktag_param = (target_tag, tag_param)
                 else:
                     # BlockTag was already found.
-                    return Err(erpt)
+                    if srpt.should_exit(
+                        GdocSyntaxError(
+                            "A TextBlock takes at most one BlockTag but was given more.",
+                            target_tag.get_data_pos(),
+                            (
+                                target_tag.get_str(),
+                                0,
+                                len(target_tag.get_str()),
+                            ),
+                        )
+                    ):
+                        return Err(erpt.submit(srpt))
 
             else:  # type(target_tag) is InlineTag:
                 target_tag = cast(InlineTag, target_tag)
@@ -139,6 +152,9 @@ def parse_TagParameter(
         # elif target_tag is None and next_tag is None:
         # -> No any/more tags was found in the textblock.
         break
+
+    if srpt.haserror():
+        return Err(erpt.submit(srpt), (blocktag_param, inlinetag_params))
 
     return Ok((blocktag_param, inlinetag_params))
 

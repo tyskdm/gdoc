@@ -619,6 +619,75 @@ class Spec_parse_TagParameter:
                 },
             ),
             ##
+            # #### [\@case 1] Multiple Line:
+            #
+            "MultipleLine(1/)": (
+                # stimulus
+                [
+                    [
+                        ["T", [["s", "@tag:\n"]]],
+                        ["T", [["s", "FOLLOWING LINE"]]],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": None,
+                    "result": [
+                        # BlockTag
+                        None,
+                        # InlineTag(s)
+                        [
+                            [
+                                [
+                                    "InlineTag",
+                                    {
+                                        "prop_type": ["T", [["s", "tag"]]],
+                                        "prop_args": [],
+                                        "prop_kwargs": [],
+                                    },
+                                    [["s", "@tag:"]],
+                                ],
+                                {"text": ["T", [["s", "FOLLOWING LINE"]]]},
+                            ]
+                        ],
+                    ],
+                },
+            ),
+            "MultipleLine(2/)": (
+                # stimulus
+                [
+                    [
+                        ["T", [["s", "PRECEDING LINE"]]],
+                        ["T", [["s", "-- @tag:"]]],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": None,
+                    "result": [
+                        # BlockTag
+                        None,
+                        # InlineTag(s)
+                        [
+                            [
+                                [
+                                    "InlineTag",
+                                    {
+                                        "prop_type": ["T", [["s", "tag"]]],
+                                        "prop_args": [],
+                                        "prop_kwargs": [],
+                                    },
+                                    [["s", "@tag:"]],
+                                ],
+                                {"text": ["T", [["s", "PRECEDING LINE"]]]},
+                            ]
+                        ],
+                    ],
+                },
+            ),
+            ##
             # #### [\@case 1] Multiple Tags:
             #
             "MultipleTags(1/)": (
@@ -756,6 +825,85 @@ class Spec_parse_TagParameter:
                                 {"text": ["T", [["s", "13 "]]]},
                             ],
                         ],
+                    ],
+                },
+            ),
+            ##
+            # #### [\@case 1] Error Cases:
+            #
+            "Error(1/): Multiple BlockTags": (
+                # stimulus
+                [
+                    [
+                        ["T", [["s", [[8, ["filename", 5, 10, 5, 18]]], "[@1][@2]"]]],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": (
+                        "filename:5:14-5:18 GdocSyntaxError: A TextBlock takes at most "
+                        "one BlockTag but was given more.\n"
+                        "> [@2]\n"
+                        "> ^^^^"
+                    ),
+                    "result": None,
+                },
+            ),
+            "Error(2/): Multiple BlockTags": (
+                # stimulus
+                [
+                    [
+                        ["T", [["s", [[8, ["filename", 5, 10, 5, 18]]], "[@1][@2]"]]],
+                    ],
+                    ErrorReport(cont=True),
+                ],
+                # expected
+                {
+                    "err": (
+                        "filename:5:14-5:18 GdocSyntaxError: A TextBlock takes at most "
+                        "one BlockTag but was given more.\n"
+                        "> [@2]\n"
+                        "> ^^^^"
+                    ),
+                    "result": [
+                        # BlockTag
+                        [
+                            [
+                                "BlockTag",
+                                {
+                                    "class_info": {
+                                        "category": None,
+                                        "type": [
+                                            "T",
+                                            [
+                                                [
+                                                    "s",
+                                                    [[1, ["filename", 5, 12, 5, 13]]],
+                                                    "1",
+                                                ]
+                                            ],
+                                        ],
+                                        "is_reference": None,
+                                    },
+                                    "class_args": [],
+                                    "class_kwargs": [],
+                                },
+                                [
+                                    [
+                                        "s",
+                                        [[4, ["filename", 5, 10, 5, 14]]],
+                                        "[@1]",
+                                    ]
+                                ],
+                            ],
+                            {
+                                "name": None,
+                                "text": None,
+                            },
+                        ],
+                        # InlineTag(s)
+                        [],
                     ],
                 },
             ),
