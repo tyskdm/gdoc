@@ -19,7 +19,7 @@ class Category:
             if hasattr(t, "set_category"):
                 t.set_category(self)
 
-    def get_type(self, target_type: str, parent_type: str, aliases: dict = {}):
+    def get_type(self, target_type: str | None, parent_type: str, aliases: dict = {}):
         """
         get object class by name
         """

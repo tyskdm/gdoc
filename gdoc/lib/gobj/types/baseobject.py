@@ -81,71 +81,104 @@ class BaseObject(GdObject):
     @final
     def create_object(
         self,
-        class_info: tuple[String | None, String | None, String | None],
+        class_info: tuple[TextString | None, TextString | None, TextString | None],
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
-        tag_opts: dict,
+        tag_params: dict[str, Any],
         tag_body: TextString,
-        opts: Settings,
         erpt: ErrorReport,
+        opts: Settings,
     ) -> Result["BaseObject", ErrorReport]:
         """
         Object Factory
         """
-        class_cat = str(class_info[0]) if class_info[0] is not None else None
-        class_type = str(class_info[1]) if class_info[1] is not None else ""
-        constructor = None
+        class_cat: str | None = (
+            class_info[0].get_str() if class_info[0] is not None else None
+        )
+        class_type: str | None = (
+            class_info[1].get_str() if class_info[1] is not None else ""
+        )
+        type_constructor: BaseObject | None = None
+        type_name: str | None
 
-        obj = self
-        while obj is not None:
-            class_type, constructor = obj.__get_constructor(class_cat, class_type, opts)
-            if constructor is not None:
-                break
-
-            obj = obj.get_parent()
-
-        if constructor is not None:
-            try:
-                child, e = constructor.create(
-                    class_info, class_args, class_kwargs, tag_opts, self, erpt
+        #
+        # Primary types - OBJECT, IMPORT, ACCESS
+        #
+        if class_cat == "":
+            cat: Category | None = BaseObject.get_category()
+            if cat is not None:
+                type_name, type_constructor = cat.get_type(
+                    class_type,
+                    self.class_type,
+                    opts.get(["types", "aliasies", cat.name], {}),
                 )
-                if e:
-                    erpt.submit(e)
-                    return Err(erpt)
-
-            except GdocSyntaxError as e:
-                erpt.submit(e)
-                return Err(erpt)
-
         else:
+            obj = self
+            while obj is not None:
+                #
+                # Each Category own management types
+                #
+                cat: Category | None
+                if class_cat in (None, obj.class_category):
+                    cat = obj.__class__.get_category()
+                    if type(cat) is Category:
+                        type_name, type_constructor = cat.get_type(
+                            class_type,
+                            obj.class_type,
+                            opts.get(["types", "aliasies", cat.name], {}),
+                        )
+                        if type_constructor is not None:
+                            break
+
+                #
+                # Each Object own management types
+                #
+                type_name, type_constructor = obj._get_childtype_(
+                    class_type,
+                    obj.class_type,
+                    opts,
+                )
+                if type_constructor is not None:
+                    break
+
+                obj = obj.get_parent()
+
+        if type_constructor is None:
             erpt.submit(GdocSyntaxError("Class not found", tag_body.get_char_pos(2)))
             return Err(erpt)
 
+        #
+        # Create Object
+        #
+        child: BaseObject | None
+        child, e = type_constructor.create(
+            class_info, class_args, class_kwargs, tag_params, self, erpt
+        )
+        if e:
+            erpt.submit(e)
+            return Err(erpt)
+
+        assert child
         return Ok(child)
 
-    def __get_constructor(self, class_cat: str, class_type: str, opts: Settings):
+    def _get_childtype_(
+        self,
+        class_cat: str | None,
+        class_type: str | None,
+        opts: Settings,
+    ):
         """ """
         constructor = None
         class_name = None
-        cat = None
-
-        if class_cat in (None, self.class_category):
-            cat = self.__class__.get_category()
-
-        if type(cat) is Category:
-            class_name, constructor = cat.get_type(
-                class_type, self.class_type, opts.get(["types", "aliasies", cat.name], {})
-            )
-
         return class_name, constructor
 
     @classmethod
     def create(
         cls,
-        class_info: tuple[String | None, String | None, String | None],
+        class_info: tuple[TextString | None, TextString | None, TextString | None],
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
-        tag_opts: dict,
+        tag_params: dict,
         parent_obj: "BaseObject",
         erpt: ErrorReport,
     ) -> Result["BaseObject", ErrorReport]:
@@ -202,10 +235,10 @@ class BaseObject(GdObject):
             str(class_info[1]),  # type
             id,
             scope=scope,
-            name=tag_opts.get("name"),
+            name=tag_params.get("name"),
             tags=[tag.get_str() for tag in tags],
             ref=ref,
-            type_args=tag_opts,
+            type_args=tag_params,
         )
 
         if parent_obj:

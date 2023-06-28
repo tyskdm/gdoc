@@ -81,7 +81,7 @@ def parse_TextBlock(
     #
     child: BaseObject | None = None
     if target_tag is not None:
-        class_info: tuple[String | None, String | None, String | None]
+        class_info: tuple[TextString | None, TextString | None, TextString | None]
         class_args: list[TextString]
         class_kwargs: list[tuple[TextString, TextString]]
         class_info, class_args, class_kwargs = target_tag.get_class_arguments()
@@ -95,7 +95,7 @@ def parse_TextBlock(
         )
 
         child, e = gobj.create_object(
-            class_info, class_args, class_kwargs, tag_opts, target_tag, opts, srpt
+            class_info, class_args, class_kwargs, tag_opts, target_tag, srpt, opts
         )
 
         if e:
