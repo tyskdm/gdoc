@@ -92,4 +92,5 @@ def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
     # assert getattr(args[4], "tag_text").get_str() == expect_data["tag_text"]
     assert args[4].get_str() == expect_data["tag_text"]
 
+
 ## @}

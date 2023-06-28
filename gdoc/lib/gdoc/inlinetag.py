@@ -26,7 +26,7 @@ class InlineTag(TextString):
         self._prop_args = prop_args
         self._prop_kwargs = prop_kwargs
 
-    def get_class_arguments(
+    def get_arguments(
         self,
     ) -> tuple[TextString | None, list[TextString], list[tuple[TextString, TextString]]]:
         """

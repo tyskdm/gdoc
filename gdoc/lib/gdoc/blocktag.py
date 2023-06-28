@@ -26,7 +26,7 @@ class BlockTag(TextString):
         self._class_args = class_args
         self._class_kwargs = class_kwargs
 
-    def get_class_arguments(
+    def get_arguments(
         self,
     ) -> tuple[
         tuple[TextString | None, TextString | None, TextString | None],

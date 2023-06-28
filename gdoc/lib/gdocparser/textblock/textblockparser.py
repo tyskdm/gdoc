@@ -62,7 +62,7 @@ def parse_TextBlock(
     if blocktag_param is not None:
         target_tag, tag_param = blocktag_param
         child, e = gobj.create_object(
-            *target_tag.get_class_arguments(), tag_param, target_tag, srpt, opts
+            *target_tag.get_arguments(), tag_param, target_tag, srpt, opts
         )
 
         if e:
@@ -76,7 +76,7 @@ def parse_TextBlock(
     for inlinetag_param in inlinetag_params:
         target_tag, tag_param = inlinetag_param
 
-        inline_tagtype: TextString | None = target_tag.get_class_arguments()[0]
+        inline_tagtype: TextString | None = target_tag.get_arguments()[0]
         key: str = inline_tagtype.get_str() if inline_tagtype else "text"
         text: TextString | list[TextString] | None = tag_param.get("text")
 
