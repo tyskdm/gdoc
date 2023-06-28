@@ -1,21 +1,15 @@
 """
 baseobject.py: BaseObject class
 """
-from typing import Any, NamedTuple, final
+from typing import Any, final
 
-from gdoc.lib.gdoc import String, TextString
+from gdoc.lib.gdoc import TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gdocparser import nameparser
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 from ..gdobject import GdObject
 from .category import Category
-
-
-class ClassInfo(NamedTuple):
-    category: str | String | None
-    type: str | String | None
-    isref: bool | String | None
 
 
 class BaseObject(GdObject):
@@ -77,6 +71,28 @@ class BaseObject(GdObject):
             self.class_isref = False
 
         self.update(type_args)
+
+    def set_prop(
+        self,
+        prop: TextString | None,
+        args: list[TextString],
+        kwargs: list[tuple[TextString, TextString]],
+        tag_params: dict[str, Any],
+        tag_body: TextString,
+        erpt: ErrorReport,
+        opts: Settings,
+    ) -> Result[TextString | list[TextString] | None, ErrorReport]:
+        """
+        prop, e = target_obj.set_prop(
+            *target_tag.get_arguments(), tag_param, target_tag, srpt, opts
+        )
+        """
+        key: str = prop.get_str() if prop else "text"
+        text: TextString | list[TextString] | None = tag_params.get("text")
+        if text is not None:
+            super().set_prop(key, text)
+
+        return Ok(text)
 
     @final
     def create_object(

@@ -56,15 +56,15 @@ def parse_TextBlock(
     #
     # Create Gobj
     #
-    child: BaseObject | None = None
     target_tag: BlockTag | InlineTag
     tag_param: TagParameter
+
+    child: BaseObject | None = None
     if blocktag_param is not None:
         target_tag, tag_param = blocktag_param
         child, e = gobj.create_object(
             *target_tag.get_arguments(), tag_param, target_tag, srpt, opts
         )
-
         if e:
             srpt.submit(e)
 
@@ -72,15 +72,11 @@ def parse_TextBlock(
     # Append Properties
     #
     target_obj: BaseObject = child or gobj
-    inlinetag_param: tuple[InlineTag, TagParameter]
-    for inlinetag_param in inlinetag_params:
-        target_tag, tag_param = inlinetag_param
-
-        inline_tagtype: TextString | None = target_tag.get_arguments()[0]
-        key: str = inline_tagtype.get_str() if inline_tagtype else "text"
-        text: TextString | list[TextString] | None = tag_param.get("text")
-
-        target_obj.set_prop(key, text)
+    for i in range(len(inlinetag_params)):
+        target_tag, tag_param = inlinetag_params[i]
+        prop, e = target_obj.set_prop(
+            *target_tag.get_arguments(), tag_param, target_tag, srpt, opts
+        )
 
     if srpt.haserror():
         return Err(erpt.submit(srpt), child)  # type: ignore
