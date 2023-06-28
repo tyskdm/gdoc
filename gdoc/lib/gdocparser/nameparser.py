@@ -1,14 +1,12 @@
 """
 nameparser module
 """
-from typing import Final, TypeAlias, cast
+from typing import Final, TypeAlias, cast, NamedTuple
 
-from gdoc.lib.gdoc import Code, String, Text, TextString
+from gdoc.lib.gdoc import Code, String, Text, TextString, Parenthesized
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.lib.pandocastobject.pandocast import DataPos, Pos
+from gdoc.lib.pandocastobject.pandocast import DataPos
 from gdoc.util import Err, ErrorReport, Ok, Result
-
-NAME_INFO: TypeAlias = tuple[list[TextString], list[TextString]]
 
 _SEPARATOR: Final[tuple[str, ...]] = (".", "::")
 
@@ -40,38 +38,67 @@ def is_tag_str(tagstr: str) -> bool | int:
     return result
 
 
-def parse_name(textstr: TextString, erpt: ErrorReport) -> Result[NAME_INFO, ErrorReport]:
-    subrpt: ErrorReport = erpt.new_subreport()
+def parse_name(
+    textstr: TextString, erpt: ErrorReport
+) -> Result[tuple[list[TextString], list[TextString]], ErrorReport]:
+    """
+    _summary_
 
-    name_tstr: TextString
-    tag_tstr: TextString | None
-    text: Text
-    for i, text in enumerate(textstr):
-        if ((type(text) is String) or (isinstance(text, TextString))) and (
-            text.startswith("(")
-        ):
-            name_tstr = textstr[:i]
-            tag_tstr = textstr[i:]
-            break
-    else:
-        name_tstr = textstr[:]
-        tag_tstr = None
+    @param textstr (TextString) : _description_
+    @param erpt (ErrorReport) : _description_
 
-    name_list: list[TextString]
-    name_list, e = parse_name_str(name_tstr, subrpt)
-    if e and subrpt.should_exit(e):
-        return Err(subrpt)
+    @return Result[
+        tuple[list[TextString], list[TextString]],
+        ErrorReport
+    ] : _description_
+    """
+    srpt: ErrorReport = erpt.new_subreport()
+    name_textstr: TextString
+    tag_textstr: TextString | None
 
-    tag_list: list[TextString] = []
-    if tag_tstr is not None:
-        if len(tag_tstr) == 1:
-            tag_tstr = cast(TextString, tag_tstr[0])
-        tag_list, e = parse_tag_str(tag_tstr, subrpt)
-        if e and subrpt.should_exit(e):
-            return Err(subrpt)
+    if len(textstr) == 0:
+        return Ok(([], []))
 
-    if subrpt.haserror():
-        return Err(subrpt)
+    #
+    # Separate name_textstr and tag_textstr
+    #
+    name_textstr = textstr
+    tag_textstr = None
+
+    if type(textstr[-1]) is Parenthesized:
+        name_textstr = textstr[:-1]
+        tag_textstr = cast(TextString, textstr[-1])
+
+    elif textstr.endswith(")"):
+        parts: list[TextString] = textstr.split("(", 1, retsep=True)
+        if len(parts) > 1:
+            name_textstr = parts[0]
+            tag_textstr = parts[1] + parts[2]
+
+    #
+    # Parse name_textstr to get name_list
+    #
+    name_list: list[TextString] | None
+    name_list, e = parse_name_str(name_textstr, srpt)
+    if e and srpt.should_exit(e):
+        return Err(srpt)
+    assert name_list is not None
+
+    #
+    # Parse tag_textstr to get tag_list
+    #
+    tag_list: list[TextString] | None = []
+    if tag_textstr is not None:
+        tag_list, e = parse_tag_str(tag_textstr, srpt)
+        if e and srpt.should_exit(e):
+            return Err(srpt)
+        assert tag_list is not None
+
+    #
+    # Return results
+    #
+    if srpt.haserror():
+        return Err(srpt)
 
     return Ok((name_list, tag_list))
 
