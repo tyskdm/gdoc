@@ -1,19 +1,7 @@
 """
 tag.py: tag class
 """
-from typing import NamedTuple, Optional
-
-from gdoc.lib.gdoc import String, TextString
-
-from .textblock import TextBlock
-
-
-class BlockTagInfo(NamedTuple):
-    textblock: TextBlock
-    preceding_lines: list[TextString]
-    following_lines: list[TextString]
-    preceding_text: Optional[TextString]
-    following_text: Optional[TextString]
+from gdoc.lib.gdoc import TextString
 
 
 class BlockTag(TextString):
@@ -24,7 +12,6 @@ class BlockTag(TextString):
     _class_info: tuple[TextString | None, TextString | None, TextString | None]
     _class_args: list[TextString]
     _class_kwargs: list[tuple[TextString, TextString]]
-    tag_info: BlockTagInfo | None = None
 
     def __init__(
         self,
@@ -32,14 +19,12 @@ class BlockTag(TextString):
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
         tag_text: TextString,
-        tag_info: BlockTagInfo | None = None,
     ):
         super().__init__(tag_text)
 
         self._class_info = class_info
         self._class_args = class_args
         self._class_kwargs = class_kwargs
-        self.tag_info = tag_info
 
     def get_class_arguments(
         self,

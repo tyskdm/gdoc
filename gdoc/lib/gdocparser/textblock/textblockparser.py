@@ -1,12 +1,14 @@
 """
 textblockparser.py: parse_TextBlock function
 """
-from gdoc.lib.gdoc import String, TextBlock, TextString
-from gdoc.lib.gdoc.blocktag import BlockTag, BlockTagInfo
+from gdoc.lib.gdoc import TextBlock, TextString
+from gdoc.lib.gdoc.blocktag import BlockTag
+from gdoc.lib.gdoc.inlinetag import InlineTag
 from gdoc.lib.gobj.types import BaseObject
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 from .lineparser import parse_Line
+from .tagparamparser import TagParameter, parse_TagParameter
 
 
 def parse_TextBlock(
@@ -40,136 +42,47 @@ def parse_TextBlock(
         parsed_lines.append(parsed_line_items)
 
     #
-    # Prepare for creating Gobj
+    # Parse TagParameter for each tag
     #
-    preceding_lines: list[TextString] = []
-    following_lines: list[TextString] = []
-    preceding_text: TextString | None = None
-    following_text: TextString | None = None
-    target_tag: BlockTag | None = None
-    # next_tag: BlockTag | None = None
+    r, e = parse_TagParameter(parsed_lines, srpt, opts)
+    if e and srpt.should_exit(e):
+        return Err(erpt.submit(srpt))
 
-    for parsed_line_items in parsed_lines:
-        if target_tag is None:
-            _line = TextString()
-
-            i: int
-            tstr: TextString
-            for i, tstr in enumerate(parsed_line_items):
-                if isinstance(tstr, BlockTag):
-                    target_tag = tstr
-                    break
-                _line += TextString(tstr.get_text_items())
-            else:
-                preceding_lines.append(_line)
-                continue  # next line
-
-            # if target_tag:  # tag is found
-            preceding_text = _line
-            following_text = TextString()
-            j: int
-            for j, tstr in enumerate(parsed_line_items[i + 1 :]):
-                following_text += tstr
-        else:
-            _line = TextString()
-            for tstr in parsed_line_items:
-                _line += tstr
-            following_lines.append(_line)
+    assert r
+    blocktag_param: tuple[BlockTag, TagParameter] | None
+    inlinetag_params: list[tuple[InlineTag, TagParameter]]
+    blocktag_param, inlinetag_params = r
 
     #
     # Create Gobj
     #
     child: BaseObject | None = None
-    if target_tag is not None:
-        class_info: tuple[TextString | None, TextString | None, TextString | None]
-        class_args: list[TextString]
-        class_kwargs: list[tuple[TextString, TextString]]
-        class_info, class_args, class_kwargs = target_tag.get_class_arguments()
-
-        target_tag.tag_info = BlockTagInfo(
-            textblock, preceding_lines, following_lines, preceding_text, following_text
-        )
-
-        tag_opts = _get_blocktag_opts(
-            preceding_lines, following_lines, preceding_text, following_text
-        )
-
+    target_tag: BlockTag | InlineTag
+    tag_param: TagParameter
+    if blocktag_param is not None:
+        target_tag, tag_param = blocktag_param
         child, e = gobj.create_object(
-            class_info, class_args, class_kwargs, tag_opts, target_tag, srpt, opts
+            *target_tag.get_class_arguments(), tag_param, target_tag, srpt, opts
         )
 
         if e:
             srpt.submit(e)
 
+    #
+    # Append Properties
+    #
+    target_obj: BaseObject = child or gobj
+    inlinetag_param: tuple[InlineTag, TagParameter]
+    for inlinetag_param in inlinetag_params:
+        target_tag, tag_param = inlinetag_param
+
+        inline_tagtype: TextString | None = target_tag.get_class_arguments()[0]
+        key: str = inline_tagtype.get_str() if inline_tagtype else "text"
+        text: TextString | list[TextString] | None = tag_param.get("text")
+
+        target_obj.set_prop(key, text)
+
     if srpt.haserror():
-        return Err(erpt.submit(srpt), child)
+        return Err(erpt.submit(srpt), child)  # type: ignore
 
     return Ok(child)
-
-
-def _get_blocktag_opts(
-    preceding_lines: list[TextString],
-    following_lines: list[TextString],
-    preceding_text: TextString | None,
-    following_text: TextString | None,
-) -> dict[str, TextString | list[TextString] | None]:
-    """
-    1. The following text of btag will be used as the name. \
-        Ignore comment-outs by `[]` is not support yet.
-    2. If the preceding text has one or more `-` words at the end,
-        then Preceding lines + Preceding text (excluding `-`) will be the property "text".
-    3. If 2 is False, Following lines will be set to the property "text".
-    4. If the text contains inline tags, add the properties specified by the tags
-        without deleting from content of text property.
-    """
-    tag_opts: dict[str, TextString | list[TextString] | None] = {}
-
-    #
-    # Set `name`
-    #
-    tag_opts["name"] = None
-    if type(following_text) is TextString:
-        name = following_text.strip()
-        if len(name) > 0:
-            tag_opts["name"] = name
-
-    #
-    # Set postposition tag
-    #
-    tag_opts["text"] = None
-    if type(preceding_text) is TextString:
-        pretext: TextString = preceding_text.rstrip()
-        hyphen: str | None = None
-        text: TextString | None = None
-
-        for i in range(len(pretext)):
-            if hyphen is None:
-                if pretext[-1 - i] == "-":
-                    hyphen = "-"
-                else:
-                    break
-
-            elif hyphen == "-":
-                if pretext[-1 - i] == "-":
-                    continue
-                elif pretext[-1 - i].isspace():
-                    hyphen == " "
-                else:
-                    break
-
-            elif hyphen == " ":
-                if pretext[-1 - i].isspace():
-                    continue
-                else:
-                    break
-
-        if hyphen == " ":
-            text = preceding_lines[:]
-            text.append(pretext[:-i])
-        else:
-            text = following_lines[:]
-
-        if text:
-            tag_opts["text"] = text
-
-    return tag_opts
