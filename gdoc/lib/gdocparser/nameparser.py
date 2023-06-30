@@ -102,7 +102,7 @@ def _unpack_identifier(
                 return Err(
                     erpt.submit(
                         GdocSyntaxError(
-                            "Invalid name",
+                            "invalid name",
                             text.get_data_pos(),
                             (
                                 textstr.get_str(),
@@ -120,7 +120,7 @@ def _unpack_identifier(
             return Err(
                 erpt.submit(
                     GdocSyntaxError(
-                        "Invalid name",
+                        "invalid name",
                         textstr[1].get_data_pos(),
                         (
                             textstr.get_str(),
@@ -146,7 +146,7 @@ def _unpack_identifier(
             return Err(
                 erpt.submit(
                     GdocSyntaxError(
-                        "Invalid name",
+                        "invalid name",
                         textstr[0].get_data_pos(),
                         (
                             textstr.get_str(),
@@ -170,7 +170,7 @@ def _unpack_identifier(
             return Err(
                 erpt.submit(
                     GdocSyntaxError(
-                        "Invalid name",
+                        "invalid name",
                         id_text.get_char_pos(0),
                         (id_str, 0, 1),
                     )
@@ -183,7 +183,7 @@ def _unpack_identifier(
             return Err(
                 erpt.submit(
                     GdocSyntaxError(
-                        "Invalid name",
+                        "invalid name",
                         id_text.get_char_pos(i),
                         (id_str, i, 1),
                     )
