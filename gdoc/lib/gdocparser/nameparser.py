@@ -1,41 +1,196 @@
 """
 nameparser module
 """
-from typing import Final, TypeAlias, cast, NamedTuple
+from typing import cast
 
-from gdoc.lib.gdoc import Code, String, Text, TextString, Parenthesized
+from gdoc.lib.gdoc import Code, DataPos, Parenthesized, Quoted, String, Text, TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.lib.pandocastobject.pandocast import DataPos
 from gdoc.util import Err, ErrorReport, Ok, Result
 
-_SEPARATOR: Final[tuple[str, ...]] = (".", "::")
+
+def is_identifier(textstr: TextString | str) -> bool:
+    return _is_identifier(textstr)
 
 
-def is_basic_name(namestr: str) -> bool | int:
-    i: int
-    c: str
-    for i, c in enumerate(namestr):
-        if not (c.isascii() and (c.isalnum() or c == "_")):
-            return i
+def is_tag(textstr: TextString | str) -> bool | int:
+    return _is_identifier(textstr, istag=True)
+
+
+def _is_identifier(textstr: TextString | str, /, istag: bool = False) -> bool:
+    id_str: str
+
+    if len(textstr) == 0:
+        return False
+
+    #
+    # Check if Text(s) in textstr are valid type
+    #
+    if type(textstr) is str:
+        # str
+        id_str = textstr
+
+    elif type(textstr[0]) is String:
+        # String
+        for text in textstr:
+            if type(text) is not String:
+                return False
+        id_str = cast(TextString, textstr).get_str()
+
+    else:
+        if len(textstr) > 1:
+            return False
+
+        # Code
+        if type(textstr[0]) is Code:
+            id_str = cast(Code, textstr[0]).get_str()
+        # Quoted
+        elif type(textstr[0]) is Quoted:
+            id_str = cast(Quoted, textstr[0]).get_textstr().get_str()
+        # Unknown type
+        else:
+            return False
+
+        if len(id_str) == 0:
+            return False
+
+    #
+    # Check if id_str is valid identifier
+    #
+    start: int = 0
+    if istag:
+        c = id_str[0]
+        if not (("a" + c).isidentifier() or (c in "$#")):
+            return False
+        start = 1
+
+    for c in id_str[start:]:
+        if not (("a" + c).isidentifier() or (c == "$")):
+            return False
 
     return True
 
 
-def is_tag_str(tagstr: str) -> bool | int:
-    result: bool | int = 0
+def unpack_identifier(
+    textstr: TextString, erpt: ErrorReport
+) -> Result[TextString, ErrorReport]:
+    return _unpack_identifier(textstr, erpt)
 
-    tag: str = tagstr
-    if tag.startswith("#"):
-        tag = tag[1:]
-        result = 1
 
-    i: bool | int = is_basic_name(tag)
-    if i is True:
-        result = True
+def unpack_tag(  # BUGBUG
+    textstr: TextString, erpt: ErrorReport
+) -> Result[TextString, ErrorReport]:
+    return _unpack_identifier(textstr, erpt, istag=True)
+
+
+def _unpack_identifier(
+    textstr: TextString, erpt: ErrorReport, /, istag: bool = False
+) -> Result[TextString, ErrorReport]:
+    id_text: TextString
+    id_str: str
+
+    if len(textstr) == 0:
+        return Err(erpt.submit(GdocSyntaxError("Empty name", None)))
+
+    #
+    # Check if Text(s) in textstr are valid type
+    #
+    if type(textstr[0]) is String:
+        # Case: String
+        text: Text
+        for i, text in enumerate(textstr):
+            if type(text) is not String:
+                return Err(
+                    erpt.submit(
+                        GdocSyntaxError(
+                            "Invalid name",
+                            text.get_data_pos(),
+                            (
+                                textstr.get_str(),
+                                len(textstr[:i].get_str()),
+                                len(text.get_str()),
+                            ),
+                        )
+                    )
+                )
+        id_text = textstr
+        id_str = textstr.get_str()
+
     else:
-        result += i
+        if len(textstr) > 1:
+            return Err(
+                erpt.submit(
+                    GdocSyntaxError(
+                        "Invalid name",
+                        textstr[1].get_data_pos(),
+                        (
+                            textstr.get_str(),
+                            len(textstr[:1].get_str()),
+                            len(textstr[1].get_str()),
+                        ),
+                    )
+                )
+            )
 
-    return result
+        # Case: Code
+        if type(textstr[0]) is Code:
+            id_text = textstr
+            id_str = id_text.get_str()
+
+        # Case: Quoted
+        elif (type(textstr[0]) is Quoted) and (not istag):
+            id_text = cast(Quoted, textstr[0]).get_textstr()
+            id_str = id_text.get_str()
+
+        # Case: Unknown type
+        else:
+            return Err(
+                erpt.submit(
+                    GdocSyntaxError(
+                        "Invalid name",
+                        textstr[0].get_data_pos(),
+                        (
+                            textstr.get_str(),
+                            0,
+                            len(textstr[0].get_str()),
+                        ),
+                    )
+                )
+            )
+
+        if len(id_str) == 0:
+            return Err(erpt.submit(GdocSyntaxError("Empty name", None)))
+
+    #
+    # Check if id_str is valid identifier
+    #
+    start: int = 0
+    if istag:
+        c = id_str[0]
+        if not (("a" + c).isidentifier() or (c in "$#")):
+            return Err(
+                erpt.submit(
+                    GdocSyntaxError(
+                        "Invalid name",
+                        id_text.get_char_pos(0),
+                        (id_str, 0, 1),
+                    )
+                )
+            )
+        start = 1
+
+    for i, c in enumerate(id_str[start:], start):
+        if not (("a" + c).isidentifier() or (c == "$")):
+            return Err(
+                erpt.submit(
+                    GdocSyntaxError(
+                        "Invalid name",
+                        id_text.get_char_pos(i),
+                        (id_str, i, 1),
+                    )
+                )
+            )
+
+    return Ok(id_text)
 
 
 def parse_name(
@@ -106,91 +261,47 @@ def parse_name(
 def parse_name_str(
     textstr: TextString, erpt: ErrorReport
 ) -> Result[list[TextString], ErrorReport]:
+    srpt: ErrorReport = erpt.new_subreport()
     result: list[TextString] = []
-    subrpt: ErrorReport = erpt.new_subreport()
 
     if len(textstr) == 0:
-        subrpt.submit(GdocSyntaxError("Missing name TextString", None, None))
-        return Err(subrpt)
+        return Ok(result)
 
-    # Split `textstr` by `.` and `::` and get the separators as well.
+    # Split `textstr` by `.` or `::` and get the separators as well.
     name_list: list[TextString] = []
     name: TextString
     for name in textstr.split(".", retsep=True):
         name_list += name.split("::", retsep=True)
 
-    sep: bool = False
+    sep: bool = True
     for i, name in enumerate(name_list):
-        if not sep:
-            # Each name must be at least one character in length.
-            if len(name) == 0:
-                errinfo, pos = _get_err_info(name_list, i, 0)
-                if subrpt.should_exit(GdocSyntaxError("Invalid name ''", pos, errinfo)):
-                    return Err(subrpt)
-
-            # String
-            elif type(name[0]) is String:
-                namestr = String()
-                char: Text
-                for j, char in enumerate(name):
-                    if type(char) is String:
-                        namestr += char
-                    else:
-                        errinfo, pos = _get_err_info(name_list, i, j)
-                        if subrpt.should_exit(
-                            GdocSyntaxError("Invalid name ''", pos, errinfo)
-                        ):
-                            return Err(subrpt)
-                        break
-                else:
-                    j = is_basic_name(str(namestr))
-                    if not (j is True):
-                        errinfo, pos = _get_err_info(name_list, i, j)
-                        if subrpt.should_exit(
-                            GdocSyntaxError("Invalid name", pos, errinfo)
-                        ):
-                            return Err(subrpt)
-                        continue
-
-                    result.append(name)
-
-            # Code
-            elif type(name[0]) is Code:
-                if len(name) > 1:
-                    errinfo, pos = _get_err_info(name_list, i, None)
-                    if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
-                        return Err(subrpt)
-                    continue
-
-                result.append(name)
-
-            # Quoted
-            elif isinstance(name[0], TextString):
-                if len(name) > 1:
-                    errinfo, pos = _get_err_info(name_list, i, None)
-                    if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
-                        return Err(subrpt)
-                    continue
-
-                if not (name.startswith('"') and name.endswith('"')):
-                    errinfo, pos = _get_err_info(name_list, i, None)
-                    if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
-                        return Err(subrpt)
-                    continue
-
-                result.append(name[1:-1])
-                # BUGBUG: Quoted class is needed to get
-                # content_textstr.
-
-            else:
-                errinfo, pos = _get_err_info(name_list, i, None)
-                if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
-                    return Err(subrpt)
-
         sep = not sep
+        if sep:
+            continue  # Skip separators
 
-    if subrpt.haserror():
-        return Err(subrpt)
+        # Each name must be at least one character in length.
+        if len(name) == 0:
+            pos, errinfo = _get_err_info(name_list, i + 1, 0)
+            if srpt.should_exit(GdocSyntaxError("invalid syntax", pos, errinfo)):
+                return Err(srpt)
+        else:
+            name_tstr: TextString | None
+            name_tstr, e = unpack_identifier(name, srpt.new_subreport())
+            if e and srpt.should_exit(
+                e.add_enclosure(
+                    [
+                        "".join([tstr.get_str() for tstr in name_list[:i]]),
+                        "".join([tstr.get_str() for tstr in name_list[i + 1 :]]),
+                    ]
+                )
+            ):
+                return Err(erpt.submit(srpt))
+
+            name_tstr = name_tstr or name
+            result.append(name)
+
+    if srpt.haserror():
+        return Err(erpt.submit(srpt))
 
     return Ok(result)
 
@@ -198,114 +309,93 @@ def parse_name_str(
 def parse_tag_str(
     textstr: TextString, erpt: ErrorReport
 ) -> Result[list[TextString], ErrorReport]:
-    # 4. _Tag`(...)`は最後の要素であること
-    # 5. `(...)`は、タグ文字列を含む
-    # 6. タグ文字列は、空白もしくは`,`で区切る
-    # 7. タグ文字列は以下のいずれかであること
-    #    1. 連続する String
-    #    2. 単一の `Code`
-    # 8. タグ文字列の制約は？ -> idと同じ + 先頭の`#`のみ許可
     result: list[TextString] = []
-    subrpt: ErrorReport = erpt.new_subreport()
+    srpt: ErrorReport = erpt.new_subreport()
 
-    if not (textstr.startswith("(") and textstr.endswith(")")):
-        errinfo, pos = _get_err_info([textstr], 0, -1)
-        subrpt.submit(GdocSyntaxError("Invalid tag TextString", pos, errinfo))
-        return Err(subrpt)
+    #
+    # Create a parts list 'items' by splitting `textstr` by `,` and whitespace.
+    # The list also contains the separators.
+    #
+    _parts: list[TextString] = textstr.split(retsep=True)
+    items: list[TextString] = []
+    for p in _parts:
+        items += p.split(",", retsep=True)
 
-    # Split `textstr` by `,` and ` `.
-    tag_list: list[TextString] = []
-    tag: TextString
-    # for tag in textstr.split(","):
-    #     tag_list += tag.split()
+    items[0] = items[0][1:] if items[0].startswith("(") else items[0]
+    items[-1] = items[-1][:-1] if items[-1].endswith(")") else items[-1]
 
-    tag_list = [tag.strip() for tag in textstr[1:-1].split(",")]
+    #
+    # Create a list 'tag_tstr' by removing separators from 'items'.
+    # Each list element contains a tag TextString and its index in 'items'.
+    #
+    tag_tstrs: list[tuple[int, TextString]] = []
+    _comma: bool = False
+    for i, item in enumerate(items):
+        if len(item.strip()) == 0:
+            continue
 
-    for i, tag in enumerate(tag_list):
-        # Each name must be at least one character in length.
-        if len(tag) == 0:
-            errinfo, pos = _get_err_info(tag_list, i, 0)
-            if subrpt.should_exit(GdocSyntaxError("Invalid name ''", pos, errinfo)):
-                return Err(subrpt)
+        if type(item[0]) is String and item[0].get_str() == ",":
+            if _comma:
+                pos, errinfo = _get_err_info(items, i + 1)
+                if srpt.should_exit(GdocSyntaxError("invalid syntax", pos, errinfo)):
+                    return Err(srpt)
+            _comma = True
+            continue
 
-        # String
-        elif type(tag[0]) is String:
-            tagstr = String()
-            char: Text
-            for j, char in enumerate(tag):
-                if type(char) is String:
-                    tagstr += char
-                else:
-                    errinfo, pos = _get_err_info(tag_list, i, j)
-                    if subrpt.should_exit(
-                        GdocSyntaxError("Invalid name ''", pos, errinfo)
-                    ):
-                        return Err(subrpt)
-                    break
-            else:
-                j = is_tag_str(str(tagstr))
-                if not (j is True):
-                    errinfo, pos = _get_err_info(tag_list, i, j)
-                    if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
-                        return Err(subrpt)
-                    continue
+        _comma = False
+        tag_tstrs.append((i, item))
 
-                result.append(tag)
+    #
+    # Check if each tag TextString is valid and create a list 'result'.
+    # 'result' contains only valid tag TextString.
+    #
+    tag_tstr: TextString | None
+    for tag in tag_tstrs:
+        tag_tstr, e = unpack_tag(tag[1], srpt.new_subreport())
+        if e:
+            if srpt.should_exit(
+                e.add_enclosure(
+                    [
+                        "".join([item.get_str() for item in items[: tag[0]]]),
+                        "".join([item.get_str() for item in items[tag[0] + 1 :]]),
+                    ]
+                )
+            ):
+                return Err(srpt)
 
-        # Code
-        elif type(tag[0]) is Code:
-            if len(tag) > 1:
-                errinfo, pos = _get_err_info(tag_list, i, None)
-                if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
-                    return Err(subrpt)
-                continue
+        result.append(tag_tstr or tag[1])
 
-            result.append(tag)
-
-        # Quoted
-        elif isinstance(tag[0], TextString):
-            if len(tag) > 1:
-                errinfo, pos = _get_err_info(tag_list, i, None)
-                if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
-                    return Err(subrpt)
-                continue
-
-            if not (tag.startswith('"') and tag.endswith('"')):
-                errinfo, pos = _get_err_info(tag_list, i, None)
-                if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
-                    return Err(subrpt)
-                continue
-
-            result.append(tag[1:-1])
-            # BUGBUG: Quoted class is needed to get
-            # content_textstr.
-
-        else:
-            errinfo, pos = _get_err_info(tag_list, i, None)
-            if subrpt.should_exit(GdocSyntaxError("Invalid name", pos, errinfo)):
-                return Err(subrpt)
-
-    if subrpt.haserror():
-        return Err(subrpt)
+    if srpt.haserror():
+        return Err(srpt)
 
     return Ok(result)
 
 
 def _get_err_info(
     words: list[TextString], windex: int, cindex: int | None = None
-) -> tuple[tuple[str, int, int], DataPos]:
-    textstr = TextString(cast(list[Text], words))
+) -> tuple[DataPos | None, tuple[str, int, int] | None]:
+    if len(words) == 0:
+        return None, None
 
-    start = 0
-    for word in words[:windex]:
-        start += len(word.get_str())
+    textstr: TextString = TextString(cast(list[Text], words))
+    start: int
+    length: int
+    pos: DataPos | None
 
-    if cindex is not None:
-        start += cindex
-        pos = textstr.get_char_pos(start)
-        stop = start + 1
+    if windex >= len(words):
+        pos = words[-1].get_data_pos()
+        pos = pos.get_last_pos() if pos else None
+        start = len(textstr.get_str())
+        length = 0
+
+    elif cindex is not None:
+        pos = textstr[windex].get_char_pos(cindex)
+        start = len(textstr[:windex].get_str()) + cindex
+        length = 1
+
     else:
         pos = words[windex].get_data_pos()
-        stop = start + len(words[windex].get_str())
+        start = len(textstr[:windex].get_str())
+        length = len(words[windex].get_str())
 
-    return ((textstr.get_str(), start, stop), pos)
+    return (pos, (textstr.get_str(), start, length))

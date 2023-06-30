@@ -219,7 +219,7 @@ class BaseObject(GdObject):
                 return Err(erpt)
 
             symbols, tags = r
-            if not nameparser.is_basic_name(str(symbols[0])):
+            if not nameparser.is_identifier(str(symbols[0])):
                 erpt.submit(GdocSyntaxError("Invalid id", symbol_str.get_char_pos(0)))
                 return Err(erpt)
 
