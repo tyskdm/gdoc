@@ -89,7 +89,7 @@ def _unpack_identifier(
     id_str: str
 
     if len(textstr) == 0:
-        return Err(erpt.submit(GdocSyntaxError("Empty name", None)))
+        return Err(erpt.submit(GdocSyntaxError("empty name string", None)))
 
     #
     # Check if Text(s) in textstr are valid type
@@ -158,7 +158,7 @@ def _unpack_identifier(
             )
 
         if len(id_str) == 0:
-            return Err(erpt.submit(GdocSyntaxError("Empty name", None)))
+            return Err(erpt.submit(GdocSyntaxError("empty name string", None)))
 
     #
     # Check if id_str is valid identifier

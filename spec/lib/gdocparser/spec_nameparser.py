@@ -8,7 +8,7 @@ r"""
 """
 import pytest
 
-from gdoc.lib.gdoc import TextString
+from gdoc.lib.gdoc import Quoted, TextString
 from gdoc.lib.gdocparser.nameparser import (
     _is_identifier,
     _unpack_identifier,
@@ -43,9 +43,9 @@ class Spec__unpack_identifier:
             ##
             # #### [\@case 1] Identifier:
             #
-            # ##### [\@case 1-1] Simple:
+            # ##### [\@case 1-1] String:
             #
-            "Id-Simple(1/)-Valid": (
+            "Id-String(1/)-Valid": (
                 # stimulus
                 [
                     ["T", [["s", [[3, ["file", 5, 10, 5, 13]]], "abc"]]],
@@ -57,7 +57,7 @@ class Spec__unpack_identifier:
                     "err": None,
                 },
             ),
-            "Id-Simple(2/)-Valid": (
+            "Id-String(2/)-Valid": (
                 # stimulus
                 [
                     ["T", [["s", [[3, ["file", 5, 10, 5, 13]]], "123"]]],
@@ -69,7 +69,7 @@ class Spec__unpack_identifier:
                     "err": None,
                 },
             ),
-            "Id-Simple(3/)-Valid": (
+            "Id-String(3/)-Valid": (
                 # stimulus
                 [
                     ["T", [["s", [[4, ["file", 5, 10, 5, 14]]], "_abc"]]],
@@ -81,7 +81,7 @@ class Spec__unpack_identifier:
                     "err": None,
                 },
             ),
-            "Id-Simple(4/)-Valid": (
+            "Id-String(4/)-Valid": (
                 # stimulus
                 [
                     ["T", [["s", [[4, ["file", 5, 10, 5, 14]]], "$$ab"]]],
@@ -93,10 +93,22 @@ class Spec__unpack_identifier:
                     "err": None,
                 },
             ),
-            "Id-Simple(5/)-Invalid": (
+            "Id-String(5/)-Empty": (
                 # stimulus
                 [
-                    ["T", [["s", [[4, ["file", 5, 10, 5, 14]]], "@abc"]]],
+                    ["T", []],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": ("GdocSyntaxError: empty name string"),
+                },
+            ),
+            "Id-String(6/)-Invalid": (
+                # stimulus
+                [
+                    ["T", [["s", [[4, ["file", 5, 10, 5, 14]]], "#abc"]]],
                     ErrorReport(cont=False),
                 ],
                 # expected
@@ -104,11 +116,147 @@ class Spec__unpack_identifier:
                     "result": None,
                     "err": (
                         "file:5:10-5:11 GdocSyntaxError: invalid name\n"
-                        + "> @abc\n"
+                        + "> #abc\n"
                         + "> ^"
                     ),
                 },
             ),
+            "Id-String(7/)-Invalid": (
+                # stimulus
+                [
+                    ["T", [["s", [[4, ["file", 5, 10, 5, 14]]], "ab#c"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:12-5:13 GdocSyntaxError: invalid name\n"
+                        + "> ab#c\n"
+                        + ">   ^"
+                    ),
+                },
+            ),
+            "Id-String(8/)-Followed by invalid type element": (
+                # stimulus
+                [
+                    [
+                        "T",
+                        [
+                            ["s", [[2, ["file", 5, 10, 5, 12]]], "ab"],
+                            ["c", ["file", 5, 13, 5, 19], "code"],
+                            ["s", [[2, ["file", 5, 20, 5, 22]]], "fg"],
+                        ],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:13-5:19 GdocSyntaxError: invalid name\n"
+                        + "> abcodefg\n"
+                        + ">   ^^^^"
+                    ),
+                },
+            ),
+            #
+            # ##### [\@case 1-2] Code:
+            #
+            "Id-Code(1/)-Valid": (
+                # stimulus
+                [
+                    ["T", [["c", ["file", 5, 10, 5, 16], "code"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": ["T", [["c", ["file", 5, 10, 5, 16], "code"]]],
+                    "err": None,
+                },
+            ),
+            "Id-Code(2/)-Valid": (
+                # stimulus
+                [
+                    ["T", [["c", ["file", 5, 10, 5, 16], "1_$a"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": ["T", [["c", ["file", 5, 10, 5, 16], "1_$a"]]],
+                    "err": None,
+                },
+            ),
+            "Id-Code(3/)-Empty": (
+                # stimulus
+                [
+                    ["T", [["c", ["file", 5, 10, 5, 15], ""]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": ("GdocSyntaxError: empty name string"),
+                },
+            ),
+            "Id-Code(4/)-Invalid": (
+                # stimulus
+                [
+                    ["T", [["c", ["file", 5, 10, 5, 17], "co#de"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:13-5:14 GdocSyntaxError: invalid name\n"
+                        + "> co#de\n"
+                        + ">   ^"
+                    ),
+                },
+            ),
+            "Id-Code(5/)-Followed by unexpected element": (
+                # stimulus
+                [
+                    [
+                        "T",
+                        [
+                            ["c", ["file", 5, 13, 5, 19], "code"],
+                            ["s", [[2, ["file", 5, 20, 5, 22]]], "fg"],
+                        ],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:20-5:21 GdocSyntaxError: invalid name\n"
+                        + "> codefg\n"
+                        + ">     ^"
+                    ),
+                },
+            ),
+            #
+            # ##### [\@case 1-3] Quoted:
+            #
+            # "Id-Quoted(1/)-Valid": (
+            #     # stimulus
+            #     [
+            #         [
+            #             "T",
+            #             [
+            #                 ["Q", [["s", [[4, ["file", 5, 20, 5, 24]]], "'ab'"]]],
+            #             ],
+            #         ],
+            #         ErrorReport(cont=False),
+            #     ],
+            #     # expected
+            #     {
+            #         "result": ["T", [["s", [[2, ["file", 5, 21, 5, 23]]], "ab"]]],
+            #         "err": None,
+            #     },
+            # ),
         }
 
     @pytest.mark.parametrize(
