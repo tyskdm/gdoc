@@ -8,7 +8,7 @@ r"""
 """
 import pytest
 
-from gdoc.lib.gdoc import Quoted, TextString
+from gdoc.lib.gdoc import Gdoc
 from gdoc.lib.gdocparser.nameparser import (
     _is_identifier,
     _unpack_identifier,
@@ -160,7 +160,7 @@ class Spec__unpack_identifier:
                     ),
                 },
             ),
-            #
+            ##
             # ##### [\@case 1-2] Code:
             #
             "Id-Code(1/)-Valid": (
@@ -237,26 +237,144 @@ class Spec__unpack_identifier:
                     ),
                 },
             ),
-            #
+            ##
             # ##### [\@case 1-3] Quoted:
             #
-            # "Id-Quoted(1/)-Valid": (
-            #     # stimulus
-            #     [
-            #         [
-            #             "T",
-            #             [
-            #                 ["Q", [["s", [[4, ["file", 5, 20, 5, 24]]], "'ab'"]]],
-            #             ],
-            #         ],
-            #         ErrorReport(cont=False),
-            #     ],
-            #     # expected
-            #     {
-            #         "result": ["T", [["s", [[2, ["file", 5, 21, 5, 23]]], "ab"]]],
-            #         "err": None,
-            #     },
-            # ),
+            "Id-Quoted(1/)-Valid": (
+                # stimulus
+                [
+                    [
+                        "T",
+                        [
+                            ["Q", [["s", [[4, ["file", 5, 20, 5, 24]]], "'ab'"]]],
+                        ],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": ["T", [["s", [[2, ["file", 5, 21, 5, 23]]], "ab"]]],
+                    "err": None,
+                },
+            ),
+            "Id-Quoted(2/)-Valid": (
+                # stimulus
+                [
+                    [
+                        "T",
+                        [
+                            [
+                                "Q",
+                                [
+                                    ["s", [[1, ["file", 5, 10, 5, 11]]], "'"],
+                                    ["c", ["file", 5, 11, 5, 19], "code"],
+                                    ["s", [[1, ["file", 5, 19, 5, 20]]], "'"],
+                                ],
+                            ],
+                        ],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": ["T", [["c", ["file", 5, 11, 5, 19], "code"]]],
+                    "err": None,
+                },
+            ),
+            "Id-Quoted(3/)-Empty": (
+                # stimulus
+                [
+                    [
+                        "T",
+                        [
+                            ["Q", [["s", [[2, ["file", 5, 10, 5, 11]]], '""']]],
+                        ],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": ("GdocSyntaxError: empty name string"),
+                },
+            ),
+            ##
+            # ##### [\@case 1-4] Invalid:
+            #
+            "Id-Invalid(1/)-Invalid": (
+                # stimulus
+                [
+                    [
+                        "T",
+                        [
+                            [
+                                "T",
+                                [["s", [[12, ["file", 5, 10, 5, 22]]], "INVALID-TYPE"]],
+                            ],
+                        ],
+                    ],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:10-5:22 GdocSyntaxError: invalid name\n"
+                        "> INVALID-TYPE\n"
+                        "> ^^^^^^^^^^^^"
+                    ),
+                },
+            ),
+            ##
+            # #### [\@case 2] Tag:
+            #
+            "Tag-String(1/)-Valid": (
+                # stimulus
+                [
+                    ["T", [["s", [[4, ["file", 5, 10, 5, 14]]], "#abc"]]],
+                    ErrorReport(cont=False),
+                    True,  # istag
+                ],
+                # expected
+                {
+                    "result": ["T", [["s", [[4, ["file", 5, 10, 5, 14]]], "#abc"]]],
+                    "err": None,
+                },
+            ),
+            "Tag-String(2/)-Invalid": (
+                # stimulus
+                [
+                    ["T", [["s", [[4, ["file", 5, 10, 5, 14]]], "a#bc"]]],
+                    ErrorReport(cont=False),
+                    True,  # istag
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:11-5:12 GdocSyntaxError: invalid name\n"
+                        + "> a#bc\n"
+                        + ">  ^"
+                    ),
+                },
+            ),
+            "Tag-String(3/)-Invalid": (
+                # stimulus
+                [
+                    ["T", [["s", [[4, ["file", 5, 10, 5, 14]]], "@abc"]]],
+                    ErrorReport(cont=False),
+                    True,  # istag
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:10-5:11 GdocSyntaxError: invalid name\n"
+                        + "> @abc\n"
+                        + "> ^"
+                    ),
+                },
+            ),
         }
 
     @pytest.mark.parametrize(
@@ -275,8 +393,216 @@ class Spec__unpack_identifier:
         """
 
         # WHEN
-        arguments: list = [TextString.loadd(stimulus[0])] + stimulus[1:]
+        arguments: list = [Gdoc.loadd(stimulus[0])] + stimulus[1:]
         result, err = _unpack_identifier(*arguments)
+
+        # THEN
+        if expected["err"] is None:
+            assert err is None
+        else:
+            assert err is not None
+            assert err.dump(True) == expected["err"]
+
+        if expected["result"] is None:
+            assert result is None
+        else:
+            assert result is not None
+            assert result.dumpd() == expected["result"]
+
+
+class Spec_unpack_identifier:
+    r"""
+    ## [\@spec] `unpack_identifier`
+
+    ```py
+    def _unpack_identifier(
+        textstr: TextString, erpt: ErrorReport
+    ) -> Result[TextString, ErrorReport]:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Normal:
+            #
+            "Normal(1/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[3, ["file", 5, 10, 5, 13]]], "abc"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": ["T", [["s", [[3, ["file", 5, 10, 5, 13]]], "abc"]]],
+                    "err": None,
+                },
+            ),
+            ##
+            # #### [\@case 2] Error:
+            #
+            "Error(1/)": (
+                # stimulus
+                [
+                    ["T", []],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": ("GdocSyntaxError: empty name string"),
+                },
+            ),
+            "Error(2/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[3, ["file", 5, 10, 5, 13]]], "#12"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:10-5:11 GdocSyntaxError: invalid name\n"
+                        + "> #12\n"
+                        + "> ^"
+                    ),
+                },
+            ),
+        }
+
+    @pytest.mark.parametrize(
+        "stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    def spec_1(self, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        ```py
+        def _unpack_identifier(
+            textstr: TextString, erpt: ErrorReport, /, istag: bool = False
+        ) -> Result[TextString, ErrorReport]:
+        ```
+        """
+
+        # WHEN
+        arguments: list = [Gdoc.loadd(stimulus[0])] + stimulus[1:]
+        result, err = unpack_identifier(*arguments)
+
+        # THEN
+        if expected["err"] is None:
+            assert err is None
+        else:
+            assert err is not None
+            assert err.dump(True) == expected["err"]
+
+        if expected["result"] is None:
+            assert result is None
+        else:
+            assert result is not None
+            assert result.dumpd() == expected["result"]
+
+
+class Spec_unpack_tag:
+    r"""
+    ## [\@spec] `unpack_identifier`
+
+    ```py
+    def _unpack_identifier(
+        textstr: TextString, erpt: ErrorReport
+    ) -> Result[TextString, ErrorReport]:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Normal:
+            #
+            "Normal(1/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[3, ["file", 5, 10, 5, 13]]], "abc"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": ["T", [["s", [[3, ["file", 5, 10, 5, 13]]], "abc"]]],
+                    "err": None,
+                },
+            ),
+            "Normal(2/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[3, ["file", 5, 10, 5, 13]]], "#12"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": ["T", [["s", [[3, ["file", 5, 10, 5, 13]]], "#12"]]],
+                    "err": None,
+                },
+            ),
+            ##
+            # #### [\@case 2] Error:
+            #
+            "Error(1/)": (
+                # stimulus
+                [
+                    ["T", []],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": ("GdocSyntaxError: empty name string"),
+                },
+            ),
+            "Error(2/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[3, ["file", 5, 10, 5, 13]]], "12#"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:12-5:13 GdocSyntaxError: invalid name\n"
+                        + "> 12#\n"
+                        + ">   ^"
+                    ),
+                },
+            ),
+        }
+
+    @pytest.mark.parametrize(
+        "stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    def spec_1(self, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        ```py
+        def _unpack_identifier(
+            textstr: TextString, erpt: ErrorReport, /, istag: bool = False
+        ) -> Result[TextString, ErrorReport]:
+        ```
+        """
+
+        # WHEN
+        arguments: list = [Gdoc.loadd(stimulus[0])] + stimulus[1:]
+        result, err = unpack_tag(*arguments)
 
         # THEN
         if expected["err"] is None:
