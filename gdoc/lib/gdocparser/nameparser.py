@@ -89,7 +89,14 @@ def _unpack_identifier(
     id_str: str
 
     if len(textstr) == 0:
-        return Err(erpt.submit(GdocSyntaxError("empty name string", None)))
+        return Err(
+            erpt.submit(
+                GdocSyntaxError(
+                    "empty tag string" if istag else "empty name string",
+                    None,
+                )
+            )
+        )
 
     #
     # Check if Text(s) in textstr are valid type
@@ -102,7 +109,7 @@ def _unpack_identifier(
                 return Err(
                     erpt.submit(
                         GdocSyntaxError(
-                            "invalid name",
+                            "invalid tag" if istag else "invalid name",
                             text.get_data_pos(),
                             (
                                 textstr.get_str(),
@@ -120,7 +127,7 @@ def _unpack_identifier(
             return Err(
                 erpt.submit(
                     GdocSyntaxError(
-                        "invalid name",
+                        "invalid tag" if istag else "invalid name",
                         textstr[1].get_data_pos(),
                         (
                             textstr.get_str(),
@@ -146,7 +153,7 @@ def _unpack_identifier(
             return Err(
                 erpt.submit(
                     GdocSyntaxError(
-                        "invalid name",
+                        "invalid tag" if istag else "invalid name",
                         textstr[0].get_data_pos(),
                         (
                             textstr.get_str(),
@@ -158,7 +165,14 @@ def _unpack_identifier(
             )
 
         if len(id_str) == 0:
-            return Err(erpt.submit(GdocSyntaxError("empty name string", None)))
+            return Err(
+                erpt.submit(
+                    GdocSyntaxError(
+                        "empty tag string" if istag else "empty name string",
+                        None,
+                    )
+                )
+            )
 
     #
     # Check if id_str is valid identifier
@@ -170,7 +184,7 @@ def _unpack_identifier(
             return Err(
                 erpt.submit(
                     GdocSyntaxError(
-                        "invalid name",
+                        "invalid tag" if istag else "invalid name",
                         id_text.get_char_pos(0),
                         (id_str, 0, 1),
                     )
@@ -183,7 +197,7 @@ def _unpack_identifier(
             return Err(
                 erpt.submit(
                     GdocSyntaxError(
-                        "invalid name",
+                        "invalid tag" if istag else "invalid name",
                         id_text.get_char_pos(i),
                         (id_str, i, 1),
                     )
@@ -312,31 +326,42 @@ def parse_tag_str(
     result: list[TextString] = []
     srpt: ErrorReport = erpt.new_subreport()
 
+    if len(textstr) == 0:
+        return Ok(result)
+
     #
     # Create a parts list 'items' by splitting `textstr` by `,` and whitespace.
-    # The list also contains the separators.
+    # The list also contains the separators and parentheses.
     #
     _parts: list[TextString] = textstr.split(retsep=True)
+    if len(_parts) == 0:
+        return Ok(result)
+
     items: list[TextString] = []
     for p in _parts:
         items += p.split(",", retsep=True)
 
-    items[0] = items[0][1:] if items[0].startswith("(") else items[0]
-    items[-1] = items[-1][:-1] if items[-1].endswith(")") else items[-1]
+    _start: int = 0
+    _stop: int = len(items)
+    if items[0].startswith("(") and items[-1].endswith(")"):
+        items = [items[0][:1], items[0][1:]] + items[1:]
+        items = items[:-1] + [items[-1][:-1], items[-1][-1:]]
+        _start = 1
+        _stop += 1
 
     #
-    # Create a list 'tag_tstr' by removing separators from 'items'.
+    # Create a list 'tag_tstr' by removing separators and '()' from 'items'.
     # Each list element contains a tag TextString and its index in 'items'.
     #
     tag_tstrs: list[tuple[int, TextString]] = []
-    _comma: bool = False
-    for i, item in enumerate(items):
+    _comma: bool = True
+    for i, item in enumerate(items[_start:_stop], _start):
         if len(item.strip()) == 0:
             continue
 
         if type(item[0]) is String and item[0].get_str() == ",":
             if _comma:
-                pos, errinfo = _get_err_info(items, i + 1)
+                pos, errinfo = _get_err_info(items, i)
                 if srpt.should_exit(GdocSyntaxError("invalid syntax", pos, errinfo)):
                     return Err(srpt)
             _comma = True

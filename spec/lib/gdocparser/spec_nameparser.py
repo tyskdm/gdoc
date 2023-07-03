@@ -352,7 +352,7 @@ class Spec__unpack_identifier:
                 {
                     "result": None,
                     "err": (
-                        "file:5:11-5:12 GdocSyntaxError: invalid name\n"
+                        "file:5:11-5:12 GdocSyntaxError: invalid tag\n"
                         + "> a#bc\n"
                         + ">  ^"
                     ),
@@ -369,7 +369,7 @@ class Spec__unpack_identifier:
                 {
                     "result": None,
                     "err": (
-                        "file:5:10-5:11 GdocSyntaxError: invalid name\n"
+                        "file:5:10-5:11 GdocSyntaxError: invalid tag\n"
                         + "> @abc\n"
                         + "> ^"
                     ),
@@ -428,7 +428,7 @@ class Spec_unpack_identifier:
         """
         return {
             ##
-            # #### [\@case 1] Normal:
+            # #### [\@case 1] Normal cases:
             #
             "Normal(1/)": (
                 # stimulus
@@ -443,7 +443,7 @@ class Spec_unpack_identifier:
                 },
             ),
             ##
-            # #### [\@case 2] Error:
+            # #### [\@case 2] Error cases:
             #
             "Error(1/)": (
                 # stimulus
@@ -526,7 +526,7 @@ class Spec_unpack_tag:
         """
         return {
             ##
-            # #### [\@case 1] Normal:
+            # #### [\@case 1] Normal cases:
             #
             "Normal(1/)": (
                 # stimulus
@@ -553,7 +553,7 @@ class Spec_unpack_tag:
                 },
             ),
             ##
-            # #### [\@case 2] Error:
+            # #### [\@case 2] Error cases:
             #
             "Error(1/)": (
                 # stimulus
@@ -564,7 +564,7 @@ class Spec_unpack_tag:
                 # expected
                 {
                     "result": None,
-                    "err": ("GdocSyntaxError: empty name string"),
+                    "err": ("GdocSyntaxError: empty tag string"),
                 },
             ),
             "Error(2/)": (
@@ -577,7 +577,7 @@ class Spec_unpack_tag:
                 {
                     "result": None,
                     "err": (
-                        "file:5:12-5:13 GdocSyntaxError: invalid name\n"
+                        "file:5:12-5:13 GdocSyntaxError: invalid tag\n"
                         + "> 12#\n"
                         + ">   ^"
                     ),
@@ -636,7 +636,7 @@ class Spec_parse_name_str:
         """
         return {
             ##
-            # #### [\@case 1] Normal:
+            # #### [\@case 1] Normal cases:
             #
             "Normal(1/)": (
                 # stimulus
@@ -715,7 +715,7 @@ class Spec_parse_name_str:
                 },
             ),
             ##
-            # #### [\@case 2] Error:
+            # #### [\@case 2] Error cases:
             #
             "Error(1/)": (
                 # stimulus
@@ -804,6 +804,292 @@ class Spec_parse_name_str:
         # WHEN
         arguments: list = [Gdoc.loadd(stimulus[0])] + stimulus[1:]
         result, err = parse_name_str(*arguments)
+
+        # THEN
+        if expected["err"] is None:
+            assert err is None
+        else:
+            assert err is not None
+            assert err.dump(True) == expected["err"]
+
+        if expected["result"] is None:
+            assert result is None
+        else:
+            assert result is not None
+            result = [r.dumpd() for r in result]
+            assert result == expected["result"]
+
+
+class Spec_parse_tag_str:
+    r"""
+    ## [\@spec] `parse_tag_str`
+
+    ```py
+    def parse_tag_str(
+        textstr: TextString, erpt: ErrorReport
+    ) -> Result[list[TextString], ErrorReport]:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Normal cases:
+            #
+            "Normal(1/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[11, ["file", 5, 10, 5, 21]]], "(FS CS, #1)"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": [
+                        ["T", [["s", [[2, ["file", 5, 11, 5, 13]]], "FS"]]],
+                        ["T", [["s", [[2, ["file", 5, 14, 5, 16]]], "CS"]]],
+                        ["T", [["s", [[2, ["file", 5, 18, 5, 20]]], "#1"]]],
+                    ],
+                    "err": None,
+                },
+            ),
+            "Normal(2/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[14, ["file", 5, 10, 5, 24]]], "( FS CS , #1 )"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": [
+                        ["T", [["s", [[2, ["file", 5, 12, 5, 14]]], "FS"]]],
+                        ["T", [["s", [[2, ["file", 5, 15, 5, 17]]], "CS"]]],
+                        ["T", [["s", [[2, ["file", 5, 20, 5, 22]]], "#1"]]],
+                    ],
+                    "err": None,
+                },
+            ),
+            "Normal(3/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[14, ["file", 5, 10, 5, 24]]], "  FS CS , #1  "]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": [
+                        ["T", [["s", [[2, ["file", 5, 12, 5, 14]]], "FS"]]],
+                        ["T", [["s", [[2, ["file", 5, 15, 5, 17]]], "CS"]]],
+                        ["T", [["s", [[2, ["file", 5, 20, 5, 22]]], "#1"]]],
+                    ],
+                    "err": None,
+                },
+            ),
+            "Normal(4/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[2, ["file", 5, 12, 5, 14]]], "()"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": [],
+                    "err": None,
+                },
+            ),
+            "Normal(5/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[3, ["file", 5, 12, 5, 15]]], "( )"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": [],
+                    "err": None,
+                },
+            ),
+            "Normal(6/)": (
+                # stimulus
+                [
+                    ["T", []],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": [],
+                    "err": None,
+                },
+            ),
+            "Normal(7/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[1, ["file", 5, 12, 5, 13]]], " "]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": [],
+                    "err": None,
+                },
+            ),
+            ##
+            # #### [\@case 2] Error cases:
+            #
+            "Error(1/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[3, ["file", 5, 10, 5, 13]]], "(,)"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:11-5:12 GdocSyntaxError: invalid syntax\n"
+                        + "> (,)\n"
+                        + ">  ^"
+                    ),
+                },
+            ),
+            "Error(2/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[5, ["file", 5, 10, 5, 15]]], "( , )"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:12-5:13 GdocSyntaxError: invalid syntax\n"
+                        + "> ( , )\n"
+                        + ">   ^"
+                    ),
+                },
+            ),
+            "Error(3/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[1, ["file", 5, 10, 5, 11]]], ","]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:10-5:11 GdocSyntaxError: invalid syntax\n"
+                        + "> ,\n"
+                        + "> ^"
+                    ),
+                },
+            ),
+            "Error(4/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[3, ["file", 5, 10, 5, 13]]], " , "]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:11-5:12 GdocSyntaxError: invalid syntax\n"
+                        + "> ,\n"
+                        + "> ^"
+                    ),
+                },
+            ),
+            "Error(5/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[6, ["file", 5, 10, 5, 16]]], "(a, ,)"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:14-5:15 GdocSyntaxError: invalid syntax\n"
+                        + "> (a, ,)\n"
+                        + ">     ^"
+                    ),
+                },
+            ),
+            "Error(6/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[8, ["file", 5, 10, 5, 18]]], "(a, b@c)"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:15-5:16 GdocSyntaxError: invalid tag\n"
+                        + "> (a, b@c)\n"
+                        + ">      ^"
+                    ),
+                },
+            ),
+            "Error(7/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[8, ["file", 5, 10, 5, 18]]], " a, b@c "]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:15-5:16 GdocSyntaxError: invalid tag\n"
+                        + "> a, b@c\n"
+                        + ">     ^"
+                    ),
+                },
+            ),
+            "Error(8/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[7, ["file", 5, 10, 5, 17]]], "( , a#)"]]],
+                    ErrorReport(cont=True),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:12-5:13 GdocSyntaxError: invalid syntax\n"
+                        + "> ( , a#)\n"
+                        + ">   ^\n"
+                        "file:5:15-5:16 GdocSyntaxError: invalid tag\n"
+                        + "> ( , a#)\n"
+                        + ">      ^"
+                    ),
+                },
+            ),
+        }
+
+    @pytest.mark.parametrize(
+        "stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    def spec_1(self, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        ```py
+        def parse_tag_str(
+            textstr: TextString, erpt: ErrorReport
+        ) -> Result[list[TextString], ErrorReport]:
+        ```
+        """
+
+        # WHEN
+        arguments: list = [Gdoc.loadd(stimulus[0])] + stimulus[1:]
+        result, err = parse_tag_str(*arguments)
 
         # THEN
         if expected["err"] is None:
