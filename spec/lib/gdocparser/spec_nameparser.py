@@ -616,3 +616,205 @@ class Spec_unpack_tag:
         else:
             assert result is not None
             assert result.dumpd() == expected["result"]
+
+
+class Spec_parse_name_str:
+    r"""
+    ## [\@spec] `parse_name_str`
+
+    ```py
+    def parse_name_str(
+        textstr: TextString, erpt: ErrorReport
+    ) -> Result[list[TextString], ErrorReport]:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@ 1]
+        """
+        return {
+            ##
+            # #### [\@case 1] Normal:
+            #
+            "Normal(1/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[8, ["file", 5, 10, 5, 18]]], "ab.cd.ef"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": [
+                        ["T", [["s", [[2, ["file", 5, 10, 5, 12]]], "ab"]]],
+                        ["T", [["s", [[2, ["file", 5, 13, 5, 15]]], "cd"]]],
+                        ["T", [["s", [[2, ["file", 5, 16, 5, 18]]], "ef"]]],
+                    ],
+                    "err": None,
+                },
+            ),
+            "Normal(2/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[10, ["file", 5, 10, 5, 20]]], "ab::cd::ef"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": [
+                        ["T", [["s", [[2, ["file", 5, 10, 5, 12]]], "ab"]]],
+                        ["T", [["s", [[2, ["file", 5, 14, 5, 16]]], "cd"]]],
+                        ["T", [["s", [[2, ["file", 5, 18, 5, 20]]], "ef"]]],
+                    ],
+                    "err": None,
+                },
+            ),
+            "Normal(3/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[9, ["file", 5, 10, 5, 19]]], "ab.cd::ef"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": [
+                        ["T", [["s", [[2, ["file", 5, 10, 5, 12]]], "ab"]]],
+                        ["T", [["s", [[2, ["file", 5, 13, 5, 15]]], "cd"]]],
+                        ["T", [["s", [[2, ["file", 5, 17, 5, 19]]], "ef"]]],
+                    ],
+                    "err": None,
+                },
+            ),
+            "Normal(4/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[9, ["file", 5, 10, 5, 19]]], "ab::cd.ef"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": [
+                        ["T", [["s", [[2, ["file", 5, 10, 5, 12]]], "ab"]]],
+                        ["T", [["s", [[2, ["file", 5, 14, 5, 16]]], "cd"]]],
+                        ["T", [["s", [[2, ["file", 5, 17, 5, 19]]], "ef"]]],
+                    ],
+                    "err": None,
+                },
+            ),
+            "Normal(5/)": (
+                # stimulus
+                [
+                    ["T", []],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": [],
+                    "err": None,
+                },
+            ),
+            ##
+            # #### [\@case 2] Error:
+            #
+            "Error(1/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[1, ["file", 5, 10, 5, 11]]], "."]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:10-5:11 GdocSyntaxError: invalid syntax\n"
+                        + "> .\n"
+                        + "> ^"
+                    ),
+                },
+            ),
+            "Error(2/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[4, ["file", 5, 10, 5, 14]]], "a.::"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:12-5:13 GdocSyntaxError: invalid syntax\n"
+                        + "> a.::\n"
+                        + ">   ^"
+                    ),
+                },
+            ),
+            "Error(3/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[7, ["file", 5, 10, 5, 17]]], "a.b@c.d"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:13-5:14 GdocSyntaxError: invalid name\n"
+                        + "> a.b@c.d\n"
+                        + ">    ^"
+                    ),
+                },
+            ),
+            "Error(4/)": (
+                # stimulus
+                [
+                    ["T", [["s", [[8, ["file", 5, 10, 5, 18]]], "a::::d#e"]]],
+                    ErrorReport(cont=True),
+                ],
+                # expected
+                {
+                    "result": None,
+                    "err": (
+                        "file:5:13-5:14 GdocSyntaxError: invalid syntax\n"
+                        + "> a::::d#e\n"
+                        + ">    ^\n"
+                        "file:5:16-5:17 GdocSyntaxError: invalid name\n"
+                        + "> a::::d#e\n"
+                        + ">       ^"
+                    ),
+                },
+            ),
+        }
+
+    @pytest.mark.parametrize(
+        "stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    def spec_1(self, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        ```py
+        def parse_name_str(
+            textstr: TextString, erpt: ErrorReport
+        ) -> Result[list[TextString], ErrorReport]:
+        ```
+        """
+
+        # WHEN
+        arguments: list = [Gdoc.loadd(stimulus[0])] + stimulus[1:]
+        result, err = parse_name_str(*arguments)
+
+        # THEN
+        if expected["err"] is None:
+            assert err is None
+        else:
+            assert err is not None
+            assert err.dump(True) == expected["err"]
+
+        if expected["result"] is None:
+            assert result is None
+        else:
+            assert result is not None
+            result = [r.dumpd() for r in result]
+            assert result == expected["result"]
