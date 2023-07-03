@@ -248,10 +248,17 @@ def parse_name(
     # Parse name_textstr to get name_list
     #
     name_list: list[TextString] | None
-    name_list, e = parse_name_str(name_textstr, srpt)
-    if e and srpt.should_exit(e):
-        return Err(srpt)
-    assert name_list is not None
+    name_list, e = parse_name_str(name_textstr, srpt.new_subreport())
+    if e and srpt.should_exit(
+        e.add_enclosure(
+            [
+                "",
+                tag_textstr.get_str() if tag_textstr is not None else "",
+            ]
+        )
+    ):
+        return Err(erpt.submit(srpt))
+    name_list = name_list or []  # Error case
 
     #
     # Parse tag_textstr to get tag_list
@@ -259,15 +266,22 @@ def parse_name(
     tag_list: list[TextString] | None = []
     if tag_textstr is not None:
         tag_list, e = parse_tag_str(tag_textstr, srpt)
-        if e and srpt.should_exit(e):
+        if e and srpt.should_exit(
+            e.add_enclosure(
+                [
+                    name_textstr.get_str(),
+                    "",
+                ]
+            )
+        ):
             return Err(srpt)
-        assert tag_list is not None
+        tag_list = tag_list or []  # Error case
 
     #
     # Return results
     #
     if srpt.haserror():
-        return Err(srpt)
+        return Err(erpt.submit(srpt))
 
     return Ok((name_list, tag_list))
 
@@ -354,21 +368,29 @@ def parse_tag_str(
     # Each list element contains a tag TextString and its index in 'items'.
     #
     tag_tstrs: list[tuple[int, TextString]] = []
-    _comma: bool = True
+    _first: bool = True
+    _comma: bool = False
     for i, item in enumerate(items[_start:_stop], _start):
         if len(item.strip()) == 0:
             continue
 
         if type(item[0]) is String and item[0].get_str() == ",":
-            if _comma:
+            if _comma or _first:
                 pos, errinfo = _get_err_info(items, i)
                 if srpt.should_exit(GdocSyntaxError("invalid syntax", pos, errinfo)):
                     return Err(srpt)
             _comma = True
             continue
 
-        _comma = False
         tag_tstrs.append((i, item))
+        _first = False
+        _comma = False
+
+    else:
+        if _comma:
+            pos, errinfo = _get_err_info(items, _stop)
+            if srpt.should_exit(GdocSyntaxError("invalid syntax", pos, errinfo)):
+                return Err(srpt)
 
     #
     # Check if each tag TextString is valid and create a list 'result'.
@@ -408,7 +430,7 @@ def _get_err_info(
     pos: DataPos | None
 
     if windex >= len(words):
-        pos = words[-1].get_data_pos()
+        pos = words[-1].get_data_pos() if len(words[-1]) > 0 else words[-2].get_data_pos()
         pos = pos.get_last_pos() if pos else None
         start = len(textstr.get_str())
         length = 0
