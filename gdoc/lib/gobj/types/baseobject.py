@@ -1,10 +1,10 @@
 """
 baseobject.py: BaseObject class
 """
-from typing import Any, final
+from typing import Any, cast, final
 
-from gdoc.lib.gdoc import TextString
-from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
+from gdoc.lib.gdoc import DataPos, TextString
+from gdoc.lib.gdoccompiler.gdexception import GdocRuntimeError, GdocSyntaxError
 from gdoc.lib.gdocparser import nameparser
 from gdoc.lib.plugins import Category, PluginManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
@@ -112,61 +112,16 @@ class BaseObject(GdObject):
         """
         Object Factory
         """
-        class_cat: str | None = (
-            class_info[0].get_str() if class_info[0] is not None else None
-        )
-        class_type: str | None = (
-            class_info[1].get_str() if class_info[1] is not None else ""
-        )
+        #
+        # Get Constructor
+        #
         type_constructor: BaseObject | None = None
-        type_name: str | None
+        type_name: str | None = ""
 
-        #
-        # Primary types - OBJECT, IMPORT, ACCESS
-        #
-        cat: Category | None = None
-        if class_cat == "":
-            cat = self._plugins.get_root_category()
-            if cat is not None:
-                type_name, type_constructor = cat.get_type(
-                    class_type,
-                    self.class_type,
-                    opts.get(["types", "aliasies", cat.name], {}),
-                )
-        else:
-            obj = self
-            while obj is not None:
-                #
-                # Each Category own management types
-                #
-                cat: Category | None
-                if class_cat in (None, obj.class_category):
-                    cat = self._plugins.get_category(self)
-                    if type(cat) is Category:
-                        type_name, type_constructor = cat.get_type(
-                            class_type,
-                            obj.class_type,
-                            opts.get(["types", "aliasies", cat.name], {}),
-                        )
-                        if type_constructor is not None:
-                            break
-
-                #
-                # Each Object own management types
-                #
-                type_name, type_constructor = obj._get_childtype_(
-                    class_type,
-                    obj.class_type,
-                    opts,
-                )
-                if type_constructor is not None:
-                    break
-
-                obj = obj.get_parent()
-
-        if type_constructor is None:
-            erpt.submit(GdocSyntaxError("Class not found", tag_body.get_char_pos(2)))
-            return Err(erpt)
+        r, e = self._get_constructor_(class_info, tag_body, erpt, opts)
+        if e:
+            return Err(erpt.submit(e))
+        type_name, type_constructor = r
 
         #
         # Create Object
@@ -181,6 +136,161 @@ class BaseObject(GdObject):
 
         assert child
         return Ok(child)
+
+    def _get_constructor_(
+        self,
+        class_info: tuple[TextString | None, TextString | None, TextString | None],
+        tag_body: TextString,
+        erpt: ErrorReport,
+        opts: Settings,
+    ) -> Result[tuple[str, "BaseObject"], ErrorReport]:
+        """
+        Get Constructor
+        """
+
+        class_cat: str | None = None
+        if class_info[0] is not None:
+            class_cat = class_info[0].get_str().upper()
+
+        class_type: str = ""
+        if class_info[1] is not None:
+            class_type = class_info[1].get_str()
+
+        type_constructor: BaseObject | None = None
+        type_name: str | None = ""
+        cat: Category | None = None
+        pos: DataPos | None = None
+
+        #
+        # Primary types - OBJECT, IMPORT, ACCESS
+        #
+        if class_cat == "":
+            cat = self._plugins.get_root_category()
+            if cat is None:
+                pos = tag_body.get_char_pos(1)
+                pos = pos.get_last_pos() if pos is not None else None
+                return Err(
+                    erpt.submit(
+                        GdocRuntimeError(
+                            "Root Category is not found",
+                            pos,
+                            (tag_body.get_str(), 2, 0),
+                        )
+                    )
+                )
+            type_name, type_constructor = cat.get_type(
+                class_type,
+                self.class_type,
+                opts.get(["types", "aliasies", cat.name], {}),
+            )
+
+        #
+        # Context sensitive types
+        #
+        else:
+            obj = self
+            while obj is not None:
+                #
+                # Types managed by each category
+                #
+                if class_cat in (None, obj.class_category):
+                    cat = obj._plugins.get_category(obj)
+                    if cat is not None:
+                        type_name, type_constructor = cat.get_type(
+                            class_type,
+                            obj.class_type,
+                            opts.get(["types", "aliasies", cat.name], {}),
+                        )
+                        if type_constructor is not None:
+                            # OK: Constructor found
+                            break
+
+                        elif class_cat is not None:
+                            # ERR: The explicitly specified category does not have the
+                            #      specified type.
+                            break
+
+                #
+                # Types managed by each object
+                #
+                type_name, type_constructor = obj._get_childtype_(
+                    class_type,
+                    obj.class_type,
+                    opts,
+                )
+                if type_constructor is not None:
+                    # OK: Constructor found
+                    break
+
+                obj = obj.get_parent()
+
+        #
+        # Check result / Error reporting
+        #
+        if type_constructor is None:
+            if class_cat is not None:
+                if cat is None:
+                    # The explicitly specified category is not found.
+                    if len(class_cat) > 0:
+                        pos = cast(TextString, class_info[0]).get_data_pos()
+                    else:
+                        pos = tag_body.get_char_pos(1)
+                        pos = pos.get_last_pos() if pos is not None else None
+                    return Err(
+                        erpt.submit(
+                            GdocSyntaxError(
+                                f"Category '{cast(TextString, class_info[0]).get_str()}' "
+                                "is not found",
+                                pos,
+                                (tag_body.get_str(), 2, len(class_cat)),
+                            )
+                        )
+                    )
+
+                else:
+                    # The explicitly specified category does not have the specified type.
+                    tstrs: list[TextString]
+                    tstrs = tag_body.split(maxsplit=1)[0].split(":", retsep=True)[:2]
+                    tstr: TextString = tstrs[0]
+                    for t in tstrs[1:]:
+                        tstr += t
+
+                    if len(class_type) > 0:
+                        pos = cast(TextString, class_info[1]).get_data_pos()
+                    else:
+                        pos = tstr.get_data_pos()
+                        pos = pos.get_last_pos() if pos is not None else None
+                    return Err(
+                        erpt.submit(
+                            GdocSyntaxError(
+                                f"Type '{class_type}' is not found in Category "
+                                f"'{cast(TextString, class_info[0]).get_str()}'"
+                                + ("(Root Category)" if len(class_cat) == 0 else ""),
+                                tag_body.get_char_pos(2),
+                                (tag_body.get_str(), len(tstr), len(class_type)),
+                            )
+                        )
+                    )
+
+            else:
+                # The type was not found in default Categories.
+                if len(class_type) > 0:
+                    pos = cast(TextString, class_info[1]).get_data_pos()
+                else:
+                    pos = tag_body.get_char_pos(1)
+                    pos = pos.get_last_pos() if pos is not None else None
+                return Err(
+                    erpt.submit(
+                        GdocSyntaxError(
+                            f"Type '{class_type}' is not found in any default categories",
+                            pos,
+                            (tag_body.get_str(), 2, len(class_type)),
+                        )
+                    )
+                )
+
+        type_name = cast(str, type_name)
+        return Ok((type_name, type_constructor))
 
     def _get_childtype_(
         self,
@@ -253,7 +363,7 @@ class BaseObject(GdObject):
                             return Err(erpt)
 
         child = cls(
-            str(class_info[1]),  # type
+            class_info[1].get_str() if class_info[1] else "",  # type
             id,
             scope=scope,
             name=tag_params.get("name"),

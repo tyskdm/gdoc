@@ -25,10 +25,6 @@ class GdocNameError(NameError):
     pass
 
 
-class GdocRuntimeError(RuntimeError):
-    pass
-
-
 class GdocSyntaxError(SyntaxError):
     _data_pos: DataPos | None = None
     _err_info: tuple[str, int, int] | None
@@ -117,6 +113,10 @@ class GdocSyntaxError(SyntaxError):
             result.append(errstr)
 
         return result
+
+
+class GdocRuntimeError(GdocSyntaxError):
+    pass
 
 
 class GdocTypeError(TypeError):
