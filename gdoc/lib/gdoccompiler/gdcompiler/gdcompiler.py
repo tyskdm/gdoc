@@ -8,10 +8,9 @@ from gdoc.lib.gdoc import Document as GdocDocument
 from gdoc.lib.gdocparser.documentparser import parse_Document
 from gdoc.lib.gobj.types import BaseCategory
 from gdoc.lib.gobj.types import Document as GobjDocument
-from gdoc.lib.gobj.types.category import Category
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
-from gdoc.lib.plugins.pluginmanager import PluginManager
+from gdoc.lib.plugins import Category, PluginManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 

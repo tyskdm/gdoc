@@ -3,8 +3,9 @@ types: gobj primitive types
 """
 import sys
 
+from gdoc.lib.plugins import Category
+
 from .baseobject import BaseObject
-from .category import Category
 from .document import Document
 from .importobject import ImportObject
 

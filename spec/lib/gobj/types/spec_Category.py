@@ -21,7 +21,7 @@ import inspect
 import pytest
 
 from gdoc.lib.gdoccompiler.gdexception import *
-from gdoc.lib.gobj.types.category import Category
+from gdoc.lib.plugins import Category
 
 
 @pytest.fixture

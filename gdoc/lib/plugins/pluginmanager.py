@@ -3,7 +3,7 @@ plunginmanager.py: PluginManager class
 """
 from typing import Any, Type
 
-from gdoc.lib.gobj.types.category import Category
+from .category import Category
 
 
 class PluginManager:

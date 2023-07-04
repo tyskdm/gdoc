@@ -6,11 +6,10 @@ from typing import Any, final
 from gdoc.lib.gdoc import TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gdocparser import nameparser
-from gdoc.lib.plugins.pluginmanager import PluginManager
+from gdoc.lib.plugins import Category, PluginManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 from ..gdobject import GdObject
-from .category import Category
 
 
 class BaseObject(GdObject):
