@@ -6,6 +6,7 @@ from typing import Any, final
 from gdoc.lib.gdoc import TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gdocparser import nameparser
+from gdoc.lib.plugins.pluginmanager import PluginManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 from ..gdobject import GdObject
@@ -21,6 +22,7 @@ class BaseObject(GdObject):
     class_type: str
     class_version: str
     class_isref: bool
+    _plugins: PluginManager
 
     def __init__(
         self,
@@ -31,7 +33,10 @@ class BaseObject(GdObject):
         tags=[],
         ref=None,
         type_args={},
+        plugins: PluginManager | None = None,
     ):
+        self._plugins = plugins or PluginManager()
+
         if type(typename) is GdObject.Type:
             _type = typename
             typename = typename.name
@@ -46,7 +51,7 @@ class BaseObject(GdObject):
             scope = "+"
         super().__init__(id, scope=scope, name=name, tags=tags, _type=_type)
 
-        cat = self.__class__.get_category()
+        cat = self._plugins.get_category(self)
         if type(cat) is Category:
             self.class_category = cat.name
             self.class_version = cat.version
@@ -136,7 +141,7 @@ class BaseObject(GdObject):
                 #
                 cat: Category | None
                 if class_cat in (None, obj.class_category):
-                    cat = obj.__class__.get_category()
+                    cat = self._plugins.get_category(self)
                     if type(cat) is Category:
                         type_name, type_constructor = cat.get_type(
                             class_type,
@@ -255,6 +260,7 @@ class BaseObject(GdObject):
             tags=[tag.get_str() for tag in tags],
             ref=ref,
             type_args=tag_params,
+            plugins=parent_obj._plugins,
         )
 
         if parent_obj:

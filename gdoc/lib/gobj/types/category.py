@@ -15,10 +15,6 @@ class Category:
         self.aliases = category_info["aliases"]
         self.defaults = category_info["defaults"]
 
-        for t in set(self.types.values()):
-            if hasattr(t, "set_category"):
-                t.set_category(self)
-
     def get_type(self, target_type: str | None, parent_type: str, aliases: dict = {}):
         """
         get object class by name

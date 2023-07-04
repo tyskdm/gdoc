@@ -14,16 +14,6 @@ class GdObject(Namespace):
 
     Type = Namespace.Type
 
-    __category_module = None
-
-    @classmethod
-    def set_category(cls, module):
-        cls.__category_module = module
-
-    @classmethod
-    def get_category(cls):
-        return cls.__category_module
-
     def __init__(self, id=None, scope="+", name=None, tags=[], _type=Type.OBJECT):
         """Constructs GdObject.
         @param id : str | PandocStr
@@ -196,7 +186,6 @@ class GdObject(Namespace):
 
     @staticmethod
     def _cast_to_str(prop):
-
         if isinstance(prop, dict):
             keys = prop.keys()
         elif isinstance(prop, list):
