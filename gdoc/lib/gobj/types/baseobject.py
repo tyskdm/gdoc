@@ -124,8 +124,9 @@ class BaseObject(GdObject):
         #
         # Primary types - OBJECT, IMPORT, ACCESS
         #
+        cat: Category | None = None
         if class_cat == "":
-            cat: Category | None = BaseObject.get_category()
+            cat = self._plugins.get_root_category()
             if cat is not None:
                 type_name, type_constructor = cat.get_type(
                     class_type,

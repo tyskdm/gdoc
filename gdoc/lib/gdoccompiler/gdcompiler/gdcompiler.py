@@ -20,8 +20,7 @@ class GdocCompiler:
     _plugins: PluginManager
 
     def __init__(self, plugins: list[Category] = []) -> None:
-        self._plugins = PluginManager()
-        self._plugins.add_category(BaseCategory)
+        self._plugins = PluginManager().add_category(BaseCategory)
         for p in plugins:
             self._plugins.add_category(p)
 
