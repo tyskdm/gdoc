@@ -9,10 +9,10 @@ from gdoc.lib.gdocparser import nameparser
 from gdoc.lib.plugins import Category, PluginManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from ..gdobject import GdObject
+from ..object import Object
 
 
-class BaseObject(GdObject):
+class BaseObject(Object):
     """
     BaseObject class
     """
@@ -34,9 +34,7 @@ class BaseObject(GdObject):
         type_args: dict = {},
         plugins: PluginManager | None = None,
     ):
-        gobj_type: GdObject.Type = (
-            GdObject.Type.REFERENCE if refpath else GdObject.Type.OBJECT
-        )
+        gobj_type: Object.Type = Object.Type.REFERENCE if refpath else Object.Type.OBJECT
         super().__init__(name, scope=scope, alias=alias, tags=tags, _type=gobj_type)
 
         #

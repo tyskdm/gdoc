@@ -22,7 +22,7 @@ import inspect
 import pytest
 
 from gdoc.lib.gdoccompiler.gdexception import *
-from gdoc.lib.gobj.gdobject import GdObject
+from gdoc.lib.gobj.object import Object
 
 ## @}
 ## @{ @name \_\_init\_\_(str \| PandocStr)
@@ -35,7 +35,7 @@ def spec___init___1():
     r"""
     [@spec \_\_init\_\_.1] `Symbol` should be a class.
     """
-    assert inspect.isclass(GdObject) == True
+    assert inspect.isclass(Object) == True
     # assert issubclass(GdObject, GdSymbolTable) == True
 
 
@@ -45,9 +45,9 @@ def spec___init___2():
     """
     TEST_ID = "TEST_ID"
 
-    target = GdObject(TEST_ID)
+    target = Object(TEST_ID)
 
-    assert target._GdObject__properties == {
+    assert target._Object__properties == {
         "": {"name": TEST_ID, "scope": "+", "names": [TEST_ID], "tags": []}
     }
 
@@ -172,15 +172,15 @@ def spec_set_prop_1(mocker, props, expected):
     #
     # Normal case
     #
-    target = GdObject("TARGET")
+    target = Object("TARGET")
 
     if expected["Exception"] is None:
         for prop in props:
             target.set_prop(prop[0], prop[1])
 
-        del target._GdObject__properties[""]
+        del target._Object__properties[""]
 
-        assert target._GdObject__properties == expected["properties"]
+        assert target._Object__properties == expected["properties"]
 
     #
     # Error case
@@ -325,7 +325,7 @@ def spec_get_prop_1(mocker, props, key, expected):
     #
     # Normal case
     #
-    target = GdObject("TARGET")
+    target = Object("TARGET")
 
     for prop in props:
         target.set_prop(prop[0], prop[1])
@@ -354,7 +354,7 @@ def spec_abc_mapping_1():
     r"""
     [@spec set_category.1]
     """
-    target = GdObject("TARGET")
+    target = Object("TARGET")
 
     for k, v in [
         ("1", "A"),
@@ -371,17 +371,17 @@ def spec_abc_mapping_1():
 
     # __iter__
     for k, v in target.items():
-        assert target._GdObject__properties[k] == v
+        assert target._Object__properties[k] == v
 
     # __len__
-    assert len(target) == len(target._GdObject__properties)
+    assert len(target) == len(target._Object__properties)
 
     # __contains__
     assert ("1" in target) == True
 
     # __eq__
-    assert target == target._GdObject__properties
-    assert target._GdObject__properties == target
+    assert target == target._Object__properties
+    assert target._Object__properties == target
 
     # __ne__
     assert target.__ne__({}) == True
@@ -391,10 +391,10 @@ def spec_abc_mapping_1():
 
     # items
     for k, v in target.items():
-        assert target._GdObject__properties[k] == v
+        assert target._Object__properties[k] == v
 
     # values
-    assert list(target.values()) == list(target._GdObject__properties.values())
+    assert list(target.values()) == list(target._Object__properties.values())
 
     # get
     assert target.get("1") == "A"

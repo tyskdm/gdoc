@@ -48,7 +48,7 @@ def spec___init___2():
     [@spec \_\_init\_\_.2] set attrs with default values.
     """
     target = BaseObject("OBJECT", "ID")
-    prop = target._GdObject__properties
+    prop = target._Object__properties
 
     assert prop == {
         "": {
