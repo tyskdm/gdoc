@@ -25,34 +25,24 @@ class BaseObject(GdObject):
 
     def __init__(
         self,
-        typename: GdObject.Type | str,
-        id,
-        scope="+",
-        name=None,
-        tags=[],
-        ref=None,
-        type_args={},
+        typename: TextString | str | None,
+        name: TextString | str | None = None,
+        scope: TextString | str = "+",
+        alias: TextString | str | None = None,
+        tags: list[TextString | str] = [],
+        refpath: list[TextString | str] | None = None,
+        type_args: dict = {},
         plugins: PluginManager | None = None,
     ):
+        gobj_type: GdObject.Type = (
+            GdObject.Type.REFERENCE if refpath else GdObject.Type.OBJECT
+        )
+        super().__init__(name, scope=scope, alias=alias, tags=tags, _type=gobj_type)
+
+        #
+        # Set self.class_*
+        #
         self._plugins = plugins or PluginManager()
-
-        _type: GdObject.Type
-        _typename: str
-        if type(typename) is GdObject.Type:
-            _type = typename
-            _typename = typename.name
-
-        else:
-            if ref is None:
-                _type = GdObject.Type.OBJECT
-            else:
-                _type = GdObject.Type.REFERENCE
-            _typename = cast(str, typename)
-
-        if scope is None:
-            scope = "+"
-        super().__init__(id, scope=scope, name=name, tags=tags, _type=_type)
-
         cat = self._plugins.get_category(self)
         if type(cat) is Category:
             self.class_category = cat.name
@@ -60,26 +50,24 @@ class BaseObject(GdObject):
         else:
             self.class_category = ""
             self.class_version = ""
-
-        self.class_type = _typename
-        self[""].update(
-            {
-                "class": {
-                    "category": self.class_category,
-                    "type": self.class_type,
-                    "version": self.class_version,
-                }
-            }
+        self.class_type = (
+            typename.get_str() if (type(typename) is TextString) else cast(str, typename)
         )
-        if ref is not None:
-            self.class_isref = True
-            self[""]["class"]["ref"] = {"object_path": ref}
-        else:
-            self.class_isref = False
+        self.class_isref = refpath is not None
+        # self.set_prop(
+        #     ".",
+        #     {
+        #         "class": {
+        #             "category": self.class_category,
+        #             "type": self.class_type,
+        #             "version": self.class_version,
+        #             "refpath": refpath,
+        #             "args": type_args,
+        #         },
+        #     },
+        # ),
 
-        self.update(type_args)
-
-    def set_prop(
+    def add_property(
         self,
         prop: TextString | None,
         args: list[TextString],
@@ -324,7 +312,6 @@ class BaseObject(GdObject):
         # Get scope, names, tags, and remaining args from arguments
         #
         scope: TextString | None
-        name_tstr: TextString
         names: list[TextString]
         tags: list[TextString]
         args: list[TextString]
@@ -334,30 +321,38 @@ class BaseObject(GdObject):
         scope, names, tags, args = r.unwrap()
 
         #
-        # parse name_str and get names and tags
+        # Setup name, isref, and refname
         #
-        id = None
-        isref = class_info[2]  # isref
-        ref = None
+        name: TextString | None = None
+        isref: TextString | None = class_info[2]  # isref
+        refpath: list[TextString] | None = None
         if len(names) > 0:
-            id = names[-1]
-            if isref:
+            if isref is not None:
                 # names are object name to link
-                ref = names
+                name = names[-1]
+                refpath = names
             else:
+                # names[:-1] are explicit parent names
                 r = parent_obj._check_parent_names_(names, erpt)
                 if r.is_err():
                     return Err(erpt.submit(r.err()))
-                id = r.unwrap()
+                name = r.unwrap()
+                refpath = None
 
-        child = cls(
-            class_info[1].get_str() if class_info[1] else "",  # type
-            id.get_str() if id else None,
-            scope=(scope.get_str() if scope else None),
-            name=n.get_str() if (n := tag_params.get("name")) else None,
-            tags=[tag.get_str() for tag in tags],
-            ref=ref,
-            type_args=tag_params,
+        #
+        # Create Object
+        #
+        child: BaseObject = cls(
+            class_info[1],  # type
+            name,
+            scope=scope or "+",
+            alias=tag_params.get("name"),
+            tags=tags,
+            refpath=refpath,
+            type_args={
+                "args": class_args,
+                "kwargs": class_kwargs,
+            },
             plugins=parent_obj._plugins,
         )
 
@@ -366,17 +361,16 @@ class BaseObject(GdObject):
     def _check_parent_names_(
         self, names: list[TextString], erpt: ErrorReport
     ) -> Result[TextString | None, ErrorReport]:
-        id: TextString | None = None
-        parent_names: list[TextString] = names[:]
+        name: TextString | None = None
+
         parent: BaseObject | None
-
-        if len(parent_names) > 0:
-            id = parent_names.pop()
-
+        pname: TextString
+        pname_str: str
+        if len(names) > 0:
+            name = names[-1]
             parent = self
-            while len(parent_names) > 0:
-                pname = parent_names.pop()
-                pname_str: str = pname.get_str()
+            for pname in reversed(names[:-1]):
+                pname_str = pname.get_str()
                 if pname_str not in parent.names:
                     return Err(
                         erpt.submit(
@@ -388,7 +382,7 @@ class BaseObject(GdObject):
                     )
                 parent = cast(BaseObject, parent.get_parent())
 
-        return Ok(id)
+        return Ok(name)
 
     @staticmethod
     def _pop_name_(

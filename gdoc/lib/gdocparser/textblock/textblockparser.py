@@ -74,7 +74,7 @@ def parse_TextBlock(
     target_obj: BaseObject = child or gobj
     for i in range(len(inlinetag_params)):
         target_tag, tag_param = inlinetag_params[i]
-        prop, e = target_obj.set_prop(
+        prop, e = target_obj.add_property(
             *target_tag.get_arguments(), tag_param, target_tag, srpt, opts
         )
 

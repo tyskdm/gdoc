@@ -11,4 +11,4 @@ class Document(BaseObject):
 
     def __init__(self, id, name=None, plugins: PluginManager | None = None):
         """ """
-        super().__init__("DOCUMENT", id, name=name, plugins=plugins)
+        super().__init__("DOCUMENT", id, alias=name, plugins=plugins)

@@ -48,7 +48,7 @@ def spec___init___2():
     target = GdObject(TEST_ID)
 
     assert target._GdObject__properties == {
-        "": {"id": TEST_ID, "scope": "+", "name": None, "tags": []}
+        "": {"name": TEST_ID, "scope": "+", "names": [TEST_ID], "tags": []}
     }
 
 

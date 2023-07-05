@@ -32,5 +32,11 @@ class ImportObject(BaseObject):
             raise GdocRuntimeError()
 
         super().__init__(
-            typename, id, scope=scope, name=name, tags=tags, ref=ref, type_args=type_args
+            typename,
+            id,
+            scope=scope,
+            alias=name,
+            tags=tags,
+            refpath=ref,
+            type_args=type_args,
         )

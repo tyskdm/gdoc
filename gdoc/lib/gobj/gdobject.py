@@ -1,7 +1,9 @@
 r"""
 GdObject class
 """
-from gdoc.lib.gdoc import Text
+from typing import cast
+
+from gdoc.lib.gdoc import Text, TextString
 from gdoc.lib.gdoccompiler.gdexception import *
 
 from .namespace import Namespace
@@ -14,19 +16,30 @@ class GdObject(Namespace):
 
     Type = Namespace.Type
 
-    def __init__(self, id=None, scope="+", name=None, tags=[], _type=Type.OBJECT):
-        """Constructs GdObject.
-        @param id : str | PandocStr
-        """
-        _id = str(id) if id else None
-        _name = str(name) if name else None
-        super().__init__(name=_id, scope=str(scope), alias=_name, tags=tags, _type=_type)
+    def __init__(
+        self,
+        name: TextString | str | None = None,
+        scope: TextString | str = "+",
+        alias: TextString | str | None = None,
+        tags: list[TextString | str] = [],
+        _type: Type = Type.OBJECT,
+    ):
+        super().__init__(
+            name=name.get_str() if (type(name) is TextString) else cast(str, name),
+            scope=scope.get_str() if (type(scope) is TextString) else cast(str, scope),
+            alias=alias.get_str() if (type(alias) is TextString) else cast(str, alias),
+            tags=[
+                (t.get_str() if (type(t) is TextString) else cast(str, t)) for t in tags
+            ],
+            _type=_type,
+            _omit_arg_check=True,
+        )
 
         self.__properties = {
             "": {
-                "id": id,
+                "name": name or alias,
                 "scope": scope,
-                "name": name,
+                "names": [] + ([name] if name else []) + ([alias] if alias else []),
                 "tags": tags[:],
             }
         }
