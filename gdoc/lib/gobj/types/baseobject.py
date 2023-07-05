@@ -377,7 +377,7 @@ class BaseObject(GdObject):
             while len(parent_names) > 0:
                 pname = parent_names.pop()
                 pname_str: str = pname.get_str()
-                if parent.id != pname_str:
+                if pname_str not in parent.names:
                     return Err(
                         erpt.submit(
                             GdocSyntaxError(

@@ -62,8 +62,9 @@ def _assert_children(expected, actual):
     for i in range(len(expected)):
         exp = expected[i]
         act = children[i]
-        assert exp[0] == act.id
-        assert exp[1] == act.name.get_str() if type(act.name) is not str else act.name
+        assert act.name == exp[0]
+        assert act.names[0] == exp[0]
+        assert act.names[1] == exp[1]
         assert _assert_children(exp[2], act)
 
     return True

@@ -1,19 +1,12 @@
 r"""
 # `Namespace` Specification
 
-Responsible for gobject name management and name resolution.
-
 ## REFERENCES
 
 1. [\@import SWDD from=gdoc/docs/ArchitecturalDesign/gdocCompiler/gdObject]
 2. [\@import SWDD.SU[Symboltable] as=THIS]
 
 ## ADDITIONAL STRUCTOR
-
-| @Method    | Name     | Description |
-| ---------- | -------- | ----------- |
-|            | @partof: | THIS
-| `__init__` |          | creates a new instance
 
 """
 import pytest
@@ -46,8 +39,8 @@ class Spec___init__:
         target = Namespace()
 
         assert target.scope == "+"
-        assert target.id is None
         assert target.name is None
+        assert target.names == []
         assert target.tags == []
         assert target._Namespace__type == Namespace.Type.OBJECT
         assert target._Namespace__parent is None
@@ -62,26 +55,26 @@ class Spec___init__:
         #
         # Verify parameters before setting attrs with them.
         #
-        # #### [\@spec] id
+        # #### [\@spec] name
         # Verify the id is valid.
         # - Valid ids: Any `str` of length 1 or longer.
         # - Invalid ids: "", type(id) is not str.
         #
-        "id(1/)": (
+        "name(1/)": (
             # stimulus
-            {"id": "A"},
+            {"name": "A"},
             # expected
-            {"attrs": ("A", "+", None, Namespace.Type.OBJECT)},
+            {"attrs": ("A", "+", ["A"], Namespace.Type.OBJECT)},
         ),
-        "id(2/)": (
+        "name(2/)": (
             # stimulus
-            {"id": ""},
+            {"name": ""},
             # expected
             {"Exception": (NameError, "invalid id ''")},
         ),
-        "id(3/)": (
+        "name(3/)": (
             # stimulus
-            {"id": 1},
+            {"name": 1},
             # expected
             {"Exception": (TypeError, f"invalid id type '{type(1).__name__}'")},
         ),
@@ -93,55 +86,55 @@ class Spec___init__:
         #
         "scope(1/)": (
             # stimulus
-            {"id": "A", "scope": "-"},
+            {"name": "A", "scope": "-"},
             # expected
-            {"attrs": ("A", "-", None, Namespace.Type.OBJECT)},
+            {"attrs": ("A", "-", ["A"], Namespace.Type.OBJECT)},
         ),
         "scope(2/)": (
             # stimulus
-            {"id": "A", "scope": "+"},
+            {"name": "A", "scope": "+"},
             # expected
-            {"attrs": ("A", "+", None, Namespace.Type.OBJECT)},
+            {"attrs": ("A", "+", ["A"], Namespace.Type.OBJECT)},
         ),
         "scope(3/)": (
             # stimulus
-            {"id": "A", "scope": "#"},
+            {"name": "A", "scope": "#"},
             # expected
             {"Exception": (RuntimeError, 'invalid access modifier "#"')},
         ),
         "scope(4/)": (
             # stimulus
-            {"id": "A", "scope": "~"},
+            {"name": "A", "scope": "~"},
             # expected
             {"Exception": (RuntimeError, 'invalid access modifier "~"')},
         ),
         "scope(5/)": (
             # stimulus
-            {"id": "A", "scope": "A"},
+            {"name": "A", "scope": "A"},
             # expected
             {"Exception": (RuntimeError, 'invalid access modifier "A"')},
         ),
         ##
-        # #### [\@spec] name
+        # #### [\@spec] alias
         # Verify the name is valid.
         # - Valid name: Any `str` of length 1 or longer.
         # - Invalid name: ""
         #
-        "name(1/)": (
+        "alias(1/)": (
             # stimulus
-            {"id": "A", "name": "ABC"},
+            {"name": "A", "alias": "ABC"},
             # expected
-            {"attrs": ("A", "+", "ABC", Namespace.Type.OBJECT)},
+            {"attrs": ("A", "+", ["A", "ABC"], Namespace.Type.OBJECT)},
         ),
-        "name(2/)": (
+        "alias(2/)": (
             # stimulus
-            {"id": "A", "name": ""},
+            {"name": "A", "alias": ""},
             # expected
             {"Exception": (NameError, "invalid name ''")},
         ),
-        "name(3/)": (
+        "alias(3/)": (
             # stimulus
-            {"id": "A", "name": 1},
+            {"name": "A", "alias": 1},
             # expected
             {"Exception": (TypeError, f"invalid name type '{type(1).__name__}'")},
         ),
@@ -153,19 +146,19 @@ class Spec___init__:
         #
         "tags(1/)": (
             # stimulus
-            {"id": "A", "tags": ["ABC"]},
+            {"name": "A", "tags": ["ABC"]},
             # expected
-            {"attrs": ("A", "+", None, Namespace.Type.OBJECT)},
+            {"attrs": ("A", "+", ["A"], Namespace.Type.OBJECT)},
         ),
         "tags(2/)": (
             # stimulus
-            {"id": "A", "tags": "A"},
+            {"name": "A", "tags": "A"},
             # expected
             {"Exception": (TypeError, "only a list can be added as tags, not 'str'")},
         ),
         "tags(3/)": (
             # stimulus
-            {"id": "A", "tags": [1]},
+            {"name": "A", "tags": [1]},
             # expected
             {
                 "Exception": (
@@ -181,31 +174,31 @@ class Spec___init__:
         #
         "type(1/)": (
             # stimulus
-            {"id": "A", "_type": Namespace.Type.OBJECT},
+            {"name": "A", "_type": Namespace.Type.OBJECT},
             # expected
-            {"attrs": ("A", "+", None, Namespace.Type.OBJECT)},
+            {"attrs": ("A", "+", ["A"], Namespace.Type.OBJECT)},
         ),
         "type(2/)": (
             # stimulus
-            {"id": "A", "_type": Namespace.Type.REFERENCE},
+            {"name": "A", "_type": Namespace.Type.REFERENCE},
             # expected
-            {"attrs": ("A", "+", None, Namespace.Type.REFERENCE)},
+            {"attrs": ("A", "+", ["A"], Namespace.Type.REFERENCE)},
         ),
         "type(3/)": (
             # stimulus
-            {"id": "A", "_type": Namespace.Type.IMPORT},
+            {"name": "A", "_type": Namespace.Type.IMPORT},
             # expected
-            {"attrs": ("A", "+", None, Namespace.Type.IMPORT)},
+            {"attrs": ("A", "+", ["A"], Namespace.Type.IMPORT)},
         ),
         "type(4/)": (
             # stimulus
-            {"id": "A", "scope": "-", "_type": Namespace.Type.IMPORT},
+            {"name": "A", "scope": "-", "_type": Namespace.Type.IMPORT},
             # expected
-            {"attrs": ("A", "-", None, Namespace.Type.IMPORT)},
+            {"attrs": ("A", "-", ["A"], Namespace.Type.IMPORT)},
         ),
         "type(5/)": (
             # stimulus
-            {"id": "A", "_type": 1},
+            {"name": "A", "_type": 1},
             # expected
             {
                 "Exception": (
@@ -216,27 +209,30 @@ class Spec___init__:
         ),
         ##
         # #### [\@spec] Combination of id and name
-        #   1. GdObject should have an id or name or both of them.
-        #   2. Should raise Error if neither id nor name is specified.
-        #   3. When name is specified, id can be "" or not speified.
         #
         "Combination(1/)": (
             # stimulus
-            {"id": "ID", "name": "NAME"},
+            {"name": "ID", "alias": "NAME"},
             # expected
-            {"attrs": ("ID", "+", "NAME", Namespace.Type.OBJECT)},
+            {"attrs": ("ID", "+", ["ID", "NAME"], Namespace.Type.OBJECT)},
         ),
         "Combination(2/)": (
             # stimulus
-            {"id": "ID"},
+            {"name": "ID"},
             # expected
-            {"attrs": ("ID", "+", None, Namespace.Type.OBJECT)},
+            {"attrs": ("ID", "+", ["ID"], Namespace.Type.OBJECT)},
         ),
         "Combination(3/)": (
             # stimulus
-            {"id": None, "name": "NAME"},
+            {"name": None, "alias": "NAME"},
             # expected
-            {"attrs": (None, "+", "NAME", Namespace.Type.OBJECT)},
+            {"attrs": ("NAME", "+", ["NAME"], Namespace.Type.OBJECT)},
+        ),
+        "Combination(4/)": (
+            # stimulus
+            {"name": None, "alias": None},
+            # expected
+            {"attrs": (None, "+", [], Namespace.Type.OBJECT)},
         ),
     }
 
@@ -246,16 +242,15 @@ class Spec___init__:
     )
     # \endcond
     def spec_2(self, stimulus: dict, expected: dict):
-
         if expected.get("Exception") is None:
             #
             # Normal case
             #
             target = Namespace(**stimulus)
 
-            assert target.id == expected["attrs"][0]
+            assert target.name == expected["attrs"][0]
             assert target.scope == expected["attrs"][1]
-            assert target.name == expected["attrs"][2]
+            assert target.names == expected["attrs"][2]
             assert target._Namespace__type == expected["attrs"][3]
 
         else:
@@ -304,36 +299,8 @@ class Spec_add_child:
         ##
         # ### [\@spec 2]
         #
-        # #### [\@spec] id
-        # Verify the id is unique.
-        #
-        "id(1/)": (
-            # precondition
-            {"_type": Namespace.Type.OBJECT},
-            # stimulus
-            [{"id": "A"}],
-            # expected
-            {"children": {"A"}},
-        ),
-        "id(2/)": (
-            # precondition
-            {"_type": Namespace.Type.OBJECT},
-            # stimulus
-            [{"id": "A"}, {"id": "B"}],
-            # expected
-            {"children": {"A", "B"}},
-        ),
-        "id(3/)": (
-            # precondition
-            {"_type": Namespace.Type.OBJECT},
-            # stimulus
-            [{"id": "A"}, {"id": "A"}],
-            # expected
-            {"Exception": (NameError, "duplicated id 'A'")},
-        ),
-        ##
         # #### [\@spec] name
-        # Verify the name is unique.
+        # Verify the id is unique.
         #
         "name(1/)": (
             # precondition
@@ -360,38 +327,66 @@ class Spec_add_child:
             {"Exception": (NameError, "duplicated name 'A'")},
         ),
         ##
-        # #### [\@spec] id and name
-        # Verify the id and name are unique.
+        # #### [\@spec] alias
+        # Verify the name is unique.
         #
-        "id_name(1/)": (
+        "alias(1/)": (
             # precondition
             {"_type": Namespace.Type.OBJECT},
             # stimulus
-            [{"id": "A"}, {"name": "B"}],
+            [{"alias": "A"}],
+            # expected
+            {"children": {"A"}},
+        ),
+        "alias(2/)": (
+            # precondition
+            {"_type": Namespace.Type.OBJECT},
+            # stimulus
+            [{"alias": "A"}, {"alias": "B"}],
             # expected
             {"children": {"A", "B"}},
         ),
-        "id_name(2/)": (
+        "alias(3/)": (
             # precondition
             {"_type": Namespace.Type.OBJECT},
             # stimulus
-            [{"id": "A"}, {"name": "A"}],
+            [{"alias": "A"}, {"alias": "A"}],
             # expected
             {"Exception": (NameError, "duplicated name 'A'")},
         ),
-        "id_name(3/)": (
+        ##
+        # #### [\@spec] name and alias
+        # Verify the id and name are unique.
+        #
+        "name_alias(1/)": (
             # precondition
             {"_type": Namespace.Type.OBJECT},
             # stimulus
-            [{"id": "A", "name": "B"}],
+            [{"name": "A"}, {"alias": "B"}],
             # expected
             {"children": {"A", "B"}},
         ),
-        "id_name(4/)": (
+        "name_alias(2/)": (
             # precondition
             {"_type": Namespace.Type.OBJECT},
             # stimulus
-            [{"id": "A", "name": "A"}],
+            [{"name": "A"}, {"alias": "A"}],
+            # expected
+            {"Exception": (NameError, "duplicated name 'A'")},
+        ),
+        "name_alias(3/)": (
+            # precondition
+            {"_type": Namespace.Type.OBJECT},
+            # stimulus
+            [{"name": "A", "alias": "B"}],
+            # expected
+            {"children": {"A", "B"}},
+        ),
+        "name_alias(4/)": (
+            # precondition
+            {"_type": Namespace.Type.OBJECT},
+            # stimulus
+            [{"name": "A", "alias": "A"}],
             # expected
             {"Exception": (NameError, "duplicated name 'A'")},
         ),
@@ -403,7 +398,7 @@ class Spec_add_child:
             # precondition
             {"_type": Namespace.Type.OBJECT},
             # stimulus
-            [{"id": "A", "_type": Namespace.Type.OBJECT}],
+            [{"name": "A", "_type": Namespace.Type.OBJECT}],
             # expected
             {"children": {"A"}},
         ),
@@ -411,7 +406,7 @@ class Spec_add_child:
             # precondition
             {"_type": Namespace.Type.OBJECT},
             # stimulus
-            [{"id": "A", "_type": Namespace.Type.REFERENCE}],
+            [{"name": "A", "_type": Namespace.Type.REFERENCE}],
             # expected
             {"children": {"A"}},
         ),
@@ -419,7 +414,7 @@ class Spec_add_child:
             # precondition
             {"_type": Namespace.Type.OBJECT},
             # stimulus
-            [{"id": "A", "_type": Namespace.Type.IMPORT}],
+            [{"name": "A", "_type": Namespace.Type.IMPORT}],
             # expected
             {"children": {"A"}},
         ),
@@ -427,7 +422,7 @@ class Spec_add_child:
             # precondition
             {"_type": Namespace.Type.REFERENCE},
             # stimulus
-            [{"id": "A", "_type": Namespace.Type.OBJECT}],
+            [{"name": "A", "_type": Namespace.Type.OBJECT}],
             # expected
             {"children": {"A"}},
         ),
@@ -435,7 +430,7 @@ class Spec_add_child:
             # precondition
             {"_type": Namespace.Type.REFERENCE},
             # stimulus
-            [{"id": "A", "_type": Namespace.Type.REFERENCE}],
+            [{"name": "A", "_type": Namespace.Type.REFERENCE}],
             # expected
             {"children": {"A"}},
         ),
@@ -443,7 +438,7 @@ class Spec_add_child:
             # precondition
             {"_type": Namespace.Type.REFERENCE},
             # stimulus
-            [{"id": "A", "_type": Namespace.Type.IMPORT}],
+            [{"name": "A", "_type": Namespace.Type.IMPORT}],
             # expected
             {"children": {"A"}},
         ),
@@ -451,7 +446,7 @@ class Spec_add_child:
             # precondition
             {"_type": Namespace.Type.IMPORT},
             # stimulus
-            [{"id": "A", "_type": Namespace.Type.OBJECT}],
+            [{"name": "A", "_type": Namespace.Type.OBJECT}],
             # expected
             {"Exception": (TypeError, "'Import' object cannot have child")},
         ),
@@ -459,7 +454,7 @@ class Spec_add_child:
             # precondition
             {"_type": Namespace.Type.IMPORT},
             # stimulus
-            [{"id": "A", "_type": Namespace.Type.REFERENCE}],
+            [{"name": "A", "_type": Namespace.Type.REFERENCE}],
             # expected
             {"Exception": (TypeError, "'Import' object cannot have child")},
         ),
@@ -467,7 +462,7 @@ class Spec_add_child:
             # precondition
             {"_type": Namespace.Type.IMPORT},
             # stimulus
-            [{"id": "A", "_type": Namespace.Type.IMPORT}],
+            [{"name": "A", "_type": Namespace.Type.IMPORT}],
             # expected
             {"Exception": (TypeError, "'Import' object cannot have child")},
         ),
@@ -553,9 +548,9 @@ class Spec___get_children:
         "Case (2/)": (
             # stimulus
             [
-                {"id": "A", "_type": Namespace.Type.OBJECT},
-                {"id": "B", "_type": Namespace.Type.REFERENCE},
-                {"id": "C", "_type": Namespace.Type.IMPORT},
+                {"name": "A", "_type": Namespace.Type.OBJECT},
+                {"name": "B", "_type": Namespace.Type.REFERENCE},
+                {"name": "C", "_type": Namespace.Type.IMPORT},
             ],
             # expected
             {"children": ["A", "B", "C"]},
@@ -579,7 +574,7 @@ class Spec___get_children:
 
         assert len(children) == len(expected["children"])
         for i in range(len(expected["children"])):
-            assert children[i].id == expected["children"][i]
+            assert children[i].name == expected["children"][i]
 
 
 class Spec_unidir_link_to:
@@ -599,41 +594,41 @@ class Spec_unidir_link_to:
         #
         "Case: IMPORT to (1/)": (
             # precondition
-            {"id": "SRC", "_type": Namespace.Type.IMPORT},
+            {"name": "SRC", "_type": Namespace.Type.IMPORT},
             # stimulus
-            {"id": "DST", "_type": Namespace.Type.OBJECT},
+            {"name": "DST", "_type": Namespace.Type.OBJECT},
             # expected
             {"Exception": None},
         ),
         "Case: IMPORT to (2/)": (
             # precondition
-            {"id": "SRC", "_type": Namespace.Type.IMPORT},
+            {"name": "SRC", "_type": Namespace.Type.IMPORT},
             # stimulus
-            {"id": "SRC", "_type": Namespace.Type.REFERENCE},
+            {"name": "SRC", "_type": Namespace.Type.REFERENCE},
             # expected
             {"Exception": None},
         ),
         "Case: IMPORT to (3/)": (
             # precondition
-            {"id": "SRC", "_type": Namespace.Type.IMPORT},
+            {"name": "SRC", "_type": Namespace.Type.IMPORT},
             # stimulus
-            {"id": "DST", "_type": Namespace.Type.IMPORT},
+            {"name": "DST", "_type": Namespace.Type.IMPORT},
             # expected
             {"Exception": None},
         ),
         "Case: OBJECT to (1/)": (
             # precondition
-            {"id": "SRC", "_type": Namespace.Type.OBJECT},
+            {"name": "SRC", "_type": Namespace.Type.OBJECT},
             # stimulus
-            {"id": "DST", "_type": Namespace.Type.OBJECT},
+            {"name": "DST", "_type": Namespace.Type.OBJECT},
             # expected
             {"Exception": (TypeError, "'OBJECT' cannot unidir_link to any others")},
         ),
         "Case: REFERENCE to (1/)": (
             # precondition
-            {"id": "SRC", "_type": Namespace.Type.REFERENCE},
+            {"name": "SRC", "_type": Namespace.Type.REFERENCE},
             # stimulus
-            {"id": "DST", "_type": Namespace.Type.OBJECT},
+            {"name": "DST", "_type": Namespace.Type.OBJECT},
             # expected
             {"Exception": (TypeError, "'REFERENCE' cannot unidir_link to any others")},
         ),
@@ -686,41 +681,41 @@ class Spec_bidir_link_to:
         #
         "Case: REFERENCE to (1/)": (
             # precondition
-            {"id": "SRC", "_type": Namespace.Type.REFERENCE},
+            {"name": "SRC", "_type": Namespace.Type.REFERENCE},
             # stimulus
-            {"id": "DST", "_type": Namespace.Type.OBJECT},
+            {"name": "DST", "_type": Namespace.Type.OBJECT},
             # expected
             {"Exception": None},
         ),
         "Case: REFERENCE to (2/)": (
             # precondition
-            {"id": "SRC", "_type": Namespace.Type.REFERENCE},
+            {"name": "SRC", "_type": Namespace.Type.REFERENCE},
             # stimulus
-            {"id": "SRC", "_type": Namespace.Type.REFERENCE},
+            {"name": "SRC", "_type": Namespace.Type.REFERENCE},
             # expected
             {"Exception": None},
         ),
         "Case: REFERENCE to (3/)": (
             # precondition
-            {"id": "SRC", "_type": Namespace.Type.REFERENCE},
+            {"name": "SRC", "_type": Namespace.Type.REFERENCE},
             # stimulus
-            {"id": "DST", "_type": Namespace.Type.IMPORT},
+            {"name": "DST", "_type": Namespace.Type.IMPORT},
             # expected
             {"Exception": (TypeError, "cannot bidir_link to 'IMPORT'")},
         ),
         "Case: IMPORT to (1/)": (
             # precondition
-            {"id": "SRC", "_type": Namespace.Type.IMPORT},
+            {"name": "SRC", "_type": Namespace.Type.IMPORT},
             # stimulus
-            {"id": "DST", "_type": Namespace.Type.OBJECT},
+            {"name": "DST", "_type": Namespace.Type.OBJECT},
             # expected
             {"Exception": (TypeError, "'IMPORT' cannot bidir_link to any others")},
         ),
         "Case: OBJECT to (1/)": (
             # precondition
-            {"id": "SRC", "_type": Namespace.Type.OBJECT},
+            {"name": "SRC", "_type": Namespace.Type.OBJECT},
             # stimulus
-            {"id": "DST", "_type": Namespace.Type.OBJECT},
+            {"name": "DST", "_type": Namespace.Type.OBJECT},
             # expected
             {"Exception": (TypeError, "'OBJECT' cannot bidir_link to any others")},
         ),
@@ -772,8 +767,8 @@ class Spec___get_linkto:
         "Case: (1/)": (
             # precondition
             [
-                {"id": "A", "_type": Namespace.Type.OBJECT},
-                {"id": "B", "_type": Namespace.Type.REFERENCE},
+                {"name": "A", "_type": Namespace.Type.OBJECT},
+                {"name": "B", "_type": Namespace.Type.REFERENCE},
             ],
             # expected
             {"TargetId": "A"},
@@ -781,24 +776,24 @@ class Spec___get_linkto:
         "Case: (2/)": (
             # precondition
             [
-                {"id": "A", "_type": Namespace.Type.OBJECT},
-                {"id": "B", "_type": Namespace.Type.REFERENCE},
-                {"id": "A", "_type": Namespace.Type.REFERENCE},
+                {"name": "A", "_type": Namespace.Type.OBJECT},
+                {"name": "B", "_type": Namespace.Type.REFERENCE},
+                {"name": "A", "_type": Namespace.Type.REFERENCE},
             ],
             # expected
             {"TargetId": "A"},
         ),
         "Case: (3/)": (
             # precondition
-            [{"id": "A", "_type": Namespace.Type.REFERENCE}],
+            [{"name": "A", "_type": Namespace.Type.REFERENCE}],
             # expected
             {"TargetId": "A"},
         ),
         "Case: (4/)": (
             # precondition
             [
-                {"id": "A", "_type": Namespace.Type.REFERENCE},
-                {"id": "B", "_type": Namespace.Type.REFERENCE},
+                {"name": "A", "_type": Namespace.Type.REFERENCE},
+                {"name": "B", "_type": Namespace.Type.REFERENCE},
             ],
             # expected
             {"TargetId": "A"},
@@ -828,7 +823,7 @@ class Spec___get_linkto:
         if expected["TargetId"] is None:
             assert target is None
         else:
-            assert target.id == expected["TargetId"]
+            assert target.name == expected["TargetId"]
 
 
 class Spec___get_linkfrom_list:
@@ -847,8 +842,8 @@ class Spec___get_linkfrom_list:
         "Case: (1/)": (
             # precondition
             [
-                {"id": "TARGET", "_type": Namespace.Type.OBJECT},
-                [[{"id": "A", "_type": Namespace.Type.REFERENCE}, []]],
+                {"name": "TARGET", "_type": Namespace.Type.OBJECT},
+                [[{"name": "A", "_type": Namespace.Type.REFERENCE}, []]],
             ],
             # expected
             {"children": ["TARGET", "A"]},
@@ -856,10 +851,10 @@ class Spec___get_linkfrom_list:
         "Case: (2/)": (
             # precondition
             [
-                {"id": "TARGET", "_type": Namespace.Type.OBJECT},
+                {"name": "TARGET", "_type": Namespace.Type.OBJECT},
                 [
-                    [{"id": "A", "_type": Namespace.Type.REFERENCE}, []],
-                    [{"id": "B", "_type": Namespace.Type.REFERENCE}, []],
+                    [{"name": "A", "_type": Namespace.Type.REFERENCE}, []],
+                    [{"name": "B", "_type": Namespace.Type.REFERENCE}, []],
                 ],
             ],
             # expected
@@ -868,11 +863,11 @@ class Spec___get_linkfrom_list:
         "Case: (3/)": (
             # precondition
             [
-                {"id": "TARGET", "_type": Namespace.Type.OBJECT},
+                {"name": "TARGET", "_type": Namespace.Type.OBJECT},
                 [
                     [
-                        {"id": "A", "_type": Namespace.Type.REFERENCE},
-                        [[{"id": "B", "_type": Namespace.Type.REFERENCE}, []]],
+                        {"name": "A", "_type": Namespace.Type.REFERENCE},
+                        [[{"name": "B", "_type": Namespace.Type.REFERENCE}, []]],
                     ]
                 ],
             ],
@@ -882,13 +877,13 @@ class Spec___get_linkfrom_list:
         "Case: (4/)": (
             # precondition
             [
-                {"id": "TARGET", "_type": Namespace.Type.OBJECT},
+                {"name": "TARGET", "_type": Namespace.Type.OBJECT},
                 [
                     [
-                        {"id": "A", "_type": Namespace.Type.REFERENCE},
-                        [[{"id": "B", "_type": Namespace.Type.REFERENCE}, []]],
+                        {"name": "A", "_type": Namespace.Type.REFERENCE},
+                        [[{"name": "B", "_type": Namespace.Type.REFERENCE}, []]],
                     ],
-                    [{"id": "C", "_type": Namespace.Type.REFERENCE}, []],
+                    [{"name": "C", "_type": Namespace.Type.REFERENCE}, []],
                 ],
             ],
             # expected
@@ -897,25 +892,25 @@ class Spec___get_linkfrom_list:
         "Case: (5/)": (
             # precondition
             [
-                {"id": "TARGET", "_type": Namespace.Type.OBJECT},
+                {"name": "TARGET", "_type": Namespace.Type.OBJECT},
                 [
                     [
-                        {"id": "A", "_type": Namespace.Type.REFERENCE},
+                        {"name": "A", "_type": Namespace.Type.REFERENCE},
                         [
                             [
-                                {"id": "B", "_type": Namespace.Type.REFERENCE},
-                                [[{"id": "C", "_type": Namespace.Type.REFERENCE}, []]],
+                                {"name": "B", "_type": Namespace.Type.REFERENCE},
+                                [[{"name": "C", "_type": Namespace.Type.REFERENCE}, []]],
                             ]
                         ],
                     ],
                     [
-                        {"id": "D", "_type": Namespace.Type.REFERENCE},
+                        {"name": "D", "_type": Namespace.Type.REFERENCE},
                         [
-                            [{"id": "E", "_type": Namespace.Type.REFERENCE}, []],
-                            [{"id": "F", "_type": Namespace.Type.REFERENCE}, []],
+                            [{"name": "E", "_type": Namespace.Type.REFERENCE}, []],
+                            [{"name": "F", "_type": Namespace.Type.REFERENCE}, []],
                         ],
                     ],
-                    [{"id": "G", "_type": Namespace.Type.REFERENCE}, []],
+                    [{"name": "G", "_type": Namespace.Type.REFERENCE}, []],
                 ],
             ],
             # expected
@@ -923,7 +918,7 @@ class Spec___get_linkfrom_list:
         ),
         "Case: (6/)": (
             # precondition
-            [{"id": "TARGET", "_type": Namespace.Type.OBJECT}, []],
+            [{"name": "TARGET", "_type": Namespace.Type.OBJECT}, []],
             # expected
             {"children": ["TARGET"]},
         ),
@@ -953,7 +948,7 @@ class Spec___get_linkfrom_list:
         # THEN
         children = []
         for child in linkfrom:
-            children.append(child.id)
+            children.append(child.name)
 
         assert set(children) == set(expected["children"])
 
@@ -977,9 +972,9 @@ class Spec_get_children:
         "Case: (1/)": (
             # precondition
             [
-                {"id": "TARGET", "_type": Namespace.Type.OBJECT},
+                {"name": "TARGET", "_type": Namespace.Type.OBJECT},
                 [],
-                [{"id": "A", "_type": Namespace.Type.OBJECT}],
+                [{"name": "A", "_type": Namespace.Type.OBJECT}],
             ],
             # expected
             {"children": ["A"]},
@@ -987,17 +982,17 @@ class Spec_get_children:
         "Case: (2/)": (
             # precondition
             [
-                {"id": "TARGET", "_type": Namespace.Type.OBJECT},
+                {"name": "TARGET", "_type": Namespace.Type.OBJECT},
                 [
                     [
-                        {"id": "R1", "_type": Namespace.Type.REFERENCE},
+                        {"name": "R1", "_type": Namespace.Type.REFERENCE},
                         [],
-                        [{"id": "A", "_type": Namespace.Type.OBJECT}],
+                        [{"name": "A", "_type": Namespace.Type.OBJECT}],
                     ],
                     [
-                        {"id": "R2", "_type": Namespace.Type.REFERENCE},
+                        {"name": "R2", "_type": Namespace.Type.REFERENCE},
                         [],
-                        [{"id": "B", "_type": Namespace.Type.OBJECT}],
+                        [{"name": "B", "_type": Namespace.Type.OBJECT}],
                     ],
                 ],
                 [],
@@ -1008,15 +1003,15 @@ class Spec_get_children:
         "Case: (3/)": (
             # precondition
             [
-                {"id": "TARGET", "_type": Namespace.Type.OBJECT},
+                {"name": "TARGET", "_type": Namespace.Type.OBJECT},
                 [
                     [
-                        {"id": "R1", "_type": Namespace.Type.REFERENCE},
-                        [[{"id": "R2", "_type": Namespace.Type.REFERENCE}, [], []]],
-                        [{"id": "A", "_type": Namespace.Type.OBJECT}],
+                        {"name": "R1", "_type": Namespace.Type.REFERENCE},
+                        [[{"name": "R2", "_type": Namespace.Type.REFERENCE}, [], []]],
+                        [{"name": "A", "_type": Namespace.Type.OBJECT}],
                     ]
                 ],
-                [{"id": "B", "_type": Namespace.Type.OBJECT}],
+                [{"name": "B", "_type": Namespace.Type.OBJECT}],
             ],
             # expected
             {"children": ["A", "B"]},
@@ -1024,11 +1019,11 @@ class Spec_get_children:
         "Case: (4/)": (
             # precondition
             [
-                {"id": "TARGET", "_type": Namespace.Type.OBJECT},
+                {"name": "TARGET", "_type": Namespace.Type.OBJECT},
                 [
                     [
-                        {"id": "R1", "_type": Namespace.Type.REFERENCE},
-                        [[{"id": "R2", "_type": Namespace.Type.REFERENCE}, [], []]],
+                        {"name": "R1", "_type": Namespace.Type.REFERENCE},
+                        [[{"name": "R2", "_type": Namespace.Type.REFERENCE}, [], []]],
                         [],
                     ]
                 ],
@@ -1048,7 +1043,6 @@ class Spec_get_children:
         """
 
         def __link(objs):
-
             # objs[0]: target
             target = Namespace(**objs[0])
 
@@ -1073,7 +1067,7 @@ class Spec_get_children:
         # THEN
         children = []
         for child in child_items:
-            children.append(child.id)
+            children.append(child.name)
         assert set(children) == set(expected["children"])
 
 
@@ -1096,8 +1090,14 @@ class Spec_get_child:
         "Case: (1/)": (
             # precondition
             [
-                {"id": "START", "_type": Namespace.Type.OBJECT},
-                [{"id": "TARGET", "name": "TARGET_NAME", "_type": Namespace.Type.OBJECT}],
+                {"name": "START", "_type": Namespace.Type.OBJECT},
+                [
+                    {
+                        "name": "TARGET",
+                        "alias": "TARGET_NAME",
+                        "_type": Namespace.Type.OBJECT,
+                    }
+                ],
                 [],
             ],
             # expected
@@ -1106,20 +1106,20 @@ class Spec_get_child:
         "Case: (2/)": (
             # precondition
             [
-                {"id": "ROOT", "_type": Namespace.Type.OBJECT},
+                {"name": "ROOT", "_type": Namespace.Type.OBJECT},
                 [],
                 [
                     [
-                        {"id": "START", "_type": Namespace.Type.REFERENCE},
-                        [{"id": "A", "_type": Namespace.Type.OBJECT}],
+                        {"name": "START", "_type": Namespace.Type.REFERENCE},
+                        [{"name": "A", "_type": Namespace.Type.OBJECT}],
                         [],
                     ],
                     [
-                        {"id": "C", "_type": Namespace.Type.REFERENCE},
+                        {"name": "C", "_type": Namespace.Type.REFERENCE},
                         [
                             {
-                                "id": "TARGET",
-                                "name": "TARGET_NAME",
+                                "name": "TARGET",
+                                "alias": "TARGET_NAME",
                                 "_type": Namespace.Type.OBJECT,
                             }
                         ],
@@ -1133,15 +1133,21 @@ class Spec_get_child:
         "Case: (3/)": (
             # precondition
             [
-                {"id": "ROOT", "_type": Namespace.Type.OBJECT},
-                [{"id": "TARGET", "name": "TARGET_NAME", "_type": Namespace.Type.OBJECT}],
+                {"name": "ROOT", "_type": Namespace.Type.OBJECT},
+                [
+                    {
+                        "name": "TARGET",
+                        "alias": "TARGET_NAME",
+                        "_type": Namespace.Type.OBJECT,
+                    }
+                ],
                 [
                     [
-                        {"id": "A", "_type": Namespace.Type.REFERENCE},
-                        [{"id": "B", "_type": Namespace.Type.OBJECT}],
+                        {"name": "A", "_type": Namespace.Type.REFERENCE},
+                        [{"name": "B", "_type": Namespace.Type.OBJECT}],
                         [
                             [
-                                {"id": "START", "_type": Namespace.Type.REFERENCE},
+                                {"name": "START", "_type": Namespace.Type.REFERENCE},
                                 [],
                                 [],
                             ]
@@ -1155,15 +1161,15 @@ class Spec_get_child:
         "Case: (4/)": (
             # precondition
             [
-                {"id": "ROOT", "_type": Namespace.Type.OBJECT},
-                [{"id": "C", "_type": Namespace.Type.OBJECT}],
+                {"name": "ROOT", "_type": Namespace.Type.OBJECT},
+                [{"name": "C", "_type": Namespace.Type.OBJECT}],
                 [
                     [
-                        {"id": "START", "_type": Namespace.Type.REFERENCE},
-                        [{"id": "B", "_type": Namespace.Type.OBJECT}],
+                        {"name": "START", "_type": Namespace.Type.REFERENCE},
+                        [{"name": "B", "_type": Namespace.Type.OBJECT}],
                         [
                             [
-                                {"id": "A", "_type": Namespace.Type.REFERENCE},
+                                {"name": "A", "_type": Namespace.Type.REFERENCE},
                                 [],
                                 [],
                             ]
@@ -1187,13 +1193,13 @@ class Spec_get_child:
             TARGET = None
 
             parent = Namespace(**objs[0])
-            if parent.id == "START":
+            if parent.name == "START":
                 START = parent
 
             for child in objs[1]:
                 c = Namespace(**child)
                 parent.add_child(c)
-                if c.id == "TARGET":
+                if c.name == "TARGET":
                     TARGET = c
 
             for reference in objs[2]:
@@ -1242,8 +1248,8 @@ class Spec_resolve:
         "Parent-Child (1/)": (
             # precondition
             [
-                {"id": "START"},
-                [[{"id": "TARGET"}, []]],
+                {"name": "START"},
+                [[{"name": "TARGET"}, []]],
             ],
             # stimulus
             ["TARGET"],
@@ -1253,8 +1259,8 @@ class Spec_resolve:
         "Parent-Child (2/)": (
             # precondition
             [
-                {"id": "START"},
-                [[{"id": "TARGET"}, []]],
+                {"name": "START"},
+                [[{"name": "TARGET"}, []]],
             ],
             # stimulus
             ["START", "TARGET"],
@@ -1264,9 +1270,9 @@ class Spec_resolve:
         "Layered (1/)": (
             # precondition
             [
-                {"id": "TARGET"},
+                {"name": "TARGET"},
                 [
-                    [{"id": "A"}, [[{"id": "START"}, []]]],
+                    [{"name": "A"}, [[{"name": "START"}, []]]],
                 ],
             ],
             # stimulus
@@ -1277,10 +1283,10 @@ class Spec_resolve:
         "Layered (2/)": (
             # precondition
             [
-                {"id": "ROOT"},
+                {"name": "ROOT"},
                 [
-                    [{"id": "A"}, [[{"id": "START"}, []]]],
-                    [{"id": "B"}, [[{"id": "TARGET"}, []]]],
+                    [{"name": "A"}, [[{"name": "START"}, []]]],
+                    [{"name": "B"}, [[{"name": "TARGET"}, []]]],
                 ],
             ],
             # stimulus
@@ -1291,10 +1297,10 @@ class Spec_resolve:
         "NotFound: (1/)": (
             # precondition
             [
-                {"id": "ROOT"},
+                {"name": "ROOT"},
                 [
-                    [{"id": "START"}, []],
-                    [{"id": "B"}, [[{"id": "TARGET"}, []]]],
+                    [{"name": "START"}, []],
+                    [{"name": "B"}, [[{"name": "TARGET"}, []]]],
                 ],
             ],
             # stimulus
@@ -1305,10 +1311,10 @@ class Spec_resolve:
         "NotFound: (2/)": (
             # precondition
             [
-                {"id": "ROOT"},
+                {"name": "ROOT"},
                 [
-                    [{"id": "START"}, []],
-                    [{"id": "B"}, [[{"id": "TARGET"}, []]]],
+                    [{"name": "START"}, []],
+                    [{"name": "B"}, [[{"name": "TARGET"}, []]]],
                 ],
             ],
             # stimulus
@@ -1319,10 +1325,10 @@ class Spec_resolve:
         "NotFound: (3/)": (
             # precondition
             [
-                {"id": "ROOT"},
+                {"name": "ROOT"},
                 [
-                    [{"id": "START"}, []],
-                    [{"id": "B"}, [[{"id": "TARGET"}, []]]],
+                    [{"name": "START"}, []],
+                    [{"name": "B"}, [[{"name": "TARGET"}, []]]],
                 ],
             ],
             # stimulus
@@ -1345,9 +1351,9 @@ class Spec_resolve:
             TARGET = None
 
             target = Namespace(**objs[0])
-            if target.id == "START":
+            if target.name == "START":
                 START = target
-            elif target.id == "TARGET":
+            elif target.name == "TARGET":
                 TARGET = target
 
             for child in objs[1]:

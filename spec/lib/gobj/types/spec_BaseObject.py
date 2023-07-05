@@ -61,8 +61,8 @@ def spec___init___2():
     }
 
     assert target.scope == "+"
-    assert target.id == "ID"
-    assert target.name is None
+    assert target.name == "ID"
+    assert target.names == ["ID"]
     assert target.tags == []
 
     assert target.class_category == ""

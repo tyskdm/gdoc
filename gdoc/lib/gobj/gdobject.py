@@ -20,7 +20,7 @@ class GdObject(Namespace):
         """
         _id = str(id) if id else None
         _name = str(name) if name else None
-        super().__init__(id=_id, scope=str(scope), name=_name, tags=tags, _type=_type)
+        super().__init__(name=_id, scope=str(scope), alias=_name, tags=tags, _type=_type)
 
         self.__properties = {
             "": {
