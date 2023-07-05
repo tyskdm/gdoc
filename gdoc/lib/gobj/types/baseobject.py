@@ -36,15 +36,18 @@ class BaseObject(GdObject):
     ):
         self._plugins = plugins or PluginManager()
 
+        _type: GdObject.Type
+        _typename: str
         if type(typename) is GdObject.Type:
             _type = typename
-            typename = typename.name
+            _typename = typename.name
 
         else:
             if ref is None:
                 _type = GdObject.Type.OBJECT
             else:
                 _type = GdObject.Type.REFERENCE
+            _typename = cast(str, typename)
 
         if scope is None:
             scope = "+"
@@ -58,7 +61,7 @@ class BaseObject(GdObject):
             self.class_category = ""
             self.class_version = ""
 
-        self.class_type = typename
+        self.class_type = _typename
         self[""].update(
             {
                 "class": {
@@ -118,23 +121,27 @@ class BaseObject(GdObject):
         type_constructor: BaseObject | None = None
         type_name: str | None = ""
 
-        r, e = self._get_constructor_(class_info, tag_body, erpt, opts)
-        if e:
-            return Err(erpt.submit(e))
-        type_name, type_constructor = r
+        r = self._get_constructor_(class_info, tag_body, erpt, opts)
+        if r.is_err():
+            return Err(erpt.submit(r.err()))
+        type_name, type_constructor = r.unwrap()
+
+        #
+        # Check and Setup arguments according to the class info
+        #
+        # TODO: Implement
 
         #
         # Create Object
         #
-        child: BaseObject | None
-        child, e = type_constructor.create(
+        r = type_constructor.create(
             class_info, class_args, class_kwargs, tag_params, self, erpt
         )
-        if e:
-            erpt.submit(e)
-            return Err(erpt)
+        if r.is_err():
+            return Err(erpt.submit(r.err()))
+        child: BaseObject | None = r.unwrap()
 
-        assert child
+        self.add_child(child)
         return Ok(child)
 
     def _get_constructor_(
@@ -313,107 +320,118 @@ class BaseObject(GdObject):
         parent_obj: "BaseObject",
         erpt: ErrorReport,
     ) -> Result["BaseObject", ErrorReport]:
+        #
+        # Get scope, names, tags, and remaining args from arguments
+        #
+        scope: TextString | None
+        name_tstr: TextString
+        names: list[TextString]
+        tags: list[TextString]
+        args: list[TextString]
+        r = cls._pop_name_(class_args, erpt)
+        if r.is_err():
+            return Err(erpt.submit(r.err()))
+        scope, names, tags, args = r.unwrap()
+
+        #
+        # parse name_str and get names and tags
+        #
         id = None
-        tags = []
         isref = class_info[2]  # isref
         ref = None
-
-        scope: TextString
-        symbol_str: TextString
-        args: list[TextString]
-        r, e = _get_symbol(class_args, erpt)
-        if e:
-            erpt.submit(e)
-            return Err(erpt)
-        scope, symbol_str, args = r
-
-        if symbol_str is not None:
-            r, e = nameparser.parse_name(symbol_str, erpt)
-            if e:
-                erpt.submit(e)
-                return Err(erpt)
-
-            symbols, tags = r
-            if not nameparser.is_identifier(str(symbols[0])):
-                erpt.submit(GdocSyntaxError("Invalid id", symbol_str.get_char_pos(0)))
-                return Err(erpt)
-
-            id = symbols[-1]
-
+        if len(names) > 0:
+            id = names[-1]
             if isref:
-                ref = symbols
+                # names are object name to link
+                ref = names
             else:
-                ref = None
-                # assert here if symbols[0:-1] are valid
-                symbols.pop()
-                p = parent_obj.get_parent()
-                while len(symbols) > 0:
-                    s = symbols.pop()
-                    if s.startswith("*"):  # name
-                        if p.name != s[1:]:
-                            erpt.submit(
-                                GdocSyntaxError("The explicit parent Name is incorrect.")
-                            )
-                            return Err(erpt)
-                    else:  # id
-                        if p.id != s:
-                            erpt.submit(
-                                GdocSyntaxError("The explicit parent ID is incorrect.")
-                            )
-                            return Err(erpt)
+                r = parent_obj._check_parent_names_(names, erpt)
+                if r.is_err():
+                    return Err(erpt.submit(r.err()))
+                id = r.unwrap()
 
         child = cls(
             class_info[1].get_str() if class_info[1] else "",  # type
-            id,
-            scope=scope,
-            name=tag_params.get("name"),
+            id.get_str() if id else None,
+            scope=(scope.get_str() if scope else None),
+            name=n.get_str() if (n := tag_params.get("name")) else None,
             tags=[tag.get_str() for tag in tags],
             ref=ref,
             type_args=tag_params,
             plugins=parent_obj._plugins,
         )
 
-        if parent_obj:
-            parent_obj.add_child(child)
-
         return Ok(child)
 
+    def _check_parent_names_(
+        self, names: list[TextString], erpt: ErrorReport
+    ) -> Result[TextString | None, ErrorReport]:
+        id: TextString | None = None
+        parent_names: list[TextString] = names[:]
+        parent: BaseObject | None
 
-def _get_symbol(
-    class_args: list[TextString], erpt: ErrorReport
-) -> Result[tuple[TextString | None, TextString | None, list[TextString]], ErrorReport]:
-    scope: TextString | None = None
-    symbol: TextString | None = None
-    args: list[TextString] = []
+        if len(parent_names) > 0:
+            id = parent_names.pop()
 
-    idx: int = 0
-    c = len(class_args)
-    if c > 0:
-        if class_args[idx].get_str() in ("+", "-"):
-            # TODO: check if type is String, not Code, Quoted....
-            scope = class_args[idx]
-            if c < 2:
-                erpt.submit(GdocSyntaxError("Object name missing", scope.get_char_pos(1)))
-                return Err(erpt)
-            idx += 1
+            parent = self
+            while len(parent_names) > 0:
+                pname = parent_names.pop()
+                pname_str: str = pname.get_str()
+                if parent.id != pname_str:
+                    return Err(
+                        erpt.submit(
+                            GdocSyntaxError(
+                                f"The explicit parent name '{pname_str}' is incorrect.",
+                                pname.get_data_pos(),
+                            )
+                        )
+                    )
+                parent = cast(BaseObject, parent.get_parent())
 
-        # class_args[idx] should be symbol
-        symbol = class_args[idx]
-        idx += 1
+        return Ok(id)
 
-        if symbol.startswith(("+", "-")):
-            # TODO: check that the first element is a String. If not,
-            # the following deletion of the first character does not work.
-            if scope is None:
-                scope = symbol[0]
-                symbol = symbol[1:]
+    @staticmethod
+    def _pop_name_(
+        class_args: list[TextString], erpt: ErrorReport
+    ) -> Result[
+        tuple[TextString | None, list[TextString], list[TextString], list[TextString]],
+        ErrorReport,
+    ]:
+        scope: TextString | None = None
+        names: list[TextString] = []
+        tags: list[TextString] = []
+        args: list[TextString] = class_args[:]
+        name_tstr: TextString | None = None
 
+        if len(args) == 0:
+            return Ok((cast(TextString | None, scope), names, tags, args))
+
+        #
+        # pop scope
+        #
+        if args[0].startswith(("+", "-")):
+            if len(args[0]) == 1:
+                scope = args.pop(0)
+                if len(args) == 0:
+                    pos = scope.get_data_pos()
+                    pos = pos.get_last_pos() if pos is not None else None
+                    erpt.submit(
+                        GdocSyntaxError(
+                            "Object name is missing", pos, (scope.get_str(), 1, 0)
+                        )
+                    )
+                    return Err(erpt)
             else:
-                erpt.submit(
-                    GdocSyntaxError("Duplicate scope specifier", symbol.get_char_pos(0))
-                )
-                return Err(erpt)
+                scope = args[0][:1]
+                args[0] = args[0][1:]
 
-        args = class_args[idx:]
+        #
+        # pop name
+        #
+        name_tstr = args.pop(0)
+        r = nameparser.parse_name(name_tstr, erpt)
+        if r.is_err():
+            return Err(erpt.submit(r.err()))
+        names, tags = r.unwrap()
 
-    return Ok((scope, symbol, args))
+        return Ok((scope, names, tags, args))
