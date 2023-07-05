@@ -14,7 +14,7 @@ class ReturnType:
 
     _returntype_: ClassVar[type] = type(None)
 
-    def __init_subclass__(cls, /, ret_subclass: bool = False, **kwargs) -> None:
+    def __init_subclass__(cls, *, ret_subclass: bool = False, **kwargs) -> None:
         """
         Set the class variable to either a subclass or an ancestor class.
 
