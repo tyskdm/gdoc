@@ -12,7 +12,10 @@ from .tagparamparser import TagParameter, parse_TagParameter
 
 
 def parse_TextBlock(
-    textblock: TextBlock, gobj: BaseObject, opts: Settings, erpt: ErrorReport
+    textblock: TextBlock,
+    gobj: BaseObject,
+    erpt: ErrorReport,
+    opts: Settings | None = None,
 ) -> Result[BaseObject | None, ErrorReport]:
     """
     parse TextBlock and creates Gobj.

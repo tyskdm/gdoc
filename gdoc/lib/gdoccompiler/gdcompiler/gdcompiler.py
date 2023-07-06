@@ -27,9 +27,9 @@ class GdocCompiler:
     def compile(
         self,
         filepath: str,
-        opts: Optional[Settings] = None,
         erpt: Optional[ErrorReport] = None,
-    ) -> Result[GobjDocument, ErrorReport | Exception]:
+        opts: Optional[Settings] = None,
+    ) -> Result[GobjDocument, ErrorReport]:
         """
         1. fileの存在確認
         2. ./_gdoc_/filename.past.json の存在確認
@@ -55,7 +55,7 @@ class GdocCompiler:
 
         gobj = GobjDocument(None, filepath, self._plugins)
 
-        gobj, e = parse_Document(gdoc, gobj, opts, erpt)
+        gobj, e = parse_Document(gdoc, gobj, erpt, opts)
         if e:
             erpt.submit(e)
             return Err(erpt, gobj)

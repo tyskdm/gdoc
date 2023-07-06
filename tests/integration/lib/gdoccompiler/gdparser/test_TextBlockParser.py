@@ -56,7 +56,7 @@ def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
     erpt_mock = ErrorReport()
 
     # Execution
-    parse_TextBlock(target_data, gdobject, {}, erpt_mock)
+    parse_TextBlock(target_data, gdobject, erpt_mock, None)
 
     # Assertion
     gdobject.create_object.assert_called_once()
