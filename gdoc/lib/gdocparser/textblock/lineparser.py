@@ -29,11 +29,7 @@ def parse_Line(
     #
     # Parse BlockTags
     #
-    while True:
-        if type(result[-1]) is not TextString:
-            # No more TextString to parse
-            break
-
+    while type(result[-1]) is TextString:
         parseresults, e = parse_BlockTag(result[-1], 0, srpt, opts)
 
         if e and srpt.should_exit(e):
@@ -41,9 +37,10 @@ def parse_Line(
 
         if parseresults and (len(parseresults) > 0):
             result[-1:] = parseresults
-            continue
+            if len(parseresults) > 1:
+                # There may still be TextString to be parsed.
+                continue
 
-        # no BlockTag is detected
         break
 
     #
@@ -58,11 +55,7 @@ def parse_Line(
             continue
 
         inlinetag_result: list[TextString] = [tstr]
-        while True:
-            if type(inlinetag_result[-1]) is not TextString:
-                # No more TextString to parse
-                break
-
+        while type(inlinetag_result[-1]) is TextString:
             parseresults, e = parse_InlineTag(inlinetag_result[-1], 0, srpt, opts)
 
             if e and srpt.should_exit(e):
@@ -70,9 +63,10 @@ def parse_Line(
 
             if parseresults and (len(parseresults) > 0):
                 inlinetag_result[-1:] = parseresults
-                continue
+                if len(parseresults) > 1:
+                    # There may still be TextString to be parsed.
+                    continue
 
-            # no BlockTag is detected in this tstr
             break
 
         result += inlinetag_result
