@@ -31,13 +31,12 @@ class GdocCompiler:
         opts: Optional[Settings] = None,
     ) -> Result[GobjDocument, ErrorReport]:
         """
-        1. fileの存在確認
-        2. ./_gdoc_/filename.past.json の存在確認
-        3. pandocの実行
-        4. pandocAstの生成
-        5. metadataの取得 → Documentにセット
-        6. パーサーの生成、visitorの取得、start(Document)。
-        7. Pandoc.accept(parser)して、エレメントをイベントとしてパーサーに投げる。
+        1. check if the target file exists.
+        2. check if ./_gdoc_/filename.past.json exists.
+        3. run pandoc
+        4. create pandocAst
+        5. get metadata in the AST, and set into Document
+        6. call parse_Document()
         """
         opts = opts or Settings({})
         erpt = erpt or ErrorReport()
