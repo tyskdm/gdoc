@@ -1,7 +1,7 @@
 r"""
 Document class
 """
-from gdoc.lib.plugins.pluginmanager import PluginManager
+from gdoc.lib.plugins.categorymanager import CategoryManager
 
 from .baseobject import BaseObject
 
@@ -9,6 +9,6 @@ from .baseobject import BaseObject
 class Document(BaseObject):
     """ """
 
-    def __init__(self, id, name=None, plugins: PluginManager | None = None):
+    def __init__(self, id, name=None, categories: CategoryManager | None = None):
         """ """
-        super().__init__("DOCUMENT", id, alias=name, plugins=plugins)
+        super().__init__("DOCUMENT", id, alias=name, categories=categories)

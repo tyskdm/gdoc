@@ -6,7 +6,7 @@ from typing import Any, Type
 from .category import Category
 
 
-class PluginManager:
+class CategoryManager:
     _type_table: dict[Type, Category] = {}
     _categories: list[Category] = []
 
@@ -14,7 +14,7 @@ class PluginManager:
         if root_category is not None:
             self.add_category(root_category)
 
-    def add_category(self, category: Category) -> "PluginManager":
+    def add_category(self, category: Category) -> "CategoryManager":
         self._categories.append(category)
         for t in set(category.types.values()):
             self._type_table[t] = category
@@ -23,7 +23,7 @@ class PluginManager:
     def get_category(self, obj: Any) -> Category | None:
         return self._type_table.get(type(obj))
 
-    def get_root_category(self) -> Category | None:
-        if len(self._categories) > 0:
-            return self._categories[0]
-        return None
+    # def get_root_category(self) -> Category | None:
+    #     if len(self._categories) > 0:
+    #         return self._categories[0]
+    #     return None

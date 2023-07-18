@@ -6,7 +6,7 @@ from typing import Any, cast, final
 from gdoc.lib.gdoc import DataPos, TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocRuntimeError, GdocSyntaxError
 from gdoc.lib.gdocparser import nameparser
-from gdoc.lib.plugins import Category, PluginManager
+from gdoc.lib.plugins import Category, CategoryManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 from ..object import Object
@@ -21,7 +21,7 @@ class BaseObject(Object):
     class_type: str
     class_version: str
     class_isref: bool
-    _plugins: PluginManager
+    _categories_: CategoryManager
 
     def __init__(
         self,
@@ -32,7 +32,7 @@ class BaseObject(Object):
         tags: list[TextString | str] = [],
         refpath: list[TextString | str] | None = None,
         type_args: dict = {},
-        plugins: PluginManager | None = None,
+        categories: CategoryManager | None = None,
     ):
         gobj_type: Object.Type = Object.Type.REFERENCE if refpath else Object.Type.OBJECT
         super().__init__(name, scope=scope, alias=alias, tags=tags, _type=gobj_type)
@@ -40,8 +40,8 @@ class BaseObject(Object):
         #
         # Set self.class_*
         #
-        self._plugins = plugins or PluginManager()
-        cat = self._plugins.get_category(self)
+        self._categories_ = categories or CategoryManager()
+        cat = self._categories_.get_category(self)
         if type(cat) is Category:
             self.class_category = cat.name
             self.class_version = cat.version
@@ -157,29 +157,31 @@ class BaseObject(Object):
         #
         # Primary types - OBJECT, IMPORT, ACCESS
         #
-        if class_cat == "":
-            cat = self._plugins.get_root_category()
-            if cat is None:
-                pos = tag_body.get_char_pos(1)
-                pos = pos.get_last_pos() if pos is not None else None
-                return Err(
-                    erpt.submit(
-                        GdocRuntimeError(
-                            "Root Category is not found",
-                            pos,
-                            (tag_body.get_str(), 2, 0),
-                        )
-                    )
-                )
-            type_name, type_constructor = cat.get_type(
-                class_type,
-                self.class_type,
-                opts.get(["types", "aliasies", cat.name], {}),
-            )
+        # if class_cat == "":
+        #     cat = self._plugins.get_root_category()
+        #     if cat is None:
+        #         pos = tag_body.get_char_pos(1)
+        #         pos = pos.get_last_pos() if pos is not None else None
+        #         return Err(
+        #             erpt.submit(
+        #                 GdocRuntimeError(
+        #                     "Root Category is not found",
+        #                     pos,
+        #                     (tag_body.get_str(), 2, 0),
+        #                 )
+        #             )
+        #         )
+        #     type_name, type_constructor = cat.get_type(
+        #         class_type,
+        #         self.class_type,
+        #         opts.get(["types", "aliasies", cat.name], {}),
+        #     )
 
         #
         # Context sensitive types
         #
+        if False:
+            pass
         else:
             obj = self
             while obj is not None:
@@ -187,7 +189,7 @@ class BaseObject(Object):
                 # Types managed by each category
                 #
                 if class_cat in (None, obj.class_category):
-                    cat = obj._plugins.get_category(obj)
+                    cat = obj._categories_.get_category(obj)
                     if cat is not None:
                         type_name, type_constructor = cat.get_type(
                             class_type,
@@ -351,7 +353,7 @@ class BaseObject(Object):
                 "args": class_args,
                 "kwargs": class_kwargs,
             },
-            plugins=parent_obj._plugins,
+            categories=parent_obj._categories_,
         )
 
         return Ok(child)

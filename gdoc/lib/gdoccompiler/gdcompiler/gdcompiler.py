@@ -10,19 +10,19 @@ from gdoc.lib.gobj.types import BaseCategory
 from gdoc.lib.gobj.types import Document as GobjDocument
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
-from gdoc.lib.plugins import Category, PluginManager
+from gdoc.lib.plugins import Category, CategoryManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 
 class GdocCompiler:
     """ """
 
-    _plugins: PluginManager
+    _categories_: CategoryManager
 
     def __init__(self, plugins: list[Category] = []) -> None:
-        self._plugins = PluginManager().add_category(BaseCategory)
+        self._categories_ = CategoryManager().add_category(BaseCategory)
         for p in plugins:
-            self._plugins.add_category(p)
+            self._categories_.add_category(p)
 
     def compile(
         self,
@@ -52,7 +52,7 @@ class GdocCompiler:
         pandoc_ast = PandocAst(pandoc_json)
         gdoc = GdocDocument(pandoc_ast)
 
-        gobj = GobjDocument(None, filepath, self._plugins)
+        gobj = GobjDocument(None, filepath, self._categories_)
 
         gobj, e = parse_Document(gdoc, gobj, erpt, opts)
         if e:
