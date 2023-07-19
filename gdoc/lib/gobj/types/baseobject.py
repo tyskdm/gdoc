@@ -72,7 +72,7 @@ class BaseObject(Object):
         #     },
         # ),
 
-    def add_property(
+    def add_new_property(
         self,
         prop: TextString | None,
         args: list[TextString],
@@ -80,7 +80,7 @@ class BaseObject(Object):
         tag_params: dict[str, Any],
         tag_body: TextString,
         erpt: ErrorReport,
-        opts: Settings,
+        opts: Settings | None = None,
     ) -> Result[TextString | list[TextString] | None, ErrorReport]:
         """
         prop, e = target_obj.set_prop(
@@ -103,7 +103,7 @@ class BaseObject(Object):
         tag_params: dict[str, Any],
         tag_body: TextString,
         erpt: ErrorReport,
-        opts: Settings,
+        opts: Settings | None = None,
     ) -> Result["BaseObject", ErrorReport]:
         """
         Object Factory
