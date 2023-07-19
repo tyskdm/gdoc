@@ -127,7 +127,7 @@ class BaseObject(Object):
         #
         # Create Object
         #
-        r = type_constructor.create(
+        r = type_constructor._create_object_(
             class_info, class_args, class_kwargs, tag_params, self, erpt
         )
         if r.is_err():
@@ -308,7 +308,7 @@ class BaseObject(Object):
         return class_name, constructor
 
     @classmethod
-    def create(
+    def _create_object_(
         cls,
         class_info: tuple[TextString | None, TextString | None, TextString | None],
         class_args: list[TextString],
