@@ -23,7 +23,7 @@ class CategoryManager:
     def get_category(self, obj: Any) -> Category | None:
         return self._type_table.get(type(obj))
 
-    # def get_root_category(self) -> Category | None:
-    #     if len(self._categories) > 0:
-    #         return self._categories[0]
-    #     return None
+    def get_root_category(self) -> Category | None:
+        if len(self._categories) > 0:
+            return self._categories[0]
+        return None

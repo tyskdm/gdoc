@@ -17,11 +17,18 @@ class BaseObject(Object):
     BaseObject class
     """
 
-    class_category: str
-    class_type: str
-    class_version: str
-    class_isref: bool
-    _categories_: CategoryManager
+    class_category: str = ""
+    class_type: str = ""
+    class_version: str = ""
+    class_isref: bool = False
+    _class_categories_: CategoryManager | None = None
+    _class_category_: Category | None = None
+    _class_type_info_: dict[str, Any] = {}
+    _class_property_info_: dict[str, Any] = {}
+
+    def __init_subclass__(cls, **kwargs) -> None:
+        cls._class_property_info_ = cls._class_type_info_.get("properties", {})
+        super().__init_subclass__(**kwargs)
 
     def __init__(
         self,
@@ -40,14 +47,14 @@ class BaseObject(Object):
         #
         # Set self.class_*
         #
-        self._categories_ = categories or CategoryManager()
-        cat = self._categories_.get_category(self)
-        if type(cat) is Category:
-            self.class_category = cat.name
-            self.class_version = cat.version
-        else:
-            self.class_category = ""
-            self.class_version = ""
+        if categories is not None:
+            self._class_categories_ = categories
+            cat = self._class_categories_.get_category(self)
+            if cat is not None:
+                self._class_category_ = cat
+                self.class_category = cat.name
+                self.class_version = cat.version
+
         self.class_type = (
             typename.get_str() if (type(typename) is TextString) else cast(str, typename)
         )
@@ -157,31 +164,33 @@ class BaseObject(Object):
         #
         # Primary types - OBJECT, IMPORT, ACCESS
         #
-        # if class_cat == "":
-        #     cat = self._plugins.get_root_category()
-        #     if cat is None:
-        #         pos = tag_body.get_char_pos(1)
-        #         pos = pos.get_last_pos() if pos is not None else None
-        #         return Err(
-        #             erpt.submit(
-        #                 GdocRuntimeError(
-        #                     "Root Category is not found",
-        #                     pos,
-        #                     (tag_body.get_str(), 2, 0),
-        #                 )
-        #             )
-        #         )
-        #     type_name, type_constructor = cat.get_type(
-        #         class_type,
-        #         self.class_type,
-        #         opts.get(["types", "aliasies", cat.name], {}),
-        #     )
+        if class_cat == "":
+            cat: Category | None = (
+                self._class_categories_.get_root_category()
+                if self._class_categories_
+                else None
+            )
+            if cat is None:
+                pos = tag_body.get_char_pos(1)
+                pos = pos.get_last_pos() if pos is not None else None
+                return Err(
+                    erpt.submit(
+                        GdocRuntimeError(
+                            "Root Category is not found",
+                            pos,
+                            (tag_body.get_str(), 2, 0),
+                        )
+                    )
+                )
+            type_name, type_constructor = cat.get_type(
+                class_type,
+                self.class_type,
+                opts.get(["types", "aliasies", cat.name], {}),
+            )
 
         #
         # Context sensitive types
         #
-        if False:
-            pass
         else:
             obj = self
             while obj is not None:
@@ -189,7 +198,7 @@ class BaseObject(Object):
                 # Types managed by each category
                 #
                 if class_cat in (None, obj.class_category):
-                    cat = obj._categories_.get_category(obj)
+                    cat: Category | None = obj._class_category_
                     if cat is not None:
                         type_name, type_constructor = cat.get_type(
                             class_type,
@@ -353,7 +362,7 @@ class BaseObject(Object):
                 "args": class_args,
                 "kwargs": class_kwargs,
             },
-            categories=parent_obj._categories_,
+            categories=parent_obj._class_categories_,
         )
 
         return Ok(child)
