@@ -95,7 +95,7 @@ class BaseObject(Object):
         return Ok(text)
 
     @final
-    def create_object(
+    def add_new_object(
         self,
         class_info: tuple[TextString | None, TextString | None, TextString | None],
         class_args: list[TextString],

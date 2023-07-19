@@ -65,7 +65,7 @@ def parse_TextBlock(
     child: BaseObject | None = None
     if blocktag_param is not None:
         target_tag, tag_param = blocktag_param
-        child, e = gobj.create_object(
+        child, e = gobj.add_new_object(
             *target_tag.get_arguments(), tag_param, target_tag, srpt, opts
         )
         if e:

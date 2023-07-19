@@ -48,8 +48,8 @@ def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
     target_data = Document(pandoc_ast)[1]  # 2nd. block
 
     # Mock
-    gdobject = mocker.Mock(["create_object"])
-    gdobject.create_object.return_value = (None, None)
+    gdobject = mocker.Mock(["add_new_object"])
+    gdobject.add_new_object.return_value = (None, None)
 
     # erpt_mock = mocker.Mock()
     # erpt_mock.submit = mocker.Mock(return_value=True)
@@ -59,9 +59,9 @@ def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
     parse_TextBlock(target_data, gdobject, erpt_mock, None)
 
     # Assertion
-    gdobject.create_object.assert_called_once()
-    args = gdobject.create_object.call_args_list[0][0]
-    kwargs = gdobject.create_object.call_args_list[0][1]
+    gdobject.add_new_object.assert_called_once()
+    args = gdobject.add_new_object.call_args_list[0][0]
+    kwargs = gdobject.add_new_object.call_args_list[0][1]
 
     assert kwargs == {}
 
