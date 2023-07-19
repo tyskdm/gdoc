@@ -72,28 +72,6 @@ class BaseObject(Object):
         #     },
         # ),
 
-    def add_new_property(
-        self,
-        prop: TextString | None,
-        args: list[TextString],
-        kwargs: list[tuple[TextString, TextString]],
-        tag_params: dict[str, Any],
-        tag_body: TextString,
-        erpt: ErrorReport,
-        opts: Settings | None = None,
-    ) -> Result[TextString | list[TextString] | None, ErrorReport]:
-        """
-        prop, e = target_obj.set_prop(
-            *target_tag.get_arguments(), tag_param, target_tag, srpt, opts
-        )
-        """
-        key: str = prop.get_str() if prop else "text"
-        text: TextString | list[TextString] | None = tag_params.get("text")
-        if text is not None:
-            super().set_prop(key, text)
-
-        return Ok(text)
-
     @final
     def add_new_object(
         self,
@@ -142,7 +120,7 @@ class BaseObject(Object):
         class_info: tuple[TextString | None, TextString | None, TextString | None],
         tag_body: TextString,
         erpt: ErrorReport,
-        opts: Settings,
+        opts: Settings | None = None,
     ) -> Result[tuple[str, "BaseObject"], ErrorReport]:
         """
         Get Constructor
@@ -185,7 +163,7 @@ class BaseObject(Object):
             type_name, type_constructor = cat.get_type(
                 class_type,
                 self.class_type,
-                opts.get(["types", "aliasies", cat.name], {}),
+                (opts.get(["types", "aliasies", cat.name], {}) if opts else {}),
             )
 
         #
@@ -203,7 +181,11 @@ class BaseObject(Object):
                         type_name, type_constructor = cat.get_type(
                             class_type,
                             obj.class_type,
-                            opts.get(["types", "aliasies", cat.name], {}),
+                            (
+                                opts.get(["types", "aliasies", cat.name], {})
+                                if opts
+                                else {}
+                            ),
                         )
                         if type_constructor is not None:
                             # OK: Constructor found
@@ -300,7 +282,7 @@ class BaseObject(Object):
         self,
         class_cat: str | None,
         class_type: str | None,
-        opts: Settings,
+        opts: Settings | None = None,
     ):
         """ """
         constructor = None
@@ -356,8 +338,8 @@ class BaseObject(Object):
             name,
             scope=scope or "+",
             alias=tag_params.get("name"),
-            tags=tags,
-            refpath=refpath,
+            tags=cast(list[TextString | str], tags),
+            refpath=cast(list[TextString | str], refpath),
             type_args={
                 "args": class_args,
                 "kwargs": class_kwargs,
@@ -438,3 +420,25 @@ class BaseObject(Object):
         names, tags = r.unwrap()
 
         return Ok((scope, names, tags, args))
+
+    def add_new_property(
+        self,
+        prop: TextString | None,
+        args: list[TextString],
+        kwargs: list[tuple[TextString, TextString]],
+        tag_params: dict[str, Any],
+        tag_body: TextString,
+        erpt: ErrorReport,
+        opts: Settings | None = None,
+    ) -> Result[TextString | list[TextString] | None, ErrorReport]:
+        """
+        prop, e = target_obj.set_prop(
+            *target_tag.get_arguments(), tag_param, target_tag, srpt, opts
+        )
+        """
+        key: str = prop.get_str() if prop else "text"
+        text: TextString | list[TextString] | None = tag_params.get("text")
+        if text is not None:
+            super().set_prop(key, text)
+
+        return Ok(text)
