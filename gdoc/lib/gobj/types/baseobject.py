@@ -217,7 +217,7 @@ class BaseObject(Object):
                 #
                 # Types managed by each object
                 #
-                type_name, type_constructor = obj._get_childtype_(
+                type_name, type_constructor = obj._get_additional_constructor_(
                     class_type,
                     obj.class_type,
                     opts,
@@ -296,7 +296,7 @@ class BaseObject(Object):
         type_name = cast(str, type_name)
         return Ok((type_name, type_constructor))
 
-    def _get_childtype_(
+    def _get_additional_constructor_(
         self,
         class_cat: str | None,
         class_type: str | None,
