@@ -4,7 +4,11 @@ baseobject.py: BaseObject class
 from typing import Any, cast, final
 
 from gdoc.lib.gdoc import DataPos, TextString
-from gdoc.lib.gdoccompiler.gdexception import GdocRuntimeError, GdocSyntaxError
+from gdoc.lib.gdoccompiler.gdexception import (
+    GdocNameError,
+    GdocRuntimeError,
+    GdocSyntaxError,
+)
 from gdoc.lib.gdocparser import nameparser
 from gdoc.lib.plugins import Category, CategoryManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
@@ -23,12 +27,44 @@ class BaseObject(Object):
     class_isref: bool = False
     _class_categories_: CategoryManager | None = None
     _class_category_: Category | None = None
-    _class_type_info_: dict[str, Any] = {}
-    _class_property_info_: dict[str, Any] = {}
-
-    def __init_subclass__(cls, **kwargs) -> None:
-        cls._class_property_info_ = cls._class_type_info_.get("properties", {})
-        super().__init_subclass__(**kwargs)
+    _class_type_info_: dict[str, Any] = {
+        "args": [
+            # positional args placed after 'scope-name-tags'
+        ],
+        "kwargs": {},
+        "params": {
+            "name": ["alias", "Name", None],  # name: Name = None
+            "text": ["text", None, None],  # text: Any = None
+        },
+    }
+    _class_property_info_: dict[str, Any] = {
+        "DOC": "TEXT",
+        "TEXT": {
+            "type": None,
+            "params": {
+                "text": ["text", None, None],  # text: Any = None
+            },
+        },
+        "NOTE": {
+            "type": None,
+            "args": [
+                ["id", "ShortName", None],  # id: ShortName = None
+            ],
+            "params": {
+                "text": ["text", None, None],  # text: Any = None
+            },
+        },
+        "*": {
+            # All other than the above is treated as a Text property.
+            "type": None,
+            "args": [
+                ["id", "ShortName", None],  # id: ShortName = None
+            ],
+            "params": {
+                "text": ["text", None, None],  # text: Any = None
+            },
+        },
+    }
 
     def __init__(
         self,
@@ -98,11 +134,6 @@ class BaseObject(Object):
         type_name, type_constructor = r.unwrap()
 
         #
-        # Check and Setup arguments according to the class info
-        #
-        # TODO: Implement
-
-        #
         # Create Object
         #
         r = type_constructor._create_object_(
@@ -112,7 +143,17 @@ class BaseObject(Object):
             return Err(erpt.submit(r.err()))
         child: BaseObject | None = r.unwrap()
 
+        #
+        # Add as a child
+        #
+        name: str
+        for name in child.names:
+            if self.get_child(name) is not None:
+                # TODO: Add error info
+                return Err(erpt.submit(GdocNameError(f"Name '{name}' is already used.")))
+
         self.add_child(child)
+
         return Ok(child)
 
     def _get_constructor_(
@@ -299,55 +340,137 @@ class BaseObject(Object):
         parent_obj: "BaseObject",
         erpt: ErrorReport,
     ) -> Result["BaseObject", ErrorReport]:
+        # def __init__(
+        #     self,
+        #     typename: TextString | str | None,
+        #     name: TextString | str | None = None,
+        #     scope: TextString | str = "+",
+        #     alias: TextString | str | None = None,
+        #     tags: list[TextString | str] = [],
+        #     refpath: list[TextString | str] | None = None,
+        #     type_args: dict = {},
+        #     categories: CategoryManager | None = None,
+        # ):
+        typename = class_info[1]
+        name: TextString | None = None
+        scope: TextString | str | None = None
+        alias: TextString | None = tag_params.get("name")  # should be None as default
+        tags: list[TextString] = []
+        refpath: list[TextString] | None = None
+        type_args: dict = {}
+
         #
-        # Get scope, names, tags, and remaining args from arguments
+        # Get scope, name, tags, refpath, and the remaining args
+        # from the top of the class_args.
         #
-        scope: TextString | None
         names: list[TextString]
-        tags: list[TextString]
         args: list[TextString]
         r = cls._pop_name_(class_args, erpt)
         if r.is_err():
             return Err(erpt.submit(r.err()))
-        scope, names, tags, args = r.unwrap()
 
-        #
-        # Setup name, isref, and refname
-        #
-        name: TextString | None = None
-        isref: TextString | None = class_info[2]  # isref
-        refpath: list[TextString] | None = None
+        scope, names, tags, args = r.unwrap()
+        scope = scope or "+"
+
         if len(names) > 0:
-            if isref is not None:
-                # names are object name to link
-                name = names[-1]
-                refpath = names
-            else:
+            if class_info[2] is None:  # isref is None
                 # names[:-1] are explicit parent names
                 r = parent_obj._check_parent_names_(names, erpt)
                 if r.is_err():
                     return Err(erpt.submit(r.err()))
                 name = r.unwrap()
                 refpath = None
+            else:
+                # names are object name to link
+                name = names[-1]
+                refpath = names
 
         #
-        # Create Object
+        # Get args
+        #
+        arginfo: list[Any]
+        for arginfo in cls._class_type_info_.get("args", []):
+            if len(args) > 0:
+                a = args.pop(0)
+                r = cls._check_type_(a, arginfo[1], erpt)
+                if r.is_err():
+                    return Err(erpt.submit(r.err()))
+                type_args[arginfo[0]] = r.unwrap()
+
+            elif len(arginfo) > 2:
+                type_args[arginfo[0]] = arginfo[2]
+
+            else:
+                return Err(
+                    erpt.submit(GdocSyntaxError(f"Argument '{arginfo[0]}' is missing"))
+                )
+
+        #
+        # Get kwargs
+        #
+        key: str
+        for key in cls._class_type_info_.get("kwargs", {}).keys():
+            arginfo = cls._class_type_info_["kwargs"][key]
+            if key in class_kwargs:
+                a = class_kwargs[key]
+                r = cls._check_type_(a, arginfo[1], erpt)
+                if r.is_err():
+                    return Err(erpt.submit(r.err()))
+                type_args[arginfo[0]] = r.unwrap()
+
+            elif len(arginfo) > 2:
+                type_args[arginfo[0]] = arginfo[2]
+
+            else:
+                return Err(
+                    erpt.submit(GdocSyntaxError(f"Argument '{arginfo[0]}' is missing"))
+                )
+
+        #
+        # Get paramas
+        #
+        key: str
+        for key in cls._class_type_info_.get("kwargs", {}).keys():
+            if key == "*":
+                continue
+
+            arginfo = cls._class_type_info_["kwargs"][key]
+            if key in class_kwargs:
+                a = class_kwargs[key]
+                r = cls._check_type_(a, arginfo[1], erpt)
+                if r.is_err():
+                    return Err(erpt.submit(r.err()))
+                type_args[arginfo[0]] = r.unwrap()
+
+            elif len(arginfo) > 2:
+                type_args[arginfo[0]] = arginfo[2]
+
+            else:
+                return Err(
+                    erpt.submit(GdocSyntaxError(f"Argument '{arginfo[0]}' is missing"))
+                )
+
+        #
+        # Construct Object
         #
         child: BaseObject = cls(
-            class_info[1],  # type
+            typename,
             name,
-            scope=scope or "+",
-            alias=tag_params.get("name"),
+            scope=scope,
+            alias=alias,
             tags=cast(list[TextString | str], tags),
             refpath=cast(list[TextString | str], refpath),
-            type_args={
-                "args": class_args,
-                "kwargs": class_kwargs,
-            },
+            type_args=type_args,
             categories=parent_obj._class_categories_,
         )
 
         return Ok(child)
+
+    @classmethod
+    def _check_type_(
+        cls, value: Any, value_type: str | None, erpt: ErrorReport
+    ) -> Result[Any, ErrorReport]:
+        return Ok(value)
 
     def _check_parent_names_(
         self, names: list[TextString], erpt: ErrorReport
