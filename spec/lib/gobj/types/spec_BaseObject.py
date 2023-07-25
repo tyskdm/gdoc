@@ -56,13 +56,13 @@ def spec___init___2():
             "name": "ID",
             "names": ["ID"],
             "tags": [],
-            # "class": {
-            #     "category": "",
-            #     "type": "OBJECT",
-            #     "version": "",
-            #     "refpath": None,
-            #     "args": {},
-            # },
+            "class": {
+                "category": "",
+                "type": "OBJECT",
+                "version": "",
+                "refpath": None,
+                "args": {},
+            },
         }
     }
 

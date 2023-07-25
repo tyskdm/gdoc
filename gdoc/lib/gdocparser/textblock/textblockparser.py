@@ -81,7 +81,11 @@ def parse_TextBlock(
             *target_tag.get_arguments(), tag_param, target_tag, srpt, opts
         )
 
-    # TODO: Change to return original gobj instead of child if the child is ImportObject.
+    #
+    # Return result
+    #
+    if child and (child._get_type_() is BaseObject.Type.IMPORT):
+        child = None
 
     if srpt.haserror():
         return Err(erpt.submit(srpt), child)  # type: ignore

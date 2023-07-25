@@ -91,6 +91,9 @@ class Namespace:
         self.__link_to = None
         self.__link_from = []
 
+    def _get_type_(self) -> Type:
+        return self.__type
+
     def add_child(self, child: "Namespace") -> None:
         if self.__type is Namespace.Type.IMPORT:
             raise TypeError("'Import' object cannot have children")

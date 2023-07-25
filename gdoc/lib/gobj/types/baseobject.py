@@ -74,10 +74,18 @@ class BaseObject(Object):
         alias: TextString | str | None = None,
         tags: list[TextString | str] = [],
         refpath: list[TextString | str] | None = None,
-        type_args: dict = {},
+        type_args: dict = {},  # For subclasses, Not used in this class.
         categories: CategoryManager | None = None,
+        _isimport_: bool = False,
     ):
-        gobj_type: Object.Type = Object.Type.REFERENCE if refpath else Object.Type.OBJECT
+        gobj_type: Object.Type
+        if _isimport_:
+            gobj_type = Object.Type.IMPORT
+        elif refpath is None:
+            gobj_type = Object.Type.OBJECT
+        else:
+            gobj_type = Object.Type.REFERENCE
+
         super().__init__(name, scope=scope, alias=alias, tags=tags, _type=gobj_type)
 
         #
@@ -95,18 +103,16 @@ class BaseObject(Object):
             typename.get_str() if (type(typename) is TextString) else cast(str, typename)
         )
         self.class_isref = refpath is not None
-        # self.set_prop(
-        #     ".",
-        #     {
-        #         "class": {
-        #             "category": self.class_category,
-        #             "type": self.class_type,
-        #             "version": self.class_version,
-        #             "refpath": refpath,
-        #             "args": type_args,
-        #         },
-        #     },
-        # ),
+        self._set_attr_(
+            "class",
+            {
+                "category": self.class_category,
+                "type": self.class_type,
+                "version": self.class_version,
+                "refpath": refpath,
+                "args": type_args,
+            },
+        )
 
     @final
     def add_new_object(
@@ -146,11 +152,18 @@ class BaseObject(Object):
         #
         # Add as a child
         #
-        name: str
-        for name in child.names:
-            if self.get_child(name) is not None:
-                # TODO: Add error info
-                return Err(erpt.submit(GdocNameError(f"Name '{name}' is already used.")))
+        name: TextString | str
+        for name in child._get_attr_("names"):
+            namestr: str = name.get_str() if isinstance(name, TextString) else name
+            if self.get_child(namestr) is not None:
+                return Err(
+                    erpt.submit(
+                        GdocNameError(
+                            f"Name '{name}' is already used.",
+                            name.get_data_pos() if type(name) is TextString else None,
+                        )
+                    )
+                )
 
         self.add_child(child)
 

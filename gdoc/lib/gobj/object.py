@@ -14,15 +14,13 @@ class Object(Namespace):
     ;
     """
 
-    Type = Namespace.Type
-
     def __init__(
         self,
         name: TextString | str | None = None,
         scope: TextString | str = "+",
         alias: TextString | str | None = None,
         tags: list[TextString | str] = [],
-        _type: Type = Type.OBJECT,
+        _type: Namespace.Type = Namespace.Type.OBJECT,
     ):
         super().__init__(
             name=name.get_str() if (type(name) is TextString) else cast(str, name),
@@ -37,10 +35,14 @@ class Object(Namespace):
 
         self.__properties = {
             "": {
-                "name": name or alias,
-                "scope": scope,
-                "names": [] + ([name] if name else []) + ([alias] if alias else []),
-                "tags": tags[:],
+                "name": self.name,
+                "scope": self.scope,
+                "names": (
+                    []
+                    + ([name] if name is not None else [])
+                    + ([alias] if alias is not None else [])
+                ),
+                "tags": tags,
             }
         }
 
@@ -147,6 +149,12 @@ class Object(Namespace):
             result = [v]
 
         return result
+
+    def _set_attr_(self, key, value):
+        self.__properties[""][key] = value
+
+    def _get_attr_(self, key):
+        return self.__properties[""][key]
 
     def dumpd(self):
         prop = self._cast_to_str(self.__properties)
