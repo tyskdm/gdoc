@@ -15,7 +15,9 @@ class Category:
         self.aliases = category_info["aliases"]
         self.defaults = category_info["defaults"]
 
-    def get_type(self, target_type: str | None, parent_type: str, aliases: dict = {}):
+    def get_type(
+        self, target_type: str | None, parent_type: str | None, aliases: dict = {}
+    ):
         """
         get object class by name
         """

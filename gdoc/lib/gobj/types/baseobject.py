@@ -195,7 +195,7 @@ class BaseObject(Object):
                 return Err(
                     erpt.submit(
                         GdocRuntimeError(
-                            "Root Category is not found",
+                            "Root Category is not set",
                             pos,
                             (tag_body.get_str(), 2, 0),
                         )
@@ -211,7 +211,8 @@ class BaseObject(Object):
         # Context sensitive types
         #
         else:
-            obj = self
+            obj: BaseObject | None = self
+            parent_type: str | None = obj.class_type
             while obj is not None:
                 #
                 # Types managed by each category
@@ -221,7 +222,7 @@ class BaseObject(Object):
                     if cat is not None:
                         type_name, type_constructor = cat.get_type(
                             class_type,
-                            obj.class_type,
+                            parent_type,
                             (
                                 opts.get(["types", "aliasies", cat.name], {})
                                 if opts
@@ -242,14 +243,15 @@ class BaseObject(Object):
                 #
                 type_name, type_constructor = obj._get_additional_constructor_(
                     class_type,
-                    obj.class_type,
+                    parent_type,
                     opts,
                 )
                 if type_constructor is not None:
                     # OK: Constructor found
                     break
 
-                obj = obj.get_parent()
+                obj = cast(BaseObject | None, obj.get_parent())
+                parent_type = None
 
         #
         # Check result / Error reporting

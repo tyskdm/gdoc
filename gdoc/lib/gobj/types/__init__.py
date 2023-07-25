@@ -23,6 +23,6 @@ BaseCategory = Category(
         "aliases": {
             # "OBJ": "OBJECT"
         },
-        "defaults": {"": "OBJECT", "OBJECT": "OBJECT", "DOCUMENT": "OBJECT"},
+        "defaults": {None: "OBJECT", "OBJECT": "OBJECT", "DOCUMENT": "OBJECT"},
     }
 )
