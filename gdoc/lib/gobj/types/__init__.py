@@ -17,12 +17,12 @@ BaseCategory = Category(
         "types": {
             "OBJECT": BaseObject,
             "IMPORT": ImportObject,
-            "ACCESS": ImportObject,
-            "DOCUMENT": Document,
         },
         "aliases": {
             # "OBJ": "OBJECT"
         },
-        "defaults": {None: "OBJECT", "OBJECT": "OBJECT", "DOCUMENT": "OBJECT"},
+        "defaults": {None: "OBJECT", "OBJECT": "OBJECT"},
     }
 )
+
+__all__ = ["BaseCategory", "Document", "BaseObject", "ImportObject"]

@@ -40,5 +40,7 @@ class Category:
 
             if type_name in self.types:
                 constructor = self.types[type_name]
+            else:
+                type_name = None
 
         return type_name, constructor

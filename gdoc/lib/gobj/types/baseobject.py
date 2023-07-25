@@ -1,7 +1,7 @@
 """
 baseobject.py: BaseObject class
 """
-from typing import Any, cast, final
+from typing import Any, Union, cast, final
 
 from gdoc.lib.gdoc import DataPos, TextString
 from gdoc.lib.gdoccompiler.gdexception import (
@@ -242,8 +242,8 @@ class BaseObject(Object):
                 # Types managed by each object
                 #
                 type_name, type_constructor = obj._get_additional_constructor_(
+                    class_cat,
                     class_type,
-                    parent_type,
                     opts,
                 )
                 if type_constructor is not None:
@@ -326,7 +326,7 @@ class BaseObject(Object):
         class_cat: str | None,
         class_type: str | None,
         opts: Settings | None = None,
-    ):
+    ) -> tuple[Union[str, None], Union["BaseObject", None]]:
         """ """
         constructor = None
         class_name = None

@@ -27,3 +27,6 @@ class CategoryManager:
         if len(self._categories) > 0:
             return self._categories[0]
         return None
+
+    def get_categories(self):
+        return reversed(self._categories)
