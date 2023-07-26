@@ -4,8 +4,7 @@ ImportObject class
 from typing import Any, cast
 
 from gdoc.lib.gdoc import TextString
-from gdoc.lib.gdoccompiler.gdexception import GdocRuntimeError, GdocSyntaxError
-from gdoc.lib.plugins import CategoryManager
+from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.util import Err, ErrorReport, Ok, Result
 
 from .baseobject import BaseObject
@@ -14,30 +13,34 @@ from .baseobject import BaseObject
 class ImportObject(BaseObject):
     """ """
 
+    _class_type_info_: dict[str, Any] = {
+        "args": [],
+        "kwargs": {
+            "from": ["from", "RefPath", None],  # from: RefPath = None
+            "as": ["as", "ShortName", None],  # as: ShortName = None
+        },
+    }
+    _class_property_info_: dict[str, Any] = {
+        "NOTE": {
+            "type": None,
+            "args": [
+                ["id", "ShortName", None],  # id: ShortName = None
+            ],
+            "params": {
+                "text": ["text", None, None],  # text: Any = None
+            },
+        },
+    }
+
     def __init__(
         self,
-        typename: TextString | str | None,
-        name: TextString | str | None = None,
-        scope: TextString | str = "+",
-        alias: TextString | str | None = None,
-        tags: list[TextString | str] = [],
-        refpath: list[TextString | str] | None = None,
-        type_args: dict = {},
-        categories: CategoryManager | None = None,
+        *args,
+        **kwargs,
     ):
-        if refpath is None:
-            raise GdocRuntimeError()
-
+        kwargs["_isimport_"] = True
         super().__init__(
-            typename,
-            name,
-            scope,
-            alias,
-            tags,
-            refpath,
-            type_args,
-            categories,
-            _isimport_=True,
+            *args,
+            **kwargs,
         )
 
     @classmethod
@@ -119,51 +122,53 @@ class ImportObject(BaseObject):
                 return Err(
                     erpt.submit(GdocSyntaxError(f"Argument '{arginfo[0]}' is missing"))
                 )
+        else:
+            if len(args) > 0:
+                return Err(
+                    erpt.submit(
+                        GdocSyntaxError(
+                            f"Too many arguments: {len(args)} arguments are left"
+                        )
+                    )
+                )
 
         #
         # Get kwargs
         #
         key: str
-        for key in cls._class_type_info_.get("kwargs", {}).keys():
-            arginfo = cls._class_type_info_["kwargs"][key]
-            if key in class_kwargs:
-                a = class_kwargs[key]
-                r = cls._check_type_(a, arginfo[1], erpt)
+        kwargs: dict = cls._class_type_info_.get("kwargs", {})
+        keywords: set[str] = set()
+        for keytstr, valtstr in class_kwargs:
+            key = keytstr.get_str()
+            keywords.add(key)
+            if key in kwargs:
+                arginfo = kwargs[key]
+                r = cls._check_type_(valtstr, arginfo[1], erpt)
                 if r.is_err():
                     return Err(erpt.submit(r.err()))
                 type_args[arginfo[0]] = r.unwrap()
-
-            elif len(arginfo) > 2:
-                type_args[arginfo[0]] = arginfo[2]
-
             else:
                 return Err(
-                    erpt.submit(GdocSyntaxError(f"Argument '{arginfo[0]}' is missing"))
+                    erpt.submit(
+                        GdocSyntaxError(
+                            f"Unexpected argument '{key}' is specified",
+                            keytstr.get_data_pos(),
+                        )
+                    )
                 )
-
-        #
-        # Get paramas
-        #
-        key: str
-        for key in cls._class_type_info_.get("kwargs", {}).keys():
-            if key == "*":
-                continue
-
-            arginfo = cls._class_type_info_["kwargs"][key]
-            if key in class_kwargs:
-                a = class_kwargs[key]
-                r = cls._check_type_(a, arginfo[1], erpt)
-                if r.is_err():
-                    return Err(erpt.submit(r.err()))
-                type_args[arginfo[0]] = r.unwrap()
-
-            elif len(arginfo) > 2:
-                type_args[arginfo[0]] = arginfo[2]
-
-            else:
-                return Err(
-                    erpt.submit(GdocSyntaxError(f"Argument '{arginfo[0]}' is missing"))
-                )
+        else:
+            # Check if all required kwargs are specified
+            keywords = set(kwargs.keys()) - keywords
+            for key in keywords:
+                arginfo = kwargs[key]
+                if len(arginfo) > 2:
+                    type_args[arginfo[0]] = arginfo[2]
+                else:
+                    return Err(
+                        erpt.submit(
+                            GdocSyntaxError(f"Argument '{arginfo[0]}' is missing")
+                        )
+                    )
 
         #
         # Construct Object

@@ -33,7 +33,6 @@ class BaseObject(Object):
         ],
         "kwargs": {},
         "params": {
-            "name": ["alias", "Name", None],  # name: Name = None
             "text": ["text", None, None],  # text: Any = None
         },
     }
@@ -110,9 +109,11 @@ class BaseObject(Object):
                 "type": self.class_type,
                 "version": self.class_version,
                 "refpath": refpath,
-                "args": type_args,
             },
         )
+
+        for key in type_args.keys():
+            self.set_prop(key, type_args[key])
 
     @final
     def add_new_object(
@@ -419,39 +420,62 @@ class BaseObject(Object):
                 return Err(
                     erpt.submit(GdocSyntaxError(f"Argument '{arginfo[0]}' is missing"))
                 )
+        else:
+            if len(args) > 0:
+                return Err(
+                    erpt.submit(
+                        GdocSyntaxError(
+                            f"Too many arguments: {len(args)} arguments are left"
+                        )
+                    )
+                )
 
         #
         # Get kwargs
         #
         key: str
-        for key in cls._class_type_info_.get("kwargs", {}).keys():
-            arginfo = cls._class_type_info_["kwargs"][key]
-            if key in class_kwargs:
-                a = class_kwargs[key]
-                r = cls._check_type_(a, arginfo[1], erpt)
+        kwargs: dict = cls._class_type_info_.get("kwargs", {})
+        keywords: set[str] = set()
+        for keytstr, valtstr in class_kwargs:
+            key = keytstr.get_str()
+            keywords.add(key)
+            if key in kwargs:
+                arginfo = kwargs[key]
+                r = cls._check_type_(valtstr, arginfo[1], erpt)
                 if r.is_err():
                     return Err(erpt.submit(r.err()))
                 type_args[arginfo[0]] = r.unwrap()
-
-            elif len(arginfo) > 2:
-                type_args[arginfo[0]] = arginfo[2]
-
             else:
                 return Err(
-                    erpt.submit(GdocSyntaxError(f"Argument '{arginfo[0]}' is missing"))
+                    erpt.submit(
+                        GdocSyntaxError(
+                            f"Unexpected argument '{key}' is specified",
+                            keytstr.get_data_pos(),
+                        )
+                    )
                 )
+        else:
+            # Check if all required kwargs are specified
+            keywords = set(kwargs.keys()) - keywords
+            for key in keywords:
+                arginfo = kwargs[key]
+                if len(arginfo) > 2:
+                    type_args[arginfo[0]] = arginfo[2]
+                else:
+                    return Err(
+                        erpt.submit(
+                            GdocSyntaxError(f"Argument '{arginfo[0]}' is missing")
+                        )
+                    )
 
         #
-        # Get paramas
+        # Get params
         #
         key: str
-        for key in cls._class_type_info_.get("kwargs", {}).keys():
-            if key == "*":
-                continue
-
-            arginfo = cls._class_type_info_["kwargs"][key]
-            if key in class_kwargs:
-                a = class_kwargs[key]
+        for key in cls._class_type_info_.get("params", {}).keys():
+            arginfo = cls._class_type_info_["params"][key]
+            if key in tag_params:
+                a = tag_params[key]
                 r = cls._check_type_(a, arginfo[1], erpt)
                 if r.is_err():
                     return Err(erpt.submit(r.err()))
@@ -462,7 +486,9 @@ class BaseObject(Object):
 
             else:
                 return Err(
-                    erpt.submit(GdocSyntaxError(f"Argument '{arginfo[0]}' is missing"))
+                    erpt.submit(
+                        GdocSyntaxError(f"Tag parameter '{arginfo[0]}' is missing")
+                    )
                 )
 
         #

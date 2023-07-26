@@ -50,20 +50,17 @@ def spec___init___2():
     target = BaseObject("OBJECT", "ID")
     prop = target._Object__properties
 
-    assert prop == {
-        "": {
-            "scope": "+",
-            "name": "ID",
-            "names": ["ID"],
-            "tags": [],
-            "class": {
-                "category": "",
-                "type": "OBJECT",
-                "version": "",
-                "refpath": None,
-                "args": {},
-            },
-        }
+    assert prop[""] == {
+        "scope": "+",
+        "name": "ID",
+        "names": ["ID"],
+        "tags": [],
+        "class": {
+            "category": "",
+            "type": "OBJECT",
+            "version": "",
+            "refpath": None,
+        },
     }
 
     assert target.scope == "+"
