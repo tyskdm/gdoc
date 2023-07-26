@@ -34,7 +34,7 @@ def test_PandocAst_1():
     r"""
     [@test PandocAst.1] Create empty PandocAst object from empty '.md' document.
     """
-    datadir = ".".join(__file__.split(".")[:-1]) + "/"  # data directory
+    datadir = __file__.split(".", 1)[0] + "/"  # data directory
 
     pandoc = Pandoc()
     types_version = pandoc.get_version()["pandoc-types"]
@@ -50,7 +50,7 @@ def test_PandocAst_2():
     r"""
     [@test PandocAst.2]
     """
-    datadir = ".".join(__file__.split(".")[:-1]) + "/"  # data directory
+    datadir = __file__.split(".", 1)[0] + "/"  # data directory
 
     pandoc_json = Pandoc().get_json(datadir + "test_2.md")
     pandoc_ast = PandocAst(pandoc_json)
@@ -64,7 +64,7 @@ def test_PandocAst_3():
     r"""
     [@test PandocAst.2]
     """
-    datadir = ".".join(__file__.split(".")[:-1]) + "/"  # data directory
+    datadir = __file__.split(".", 1)[0] + "/"  # data directory
 
     pandoc_json = Pandoc().get_json(datadir + "test_3.md")
     pandoc_ast = PandocAst(pandoc_json)
@@ -75,7 +75,6 @@ def test_PandocAst_3():
 
 
 def _test_PandocAst_sub(target, expected):
-
     assert target.get_type() == expected[0]
 
     if expected[1] is None:
@@ -88,7 +87,7 @@ def _test_PandocAst_sub(target, expected):
         items = target.get_child_items()
         assert len(items) == len(expected[1])
 
-        for (t, e) in zip(items, expected[1]):
+        for t, e in zip(items, expected[1]):
             _test_PandocAst_sub(t, e)
 
     else:

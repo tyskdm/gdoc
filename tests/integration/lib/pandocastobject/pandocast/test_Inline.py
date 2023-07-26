@@ -19,7 +19,6 @@ from gdoc.lib.pandocastobject.pandocast import PandocAst
 
 
 def _test_PandocAst_structure(target, expected):
-
     assert target.get_type() == expected[0]
 
     if expected[1] is None:
@@ -32,7 +31,7 @@ def _test_PandocAst_structure(target, expected):
         items = target.get_child_items()
         assert len(items) == len(expected[1])
 
-        for (t, e) in zip(items, expected[1]):
+        for t, e in zip(items, expected[1]):
             _test_PandocAst_structure(t, e)
 
     else:
@@ -67,7 +66,7 @@ def test_Inline_1(filename, formattype, html):
     r"""
     [@test Inline.1] test Inline elements in actual markdown documents.
     """
-    datadir = ".".join(__file__.split(".")[:-1]) + "/"  # data directory
+    datadir = __file__.split(".", 1)[0] + "/"  # data directory
 
     pandoc_json = Pandoc().get_json(datadir + filename, formattype, html)
     pandoc_ast = PandocAst(pandoc_json)
@@ -85,7 +84,7 @@ def test_Inline_2():
     r"""
     [@test Inline.2] Code.
     """
-    datadir = ".".join(__file__.split(".")[:-1]) + "/"  # data directory
+    datadir = __file__.split(".", 1)[0] + "/"  # data directory
 
     pandoc_json = Pandoc().get_json(datadir + "case_3_Code.md", "gfm+sourcepos", False)
     pandoc_ast = PandocAst(pandoc_json)
@@ -103,7 +102,7 @@ def test_Inline_3():
     r"""
     [@test Inline.3] RawInline
     """
-    datadir = ".".join(__file__.split(".")[:-1]) + "/"  # data directory
+    datadir = __file__.split(".", 1)[0] + "/"  # data directory
 
     pandoc_json = Pandoc().get_json(
         datadir + "case_4_RawInline.md", "gfm+sourcepos", False
@@ -126,7 +125,7 @@ def test_Inline_4():
     r"""
     [@test Inline.4] Link and Image
     """
-    datadir = ".".join(__file__.split(".")[:-1]) + "/"  # data directory
+    datadir = __file__.split(".", 1)[0] + "/"  # data directory
 
     pandoc_json = Pandoc().get_json(
         datadir + "case_5_Link_Image.md", "gfm+sourcepos", False

@@ -209,7 +209,7 @@ def test_get_json_1(monkeypatch, filename, args, jsonfile):
     r"""
     [\@test get_json.1] run pandoc and get json object.
     """
-    datadir = ".".join(__file__.split(".")[:-1])  # data directory
+    datadir = __file__.split(".", 1)[0]  # data directory
     monkeypatch.chdir(datadir)
 
     target = Pandoc()
