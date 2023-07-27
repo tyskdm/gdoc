@@ -78,6 +78,33 @@ class Spec_parse_Line:
             "Simple(3/)": (
                 # stimulus
                 [
+                    ["T", [["s", ">>[@A]"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": None,
+                    "result": [
+                        ["T", [["s", ">>"]]],
+                        [
+                            "BlockTag",
+                            {
+                                "class_info": {
+                                    "category": None,
+                                    "type": ["T", [["s", "A"]]],
+                                    "is_reference": None,
+                                },
+                                "class_args": [],
+                                "class_kwargs": [],
+                            },
+                            [["s", "[@A]"]],
+                        ],
+                    ],
+                },
+            ),
+            "Simple(4/)": (
+                # stimulus
+                [
                     ["T", [["s", ">>@:<<"]]],
                     ErrorReport(cont=False),
                 ],
@@ -96,6 +123,29 @@ class Spec_parse_Line:
                             [["s", "@:"]],
                         ],
                         ["T", [["s", "<<"]]],
+                    ],
+                },
+            ),
+            "Simple(5/)": (
+                # stimulus
+                [
+                    ["T", [["s", ">>@:"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": None,
+                    "result": [
+                        ["T", [["s", ">>"]]],
+                        [
+                            "InlineTag",
+                            {
+                                "prop_type": None,
+                                "prop_args": [],
+                                "prop_kwargs": [],
+                            },
+                            [["s", "@:"]],
+                        ],
                     ],
                 },
             ),
@@ -377,6 +427,57 @@ class Spec_parse_Line:
                     ],
                 },
             ),
+            ##
+            # #### [\@case 1] Error:
+            #
+            "Error(1/)": (
+                # stimulus
+                [
+                    ["T", [["s", "[@A ( ]"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": "SOME ERROR",
+                    "result": None,
+                },
+            ),
+            "Error(2/)": (
+                # stimulus
+                [
+                    ["T", [["s", "[@A ( ]"]]],
+                    ErrorReport(cont=True),
+                ],
+                # expected
+                {
+                    "err": "SOME ERROR",
+                    "result": [["T", [["s", "[@A ( ]"]]]],
+                },
+            ),
+            "Error(3/)": (
+                # stimulus
+                [
+                    ["T", [["s", "@A( ] ):"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": "SOME ERROR",
+                    "result": None,
+                },
+            ),
+            "Error(4/)": (
+                # stimulus
+                [
+                    ["T", [["s", "@A( ] ):"]]],
+                    ErrorReport(cont=True),
+                ],
+                # expected
+                {
+                    "err": "SOME ERROR",
+                    "result": [["T", [["s", "@A"], ["T", [["s", "( ] )"]]], ["s", ":"]]]],
+                },
+            ),
         }
 
     # \cond
@@ -403,8 +504,8 @@ class Spec_parse_Line:
         if expected["err"] is None:
             assert err is None
         else:
+            assert err is not None
             if expected["err"] != "SOME ERROR":
-                assert err is not None
                 assert err.dump(True) == expected["err"]
 
         if expected["result"] is None:
