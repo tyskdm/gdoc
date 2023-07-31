@@ -68,8 +68,8 @@ def parse_TextBlock(
         child, e = gobj.add_new_object(
             *target_tag.get_arguments(), tag_param, target_tag, srpt, opts
         )
-        if e:
-            srpt.submit(e)
+        if e and srpt.should_exit(e):
+            return Err(erpt.submit(srpt))
 
     #
     # Append Properties
@@ -80,6 +80,8 @@ def parse_TextBlock(
         prop, e = target_obj.add_new_property(
             *target_tag.get_arguments(), tag_param, target_tag, srpt, opts
         )
+        if e and srpt.should_exit(e):
+            return Err(erpt.submit(srpt))
 
     #
     # Return result
