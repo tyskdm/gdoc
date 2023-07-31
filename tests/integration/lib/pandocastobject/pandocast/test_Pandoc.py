@@ -34,7 +34,7 @@ def test_PandocAst_1():
     r"""
     [@test PandocAst.1] Create empty PandocAst object from empty '.md' document.
     """
-    datadir = __file__.split(".", 1)[0] + "/"  # data directory
+    datadir = __file__.rsplit(".", 1)[0] + "/"  # data directory
 
     pandoc = Pandoc()
     types_version = pandoc.get_version()["pandoc-types"]
@@ -50,7 +50,7 @@ def test_PandocAst_2():
     r"""
     [@test PandocAst.2]
     """
-    datadir = __file__.split(".", 1)[0] + "/"  # data directory
+    datadir = __file__.rsplit(".", 1)[0] + "/"  # data directory
 
     pandoc_json = Pandoc().get_json(datadir + "test_2.md")
     pandoc_ast = PandocAst(pandoc_json)
@@ -64,7 +64,7 @@ def test_PandocAst_3():
     r"""
     [@test PandocAst.2]
     """
-    datadir = __file__.split(".", 1)[0] + "/"  # data directory
+    datadir = __file__.rsplit(".", 1)[0] + "/"  # data directory
 
     pandoc_json = Pandoc().get_json(datadir + "test_3.md")
     pandoc_ast = PandocAst(pandoc_json)

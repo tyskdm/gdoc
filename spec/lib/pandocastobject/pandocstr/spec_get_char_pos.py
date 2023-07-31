@@ -39,7 +39,7 @@ _data_get_char_pos_1 = {
 )
 def test_data(request: fixtures.SubRequest, test_data_from_pandoc):
     filename, formattype, html = request.param
-    datadir = __file__.split(".", 1)[0] + "/"  # data directory
+    datadir = __file__.rsplit(".", 1)[0] + "/"  # data directory
 
     test_block: PandocElement
     test_data: dict
@@ -122,7 +122,7 @@ def spec_get_char_pos_2(filename, formattype, html, test_data_from_pandoc):
     [@test get_char_pos.3] returns sourcepos info of the char at specified index
     """
     # GIVEN
-    datadir = __file__.split(".", 1)[0] + "/"  # data directory
+    datadir = __file__.rsplit(".", 1)[0] + "/"  # data directory
 
     test_block: PandocElement
     test_data: dict

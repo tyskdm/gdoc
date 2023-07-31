@@ -37,7 +37,7 @@ def test_GdocCompile_1(mocker: mock, filename, formattype, html):
     r"""
     [@test Inline.1] test Inline elements in actual markdown documents.
     """
-    datadir = __file__.split(".", 1)[0] + "/"  # data directory
+    datadir = __file__.rsplit(".", 1)[0] + "/"  # data directory
     filepath = datadir + filename
 
     pandoc_json = Pandoc().get_json(datadir + filename, formattype, html)
