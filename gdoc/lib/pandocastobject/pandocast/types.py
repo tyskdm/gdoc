@@ -6,6 +6,7 @@ from .blocklist import BlockList
 from .inline import Inline
 from .inlinelist import InlineList
 from .pandoc import Pandoc
+from .table import Table, TableBody
 
 # Text.Pandoc.Definition
 # Definition of Pandoc data structure for format-neutral representation of documents.
@@ -125,24 +126,21 @@ _ELEMENT_TYPES = {
         "class": InlineList,
         "alt": "",
     },
-    # 'Table':  {
-    #     # Table Attr Caption [ColSpec] TableHead [TableBody] TableFoot
-    #     # - Table, with attributes, caption, optional short caption, column alignments
-    #     #   and widths (required), table head, table bodies, and table foot
-    #     'class':  Table,
-    #     'content':  {
-    #         'key':      'c',
-    #         'main':     None
-    #     },
-    #     'struct': {
-    #         'Attr':         0,
-    #         'Caption':      1,
-    #         '[ColSpec]':    2,
-    #         'TableHead':    3,
-    #         '[TableBody]':  4,      # TableBody*s*
-    #         'TableFoot':    5
-    #     }
-    # },
+    "Table": {
+        # Table Attr Caption [ColSpec] TableHead [TableBody] TableFoot
+        # - Table, with attributes, caption, optional short caption, column alignments
+        #   and widths (required), table head, table bodies, and table foot
+        "class": Table,
+        "content": {"key": "c", "main": None},
+        "struct": {
+            "Attr": 0,
+            "Caption": 1,
+            "[ColSpec]": 2,
+            "TableHead": 3,
+            "[TableBody]": 4,  # TableBody*s*
+            "TableFoot": 5,
+        },
+    },
     "Div": {
         # Div Attr [Block]
         # - Generic block container with attributes
@@ -305,100 +303,60 @@ _ELEMENT_TYPES = {
         "content": {"key": "c", "main": 1, "type": None},
         "struct": {"Attr": 0, "Inlines": 1},
     },
-    # #
-    # # OtherTypes
-    # #
-    # 'TableHead':  {
-    #     # TableHead Attr [Row]
-    #     # The head of a table.
-    #     'class':  TableRowList,
-    #     'content':  {
-    #         'key':      None,
-    #         'main':     1,
-    #         'type':     '[Row]'
-    #     },
-    #     'struct': {
-    #         'Attr':     0,
-    #         'Rows':     1
-    #     }
-    # },
-    # 'TableBody':  {
-    #     # TableBody Attr RowHeadColumns [Row] [Row]
-    #     # A body of a table, with an intermediate head, intermediate body,
-    #     # and the specified number of row header columns in the intermediate body.
-    #     'class':  TableBody,
-    #     'content':  {
-    #         'key':      None
-    #     },
-    #     'struct': {
-    #         'Attr':             0,
-    #         'RowHeadColumns':   1,
-    #         'RowHeads': {
-    #             'index':       2,
-    #             'type':         '[Row]'
-    #         },
-    #         'Rows': {
-    #             'index':       3,
-    #             'type':         '[Row]'
-    #         },
-    #     }
-    # },
-    # 'TableFoot':  {
-    #     # TableFoot Attr [Row]
-    #     # The foot of a table.
-    #     'class':  TableRowList,
-    #     'content':  {
-    #         'key':      None,
-    #         'main':     1,
-    #         'type':     '[Row]'
-    #     },
-    #     'struct': {
-    #         'Attr':     0,
-    #         'Rows':     1
-    #     }
-    # },
-    # 'Rows':  {
-    #     # Row Attr [Cell]
-    #     # A table row.
-    #     'class':  TableRowList,
-    #     'content':  {
-    #         'key':      None,
-    #         'type':     '[Row]'
-    #     },
-    #     'struct':       None
-    # },
-    # 'Row':  {
-    #     # Row Attr [Cell]
-    #     # A table row.
-    #     'class':  TableRow,
-    #     'content':  {
-    #         'key':      None,
-    #         'main':     1,
-    #         'type':     '[Cell]'
-    #     },
-    #     'struct': {
-    #         # 'Attr': 0, Commented out because of issue about handling Rows in Table.
-    #         'Cells':    1
-    #     }
-    # },
-    # 'Cell':  {
-    #     # Cell Attr Alignment RowSpan ColSpan [Block]
-    #     # A table cell.
-    #     'class':  TableCell,
-    #     'content':  {
-    #         'key':      None,
-    #         'main':     4,
-    #         'type':     '[Block]'
-    #     },
-    #     'struct': {
-    #         'Attr':         0,
-    #         'Alignment':    1,
-    #         'RowSpan':      2,
-    #         'ColSpan':      3,
-    #         '[Block]':  {
-    #             'index':   4,
-    #             'type':     '[Block]'
-    #         }
-    #     }
-    # }
+    #
+    # OtherTypes
+    #
+    "TableHead": {
+        # TableHead Attr [Row]
+        # The head of a table.
+        "class": BlockList,
+        "content": {"key": None, "main": 1, "type": "Row"},
+        "struct": {"Attr": 0, "Rows": 1},
+    },
+    "TableBody": {
+        # TableBody Attr RowHeadColumns [Row] [Row]
+        # A body of a table, with an intermediate head, intermediate body,
+        # and the specified number of row header columns in the intermediate body.
+        "class": TableBody,
+        "content": {"key": None},
+        "struct": {
+            "Attr": 0,
+            "RowHeadColumns": 1,
+            "RowHeads": {"index": 2, "type": "TableRowList"},
+            "Rows": {"index": 3, "type": "TableRowList"},
+        },
+    },
+    "TableFoot": {
+        # TableFoot Attr [Row]
+        # The foot of a table.
+        "class": BlockList,
+        "content": {"key": None, "main": 1, "type": "Row"},
+        "struct": {"Attr": 0, "Rows": 1},
+    },
+    "TableRowList": {  # for TableBody
+        # [Row] is not TableRowList object, just an Array of Rows.
+        "class": BlockList,
+        "content": {"key": None, "type": "Row"},
+        "struct": None,
+    },
+    "Row": {
+        # Row Attr [Cell]
+        # A table row.
+        "class": BlockList,
+        "content": {"key": None, "main": 1, "type": "Cell"},
+        "struct": {"Attr": 0, "Cells": 1},
+    },
+    "Cell": {
+        # Cell Attr Alignment RowSpan ColSpan [Block]
+        # A table cell.
+        "class": BlockList,
+        "content": {"key": None, "main": 4, "type": None},
+        "struct": {
+            "Attr": 0,
+            "Alignment": 1,
+            "RowSpan": 2,
+            "ColSpan": 3,
+            "Blocks": 4,
+        },
+    },
 }
