@@ -7,53 +7,57 @@ import subprocess
 
 class Pandoc:
     """
-    Execute external pandoc command as a subprocess to parse a source md file to generate PandocAST json object.
+    Execute external pandoc command as a subprocess to parse a source md file
+    to generate PandocAST json object.
     """
 
-    def __init__(self):
-        """Constructor"""
+    _version: dict[str, list[int | str]] | None
+    _version_str: str | None
+    _pandoc_command: str
+
+    def __init__(self, pandoc_command: str = "pandoc"):
         self._version = None
         self._version_str = None
+        self._pandoc_command = pandoc_command
 
-    def _run(self, commandlines, stdin=None):
+    def _run(
+        self, commandlines: list[list[str]], stdin=None
+    ) -> tuple[list[int], str, list[str]]:
         """run multiple subcommands
-        run multiple subcommands while connecting it with pipes and return the output.
-        @param comandlines([Str])
-            Commandline strings including options to run as subprocesses.
-        @param stdin
-            stdin port passed to the first subcommand.
-        @return output : Str
-            stdout from the last subcommand.
+        run multiple subcommands while connecting them with pipes and return results.
+
+        @param commandlines (list[list[str]]) : _description_
+        @param stdin (_type_, optional) : _description_. Defaults to None.
+
+        @return tuple[list[int], str, list[str]] : _description_
         """
-        output = None
-        args = commandlines[0].split()
+        retcode: list[int] = []
+        stderr: list[str] = []
+        output: str = ""
 
         with subprocess.Popen(
-            args, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            commandlines[0],
+            stdin=stdin,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding="utf-8",
         ) as ps:
+            serr: str
 
             if len(commandlines) > 1:
-                output = self._run(commandlines[1:], stdin=ps.stdout)
-                ps.wait()
-
+                retcode, output, stderr = self._run(commandlines[1:], stdin=ps.stdout)
+                _, serr = ps.communicate()
             else:
-                ps.wait()
-                output = b"".join(ps.stdout.readlines())
+                output, serr = ps.communicate()
 
-            if ps.returncode != 0:
-                # subprocess.check_output():
-                # https://docs.python.org/3/library/subprocess.html#subprocess.check_output
-                # > If the return code was non-zero it raises a CalledProcessError.
-                raise subprocess.CalledProcessError(
-                    ps.returncode,
-                    args,
-                    b"".join(ps.stdout.readlines()),
-                    b"".join(ps.stderr.readlines()),
-                )
+            stderr.insert(0, serr)
+            retcode.insert(0, ps.returncode)
 
-        return output
+        return retcode, output, stderr
 
-    def get_json(self, filepath: str, formatType=None, html=None):
+    def get_json(
+        self, filepath: str, fileformat: str | None = None, via_html: bool | None = None
+    ):
         """
         returns pandoc ast json object.
         @param filepath : str
@@ -67,75 +71,68 @@ class Pandoc:
         """
         _SOURCEPOS_ = ["gfm", "commonmark", "commonmark_x"]
 
-        filename = filepath.split("/")[-1]
-        file_ext = filename.split(".")
-        file_ext = file_ext[-1].lower() if len(file_ext) > 1 else ""
+        filename: list[str] = filepath.rsplit("/", 1)[-1].rsplit(".", 1)
+        file_ext: str = filename[1] if len(filename) > 1 else ""
 
-        if formatType is None and html is None:
-            if file_ext == "md":
-                formatType = "gfm+sourcepos"
-                html = True
-            else:
-                formatType = None
-                html = False
+        if fileformat is None and file_ext == "md":
+            fileformat = "gfm+sourcepos"
+            via_html = True if via_html is None else via_html
         else:
-            if html is None:
-                html = False
+            if fileformat in _SOURCEPOS_:
+                fileformat += "+sourcepos"
+            via_html = False if via_html is None else via_html
 
-            if formatType in _SOURCEPOS_:
-                formatType += "+sourcepos"
+        commands: list[list[str]] = []
+        cmd: list[str] = [self._pandoc_command, filepath]
 
-        commands = []
-        cmd = "pandoc " + filepath
+        if fileformat is not None:
+            cmd += ["-f", fileformat]
 
-        if formatType is not None:
-            cmd += " -f " + formatType
-
-        if not html:
-            cmd += " -t json"
+        if not via_html:
+            cmd += ["-t", "json"]
             commands.append(cmd)
         else:
-            cmd += " -t html"
+            cmd += ["-t", "html"]
             commands.append(cmd)
-            commands.append("pandoc -f html -t json")
+            commands.append(
+                [self._pandoc_command, "-f", "html", "-t", "json"],
+            )
 
-        json_object = json.loads(self._run(commands))
+        json_object = json.loads(self._run(commands)[1])
 
         return json_object
 
-    def get_version(self):
+    def get_version(self) -> dict[str, list[int | str]] | None:
         """
         returns versions of pandoc and pandoc-types.
         @return versions : {
-                'pandoc': [int or str],
-                'pandoc-types': [int or str],
+                'pandoc': list[int | str],
+                'pandoc-types': list[int | str],
             }
-            version information obtained from 'pandoc --version'
+            version information obtained by 'pandoc --version'
         """
         if self._version is not None:
             return self._version
 
-        version_str = self._run(["pandoc --version"]).decode()
-        lines = version_str.split("\n")
+        stdout: str
+        retcode: list[int]
+        retcode, stdout, _ = self._run([[self._pandoc_command, "--version"]])
 
-        version = {}
+        version: dict[str, list[int | str]] = {}
+        lines: list[str] = stdout.split("\n")
+        line: str
         for line in lines:
-            words = line.replace(",", " ").split()
-
+            words: list[str] = line.replace(",", " ").split()
             for i, word in enumerate(words):
-                if ((word == "pandoc") or (word == "pandoc-types")) and (
-                    i < len(words) - 1
-                ):
-                    vers = words[i + 1].split(".")
+                if (word in ("pandoc", "pandoc-types")) and (i < len(words) - 1):
+                    vers: list[str] = words[i + 1].split(".")
                     if not vers[0].isdecimal():
                         break
+                    version[word] = [
+                        (int(ver) if ver.isdecimal() else ver) for ver in vers
+                    ]
 
-                    version[word] = []
-                    for ver in vers:
-                        version[word].append(int(ver) if ver.isdecimal() else ver)
-
-        if ("pandoc" in version) and ("pandoc-types" in version):
-            self._version = version
-            self._version_str = version_str
+        self._version = version
+        self._version_str = stdout
 
         return self._version
