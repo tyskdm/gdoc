@@ -39,10 +39,14 @@ def run(args):
     run subcommand
     """
     opts: Settings = Settings({})
-    erpt: ErrorReport = ErrorReport(cont=args.check_only)
+    erpt: ErrorReport
+
+    fileformat: str | None = args.filetype
+    via_html: bool | None = args.html if (fileformat is not None) else None
 
     for filepath in args.filepath:
-        gobj, e = GdocCompiler().compile(filepath, erpt, opts)
+        erpt: ErrorReport = ErrorReport(cont=args.check_only, filename=filepath)
+        gobj, e = GdocCompiler().compile(filepath, fileformat, via_html, erpt, opts)
 
         if gobj is not None:
             data = gobj.dumpd()

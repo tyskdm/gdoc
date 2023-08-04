@@ -27,6 +27,8 @@ class GdocCompiler:
     def compile(
         self,
         filepath: str,
+        fileformat: str | None = None,
+        via_html: bool | None = None,
         erpt: Optional[ErrorReport] = None,
         opts: Optional[Settings] = None,
     ) -> Result[GobjDocument, ErrorReport]:
@@ -48,7 +50,7 @@ class GdocCompiler:
             )
             return Err(erpt)
 
-        pandoc_json = Pandoc().get_json(filepath)
+        pandoc_json = Pandoc().get_json(filepath, fileformat, via_html)
         pandoc_ast = PandocAst(pandoc_json)
         gdoc = GdocDocument(pandoc_ast)
 

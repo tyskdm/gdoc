@@ -72,9 +72,9 @@ class Pandoc:
         _SOURCEPOS_ = ["gfm", "commonmark", "commonmark_x"]
 
         filename: list[str] = filepath.rsplit("/", 1)[-1].rsplit(".", 1)
-        file_ext: str = filename[1] if len(filename) > 1 else ""
+        file_ext: str = filename[-1] if len(filename) > 1 else ""
 
-        if fileformat is None and file_ext == "md":
+        if (fileformat is None) and (file_ext == "md"):
             fileformat = "gfm+sourcepos"
             via_html = True if via_html is None else via_html
         else:
