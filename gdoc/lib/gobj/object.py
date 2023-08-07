@@ -1,43 +1,48 @@
 r"""
 GdObject class
 """
-from gdoc.lib.gdoc import Text
+from typing import cast
+
+from gdoc.lib.gdoc import Text, TextString
 from gdoc.lib.gdoccompiler.gdexception import *
 
 from .namespace import Namespace
 
 
-class GdObject(Namespace):
+class Object(Namespace):
     """
     ;
     """
 
-    Type = Namespace.Type
-
-    __category_module = None
-
-    @classmethod
-    def set_category(cls, module):
-        cls.__category_module = module
-
-    @classmethod
-    def get_category(cls):
-        return cls.__category_module
-
-    def __init__(self, id=None, scope="+", name=None, tags=[], _type=Type.OBJECT):
-        """Constructs GdObject.
-        @param id : str | PandocStr
-        """
-        _id = str(id) if id else None
-        _name = str(name) if name else None
-        super().__init__(id=_id, scope=str(scope), name=_name, tags=tags, _type=_type)
+    def __init__(
+        self,
+        name: TextString | str | None = None,
+        scope: TextString | str = "+",
+        alias: TextString | str | None = None,
+        tags: list[TextString | str] = [],
+        _type: Namespace.Type = Namespace.Type.OBJECT,
+    ):
+        super().__init__(
+            name=name.get_str() if (type(name) is TextString) else cast(str, name),
+            scope=scope.get_str() if (type(scope) is TextString) else cast(str, scope),
+            alias=alias.get_str() if (type(alias) is TextString) else cast(str, alias),
+            tags=[
+                (t.get_str() if (type(t) is TextString) else cast(str, t)) for t in tags
+            ],
+            _type=_type,
+            _omit_arg_check=True,
+        )
 
         self.__properties = {
             "": {
-                "id": id,
-                "scope": scope,
-                "name": name,
-                "tags": tags[:],
+                "name": self.name,
+                "scope": self.scope,
+                "names": (
+                    []
+                    + ([name] if name is not None else [])
+                    + ([alias] if alias is not None else [])
+                ),
+                "tags": tags,
             }
         }
 
@@ -145,38 +150,11 @@ class GdObject(Namespace):
 
         return result
 
-    def __getitem__(self, *args, **kwargs):
-        return self.__properties.__getitem__(*args, **kwargs)
+    def _set_attr_(self, key, value):
+        self.__properties[""][key] = value
 
-    def __iter__(self, *args, **kwargs):
-        return self.__properties.__iter__(*args, **kwargs)
-
-    def __len__(self, *args, **kwargs):
-        return self.__properties.__len__(*args, **kwargs)
-
-    def __contains__(self, *args, **kwargs):
-        return self.__properties.__contains__(*args, **kwargs)
-
-    def __eq__(self, *args, **kwargs):
-        return self.__properties.__eq__(*args, **kwargs)
-
-    def __ne__(self, *args, **kwargs):
-        return self.__properties.__ne__(*args, **kwargs)
-
-    def keys(self, *args, **kwargs):
-        return self.__properties.keys(*args, **kwargs)
-
-    def items(self, *args, **kwargs):
-        return self.__properties.items(*args, **kwargs)
-
-    def values(self, *args, **kwargs):
-        return self.__properties.values(*args, **kwargs)
-
-    def get(self, *args, **kwargs):
-        return self.__properties.get(*args, **kwargs)
-
-    def update(self, *args, **kwargs):
-        return self.__properties.update(*args, **kwargs)
+    def _get_attr_(self, key):
+        return self.__properties[""][key]
 
     def dumpd(self):
         prop = self._cast_to_str(self.__properties)
@@ -188,7 +166,7 @@ class GdObject(Namespace):
 
         data["c"] = []
         children = self.get_children()
-        child: "GdObject"
+        child: "Object"
         for child in children:
             data["c"].append(child.dumpd())
 
@@ -196,17 +174,19 @@ class GdObject(Namespace):
 
     @staticmethod
     def _cast_to_str(prop):
-
         if isinstance(prop, dict):
             keys = prop.keys()
         elif isinstance(prop, list):
             keys = range(len(prop))
 
         for key in keys:
-            if isinstance(prop[key], Text):
+            if isinstance(prop[key], (dict, list)):
+                prop[key] = __class__._cast_to_str(prop[key])
+
+            elif isinstance(prop[key], Text):
                 prop[key] = prop[key].dumpd()
 
-            elif isinstance(prop[key], (dict, list)):
-                prop[key] = __class__._cast_to_str(prop[key])
+            # elif type(prop[key]) is str:
+            #     prop[key] = String(prop[key]).dumpd()
 
         return prop

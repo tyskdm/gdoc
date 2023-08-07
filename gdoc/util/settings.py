@@ -2,10 +2,7 @@
 settings.py: Settings class
 """
 
-
 from typing import Any, Optional, cast
-
-from gdoc.util import Err, Ok, Result
 
 
 class Settings:
@@ -13,61 +10,29 @@ class Settings:
     Settings manager
     """
 
-    __parent: Optional["Settings"] = None
-    __prefix: list[str] = []
-    __settings: dict = {}
+    _parent: Optional["Settings"] = None
+    _prefix: list[str] = []
+    _settings: dict = {}
+    _children: list["Settings"] = []
 
     def __init__(
-        self, settings: dict, parent: Optional["Settings"] = None, prefix: list[str] = []
+        self,
+        settings: dict = {},
+        parent: Optional["Settings"] = None,
+        prefix: list[str] = [],
     ) -> None:
         if type(settings) is not dict:
             raise TypeError("TypeError: Argument 'setting' must be a dict")
 
-        self.__parent = parent
-        self.__prefix = prefix
-        self.__settings = settings
+        self._parent = parent
+        self._prefix = prefix
+        self._settings = settings
 
-    def derive(self, prefix: str | list[str]) -> "Settings":
+    def derive(self, prefix: str | list[str], settings: dict = {}) -> "Settings":
         if type(prefix) is str:
             prefix = prefix.split(".")
         prefix = cast(list[str], prefix)
-
-        settings = self.get(prefix, {})
-
         return Settings(settings, self, prefix)
-
-    def overlay(self, settings: dict) -> Result["Settings", TypeError]:
-        if type(settings) is not dict:
-            return Err(TypeError("TypeError: Argument 'setting' must be a dict"))
-
-        self.__settings = self._merge_dict(self.__settings, settings)
-
-        return Ok(self)
-
-    def _merge_dict(self, left: dict, right: dict) -> dict:
-        result: dict = {}
-
-        lkeys = set(left)
-        rkeys = set(right)
-        commonkeys = lkeys & rkeys
-
-        for key in lkeys ^ commonkeys:
-            result[key] = left[key]
-
-        for key in rkeys ^ commonkeys:
-            result[key] = right[key]
-
-        for key in commonkeys:
-            if (type(left[key]) is dict) and (type(right[key]) is dict):
-                result[key] = self._merge_dict(left[key], right[key])
-
-            elif (type(left[key]) is list) and (type(right[key]) is list):
-                result[key] = right[key] + left[key]
-
-            else:
-                result[key] = right[key]
-
-        return result
 
     def get(self, key: str | list[str], default: Any = None) -> Any:
         keys: list[str]
@@ -76,20 +41,27 @@ class Settings:
         else:
             keys = cast(list[str], key)
 
-        result: Any = self.__settings
+        result: Any = self._settings
         for k in keys:
             if type(result) is not dict:
                 result = default
+                break
 
             elif k in result:
                 result = result[k]
 
-            elif self.__parent is not None:
-                result = self.__parent.get(self.__prefix + keys, default)
+            elif self._parent is not None:
+                result = self._parent.get(self._prefix + keys, default)
                 break
 
             else:
                 result = default
                 break
+
+        else:
+            if type(result) is list and self._parent is not None:
+                parent_val = self._parent.get(self._prefix + keys)
+                if type(parent_val) is list:
+                    result += parent_val
 
         return result

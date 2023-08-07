@@ -2,7 +2,7 @@ r"""
 Namespace class
 """
 from enum import Enum, auto
-from typing import Optional, Union, cast
+from typing import Optional, Union
 
 
 class Namespace:
@@ -21,6 +21,10 @@ class Namespace:
         REFERENCE = auto()
         IMPORT = auto()
 
+    scope: str
+    name: str | None
+    names: list[str]
+    tags: list[str]
     __type: Type
     __parent: Union["Namespace", None]
     __children: list["Namespace"]
@@ -31,46 +35,53 @@ class Namespace:
 
     def __init__(
         self,
-        id: str | None = None,
+        name: str | None = None,
         *,
         scope: str = "+",
-        name: str | None = None,
+        alias: str | None = None,
         tags: list[str] = [],
         _type: Type = Type.OBJECT,
+        _omit_arg_check: bool = False,
     ):
-        if (id is not None) and (type(id) is not str):
-            raise TypeError(f"invalid id type '{type(id).__name__}'")
-        elif id == "":
-            raise NameError("invalid id ''")
+        if not _omit_arg_check:
+            if (name is not None) and (type(name) is not str):
+                raise TypeError(f"invalid id type '{type(name).__name__}'")
+            elif name == "":
+                raise NameError("invalid id ''")
 
-        if (name is not None) and (type(name) is not str):
-            raise TypeError(f"invalid name type '{type(name).__name__}'")
-        elif name == "":
-            raise NameError("invalid name ''")
+            if (alias is not None) and (type(alias) is not str):
+                raise TypeError(f"invalid name type '{type(alias).__name__}'")
+            elif alias == "":
+                raise NameError("invalid name ''")
 
-        if (type(scope) is not str) or (scope not in ("+", "-")):
-            raise RuntimeError('invalid access modifier "' + str(scope) + '"')
+            if (type(scope) is not str) or (scope not in ("+", "-")):
+                raise RuntimeError('invalid access modifier "' + str(scope) + '"')
 
-        if type(tags) is not list:
-            raise TypeError(
-                f"only a list can be added as tags, not '{type(tags).__name__}'"
-            )
-        else:
-            for tag in tags:
-                if type(tag) is not str:
-                    raise TypeError(
-                        f"only 'str' can be added as a tag, not '{type(tag).__name__}'"
-                    )
+            if type(tags) is not list:
+                raise TypeError(
+                    f"only a list can be added as tags, not '{type(tags).__name__}'"
+                )
+            else:
+                for tag in tags:
+                    if type(tag) is not str:
+                        raise TypeError(
+                            "only 'str' can be added as a tag, "
+                            f"not '{type(tag).__name__}'"
+                        )
 
-        if type(_type) is not Namespace.Type:
-            raise TypeError(
-                f"only Namespace.Type can be set, not '{type(_type).__name__}'"
-            )
+            if type(_type) is not Namespace.Type:
+                raise TypeError(
+                    f"only Namespace.Type can be set, not '{type(_type).__name__}'"
+                )
 
-        self.id = id
+        self.name = name or alias
         self.scope = scope
-        self.name = name
         self.tags = tags[:]
+        self.names = (
+            []
+            + ([name] if name is not None else [])
+            + ([alias] if alias is not None else [])
+        )
 
         self.__type = _type
         self.__parent = None
@@ -80,19 +91,17 @@ class Namespace:
         self.__link_to = None
         self.__link_from = []
 
+    def _get_type_(self) -> Type:
+        return self.__type
+
     def add_child(self, child: "Namespace") -> None:
         if self.__type is Namespace.Type.IMPORT:
             raise TypeError("'Import' object cannot have children")
 
-        if child.id is not None:
-            if child.id in self.__nametable:
-                raise NameError(f"duplicated id '{child.id}'")
-            self.__nametable[child.id] = child
-
-        if child.name is not None:
-            if child.name in self.__nametable:
-                raise NameError(f"duplicated name '{child.name}'")
-            self.__nametable[child.name] = child
+        for name in child.names:
+            if name in self.__nametable:
+                raise NameError(f"duplicated name '{name}'")
+            self.__nametable[name] = child
 
         self.__children.append(child)
         child.__parent = self
@@ -132,7 +141,7 @@ class Namespace:
         if target is None:
             target = self
             while target is not None:
-                if (target.id == names[0]) or (target.name == names[0]):
+                if (target.name == names[0]) or (target.names == names[0]):
                     break
                 target = target.get_parent()
 
@@ -155,7 +164,6 @@ class Namespace:
 
     def bidir_link_to(self, dst: "Namespace") -> None:
         if self.__type is Namespace.Type.REFERENCE:
-
             if dst.__type in (Namespace.Type.OBJECT, Namespace.Type.REFERENCE):
                 self.__link_to = dst
                 dst.__link_from.append(self)

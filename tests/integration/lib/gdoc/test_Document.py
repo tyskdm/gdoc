@@ -38,7 +38,7 @@ def test_gdParser_1(mocker: mock, filename, formattype, html):
     r"""
     [@test Inline.1] test Inline elements in actual markdown documents.
     """
-    datadir = ".".join(__file__.split(".")[:-1]) + "/"  # data directory
+    datadir = __file__.rsplit(".", 1)[0] + "/"  # data directory
     pandoc_json = Pandoc().get_json(datadir + filename, formattype, html)
     pandoc_ast = PandocAst(pandoc_json)
 

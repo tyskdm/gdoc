@@ -83,7 +83,7 @@ puml-clean:
 #
 PYTESTFLAGS :=
 
-test:
+test: style
 	@pytest $(PYTESTFLAGS)
 
 test-cov:

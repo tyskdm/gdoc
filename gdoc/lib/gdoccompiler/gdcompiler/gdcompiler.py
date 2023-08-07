@@ -6,32 +6,39 @@ from typing import Optional
 
 from gdoc.lib.gdoc import Document as GdocDocument
 from gdoc.lib.gdocparser.documentparser import parse_Document
-from gdoc.lib.gobj.types.document import Document as GobjDocument
+from gdoc.lib.gobj.types import BaseCategory
+from gdoc.lib.gobj.types import Document as GobjDocument
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
+from gdoc.lib.plugins import Category, CategoryManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 
 class GdocCompiler:
     """ """
 
-    def __init__(self) -> None:
-        pass
+    _categories_: CategoryManager
+
+    def __init__(self, plugins: list[Category] = []) -> None:
+        self._categories_ = CategoryManager().add_category(BaseCategory)
+        for p in plugins:
+            self._categories_.add_category(p)
 
     def compile(
         self,
         filepath: str,
-        opts: Optional[Settings] = None,
+        fileformat: str | None = None,
+        via_html: bool | None = None,
         erpt: Optional[ErrorReport] = None,
-    ) -> Result[GobjDocument, ErrorReport | Exception]:
+        opts: Optional[Settings] = None,
+    ) -> Result[GobjDocument, ErrorReport]:
         """
-        1. fileの存在確認
-        2. ./_gdoc_/filename.past.json の存在確認
-        3. pandocの実行
-        4. pandocAstの生成
-        5. metadataの取得 → Documentにセット
-        6. パーサーの生成、visitorの取得、start(Document)。
-        7. Pandoc.accept(parser)して、エレメントをイベントとしてパーサーに投げる。
+        1. check if the target file exists.
+        2. check if ./_gdoc_/filename.past.json exists.
+        3. run pandoc
+        4. create pandocAst
+        5. get metadata in the AST, and set into Document
+        6. call parse_Document()
         """
         opts = opts or Settings({})
         erpt = erpt or ErrorReport()
@@ -43,13 +50,13 @@ class GdocCompiler:
             )
             return Err(erpt)
 
-        pandoc_json = Pandoc().get_json(filepath)
+        pandoc_json = Pandoc().get_json(filepath, fileformat, via_html)
         pandoc_ast = PandocAst(pandoc_json)
         gdoc = GdocDocument(pandoc_ast)
 
-        gobj = GobjDocument(None, filepath)
+        gobj = GobjDocument(None, filepath, self._categories_)
 
-        gobj, e = parse_Document(gdoc, gobj, opts, erpt)
+        gobj, e = parse_Document(gdoc, gobj, erpt, opts)
         if e:
             erpt.submit(e)
             return Err(erpt, gobj)

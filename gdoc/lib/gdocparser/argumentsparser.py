@@ -11,7 +11,7 @@ from gdoc.util.fsm import NEXT, State, StateMachine
 #
 def parse_Arguments(
     elements: TextString, erpt: ErrorReport, opts: Settings | None = None
-) -> Result[tuple[list[TextString], list[list[TextString]]], ErrorReport]:
+) -> Result[tuple[list[TextString], list[tuple[TextString, TextString]]], ErrorReport]:
     """
     parse_Argument
     """
@@ -26,7 +26,9 @@ def parse_Arguments(
             i += 1
             parser.on_event(None)
 
-        result: tuple[list[TextString], list[list[TextString]]] = parser.on_exit()
+        result: tuple[
+            list[TextString], list[tuple[TextString, TextString]]
+        ] = parser.on_exit()
 
     except GdocSyntaxError as e:
         erpt.submit(
@@ -45,7 +47,7 @@ def parse_Arguments(
 _PARAM_TYPE: TypeAlias = tuple[
     list[TextString],  # arg_word: list as a container of the argument word.
     list[TextString],  # args
-    list[list[TextString]],  # kwargs
+    list[tuple[TextString, TextString]],  # kwargs
 ]
 
 
@@ -66,7 +68,7 @@ class ArgumentParser(
 
     # results
     args: list[TextString]
-    kwargs: list[list[TextString]]
+    kwargs: list[tuple[TextString, TextString]]
 
     def __init__(self, name: str | None = None):
         super().__init__(name)
@@ -174,7 +176,7 @@ class _Key(ArgumentParser._STATE_TYPE):
 
     arg_word: list[TextString]
     args: list[TextString]
-    kwargs: list[list[TextString]]
+    kwargs: list[tuple[TextString, TextString]]
 
     def start(self, param):
         param = cast(_PARAM_TYPE, param)
@@ -204,7 +206,7 @@ class _AfterKey(ArgumentParser._STATE_TYPE):
 
     arg_word: list[TextString]
     args: list[TextString]
-    kwargs: list[list[TextString]]
+    kwargs: list[tuple[TextString, TextString]]
     last_element: Text | None
 
     def start(self, param):
@@ -229,6 +231,16 @@ class _AfterKey(ArgumentParser._STATE_TYPE):
             self.args.append(self.arg_word[0])
 
             if kwargs:
+                if element is not None:
+                    self.last_element = cast(Text, self.last_element)
+                    dpos = self.last_element.get_char_pos(0)
+                    dpos = dpos.get_last_pos() if dpos else None
+                    raise GdocSyntaxError(
+                        "positional argument follows keyword argument",
+                        dpos,
+                        (element.get_str(), 0, 0),
+                    )
+
                 if self.last_element is not None:
                     self.last_element = cast(Text, self.last_element)
                     dpos = self.last_element.get_char_pos(0)
@@ -256,7 +268,7 @@ class _Value(ArgumentParser._STATE_TYPE):
 
     arg_word: list[TextString]
     arg_value: TextString
-    kwargs: list[list[TextString]]
+    kwargs: list[tuple[TextString, TextString]]
     is_value_not_started: bool
     last_element: Text | None
 
@@ -319,5 +331,5 @@ class _Value(ArgumentParser._STATE_TYPE):
         return next
 
     def on_exit(self):
-        self.kwargs.append([self.arg_word[0], self.arg_value])
+        self.kwargs.append((self.arg_word[0], self.arg_value))
         return

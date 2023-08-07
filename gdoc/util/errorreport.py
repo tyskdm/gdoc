@@ -1,11 +1,7 @@
 """
 errorhandler.py: ErrorHandler class
 """
-
-
 from typing import Union, cast
-
-from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 
 
 class ErrorReport:
@@ -80,7 +76,12 @@ class ErrorReport:
         err_str: str
         err_info: list[str] = []
         for err in self._errordata:
-            if isinstance(err, GdocSyntaxError):
+            if type(err) is ErrorReport:
+                dumpstrings += err._dump(info, enclosure)
+
+            # elif isinstance(err, GdocSyntaxError):
+            # TODO: Provide Interface for GdocSyntaxError
+            elif hasattr(err, "_dump"):
                 err_info = err._dump(self._filename, info, enclosure)
 
                 err_str: str = err_info[0]
@@ -89,9 +90,6 @@ class ErrorReport:
                         err_str += "\n> " + infostr
 
                 dumpstrings.append(err_str)
-
-            elif type(err) is ErrorReport:
-                dumpstrings += err._dump(info, enclosure)
 
             else:
                 dumpstrings.append(str(err))

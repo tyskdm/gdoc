@@ -9,7 +9,7 @@ from .textblock.textblockparser import parse_TextBlock
 
 
 def parse_Section(
-    section: Section, gobj: BaseObject, opts: Settings, erpt: ErrorReport
+    section: Section, gobj: BaseObject, erpt: ErrorReport, opts: Settings | None = None
 ) -> Result[BaseObject, ErrorReport]:
     """ """
     srpt: ErrorReport = erpt.new_subreport()
@@ -24,26 +24,26 @@ def parse_Section(
         #
         # The first block
         #
-        r = parse_TextBlock(section[0], context, opts, srpt)
-        if r.is_ok():
-            context = r.unwrap() or gobj
-        elif srpt.should_exit(r.err()):
+        r, e = parse_TextBlock(section[0], context, srpt, opts)
+        if e and srpt.should_exit(e):
             return Err(erpt.submit(srpt))
+        context = r or gobj
 
     i: int
-    for i in range(next, len(section)):
+    # for i in range(next, len(section)):
+    for block in section[next:]:
         #
         # Following blocks
         #
-        blocktype = type(section[i])
+        blocktype = type(block)
         if blocktype is TextBlock:
-            r = parse_TextBlock(section[i], context, opts, srpt)
-            if r.is_err() and srpt.should_exit(r.err()):
+            _, e = parse_TextBlock(block, context, srpt, opts)
+            if e and srpt.should_exit(e):
                 return Err(erpt.submit(srpt))
 
         elif blocktype is Section:
-            r = parse_Section(section[i], context, opts, srpt)
-            if r.is_err() and srpt.should_exit(r.err()):
+            _, e = parse_Section(block, context, srpt, opts)
+            if e and srpt.should_exit(e):
                 return Err(erpt.submit(srpt))
 
     if srpt.haserror():
