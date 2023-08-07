@@ -38,15 +38,19 @@ def run(args):
     """
     run subcommand
     """
-    opts = Settings({})
-    erpt = ErrorReport(cont=args.check_only)
+    opts: Settings = Settings({})
+    erpt: ErrorReport
+
+    fileformat: str | None = args.filetype
+    via_html: bool | None = args.html if (fileformat is not None) else None
 
     for filepath in args.filepath:
-        gobj, erpt = GdocCompiler().compile(filepath, opts, erpt)
+        erpt: ErrorReport = ErrorReport(cont=args.check_only, filename=filepath)
+        gobj, e = GdocCompiler().compile(filepath, fileformat, via_html, erpt, opts)
 
         if gobj is not None:
             data = gobj.dumpd()
             print(json.dumps(data, indent=2, ensure_ascii=False))
 
-        if erpt is not None:
-            print(erpt.dump(True))
+        if e is not None:
+            print(e.dump(True))

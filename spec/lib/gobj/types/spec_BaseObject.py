@@ -48,21 +48,24 @@ def spec___init___2():
     [@spec \_\_init\_\_.2] set attrs with default values.
     """
     target = BaseObject("OBJECT", "ID")
-    prop = target._GdObject__properties.copy()
+    prop = target._Object__properties
 
-    assert prop == {
-        "": {
-            "scope": "+",
-            "id": "ID",
-            "name": None,
-            "tags": [],
-            "class": {"category": "", "type": "OBJECT", "version": ""},
-        }
+    assert prop[""] == {
+        "scope": "+",
+        "name": "ID",
+        "names": ["ID"],
+        "tags": [],
+        "class": {
+            "category": "",
+            "type": "OBJECT",
+            "version": "",
+            "refpath": None,
+        },
     }
 
     assert target.scope == "+"
-    assert target.id == "ID"
-    assert target.name is None
+    assert target.name == "ID"
+    assert target.names == ["ID"]
     assert target.tags == []
 
     assert target.class_category == ""

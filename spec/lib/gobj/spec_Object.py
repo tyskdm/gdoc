@@ -22,43 +22,7 @@ import inspect
 import pytest
 
 from gdoc.lib.gdoccompiler.gdexception import *
-from gdoc.lib.gobj.gdobject import GdObject
-
-## @{ @name _set_category(cls, module)
-## [\@spec _set_category]
-##
-__set_category = "dummy for doxygen styling"
-
-
-def spec_set_category_1():
-    r"""
-    [@spec set_category.1]
-    """
-    MODULE = "TEST1"
-
-    assert GdObject._GdObject__category_module is None
-
-    GdObject.set_category(MODULE)
-
-    assert GdObject._GdObject__category_module is MODULE
-
-
-## @}
-## @{ @name get_category(self)
-## [\@spec get_category]
-##
-_get_category = "dummy for doxygen styling"
-
-
-def spec_get_category_1():
-    r"""
-    [@spec get_category.1]
-    """
-    MODULE = "TEST2"
-    GdObject.set_category(MODULE)
-
-    assert GdObject.get_category() is MODULE
-
+from gdoc.lib.gobj.object import Object
 
 ## @}
 ## @{ @name \_\_init\_\_(str \| PandocStr)
@@ -71,7 +35,7 @@ def spec___init___1():
     r"""
     [@spec \_\_init\_\_.1] `Symbol` should be a class.
     """
-    assert inspect.isclass(GdObject) == True
+    assert inspect.isclass(Object) == True
     # assert issubclass(GdObject, GdSymbolTable) == True
 
 
@@ -81,10 +45,10 @@ def spec___init___2():
     """
     TEST_ID = "TEST_ID"
 
-    target = GdObject(TEST_ID)
+    target = Object(TEST_ID)
 
-    assert target._GdObject__properties == {
-        "": {"id": TEST_ID, "scope": "+", "name": None, "tags": []}
+    assert target._Object__properties == {
+        "": {"name": TEST_ID, "scope": "+", "names": [TEST_ID], "tags": []}
     }
 
 
@@ -208,16 +172,15 @@ def spec_set_prop_1(mocker, props, expected):
     #
     # Normal case
     #
-    target = GdObject("TARGET")
+    target = Object("TARGET")
 
     if expected["Exception"] is None:
-
         for prop in props:
             target.set_prop(prop[0], prop[1])
 
-        del target._GdObject__properties[""]
+        del target._Object__properties[""]
 
-        assert target._GdObject__properties == expected["properties"]
+        assert target._Object__properties == expected["properties"]
 
     #
     # Error case
@@ -362,13 +325,12 @@ def spec_get_prop_1(mocker, props, key, expected):
     #
     # Normal case
     #
-    target = GdObject("TARGET")
+    target = Object("TARGET")
 
     for prop in props:
         target.set_prop(prop[0], prop[1])
 
     if expected["Exception"] is None:
-
         assert target.get_prop(key) == expected["value"]
 
     #
@@ -379,64 +341,3 @@ def spec_get_prop_1(mocker, props, key, expected):
             target.get_prop(key)
 
         assert exc_info.match(expected["Exception"][1])
-
-
-## @}
-## @{ @name abc.mapping
-## [\@spec abc_mapping]
-##
-_abc_mapping = "dummy for doxygen styling"
-
-
-def spec_abc_mapping_1():
-    r"""
-    [@spec set_category.1]
-    """
-    target = GdObject("TARGET")
-
-    for k, v in [
-        ("1", "A"),
-        ("2", "B"),
-        ("3", "C"),
-        ("4", "D"),
-        ("5", "E"),
-    ]:
-        target.set_prop(k, v)
-
-    # __getitem__
-    assert target["1"] == "A"
-    assert target["2"] == "B"
-
-    # __iter__
-    for k, v in target.items():
-        assert target._GdObject__properties[k] == v
-
-    # __len__
-    assert len(target) == len(target._GdObject__properties)
-
-    # __contains__
-    assert ("1" in target) == True
-
-    # __eq__
-    assert target == target._GdObject__properties
-    assert target._GdObject__properties == target
-
-    # __ne__
-    assert target.__ne__({}) == True
-
-    # keys
-    assert list(target.keys()) == ["", "1", "2", "3", "4", "5"]
-
-    # items
-    for k, v in target.items():
-        assert target._GdObject__properties[k] == v
-
-    # values
-    assert list(target.values()) == list(target._GdObject__properties.values())
-
-    # get
-    assert target.get("1") == "A"
-    assert target.get("@") is None
-
-
-## @}

@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from typing import Callable, Optional, SupportsIndex, Union, cast, overload
 
 from gdoc.lib.pandocastobject.pandocast import PandocInlineElement
+from gdoc.util import Settings
 from gdoc.util.returntype import ReturnType
 
 from .code import Code
@@ -12,6 +13,7 @@ from .config import DEFAULTS
 from .datapos import DataPos, Pos
 from .string import String
 from .text import Text
+from .types import _TYPE_LOADD
 
 _PLAIN_TYPES: list = DEFAULTS.get("pandocast", {}).get("types", {}).get("plaintext", [])
 _OTHER_KNOWN_TYPES = [
@@ -168,7 +170,6 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         string = String()
         text: Text
         for text in self.__text_items:
-
             if isinstance(text, String):
                 string += text
 
@@ -187,8 +188,12 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         return ["T", result]
 
     @classmethod
-    def loadd(cls, data: list) -> "TextString":
-
+    def loadd(
+        cls,
+        data: list,
+        loadd: _TYPE_LOADD | None = None,
+        opts: Settings | None = None,
+    ) -> "TextString":
         if data[0] != "T":
             raise TypeError("invalid data type")
 
@@ -198,8 +203,12 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
                 texts.append(String.loadd(item))
             elif item[0] == "c":
                 texts.append(Code.loadd(item))
-            if item[0] == "T":
-                texts.append(TextString.loadd(item))
+            elif item[0] == "T":
+                texts.append(cls.loadd(item, loadd, opts))
+            elif loadd is not None:
+                texts.append(loadd(item, opts))
+            else:
+                raise TypeError("invalid data type")
 
         return cls(texts)
 
@@ -233,7 +242,6 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         self.__text_items.clear()
 
     def pop_prefix(self, prefix: str) -> Optional["TextString"]:
-
         if prefix == "":
             return None
 
@@ -470,7 +478,6 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
         maxsplit: int = -1,
         retsep: bool = False,
     ) -> list["TextString"]:
-
         result: list = []
         target: TextString = self[:]
         text_parts: list[tuple[str, TextString]] = []

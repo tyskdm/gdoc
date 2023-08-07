@@ -8,9 +8,12 @@ Usage:
 """
 from typing import cast
 
+from gdoc.util import Settings
+
 from .string import String
 from .text import Text
 from .textstring import TextString
+from .types import _TYPE_LOADD
 
 
 class Quoted(TextString):
@@ -76,11 +79,15 @@ class Quoted(TextString):
         return textstr_dumpdata
 
     @classmethod
-    def loadd(cls, data: list) -> "Quoted":
-
+    def loadd(
+        cls,
+        data: list,
+        loadd: _TYPE_LOADD | None = None,
+        opts: Settings | None = None,
+    ) -> "Quoted":
         if data[0] != "Q":
             raise TypeError("invalid data type")
 
-        textstr: TextString = TextString.loadd(["T"] + data[1:])
+        textstr: TextString = TextString.loadd(["T"] + data[1:], loadd, opts)
 
         return cls(textstr)

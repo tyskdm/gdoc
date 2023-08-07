@@ -331,32 +331,6 @@ class Spec_parentheses_detector:
                     "result": None,
                 },
             ),
-            "MixedElements(3/)": (
-                # precondition
-                [
-                    [
-                        "T",
-                        [
-                            ["s", [[3, ["filename", 5, 10, 5, 13]]], "(AB"],
-                            ["c", ["filename", 5, 13, 5, 18], "CDE"],
-                            ["s", [[2, ["filename", 5, 18, 5, 20]]], "[F"],
-                        ],
-                    ],
-                    0,
-                    "({[",
-                    ")}]",
-                    ErrorReport(True, "FILENAME"),  # cont = True
-                ],
-                # expected
-                {
-                    "err": (
-                        "filename:5:18-5:19 GdocSyntaxError: '[' was never closed\n"
-                        "> (ABCDE[F\n"
-                        ">       ^"
-                    ),
-                    "result": None,
-                },
-            ),
         }
 
     # \cond
@@ -520,6 +494,75 @@ class Spec_detect_parentheses:
                         ">    ^"
                     ),
                     "result": None,
+                },
+            ),
+            ##
+            # #### [\@case 1] Partial Error:
+            #
+            "PartialError(1/)": (
+                # precondition
+                [
+                    [
+                        "T",
+                        [
+                            ["s", [[5, ["filename", 5, 10, 5, 15]]], "(A)B["],
+                        ],
+                    ],
+                    ErrorReport(True, "FILENAME"),  # cont = True
+                    "({[",
+                ],
+                # expected
+                {
+                    "err": (
+                        "filename:5:14-5:15 GdocSyntaxError: '[' was never closed\n"
+                        "> (A)B[\n"
+                        ">     ^"
+                    ),
+                    "result": [
+                        "T",
+                        [
+                            [
+                                "P",
+                                [
+                                    ["s", [[3, ["filename", 5, 10, 5, 13]]], "(A)"],
+                                ],
+                            ],
+                            ["s", [[2, ["filename", 5, 13, 5, 15]]], "B["],
+                        ],
+                    ],
+                },
+            ),
+            "PartialError(2/)": (
+                # precondition
+                [
+                    [
+                        "T",
+                        [
+                            ["s", [[5, ["filename", 5, 10, 5, 15]]], "(A)B]"],
+                        ],
+                    ],
+                    ErrorReport(True, "FILENAME"),  # cont = True
+                    "({[",
+                ],
+                # expected
+                {
+                    "err": (
+                        "filename:5:14-5:15 GdocSyntaxError: unmatched ']'\n"
+                        "> (A)B]\n"
+                        ">     ^"
+                    ),
+                    "result": [
+                        "T",
+                        [
+                            [
+                                "P",
+                                [
+                                    ["s", [[3, ["filename", 5, 10, 5, 13]]], "(A)"],
+                                ],
+                            ],
+                            ["s", [[2, ["filename", 5, 13, 5, 15]]], "B]"],
+                        ],
+                    ],
                 },
             ),
         }

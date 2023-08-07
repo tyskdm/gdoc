@@ -1,195 +1,65 @@
 """
 blocktagdetector.py: detect_BlockTag function
 """
-from typing import Any, Optional, TypeAlias, cast
+from typing import Optional
 
-from gdoc.lib.gdoc import Quoted, String, Text, TextString
-from gdoc.lib.gdocparser.quotedstringdetector import QuotedStringDetector
-from gdoc.util.fsm import NEXT, State, StateMachine
+from gdoc.lib.gdoc import String, TextString
+
+from ..parenthesesdetector import ParenthesesDetector
 
 
 def detect_BlockTag(
     textstr: TextString, start: int = 0
 ) -> tuple[Optional[slice], Optional[TextString]]:
     result: tuple[Optional[slice], Optional[TextString]]
-    tagpos: list[int]
     tagstr: Optional[TextString]
 
-    detector: StateMachine = BlockTagDetector()
+    detector: ParenthesesDetector = ParenthesesDetector()
     start_pos: int = start
 
     while True:
-        detector.start().on_entry()
+        #
+        # Search "[@" from start_pos
+        #
+        opening_bracket: bool = False
+        for i, text in enumerate(textstr[start_pos:], start_pos):
+            if type(text) is String:
+                if text == "[":
+                    opening_bracket = True
+                    continue
 
-        for i, text in enumerate(textstr[start_pos:]):
-            if detector.on_event((i, text)) is None:
-                break
+                elif opening_bracket and text == "@":
+                    # "[@" has been found
+                    start_pos = i + 1  # Next to "[@"
+                    break
 
-        assert (detect := detector.on_exit()) is not None
-        tagpos, tagstr = detect
+            opening_bracket = False
 
-        if tagpos[0] < 0:
+        else:
             # Opening str "[@" NOT FOUND
             result = (None, None)
             break
 
-        elif tagpos[1] < 0:
-            # "[@" has been found, but NOT END correctly with "]".
-            # Retry from the location indicated with tag_start.
-            start_pos += tagpos[0] + 2  # 2 = len('[@')
-
+        #
+        # Search "]" from start_pos
+        #
+        detector.start(("[", "]")).on_entry()
+        for i, text in enumerate(textstr[start_pos:], start_pos):
+            if detector.on_event(text) is None:
+                break
         else:
-            # Tag detected
-            result = (slice(start_pos + tagpos[0], start_pos + tagpos[1]), tagstr)
-            break
+            # "]" NOT FOUND
+            continue
 
-        detector.stop()
+        # "]" has been found
+        assert (tagstr := detector.on_exit()) is not None
+        result = (
+            slice(
+                start_pos - 2,  # before "[@"
+                i + 1,  # after "]"
+            ),
+            textstr[start_pos - 2 : start_pos] + tagstr,
+        )
+        break
 
     return result
-
-
-#
-# BlockTag detector
-#
-class BlockTagDetector(
-    StateMachine[
-        Any,  # PARAM
-        tuple[int, Text],  # EVENT
-        tuple[list[int], TextString],  # RESULT
-    ]
-):
-    """
-    BlockTagDetector
-    """
-
-    tagstr: TextString
-    tagpos: list[int]
-
-    def __init__(self, name: Optional[str] = None):
-        super().__init__(name)
-        self.add_state(_Open("Opening"), "Character")
-        self.add_state(_Char("Character"), None)
-        self.add_state(_String("String"), "Character")
-
-    def start(self, param: Any = None):
-        self.tagstr = TextString()
-        self.tagpos = [-1, -1]
-        return super().start((self.tagstr, self.tagpos))
-
-    def on_exit(self) -> tuple[list[int], TextString]:
-        super().on_exit()
-        return self.tagpos, self.tagstr
-
-    _CHILD_STATE_: TypeAlias = State[
-        tuple[TextString, list[int]],  # PARAM
-        tuple[int, Text],  # EVENT
-        None,  # RESULT
-    ]
-
-
-class _Open(BlockTagDetector._CHILD_STATE_):
-    """
-    _Open: Wait opening chars
-    """
-
-    tagstr: TextString
-    tagpos: list[int]
-    _prev: Optional[String]
-    _start: int
-
-    def start(self, param: tuple[TextString, list[int]]):
-        self.tagstr, self.tagpos = param
-        return self
-
-    def on_entry(self, _):
-        self._prev = None
-        self._start = -1
-        return self
-
-    def on_event(self, event: tuple[int, Text]):
-        next: NEXT = self
-        index, token = event
-
-        if self._prev is None:
-            if isinstance(token, String) and (token == "["):
-                self._prev = token
-                self._start = index
-
-        elif isinstance(token, String) and (token == "@"):
-            cast(TextString, self.tagstr).append(self._prev + token)
-            cast(list[int], self.tagpos)[0] = self._start
-            next = None
-
-        else:
-            self._prev = None
-            self._start = -1
-
-        return next
-
-
-class _Char(BlockTagDetector._CHILD_STATE_):
-    """
-    _Char: Characters
-    """
-
-    tagstr: TextString
-    tagpos: list[int]
-    _bcount: int
-
-    def start(self, param: tuple[TextString, list[int]]):
-        self.tagstr, self.tagpos = param
-        self._bcount = 0
-
-    def on_event(self, event: tuple[int, Text]):
-        next: NEXT = self
-        index, token = event
-
-        if isinstance(token, String) and (token in ('"', "'")):
-            next = ("String", event)
-
-        else:
-            self.tagstr.append(token)
-
-            if isinstance(token, String) and (token == "["):
-                self._bcount += 1
-
-            elif isinstance(token, String) and (token == "]"):
-                if self._bcount > 0:
-                    self._bcount -= 1
-                else:
-                    # Tag Detection Success
-                    cast(list[int], self.tagpos)[1] = index + 1
-                    next = None
-
-        return next
-
-
-class _String(BlockTagDetector._CHILD_STATE_):
-    """
-    _String
-    """
-
-    detector = QuotedStringDetector()
-
-    def start(self, param: tuple[TextString, list[int]]):
-        self.tagstr, _ = param
-
-    def on_entry(self, event: tuple[int, Text]):  # type: ignore
-        _, text = event
-        self.detector.on_entry(text)
-        return self
-
-    def on_event(self, event: tuple[int, Text]):
-        _, text = event
-
-        next: NEXT = self.detector.on_event(text)
-
-        if next is not None:
-            next = self
-
-        else:
-            quotedtext: TextString = cast(TextString, self.detector.on_exit())
-            self.tagstr.append(Quoted(quotedtext))
-            next = None
-
-        return next

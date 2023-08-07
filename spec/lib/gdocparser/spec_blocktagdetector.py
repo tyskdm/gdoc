@@ -133,6 +133,27 @@ class Spec_detect_BlockTag:
                 # expected
                 [None, None],
             ),
+            ##
+            # #### [\@case 4] Retry:
+            #
+            "Retry(1/)": (
+                # stimulus
+                [["T", [["s", "[@AB [@CD ]"]]]],
+                # expected
+                [
+                    slice(5, 11),
+                    ["T", [["s", "[@CD ]"]]],
+                ],
+            ),
+            "Retry(2/)": (
+                # stimulus
+                [["T", [["s", "[@AB [@CD [@EF ]"]]]],
+                # expected
+                [
+                    slice(10, 16),
+                    ["T", [["s", "[@EF ]"]]],
+                ],
+            ),
         }
 
     # \cond
