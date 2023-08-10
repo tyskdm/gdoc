@@ -7,6 +7,12 @@
 if [ -f .devcontainer/.bashrc ]; then
     cp .devcontainer/.bashrc ~/
 fi
+if [ -f .devcontainer/.git-completion.sh ]; then
+    cp .devcontainer/.git-completion.sh ~/
+fi
+if [ -f .devcontainer/.git-prompt.sh ]; then
+    cp .devcontainer/.git-prompt.sh ~/
+fi
 
 # PlantUML
 sudo ln -s $(pwd)/.devcontainer/plantuml /usr/local/bin/
