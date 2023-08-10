@@ -3,3 +3,4 @@ __pycache__
 /coverage.xml
 /docs/DetailedDesign
 /doxy
+/node_modules
