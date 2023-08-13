@@ -25,7 +25,10 @@ function activate(context) {
                 "--logging-filename",
                 context.extensionPath + "/.gdoc-language-server.log",
                 "--logging-level",
-                "WARNING",
+                "DEBUG",
+                "--logging-filemode",
+                "a",
+                "--logging-timestamp",
             ]
         };
         const clientOptions = {
