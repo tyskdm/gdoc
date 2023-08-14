@@ -31,7 +31,7 @@ def add_arguments(parser):
         parser.add_argument("--logging-" + key, **value)
 
 
-def basic_config(args):
+def basic_config(args, stream=None):
     """
     Setup logging
     """
@@ -47,15 +47,15 @@ def basic_config(args):
         #
         logging.basicConfig(handlers=[logging.NullHandler()])
 
-        fileargs: dict | None = None
+        kwargs: dict | None = None
         if hasattr(args, "logging_filename") and (
             (filename := getattr(args, "logging_filename")) is not None
         ):
-            fileargs = {"filename": filename}
+            kwargs = {"filename": filename}
             if hasattr(args, "logging_filemode") and (
                 (mode := getattr(args, "logging_filemode")) is not None
             ):
-                fileargs["mode"] = mode
+                kwargs["mode"] = mode
 
         scope: list[str] = val
         for module in scope:
@@ -66,10 +66,10 @@ def basic_config(args):
             if logging_level is not None:
                 logging.getLogger(module).setLevel(level=logging_level)
 
-            if fileargs is not None:
-                handler = logging.FileHandler(**fileargs)
+            if kwargs is not None:
+                handler = logging.FileHandler(**kwargs)
             else:
-                handler = logging.StreamHandler()
+                handler = logging.StreamHandler(stream)
 
             if getattr(args, "logging_timestamp"):
                 handler.setFormatter(
@@ -90,16 +90,21 @@ def basic_config(args):
         #
         # scope is not specified
         #
-        kwargs: dict = {}
+        kwargs = {}
 
         if logging_level is not None:
             kwargs["level"] = logging_level
 
-        for opt in ["filename", "filemode"]:
-            if hasattr(args, "logging_" + opt) and (
-                (val := getattr(args, "logging_" + opt)) is not None
+        if hasattr(args, "logging_filename") and (
+            (filename := getattr(args, "logging_filename")) is not None
+        ):
+            kwargs["filename"] = filename
+            if hasattr(args, "logging_filemode") and (
+                (mode := getattr(args, "logging_filemode")) is not None
             ):
-                kwargs[opt] = val
+                kwargs["filemode"] = mode
+        elif stream is not None:
+            kwargs["stream"] = stream
 
         if getattr(args, "logging_timestamp"):
             kwargs["format"] = "%(asctime)s %(levelname)s:%(name)s:%(message)s"

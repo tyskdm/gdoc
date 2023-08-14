@@ -2,8 +2,12 @@
 command.py
 """
 import logging
+import sys
 
 from gdoc.util import loggingconfig
+
+from .baseprotocol import BaseProtocol
+from .jsonstream import JsonStream
 
 
 def setup(subparsers, name, commonOptions):
@@ -39,6 +43,14 @@ def run(args):
     """
     run subcommand
     """
-    loggingconfig.basic_config(args)
+    loggingconfig.basic_config(args, sys.stderr)
     logger = logging.getLogger(__name__)
-    logger.info("Executing")
+    logger.info("Executing...")
+
+    jsonstream = JsonStream(sys.stdin, sys.stdout)
+    baseprotocol = BaseProtocol(jsonstream)
+
+    baseprotocol.info("Hello, world!")
+
+    while True:
+        baseprotocol.listen()

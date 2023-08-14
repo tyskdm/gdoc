@@ -24,10 +24,10 @@ function activate(context) {
                 "language-server",
                 "--logging-filename",
                 context.extensionPath + "/.gdoc-language-server.log",
-                "--logging-level",
-                "DEBUG",
                 "--logging-filemode",
                 "a",
+                "--logging-level",
+                "DEBUG",
                 "--logging-timestamp",
             ]
         };
