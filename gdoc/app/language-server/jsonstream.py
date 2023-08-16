@@ -1,4 +1,5 @@
-# Copyright 2018 Palantir Technologies, Inc.
+# This code is a modified version of:
+# https://github.com/palantir/python-jsonrpc-server/blob/develop/pyls_jsonrpc/streams.py
 import json
 import logging
 import threading
@@ -18,31 +19,34 @@ class JsonStream:
         with self._wfile_lock:
             self._wfile.close()
 
-    def listen(self, message_consumer):
-        """Blocking call to listen for messages on the rfile.
-
-        Args:
-            message_consumer (fn): function that is passed each message as
-            it is read off the socket.
-        """
-        while not self._rfile.closed:
+    def write(self, message):
+        with self._wfile_lock:
+            if self._wfile.closed:
+                return
             try:
-                request_str = self.read_message()
-            except ValueError:
-                if self._rfile.closed:
-                    return
-                else:
-                    logger.exception("Failed to read from rfile")
+                body = json.dumps(message, **self._json_dumps_args)
 
-            if request_str is None:
-                break
+                # Ensure we get the byte length, not the character length
+                content_length = (
+                    len(body) if isinstance(body, bytes) else len(body.encode("utf-8"))
+                )
 
-            try:
-                message_consumer(json.loads(request_str))
-            except ValueError:
-                continue
+                response = (
+                    "Content-Length: {}\r\n"
+                    "Content-Type: application/vscode-jsonrpc; charset=utf8\r\n\r\n"
+                    "{}".format(content_length, body)
+                )
 
-    def read_message(self) -> str | None:
+                self._wfile.write(response)
+                self._wfile.flush()
+            except Exception:  # pylint: disable=broad-except
+                logger.exception("Failed to write message to output file %s", message)
+
+    def read(self):
+        msg = self.read_message()
+        return json.loads(msg.decode("utf-8")) if msg else None
+
+    def read_message(self) -> bytes | None:
         """Reads the contents of a message.
 
         Returns:
@@ -65,36 +69,11 @@ class JsonStream:
         # Grab the body
         return self._rfile.read(content_length)
 
-    def read(self):
-        msg = self.read_message()
-        return json.loads(msg) if msg else None
-
-    def write(self, message):
-        with self._wfile_lock:
-            if self._wfile.closed:
-                return
-            try:
-                body = json.dumps(message, **self._json_dumps_args)
-
-                # Ensure we get the byte length, not the character length
-                content_length = len(body) if isinstance(body, bytes) else len(body)
-
-                response = (
-                    "Content-Length: {}\r\n"
-                    "Content-Type: application/vscode-jsonrpc; charset=utf8\r\n\r\n"
-                    "{}".format(content_length, body)
-                )
-
-                self._wfile.write(response)
-                self._wfile.flush()
-            except Exception:  # pylint: disable=broad-except
-                logger.exception("Failed to write message to output file %s", message)
-
     @staticmethod
     def _content_length(line):
         """Extract the content length from an input line."""
-        if line.startswith("Content-Length: "):
-            _, value = line.split("Content-Length: ")
+        if line.startswith(b"Content-Length: "):
+            _, value = line.split(b"Content-Length: ")
             value = value.strip()
             try:
                 return int(value)

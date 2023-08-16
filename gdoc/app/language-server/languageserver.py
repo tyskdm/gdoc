@@ -1,10 +1,11 @@
 import logging
 from enum import Enum, auto
-from typing import cast
+from typing import Type, cast
 
 from gdoc.util import Settings
 
 from .baseprotocol import BaseProtocol, ErrorCodes
+from .feature import Feature
 from .jsonrpc import JsonRpc
 from .jsonstream import JsonStream
 
@@ -23,19 +24,27 @@ class ServerStatus(Enum):
 class LanguageServer:
     _baseprotocol: BaseProtocol
     _status: ServerStatus
+    _features: dict[str, Feature]
     client_settings: Settings
 
-    def __init__(self, jsonstream: JsonStream) -> None:
+    def __init__(
+        self,
+        jsonstream: JsonStream,
+        features: list[Type[Feature]],
+    ) -> None:
         self._baseprotocol = BaseProtocol(jsonstream)
         self._baseprotocol.add_method_handlers(
             {
-                "initialize": self.method_initialize,
-                "shutdown": self.method_shutdown,
-                "initialized": self.method_initialized,
-                "exit": self.method_exit,
-                "$/setTrace": self.method_setTrace,
+                "initialize": self._method_initialize,
+                "shutdown": self._method_shutdown,
+                "initialized": self._method_initialized,
+                "exit": self._method_exit,
+                "$/setTrace": self._method_setTrace,
             }
         )
+        self._features = {}
+        for feature in features:
+            self._features[feature.__name__] = feature(self, self._baseprotocol)
 
     def execute(self) -> int:
         logger.info("Starting language server")
@@ -74,34 +83,43 @@ class LanguageServer:
         self._baseprotocol.info(f"Stopping language server with exit code '{ercd}'")
         return ercd
 
-    def method_initialize(self, packet: JsonRpc) -> dict | None:
+    def _method_initialize(self, packet: JsonRpc) -> dict | None:
         logger.debug(f"Initialize.params = {packet.params}")
         self.client_settings = Settings(cast(dict, packet.params))
+
+        capabilities: dict = {
+            "textDocumentSync": 1,
+        }
+        client_capabilities = self.client_settings.derive("capabilities")
+        for feature in self._features.values():
+            capabilities.update(feature.initialize(client_capabilities))
 
         result: dict = {
             "serverInfo": {
                 "name": "gdoc",
                 "version": "0.0.1",
             },
-            "capabilities": {
-                "textDocumentSync": 1,
-            },
+            "capabilities": capabilities,
         }
         self._status = ServerStatus.Initializing
         return JsonRpc.Response(packet.id, result)
 
-    def method_initialized(self, packet: JsonRpc) -> None:
+    def _method_initialized(self, packet: JsonRpc) -> None:
         self._status = ServerStatus.Initialized
 
-    def method_shutdown(self, packet: JsonRpc) -> dict:
+    def _method_shutdown(self, packet: JsonRpc) -> dict:
         self._status = ServerStatus.ShuttingDown
         return JsonRpc.Response(packet.id, None)
 
-    def method_exit(self, packet: JsonRpc) -> None:
+    def _method_exit(self, packet: JsonRpc) -> None:
         if self._status == ServerStatus.ShuttingDown:
             self._status = ServerStatus.Exit_SUCCESS
         else:
             self._status = ServerStatus.Exit_ERROR
 
-    def method_setTrace(self, packet: JsonRpc) -> None:
-        logger.debug(f"$/setTrace.params = {packet.params}")
+    def _method_setTrace(self, packet: JsonRpc) -> None:
+        result: dict | None = None
+
+        logger.debug(f"{packet.method}.params = {packet.params}")
+
+        return result

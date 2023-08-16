@@ -36,7 +36,7 @@ class Dispatcher:
 
         self.add_method_handlers(
             {
-                "$/cancelRequest": self.method_cancelRequest,
+                "$/cancelRequest": self._method_cancelRequest,
             }
         )
 
@@ -101,7 +101,7 @@ class Dispatcher:
         """
         self._method_handlers.update(handlers)
 
-    def method_cancelRequest(self, packet: JsonRpc) -> dict | None:
+    def _method_cancelRequest(self, packet: JsonRpc) -> dict | None:
         """Cancel a request
         method: '$/cancelRequest'
         params: params of the request
