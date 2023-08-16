@@ -35,7 +35,7 @@ function activate(context) {
             documentSelector: [
                 {
                     scheme: "file",
-                    language: "gdoc",
+                    language: "markdown",
                 }
             ],
         };

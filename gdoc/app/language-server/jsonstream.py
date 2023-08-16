@@ -2,6 +2,7 @@
 # https://github.com/palantir/python-jsonrpc-server/blob/develop/pyls_jsonrpc/streams.py
 import json
 import logging
+import sys
 import threading
 
 logger = logging.getLogger(__name__)
@@ -9,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class JsonStream:
     def __init__(self, rfile, wfile, **json_dumps_args):
-        self._rfile = rfile
+        self._rfile = sys.stdin.buffer if rfile is sys.stdin else rfile
         self._wfile = wfile
         self._wfile_lock = threading.Lock()
         self._json_dumps_args = json_dumps_args

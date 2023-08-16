@@ -8,6 +8,7 @@ from gdoc.util import loggingconfig
 from .jsonstream import JsonStream
 from .languageserver import LanguageServer
 from .textdocument.publishdiagnostics import PublishDiagnostics
+from .textdocument.semantictokens import SemanticTokens
 from .textdocument.synchronization import Synchronization
 
 
@@ -33,10 +34,11 @@ def run(args):
     loggingconfig.basic_config(args, sys.stderr)
 
     ercd = LanguageServer(
-        JsonStream(sys.stdin.buffer, sys.stdout),
+        JsonStream(sys.stdin, sys.stdout),
         [
             PublishDiagnostics,
             Synchronization,
+            SemanticTokens,
         ],
     ).execute()
 

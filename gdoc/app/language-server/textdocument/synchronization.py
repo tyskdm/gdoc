@@ -83,6 +83,7 @@ from typing import cast
 
 from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
+from gdoc.lib.gdocparser.textblock import tokens
 from gdoc.util import ErrorReport, Settings
 
 
@@ -93,6 +94,7 @@ def verify(uri: str) -> list[dict]:
     fileformat: str | None = "gfm"
     via_html: bool | None = True
     erpt: ErrorReport = ErrorReport(cont=True)
+    tokens.clear_tokens()
     _, e = GdocCompiler().compile(filepath, fileformat, via_html, erpt, opts)
 
     diagnostics: list[dict] = []
