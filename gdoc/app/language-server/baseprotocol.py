@@ -104,12 +104,14 @@ class BaseProtocol:
     dispatcher: Dispatcher
     _incoming_request_queue: dict
     _outgoing_request_queue: dict
+    _outgoing_request_id: int
 
     def __init__(self, jsonstream: JsonStream) -> None:
         super().__init__()
         self.jsonstream = jsonstream
         self._incoming_request_queue = {}
         self._outgoing_request_queue = {}
+        self._outgoing_request_id = 0
         self.dispatcher = Dispatcher()
         self.dispatcher.add_responce_handler(self._receive_response)
         self.dispatcher.add_method_handlers(
@@ -153,13 +155,17 @@ class BaseProtocol:
         self.jsonstream.write(JsonRpc.Notification(method, params).jsonobj)
 
     def send_request(
-        self, method: str, params: Any, callback: Callable[[JsonRpc, int, str, Any], None]
+        self,
+        method: str,
+        params: Any,
+        callback: Callable[[JsonRpc, int, str, Any], JsonRpc | Any | None],
     ) -> int:
         """Send a notification
         method: method name
         params: params
         """
-        id: int = 0  # Generate id
+        id: int = self._outgoing_request_id
+        self._outgoing_request_id += 1
         self.jsonstream.write(JsonRpc.Request(id, method, params).jsonobj)
         self._outgoing_request_queue[id] = (method, params, callback)
         return id
@@ -182,17 +188,21 @@ class BaseProtocol:
         """Receive a response
         packet: packet
         """
-        if (id := packet.id) is None:
-            logger.error("Received a response without an id: '%s'", packet.jsonobj)
-            return None
+        result: JsonRpc | Any = None
 
-        request = self._outgoing_request_queue.pop(id, None)
-        if request is not None:
-            method, params, callback = request
-            callback(packet, id, method, params)
-
+        if (id := packet.id) is not None:
+            request = self._outgoing_request_queue.pop(id, None)
+            if request is not None:
+                method, params, callback = request
+                result = callback(packet, id, method, params)
+            else:
+                logger.error(
+                    "Received a response with an unknown id: '%s'", packet.jsonobj
+                )
         else:
-            logger.error("Received a response with an unknown id: '%s'", packet.jsonobj)
+            logger.error("Received a response without an id: '%s'", packet.jsonobj)
+
+        return result
 
     def cancel_request(self, id: int) -> None:
         pass

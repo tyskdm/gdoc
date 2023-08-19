@@ -19,3 +19,9 @@ class Feature(ABC):
         """
         Check client capabilities and return the capabilities for the client.
         """
+
+    def initialized(self, packet) -> None:
+        """
+        Called when the client is initialized.
+        """
+        return

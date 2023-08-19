@@ -1,6 +1,6 @@
 import logging
 from enum import Enum, auto
-from typing import Type, cast
+from typing import Any, Callable, Type, cast
 
 from gdoc.util import Settings
 
@@ -105,6 +105,8 @@ class LanguageServer(BaseProtocol):
 
     def _method_initialized(self, packet: JsonRpc) -> None:
         self._status = ServerStatus.Initialized
+        for feature in self._features.values():
+            feature.initialized(packet)
 
     def _method_shutdown(self, packet: JsonRpc) -> JsonRpc:
         self._status = ServerStatus.ShuttingDown
@@ -122,3 +124,26 @@ class LanguageServer(BaseProtocol):
         logger.debug(f"{packet.method}.params = {packet.params}")
 
         return result
+
+    def register_capability(
+        self,
+        registrations: list[dict[str, Any]],
+        callback: Callable[[int, Any | None], None] | None = None,
+    ) -> int:
+        id: int = self.send_request(
+            "client/registerCapability",
+            {"registrations": registrations},
+            self._callback_register_capability,
+        )
+        if not hasattr(self, "_waiting_register_capability"):
+            self._waiting_register_capability = {}
+        self._waiting_register_capability[id] = callback
+        return id
+
+    def _callback_register_capability(
+        self, packet: JsonRpc, id: int, method: str, params: Any
+    ) -> JsonRpc | Any | None:
+        logger.debug(f"packet `{packet.jsonobj}` for {method}.params = {params}")
+        callback = self._waiting_register_capability.pop(id)
+        if callback is not None:
+            callback(id, packet.error)

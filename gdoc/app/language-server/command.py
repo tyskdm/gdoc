@@ -10,6 +10,7 @@ from .languageserver import LanguageServer
 from .textdocument.publishdiagnostics import PublishDiagnostics
 from .textdocument.semantictokens import SemanticTokens
 from .textdocument.synchronization import Synchronization
+from .workspace.didchangewatchedfiles import DidCangeWatchedFiles
 
 
 def setup(subparsers, name, _):
@@ -39,6 +40,7 @@ def run(args):
             PublishDiagnostics,
             Synchronization,
             SemanticTokens,
+            DidCangeWatchedFiles,
         ],
     ).execute()
 
