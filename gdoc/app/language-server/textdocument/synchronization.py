@@ -2,7 +2,6 @@ import logging
 
 from gdoc.util import Settings
 
-from ..baseprotocol import BaseProtocol
 from ..feature import Feature
 from ..jsonrpc import JsonRpc
 from ..languageserver import LanguageServer
@@ -12,14 +11,10 @@ logger = logging.getLogger(__name__)
 
 class Synchronization(Feature):
     client_capability: bool = False
-    _languageserver: LanguageServer
-    _baseprotocol: BaseProtocol
+    server: LanguageServer
 
-    def __init__(
-        self, languageserver: LanguageServer, baseprotocol: BaseProtocol
-    ) -> None:
-        self._languageserver = languageserver
-        self._baseprotocol = baseprotocol
+    def __init__(self, languageserver: LanguageServer) -> None:
+        self.server = languageserver
 
     def initialize(self, client_capabilities: Settings) -> dict:
         self.client_capability = client_capabilities.get(
@@ -28,7 +23,7 @@ class Synchronization(Feature):
         if not self.client_capability:
             return {}
 
-        self._baseprotocol.add_method_handlers(
+        self.server.add_method_handlers(
             {
                 "textDocument/didOpen": self._method_did_open,
                 "textDocument/didChange": self._method_did_change,
@@ -38,40 +33,40 @@ class Synchronization(Feature):
         )
         return {"textDocumentSync": 1}
 
-    def _method_did_open(self, packet: JsonRpc) -> dict | None:
+    def _method_did_open(self, packet: JsonRpc) -> JsonRpc | None:
         result: dict | None = None
 
         logger.debug(f"{packet.method}.params = {packet.params}")
-        self._languageserver._features["PublishDiagnostics"].publish_diagnostics(
+        self.server._features["PublishDiagnostics"].publish_diagnostics(
             packet.params["textDocument"]["uri"],
             verify(packet.params["textDocument"]["uri"]),
         )
 
         return result
 
-    def _method_did_change(self, packet: JsonRpc) -> dict | None:
+    def _method_did_change(self, packet: JsonRpc) -> JsonRpc | None:
         result: dict | None = None
 
         logger.debug(f"{packet.method}.params = {packet.params}")
 
         return result
 
-    def _method_did_save(self, packet: JsonRpc) -> dict | None:
+    def _method_did_save(self, packet: JsonRpc) -> JsonRpc | None:
         result: dict | None = None
 
         logger.debug(f"{packet.method}.params = {packet.params}")
-        self._languageserver._features["PublishDiagnostics"].publish_diagnostics(
+        self.server._features["PublishDiagnostics"].publish_diagnostics(
             packet.params["textDocument"]["uri"],
             verify(packet.params["textDocument"]["uri"]),
         )
 
         return result
 
-    def _method_did_close(self, packet: JsonRpc) -> dict | None:
+    def _method_did_close(self, packet: JsonRpc) -> JsonRpc | None:
         result: dict | None = None
 
         logger.debug(f"{packet.method}.params = {packet.params}")
-        self._languageserver._features["PublishDiagnostics"].publish_diagnostics(
+        self.server._features["PublishDiagnostics"].publish_diagnostics(
             packet.params["textDocument"]["uri"],
             [],
         )

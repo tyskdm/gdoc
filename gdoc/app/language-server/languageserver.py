@@ -21,8 +21,7 @@ class ServerStatus(Enum):
     Exit_ERROR = auto()
 
 
-class LanguageServer:
-    _baseprotocol: BaseProtocol
+class LanguageServer(BaseProtocol):
     _status: ServerStatus
     _features: dict[str, Feature]
     client_settings: Settings
@@ -32,8 +31,8 @@ class LanguageServer:
         jsonstream: JsonStream,
         features: list[Type[Feature]],
     ) -> None:
-        self._baseprotocol = BaseProtocol(jsonstream)
-        self._baseprotocol.add_method_handlers(
+        super().__init__(jsonstream)
+        self.add_method_handlers(
             {
                 "initialize": self._method_initialize,
                 "shutdown": self._method_shutdown,
@@ -44,11 +43,11 @@ class LanguageServer:
         )
         self._features = {}
         for feature in features:
-            self._features[feature.__name__] = feature(self, self._baseprotocol)
+            self._features[feature.__name__] = feature(self)
 
     def execute(self) -> int:
         logger.info("Starting language server")
-        self._baseprotocol.info("Starting language server")
+        self.info("Starting language server")
 
         self._status = ServerStatus.NotInitialized
         logger.info(f"Server status: {self._status.name}")
@@ -72,18 +71,18 @@ class LanguageServer:
                 )
 
             prev: ServerStatus = self._status
-            self._baseprotocol.listen(restriction)
+            self.listen(restriction)
             if prev != self._status:
                 logger.info(f"Server status: {self._status.name}")
-                self._baseprotocol.info(f"Server status: {self._status.name}")
+                self.info(f"Server status: {self._status.name}")
 
         ercd = 0 if self._status == ServerStatus.Exit_SUCCESS else 1
 
         logger.info(f"Stopping language server with exit code '{ercd}'")
-        self._baseprotocol.info(f"Stopping language server with exit code '{ercd}'")
+        self.info(f"Stopping language server with exit code '{ercd}'")
         return ercd
 
-    def _method_initialize(self, packet: JsonRpc) -> dict | None:
+    def _method_initialize(self, packet: JsonRpc) -> JsonRpc | None:
         logger.debug(f"Initialize.params = {packet.params}")
         self.client_settings = Settings(cast(dict, packet.params))
 
@@ -107,7 +106,7 @@ class LanguageServer:
     def _method_initialized(self, packet: JsonRpc) -> None:
         self._status = ServerStatus.Initialized
 
-    def _method_shutdown(self, packet: JsonRpc) -> dict:
+    def _method_shutdown(self, packet: JsonRpc) -> JsonRpc:
         self._status = ServerStatus.ShuttingDown
         return JsonRpc.Response(packet.id, None)
 

@@ -9,7 +9,7 @@ class Feature(ABC):
     """
 
     @abstractmethod
-    def __init__(self, languageserver, baseprotocol) -> None:
+    def __init__(self, languageserver) -> None:
         """
         Initialize the feature with the language server and the base protocol.
         """

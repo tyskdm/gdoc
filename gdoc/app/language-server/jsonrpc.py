@@ -87,33 +87,37 @@ class JsonRpc:
         return "result" in self._jasonobj
 
     @staticmethod
-    def Request(id: int | str, method: str, params) -> dict:
+    def Request(id: int | str, method: str, params) -> "JsonRpc":
         """Create a request
         id: request id
         method: method name
         params: parameters
         """
-        return {
-            "jsonrpc": __class__.VERSION,
-            "id": id,
-            "method": method,
-            "params": params,
-        }
+        return JsonRpc(
+            {
+                "jsonrpc": __class__.VERSION,
+                "id": id,
+                "method": method,
+                "params": params,
+            }
+        )
 
     @staticmethod
-    def Notification(method: str, params) -> dict:
+    def Notification(method: str, params) -> "JsonRpc":
         """Create a notification
         method: method name
         params: parameters
         """
-        return {
-            "jsonrpc": __class__.VERSION,
-            "method": method,
-            "params": params,
-        }
+        return JsonRpc(
+            {
+                "jsonrpc": __class__.VERSION,
+                "method": method,
+                "params": params,
+            }
+        )
 
     @staticmethod
-    def Response(id, result, error=None) -> dict:
+    def Response(id, result, error=None) -> "JsonRpc":
         """Create a response
         id: request id
         result: result
@@ -125,10 +129,11 @@ class JsonRpc:
         }
         if error is not None:
             packet["error"] = error
-        return packet
+
+        return JsonRpc(packet)
 
     @staticmethod
-    def Error(id: int | str | None, code, message, data=None) -> dict:
+    def Error(id: int | str | None, code: int, message: str, data=None) -> "JsonRpc":
         """Create an error response
         id: request id
         code: error code
@@ -142,4 +147,4 @@ class JsonRpc:
         }
         if data is not None:
             packet["error"]["data"] = data
-        return packet
+        return JsonRpc(packet)

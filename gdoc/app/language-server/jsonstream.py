@@ -44,7 +44,7 @@ class JsonStream:
                 logger.exception("Failed to write message to output file %s", message)
 
     def read(self):
-        msg = self.read_message()
+        msg: bytes | None = self.read_message()
         return json.loads(msg.decode("utf-8")) if msg else None
 
     def read_message(self) -> bytes | None:
@@ -53,12 +53,14 @@ class JsonStream:
         Returns:
             body of message if parsable else None
         """
-        line: str = self._rfile.readline()
+        line: bytes = self._rfile.readline()
 
         if not line:
             return None
 
         content_length = self._content_length(line)
+        if content_length is None:
+            return None
 
         # Blindly consume all header lines
         while line and line.strip():
@@ -71,7 +73,7 @@ class JsonStream:
         return self._rfile.read(content_length)
 
     @staticmethod
-    def _content_length(line):
+    def _content_length(line: bytes) -> int | None:
         """Extract the content length from an input line."""
         if line.startswith(b"Content-Length: "):
             _, value = line.split(b"Content-Length: ")

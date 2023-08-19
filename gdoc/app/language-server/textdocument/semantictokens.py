@@ -4,7 +4,6 @@ from gdoc.lib.gdoc import TextString
 from gdoc.lib.gdocparser.textblock.tokens import get_tokens
 from gdoc.util import Settings
 
-from ..baseprotocol import BaseProtocol
 from ..feature import Feature
 from ..jsonrpc import JsonRpc
 from ..languageserver import LanguageServer
@@ -15,14 +14,10 @@ logger = logging.getLogger(__name__)
 class SemanticTokens(Feature):
     client_capability: Settings
     token_types: dict[str, int]
-    _languageserver: LanguageServer
-    _baseprotocol: BaseProtocol
+    server: LanguageServer
 
-    def __init__(
-        self, languageserver: LanguageServer, baseprotocol: BaseProtocol
-    ) -> None:
-        self._languageserver = languageserver
-        self._baseprotocol = baseprotocol
+    def __init__(self, languageserver: LanguageServer) -> None:
+        self.server = languageserver
 
     def initialize(self, client_capabilities: Settings) -> dict:
         capability = client_capabilities.get("textDocument.semanticTokens")
@@ -35,7 +30,7 @@ class SemanticTokens(Feature):
         for i, token_type in enumerate(self.client_capability.get("tokenTypes", [])):
             self.token_types[token_type] = i
 
-        self._baseprotocol.add_method_handlers(
+        self.server.add_method_handlers(
             {
                 "textDocument/semanticTokens/full": self._method_semanticTokens_full,
             }
@@ -52,7 +47,7 @@ class SemanticTokens(Feature):
             }
         }
 
-    def _method_semanticTokens_full(self, packet: JsonRpc) -> dict | None:
+    def _method_semanticTokens_full(self, packet: JsonRpc) -> JsonRpc | None:
         logger.debug(f"{packet.method}.params = {packet.params}")
 
         tokens: list[tuple[TextString, str, list[str]]] = get_tokens()
@@ -95,5 +90,4 @@ class SemanticTokens(Feature):
                 )
 
         result = {"data": data}
-        self._baseprotocol.info("Result: " + str(result))
         return JsonRpc.Response(packet.id, result)
