@@ -3,7 +3,6 @@ Command line interface module
 """
 import argparse
 import importlib
-import logging
 import os
 
 from . import _CONFIG
@@ -17,9 +16,6 @@ def main():
     parser.add_argument("-v", "--version", action="store_true", help="show version")
 
     common = argparse.ArgumentParser(add_help=False)
-    common.add_argument(
-        "--debug", nargs="*", help="module path to output logger.debug()."
-    )
 
     subparsers = parser.add_subparsers(title="commands")
 
@@ -36,15 +32,6 @@ def main():
     args = parser.parse_args()
 
     if hasattr(args, "func"):
-        if hasattr(args, "debug") and args.debug is not None:
-            if len(args.debug) > 0:
-                logging.basicConfig()
-                for module in args.debug:
-                    module = ".".join(module.split("/"))
-                    logging.getLogger(module).setLevel(level=logging.DEBUG)
-            else:
-                logging.basicConfig(level=logging.DEBUG)
-
         args.func(args)
 
     elif args.version:

@@ -6,6 +6,8 @@ from gdoc.lib.gdoc.inlinetag import InlineTag
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
+from .tokens import push_tokens
+
 TagParameter: TypeAlias = dict[str, TextString | list[TextString] | None]
 
 
@@ -109,6 +111,8 @@ def parse_TagParameter(
                     following_text,
                     following_lines,
                 )
+                push_tokens(target_tag, tag_param)
+
                 if blocktag_param is None:
                     blocktag_param = (target_tag, tag_param)
                 else:
@@ -134,6 +138,7 @@ def parse_TagParameter(
                     following_text,
                     following_lines,
                 )
+                push_tokens(target_tag, tag_param)
                 inlinetag_params.append((target_tag, tag_param))
 
             if next_tag is not None:
