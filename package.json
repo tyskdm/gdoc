@@ -1,0 +1,19 @@
+{
+    "name": "gdoc",
+    "version": "0.0.1",
+    "author": "Tsuyoshi Kodama",
+    "license": "MIT",
+    "description": "Gdoc language support for Visual Studio Code.",
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "main": "./vscode/extension.js",
+    "activationEvents": [
+        "onLanguage:markdown"
+    ],
+    "contributes": {},
+    "dependencies": {
+        "vscode-languageclient": "^7.0.0"
+    },
+    "private": true
+}
