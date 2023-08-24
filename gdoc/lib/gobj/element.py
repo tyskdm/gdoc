@@ -9,7 +9,7 @@ from gdoc.lib.gdoccompiler.gdexception import *
 from .namespace import Namespace
 
 
-class Object(Namespace):
+class Element(Namespace):
     """
     ;
     """
@@ -166,7 +166,7 @@ class Object(Namespace):
 
         data["c"] = []
         children = self.get_children()
-        child: "Object"
+        child: "Element"
         for child in children:
             data["c"].append(child.dumpd())
 

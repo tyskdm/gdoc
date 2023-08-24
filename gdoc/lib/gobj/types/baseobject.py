@@ -13,10 +13,10 @@ from gdoc.lib.gdocparser import nameparser
 from gdoc.lib.plugins import Category, CategoryManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from ..object import Object
+from ..element import Element
 
 
-class BaseObject(Object):
+class BaseObject(Element):
     """
     BaseObject class
     """
@@ -77,13 +77,13 @@ class BaseObject(Object):
         categories: CategoryManager | None = None,
         _isimport_: bool = False,
     ):
-        gobj_type: Object.Type
+        gobj_type: Element.Type
         if _isimport_:
-            gobj_type = Object.Type.IMPORT
+            gobj_type = Element.Type.IMPORT
         elif refpath is None:
-            gobj_type = Object.Type.OBJECT
+            gobj_type = Element.Type.OBJECT
         else:
-            gobj_type = Object.Type.REFERENCE
+            gobj_type = Element.Type.REFERENCE
 
         super().__init__(name, scope=scope, alias=alias, tags=tags, _type=gobj_type)
 

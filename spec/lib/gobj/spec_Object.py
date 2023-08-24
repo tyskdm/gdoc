@@ -22,7 +22,7 @@ import inspect
 import pytest
 
 from gdoc.lib.gdoccompiler.gdexception import *
-from gdoc.lib.gobj.object import Object
+from gdoc.lib.gobj.element import Element
 
 ## @}
 ## @{ @name \_\_init\_\_(str \| PandocStr)
@@ -35,7 +35,7 @@ def spec___init___1():
     r"""
     [@spec \_\_init\_\_.1] `Symbol` should be a class.
     """
-    assert inspect.isclass(Object) == True
+    assert inspect.isclass(Element) == True
     # assert issubclass(GdObject, GdSymbolTable) == True
 
 
@@ -45,9 +45,9 @@ def spec___init___2():
     """
     TEST_ID = "TEST_ID"
 
-    target = Object(TEST_ID)
+    target = Element(TEST_ID)
 
-    assert target._Object__properties == {
+    assert target._Element__properties == {
         "": {"name": TEST_ID, "scope": "+", "names": [TEST_ID], "tags": []}
     }
 
@@ -172,15 +172,15 @@ def spec_set_prop_1(mocker, props, expected):
     #
     # Normal case
     #
-    target = Object("TARGET")
+    target = Element("TARGET")
 
     if expected["Exception"] is None:
         for prop in props:
             target.set_prop(prop[0], prop[1])
 
-        del target._Object__properties[""]
+        del target._Element__properties[""]
 
-        assert target._Object__properties == expected["properties"]
+        assert target._Element__properties == expected["properties"]
 
     #
     # Error case
@@ -325,7 +325,7 @@ def spec_get_prop_1(mocker, props, key, expected):
     #
     # Normal case
     #
-    target = Object("TARGET")
+    target = Element("TARGET")
 
     for prop in props:
         target.set_prop(prop[0], prop[1])
