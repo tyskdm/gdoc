@@ -30,13 +30,11 @@ class Category:
                 type_name = self.defaults[parent_type]
 
         else:
-            type_name = target_type.upper()
+            type_name = target_type
             if type_name in aliases:
                 type_name = aliases[type_name]
 
         if type_name not in ("", None):
-            # type_name = target_type.upper()
-
             if type_name in self.aliases:
                 type_name = self.aliases[type_name]
 

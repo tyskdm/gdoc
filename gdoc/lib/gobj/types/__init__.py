@@ -15,13 +15,13 @@ BaseCategory = Category(
         "version": "",
         "module": sys.modules[__name__],
         "types": {
-            "OBJECT": Object,
-            "IMPORT": ImportObject,
+            "Object": Object,
+            "Import": ImportObject,
         },
         "aliases": {
-            # "OBJ": "OBJECT"
+            # "Obj": "Object"
         },
-        "defaults": {None: "OBJECT", "OBJECT": "OBJECT"},
+        "defaults": {None: "Object", "Object": "Object"},
     }
 )
 

@@ -183,7 +183,7 @@ class Object(Element):
 
         class_cat: str | None = None
         if class_info[0] is not None:
-            class_cat = class_info[0].get_str().upper()
+            class_cat = class_info[0].get_str()
 
         class_type: str = ""
         if class_info[1] is not None:
