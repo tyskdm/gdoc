@@ -6,7 +6,9 @@ from typing import Optional
 from gdoc.lib.gdoc import TextString
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
+from ..tag.blocktagdetector import detect_BlockTag
 from ..tag.blocktagparser import parse_BlockTag
+from ..tag.inlinetagdetector import detect_InlineTag
 from ..tag.inlinetagparser import parse_InlineTag
 
 
@@ -75,3 +77,27 @@ def parse_Line(
         return Err(erpt.submit(srpt), result)
 
     return Ok(result)
+
+
+def detect_CommentTag(
+    textstr: TextString,
+) -> tuple[Optional[slice], Optional[TextString]]:
+    result: tuple[Optional[slice], Optional[TextString]]
+
+    subtstr: TextString = textstr
+
+    pos, _ = detect_BlockTag(subtstr)
+    if pos is not None:
+        subtstr = subtstr[: pos.start]
+
+    pos, _ = detect_InlineTag(subtstr)
+    if pos is not None:
+        subtstr = subtstr[: pos.start]
+
+    p = subtstr.find("[#]")
+    if p >= 0:
+        result = (slice(p, p + 3), subtstr[p : p + 3])
+    else:
+        result = (None, None)
+
+    return result

@@ -27,9 +27,13 @@ def parse_Section(
         r, e = parse_TextBlock(section[0], context, srpt, opts)
         if e and srpt.should_exit(e):
             return Err(erpt.submit(srpt))
-        context = r or gobj
 
-    i: int
+        if type(r) is Object or r is None:
+            context = r or gobj
+        else:
+            # This Section is a comment.
+            return Ok(gobj)
+
     # for i in range(next, len(section)):
     for block in section[next:]:
         #

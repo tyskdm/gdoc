@@ -1,13 +1,15 @@
 """
 textblockparser.py: parse_TextBlock function
 """
+from typing import Union, cast
+
 from gdoc.lib.gdoc import TextBlock, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.lib.gdoc.inlinetag import InlineTag
 from gdoc.lib.gobj.types import Object
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from .lineparser import parse_Line
+from .lineparser import detect_CommentTag, parse_Line
 from .tagparamparser import TagParameter, parse_TagParameter
 
 
@@ -16,7 +18,7 @@ def parse_TextBlock(
     gobj: Object,
     erpt: ErrorReport,
     opts: Settings | None = None,
-) -> Result[Object | None, ErrorReport]:
+) -> Result[Object | TextString | None, ErrorReport]:
     """
     parse TextBlock and creates Gobj.
 
@@ -29,6 +31,12 @@ def parse_TextBlock(
                                         othrewise, None.
     """
     srpt = erpt.new_subreport()
+
+    if len(textblock) > 0:
+        commnent_tag: TextString | None
+        p, commnent_tag = detect_CommentTag(textblock[0])
+        if p and commnent_tag:
+            return Ok(cast(Union[Object, TextString, None], commnent_tag))
 
     #
     # Parse each line
@@ -92,4 +100,4 @@ def parse_TextBlock(
     if srpt.haserror():
         return Err(erpt.submit(srpt), child)  # type: ignore
 
-    return Ok(child)
+    return Ok(cast(Union[Object, TextString, None], child))
