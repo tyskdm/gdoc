@@ -32,6 +32,7 @@ class Namespace:
     __link_to: Union["Namespace", None]
     __link_from: list["Namespace"]
     __cache: dict[str, dict]
+    _root: Union["Namespace", None]
 
     def __init__(
         self,
@@ -90,6 +91,7 @@ class Namespace:
         self.__cache = {}
         self.__link_to = None
         self.__link_from = []
+        self._root = None
 
     def _get_type_(self) -> Type:
         return self.__type
@@ -105,9 +107,13 @@ class Namespace:
 
         self.__children.append(child)
         child.__parent = self
+        child._root = self._root or self
 
     def get_parent(self) -> Optional["Namespace"]:
         return self.__parent
+
+    def get_root(self) -> Optional["Namespace"]:
+        return self._root or self
 
     def get_children(self) -> list["Namespace"]:
         children: list["Namespace"] = []
