@@ -4,7 +4,7 @@ textblockparser.py: parse_TextBlock function
 from gdoc.lib.gdoc import TextBlock, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.lib.gdoc.inlinetag import InlineTag
-from gdoc.lib.gobj.types import BaseObject
+from gdoc.lib.gobj.types import Object
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 from .lineparser import parse_Line
@@ -13,10 +13,10 @@ from .tagparamparser import TagParameter, parse_TagParameter
 
 def parse_TextBlock(
     textblock: TextBlock,
-    gobj: BaseObject,
+    gobj: Object,
     erpt: ErrorReport,
     opts: Settings | None = None,
-) -> Result[BaseObject | None, ErrorReport]:
+) -> Result[Object | None, ErrorReport]:
     """
     parse TextBlock and creates Gobj.
 
@@ -62,7 +62,7 @@ def parse_TextBlock(
     target_tag: BlockTag | InlineTag
     tag_param: TagParameter
 
-    child: BaseObject | None = None
+    child: Object | None = None
     if blocktag_param is not None:
         target_tag, tag_param = blocktag_param
         child, e = gobj.add_new_object(
@@ -74,7 +74,7 @@ def parse_TextBlock(
     #
     # Append Properties
     #
-    target_obj: BaseObject = child or gobj
+    target_obj: Object = child or gobj
     for i in range(len(inlinetag_params)):
         target_tag, tag_param = inlinetag_params[i]
         prop, e = target_obj.add_new_property(
@@ -86,7 +86,7 @@ def parse_TextBlock(
     #
     # Return result
     #
-    if child and (child._get_type_() is BaseObject.Type.IMPORT):
+    if child and (child._get_type_() is Object.Type.IMPORT):
         child = None
 
     if srpt.haserror():

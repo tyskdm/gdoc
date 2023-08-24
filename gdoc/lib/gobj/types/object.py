@@ -16,7 +16,7 @@ from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 from ..element import Element
 
 
-class BaseObject(Element):
+class Object(Element):
     """
     BaseObject class
     """
@@ -125,14 +125,14 @@ class BaseObject(Element):
         tag_body: TextString,
         erpt: ErrorReport,
         opts: Settings | None = None,
-    ) -> Result["BaseObject", ErrorReport]:
+    ) -> Result["Object", ErrorReport]:
         """
         Object Factory
         """
         #
         # Get Constructor
         #
-        type_constructor: BaseObject | None = None
+        type_constructor: Object | None = None
         type_name: str | None = ""
 
         r = self._get_constructor_(class_info, tag_body, erpt, opts)
@@ -148,7 +148,7 @@ class BaseObject(Element):
         )
         if r.is_err():
             return Err(erpt.submit(r.err()))
-        child: BaseObject | None = r.unwrap()
+        child: Object | None = r.unwrap()
 
         #
         # Add as a child
@@ -176,7 +176,7 @@ class BaseObject(Element):
         tag_body: TextString,
         erpt: ErrorReport,
         opts: Settings | None = None,
-    ) -> Result[tuple[str, "BaseObject"], ErrorReport]:
+    ) -> Result[tuple[str, "Object"], ErrorReport]:
         """
         Get Constructor
         """
@@ -189,7 +189,7 @@ class BaseObject(Element):
         if class_info[1] is not None:
             class_type = class_info[1].get_str()
 
-        type_constructor: BaseObject | None = None
+        type_constructor: Object | None = None
         type_name: str | None = ""
         cat: Category | None = None
         pos: DataPos | None = None
@@ -225,7 +225,7 @@ class BaseObject(Element):
         # Context sensitive types
         #
         else:
-            obj: BaseObject | None = self
+            obj: Object | None = self
             parent_type: str | None = obj.class_type
             while obj is not None:
                 #
@@ -264,7 +264,7 @@ class BaseObject(Element):
                     # OK: Constructor found
                     break
 
-                obj = cast(BaseObject | None, obj.get_parent())
+                obj = cast(Object | None, obj.get_parent())
                 parent_type = None
 
         #
@@ -340,7 +340,7 @@ class BaseObject(Element):
         class_cat: str | None,
         class_type: str | None,
         opts: Settings | None = None,
-    ) -> tuple[Union[str, None], Union["BaseObject", None]]:
+    ) -> tuple[Union[str, None], Union["Object", None]]:
         """ """
         constructor = None
         class_name = None
@@ -353,9 +353,9 @@ class BaseObject(Element):
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
         tag_params: dict,
-        parent_obj: "BaseObject",
+        parent_obj: "Object",
         erpt: ErrorReport,
-    ) -> Result["BaseObject", ErrorReport]:
+    ) -> Result["Object", ErrorReport]:
         # def __init__(
         #     self,
         #     typename: TextString | str | None,
@@ -494,7 +494,7 @@ class BaseObject(Element):
         #
         # Construct Object
         #
-        child: BaseObject = cls(
+        child: Object = cls(
             typename,
             name,
             scope=scope,
@@ -518,7 +518,7 @@ class BaseObject(Element):
     ) -> Result[TextString | None, ErrorReport]:
         name: TextString | None = None
 
-        parent: BaseObject | None
+        parent: Object | None
         pname: TextString
         pname_str: str
         if len(names) > 0:
@@ -535,7 +535,7 @@ class BaseObject(Element):
                             )
                         )
                     )
-                parent = cast(BaseObject, parent.get_parent())
+                parent = cast(Object, parent.get_parent())
 
         return Ok(name)
 

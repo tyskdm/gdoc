@@ -7,10 +7,10 @@ from gdoc.lib.gdoc import TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.util import Err, ErrorReport, Ok, Result
 
-from .baseobject import BaseObject
+from .object import Object
 
 
-class ImportObject(BaseObject):
+class ImportObject(Object):
     """ """
 
     _class_type_info_: dict[str, Any] = {
@@ -50,9 +50,9 @@ class ImportObject(BaseObject):
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
         tag_params: dict,
-        parent_obj: "BaseObject",
+        parent_obj: "Object",
         erpt: ErrorReport,
-    ) -> Result["BaseObject", ErrorReport]:
+    ) -> Result["Object", ErrorReport]:
         srpt: ErrorReport = erpt.new_subreport()
         # def __init__(
         #     self,
@@ -173,7 +173,7 @@ class ImportObject(BaseObject):
         #
         # Construct Object
         #
-        child: BaseObject = cls(
+        child: Object = cls(
             typename,
             name,
             scope=scope,

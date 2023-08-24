@@ -21,7 +21,7 @@ import inspect
 import pytest
 
 from gdoc.lib.gdoccompiler.gdexception import *
-from gdoc.lib.gobj.types.baseobject import BaseObject
+from gdoc.lib.gobj.types.object import Object
 
 
 ## @{ @name \_\_init\_\_(str \| PandocStr)
@@ -40,14 +40,14 @@ def spec___init___1():
     r"""
     [@spec \_\_init\_\_.1] `Symbol` should be a class.
     """
-    assert inspect.isclass(BaseObject) == True
+    assert inspect.isclass(Object) == True
 
 
 def spec___init___2():
     r"""
     [@spec \_\_init\_\_.2] set attrs with default values.
     """
-    target = BaseObject("OBJECT", "ID")
+    target = Object("OBJECT", "ID")
     prop = target._Element__properties
 
     assert prop[""] == {
