@@ -115,7 +115,7 @@ class Namespace:
         parents: list["Namespace"] = self.__get_linkto_target().__get_linkfrom_list()
 
         for parent in parents:
-            children += parent.__get_children()
+            children += parent.get_local_children()
 
         return children
 
@@ -131,7 +131,7 @@ class Namespace:
 
         return child
 
-    def __get_children(self) -> list["Namespace"]:
+    def get_local_children(self) -> list["Namespace"]:
         return self.__children[:]
 
     def resolve(self, names: list[str]) -> Optional["Namespace"]:
