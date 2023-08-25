@@ -46,6 +46,7 @@ class ImportObject(Object):
     @classmethod
     def _create_object_(
         cls,
+        typename: str,
         class_info: tuple[TextString | None, TextString | None, TextString | None],
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
@@ -65,7 +66,7 @@ class ImportObject(Object):
         #     type_args: dict = {},
         #     categories: CategoryManager | None = None,
         # ):
-        typename = class_info[1]
+        # typename = class_info[1]
         name: TextString | None = None
         scope: TextString | str | None = None
         alias: TextString | None = tag_params.get("name")  # should be None as default
