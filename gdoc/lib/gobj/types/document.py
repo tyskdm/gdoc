@@ -13,7 +13,7 @@ class Document(Object):
 
     def __init__(self, id, name=None, categories: CategoryManager | None = None):
         """ """
-        super().__init__("DOCUMENT", id, alias=name, categories=categories)
+        super().__init__("Document", id, alias=name, categories=categories)
 
     def _get_additional_constructor_(
         self,
