@@ -115,6 +115,10 @@ class GdocNameError(GdocSyntaxError):
     pass
 
 
+class GdocReferenceError(GdocSyntaxError):
+    pass
+
+
 class GdocRuntimeError(GdocSyntaxError):
     pass
 
