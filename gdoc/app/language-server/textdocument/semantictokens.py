@@ -1,7 +1,7 @@
 import logging
 
 from gdoc.lib.gdoc import TextString
-from gdoc.lib.gdocparser.textblock.tokens import get_tokens
+from gdoc.lib.gdocparser.tokeninfocache import get_tokens
 from gdoc.util import Settings
 
 from ..feature import Feature

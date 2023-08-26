@@ -6,7 +6,7 @@ from gdoc.lib.gdoc.inlinetag import InlineTag
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from .tokens import push_tokens
+from ..tokeninfocache import push_tokens
 
 TagParameter: TypeAlias = dict[str, TextString | list[TextString] | None]
 

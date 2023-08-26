@@ -78,7 +78,7 @@ from typing import cast
 
 from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.lib.gdocparser.textblock import tokens
+from gdoc.lib.gdocparser import tokeninfocache
 from gdoc.util import ErrorReport, Settings
 
 
