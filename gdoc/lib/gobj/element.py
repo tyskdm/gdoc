@@ -1,7 +1,7 @@
 r"""
 GdObject class
 """
-from typing import cast
+from typing import Any, cast
 
 from gdoc.lib.gdoc import Text, TextString
 from gdoc.lib.gdoccompiler.gdexception import *
@@ -13,6 +13,9 @@ class Element(Namespace):
     """
     ;
     """
+
+    _properties: dict[str, Any]
+    _attributes: dict[str, Any]
 
     def __init__(
         self,
@@ -33,17 +36,16 @@ class Element(Namespace):
             _omit_arg_check=True,
         )
 
-        self.__properties = {
-            "": {
-                "name": self.name,
-                "scope": self.scope,
-                "names": (
-                    []
-                    + ([name] if name is not None else [])
-                    + ([alias] if alias is not None else [])
-                ),
-                "tags": tags,
-            }
+        self._properties = {}
+        self._attributes = {
+            "name": self.name,
+            "scope": self.scope,
+            "names": (
+                []
+                + ([name] if name is not None else [])
+                + ([alias] if alias is not None else [])
+            ),
+            "tags": tags,
         }
 
     def set_prop(self, key, value):
@@ -63,7 +65,7 @@ class Element(Namespace):
             elif k == "":
                 raise GdocKeyError('invalid key ""')
 
-        dst = self.__properties
+        dst = self._properties
         for k in keys[:-1]:
             v = dst.get(k)
 
@@ -122,7 +124,7 @@ class Element(Namespace):
             elif k == "":
                 raise GdocKeyError('invalid key ""')
 
-        dst = self.__properties
+        dst = self._properties
         for k in keys[:-1]:
             v = dst.get(k)
 
@@ -151,21 +153,19 @@ class Element(Namespace):
         return result
 
     def _set_attr_(self, key, value):
-        self.__properties[""][key] = value
+        self._attributes[key] = value
 
     def _get_attr_(self, key):
-        return self.__properties[""][key]
+        return self._attributes[key]
 
-    def dumpd(self):
-        prop = self._cast_to_str(self.__properties)
+    def dumpd(self) -> dict[str, Any]:
+        data = {}
 
-        data = {"a": prop[""]}
-        del prop[""]
-
-        data["p"] = prop
+        data["a"] = self._cast_to_str(self._attributes)
+        data["p"] = self._cast_to_str(self._properties)
 
         data["c"] = []
-        children = self.get_children()
+        children = cast(list[Element], self.get_children())
         child: "Element"
         for child in children:
             data["c"].append(child.dumpd())

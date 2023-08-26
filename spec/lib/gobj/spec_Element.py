@@ -35,8 +35,7 @@ def spec___init___1():
     r"""
     [@spec \_\_init\_\_.1] `Symbol` should be a class.
     """
-    assert inspect.isclass(Element) == True
-    # assert issubclass(GdObject, GdSymbolTable) == True
+    assert inspect.isclass(Element) is True
 
 
 def spec___init___2():
@@ -47,8 +46,12 @@ def spec___init___2():
 
     target = Element(TEST_ID)
 
-    assert target._Element__properties == {
-        "": {"name": TEST_ID, "scope": "+", "names": [TEST_ID], "tags": []}
+    assert target._properties == {}
+    assert target._attributes == {
+        "name": TEST_ID,
+        "scope": "+",
+        "names": [TEST_ID],
+        "tags": [],
     }
 
 
@@ -178,9 +181,7 @@ def spec_set_prop_1(mocker, props, expected):
         for prop in props:
             target.set_prop(prop[0], prop[1])
 
-        del target._Element__properties[""]
-
-        assert target._Element__properties == expected["properties"]
+        assert target._properties == expected["properties"]
 
     #
     # Error case

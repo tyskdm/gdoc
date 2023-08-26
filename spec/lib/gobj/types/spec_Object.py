@@ -40,7 +40,7 @@ def spec___init___1():
     r"""
     [@spec \_\_init\_\_.1] `Symbol` should be a class.
     """
-    assert inspect.isclass(Object) == True
+    assert inspect.isclass(Object) is True
 
 
 def spec___init___2():
@@ -48,9 +48,9 @@ def spec___init___2():
     [@spec \_\_init\_\_.2] set attrs with default values.
     """
     target = Object("OBJECT", "ID")
-    prop = target._Element__properties
 
-    assert prop[""] == {
+    assert target._properties == {}
+    assert target._attributes == {
         "scope": "+",
         "name": "ID",
         "names": ["ID"],
@@ -59,7 +59,6 @@ def spec___init___2():
             "category": "",
             "type": "OBJECT",
             "version": "",
-            "refpath": None,
         },
     }
 
@@ -71,4 +70,4 @@ def spec___init___2():
     assert target.class_category == ""
     assert target.class_type == "OBJECT"
     assert target.class_version == ""
-    assert target.class_isref is False
+    assert target.class_refpath is None

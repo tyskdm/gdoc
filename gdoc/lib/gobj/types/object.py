@@ -1,11 +1,12 @@
 """
 baseobject.py: BaseObject class
 """
-from typing import Any, Union, cast, final
+from typing import Any, Optional, Union, cast, final
 
 from gdoc.lib.gdoc import DataPos, TextString
 from gdoc.lib.gdoccompiler.gdexception import (
     GdocNameError,
+    GdocReferenceError,
     GdocRuntimeError,
     GdocSyntaxError,
 )
@@ -24,7 +25,8 @@ class Object(Element):
     class_category: str = ""
     class_type: str = ""
     class_version: str = ""
-    class_isref: bool = False
+    class_refpath: list[TextString | str] | None = None
+    class_referent: Union["Object", None] = None
     _class_categories_: CategoryManager | None = None
     _class_category_: Category | None = None
     _class_type_info_: dict[str, Any] = {
@@ -101,16 +103,19 @@ class Object(Element):
         self.class_type = (
             typename.get_str() if (type(typename) is TextString) else cast(str, typename)
         )
-        self.class_isref = refpath is not None
-        self._set_attr_(
-            "class",
-            {
-                "category": self.class_category,
-                "type": self.class_type,
-                "version": self.class_version,
-                "refpath": refpath,
-            },
-        )
+        self.class_refpath = refpath
+
+        #
+        # Store self.class_* in Object's attribute
+        #
+        class_attr: dict = {
+            "category": self.class_category,
+            "type": self.class_type,
+            "version": self.class_version,
+        }
+        if refpath is not None:
+            class_attr["refpath"] = [str(name) for name in refpath]
+        self._set_attr_("class", class_attr)
 
         for key in type_args.keys():
             self.set_prop(key, type_args[key])
@@ -149,6 +154,20 @@ class Object(Element):
         if r.is_err():
             return Err(erpt.submit(r.err()))
         child: Object | None = r.unwrap()
+
+        #
+        # Resolve reference
+        #
+        referent_in_local_scope: Object | None = None
+        if child.class_refpath is not None:
+            r = self._resolve_reference_(child, erpt)
+            if r.is_err():
+                return Err(erpt.submit(r.err()))
+            referent_in_local_scope = r.unwrap()
+
+            if referent_in_local_scope is not None:
+                # Referent found in local scope
+                return Ok(referent_in_local_scope)
 
         #
         # Add as a child
@@ -585,6 +604,36 @@ class Object(Element):
         names, tags = r.unwrap()
 
         return Ok((scope, names, tags, args))
+
+    def _resolve_reference_(
+        self, child: "Object", erpt: ErrorReport
+    ) -> Result[Optional["Object"], ErrorReport]:
+        if child.class_refpath is None:
+            return Ok(cast(Optional[Object], None))
+
+        referent: Optional[Object] = cast(
+            Optional[Object], self.resolve([str(name) for name in child.class_refpath])
+        )
+        if referent is None:
+            erpt.submit(
+                GdocReferenceError(
+                    "Referent Object was not found",
+                    None,
+                    None,
+                )
+            )
+            return Err(erpt)
+
+        if referent is self.get_child(str(child.class_refpath[-1])):
+            # Referent found in local scope
+            return Ok(cast(Optional[Object], referent))
+
+        # TODO: Check referent's type, props, etc.
+        # TODO: Check cyclic reference
+
+        child.bidir_link_to(referent)
+        child.class_referent = referent
+        return Ok(cast(Optional[Object], None))
 
     def add_new_property(
         self,
