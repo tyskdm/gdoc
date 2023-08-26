@@ -11,12 +11,12 @@ from typing import Any, NamedTuple
 import pytest
 
 from gdoc.lib.gdoc import TextBlock, TextString
-from gdoc.lib.gdocparser.textblock.textblockparser import parse_TextBlock
+from gdoc.lib.gdocparser.textblock.textblockparser import TextBlockParser
 from gdoc.lib.gobj.types import Object
 from gdoc.util import ErrorReport
 
 
-class Spec_parse_TextBlock:
+class Spec_TextBlockParser_parse:
     r"""
     ## [\@spec] `parse_Line`
 
@@ -501,9 +501,9 @@ class Spec_parse_TextBlock:
         arguments = [textblock, parent] + stimulus
 
         # WHEN
-        result: Object | None
+        result: Object | TextString | None
         err: ErrorReport | None
-        result, err = parse_TextBlock(*arguments)
+        result, err = TextBlockParser().parse(*arguments)
 
         #
         # THEN

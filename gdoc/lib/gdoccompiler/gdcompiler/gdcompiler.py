@@ -5,7 +5,7 @@ import os
 from typing import Optional
 
 from gdoc.lib.gdoc import Document as GdocDocument
-from gdoc.lib.gdocparser.documentparser import parse_Document
+from gdoc.lib.gdocparser.documentparser import DocumentParser
 from gdoc.lib.gobj.types import BaseCategory
 from gdoc.lib.gobj.types import Document as GobjDocument
 from gdoc.lib.pandocastobject.pandoc import Pandoc
@@ -56,7 +56,7 @@ class GdocCompiler:
 
         gobj = GobjDocument(None, filepath, self._categories_)
 
-        gobj, e = parse_Document(gdoc, gobj, erpt, opts)
+        gobj, e = DocumentParser().parse(gdoc, gobj, erpt, opts)
         if e:
             erpt.submit(e)
             return Err(erpt, gobj)

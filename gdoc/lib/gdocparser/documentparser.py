@@ -5,17 +5,33 @@ from gdoc.lib.gdoc import Document
 from gdoc.lib.gobj.types import Object
 from gdoc.util import ErrorReport, Result, Settings
 
-from .sectionparser import parse_Section
+from .sectionparser import SectionParser
+from .tokeninfocache import TokenInfoCache
 
 
-def parse_Document(
-    document: Document, gobj: Object, erpt: ErrorReport, opts: Settings | None = None
-) -> Result[Object, ErrorReport]:
-    """
-    parse gdoc.Document
+class DocumentParser:
+    tokeninfo: TokenInfoCache | None
+    config: Settings | None
+    sectionparser: SectionParser
 
-    Add Here:
-    - read meta data and set opts based on it.
-    """
+    def __init__(
+        self, tokeninfo: TokenInfoCache | None = None, config: Settings | None = None
+    ) -> None:
+        self.tokeninfo = tokeninfo
+        self.config = config
+        self.sectionparser = SectionParser(tokeninfo, config)
 
-    return parse_Section(document, gobj, erpt, opts)
+    def parse(
+        self,
+        document: Document,
+        gobj: Object,
+        erpt: ErrorReport,
+        opts: Settings | None = None,
+    ) -> Result[Object, ErrorReport]:
+        """
+        parse gdoc.Document
+
+        Add Here:
+        - read meta data and set opts based on it.
+        """
+        return self.sectionparser.parse(document, gobj, erpt, opts)
