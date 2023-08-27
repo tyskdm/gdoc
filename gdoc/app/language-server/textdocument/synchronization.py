@@ -39,7 +39,10 @@ class Synchronization(Feature):
         logger.debug(f"{packet.method}.params = {packet.params}")
         self.server._features["PublishDiagnostics"].publish_diagnostics(
             packet.params["textDocument"]["uri"],
-            verify(packet.params["textDocument"]["uri"]),
+            verify(
+                packet.params["textDocument"]["uri"],
+                packet.params["textDocument"]["text"],
+            ),
         )
 
         return result
@@ -48,6 +51,13 @@ class Synchronization(Feature):
         result: dict | None = None
 
         logger.debug(f"{packet.method}.params = {packet.params}")
+        self.server._features["PublishDiagnostics"].publish_diagnostics(
+            packet.params["textDocument"]["uri"],
+            verify(
+                packet.params["textDocument"]["uri"],
+                packet.params["contentChanges"][0]["text"],
+            ),
+        )
 
         return result
 
@@ -55,10 +65,6 @@ class Synchronization(Feature):
         result: dict | None = None
 
         logger.debug(f"{packet.method}.params = {packet.params}")
-        self.server._features["PublishDiagnostics"].publish_diagnostics(
-            packet.params["textDocument"]["uri"],
-            verify(packet.params["textDocument"]["uri"]),
-        )
 
         return result
 
@@ -82,7 +88,7 @@ from gdoc.lib.gdocparser import tokeninfocache
 from gdoc.util import ErrorReport, Settings
 
 
-def verify(uri: str) -> list[dict]:
+def verify(uri: str, filedata: str | None = None) -> list[dict]:
     filepath: str = uri.removeprefix("file://")
     opts: Settings = Settings({})
     erpt: ErrorReport
@@ -90,7 +96,7 @@ def verify(uri: str) -> list[dict]:
     via_html: bool | None = True
     erpt: ErrorReport = ErrorReport(cont=True)
     tokeninfocache.clear_tokens()
-    _, e = GdocCompiler().compile(filepath, fileformat, via_html, erpt, opts)
+    _, e = GdocCompiler().compile(filepath, fileformat, via_html, filedata, erpt, opts)
 
     diagnostics: list[dict] = []
     if e is not None:
