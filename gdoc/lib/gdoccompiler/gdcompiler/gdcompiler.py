@@ -6,6 +6,7 @@ from typing import Optional
 
 from gdoc.lib.gdoc import Document as GdocDocument
 from gdoc.lib.gdocparser.documentparser import DocumentParser
+from gdoc.lib.gdocparser.tokeninfocache import TokenInfoCache
 from gdoc.lib.gobj.types import BaseCategory
 from gdoc.lib.gobj.types import Document as GobjDocument
 from gdoc.lib.pandocastobject.pandoc import Pandoc
@@ -18,11 +19,15 @@ class GdocCompiler:
     """ """
 
     _categories_: CategoryManager
+    _tokeninfocache: TokenInfoCache | None
 
-    def __init__(self, plugins: list[Category] = []) -> None:
+    def __init__(
+        self, plugins: list[Category] = [], tokeninfocache: TokenInfoCache | None = None
+    ) -> None:
         self._categories_ = CategoryManager().add_category(BaseCategory)
         for p in plugins:
             self._categories_.add_category(p)
+        self._tokeninfocache = tokeninfocache
 
     def compile(
         self,
@@ -56,7 +61,7 @@ class GdocCompiler:
 
         gobj = GobjDocument(None, filepath, self._categories_)
 
-        gobj, e = DocumentParser().parse(gdoc, gobj, erpt, opts)
+        gobj, e = DocumentParser(self._tokeninfocache).parse(gdoc, gobj, erpt, opts)
         if e:
             erpt.submit(e)
             return Err(erpt, gobj)

@@ -129,6 +129,8 @@ class TagParameterParser:
                         following_lines,
                     )
                     push_tokens(target_tag, tag_param)
+                    if self.tokeninfo:
+                        self.tokeninfo.add_blocktag(target_tag, tag_param)
 
                     if blocktag_param is None:
                         blocktag_param = (target_tag, tag_param)

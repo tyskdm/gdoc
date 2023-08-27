@@ -89,7 +89,7 @@ def verify(uri: str) -> list[dict]:
     fileformat: str | None = "gfm"
     via_html: bool | None = True
     erpt: ErrorReport = ErrorReport(cont=True)
-    tokens.clear_tokens()
+    tokeninfocache.clear_tokens()
     _, e = GdocCompiler().compile(filepath, fileformat, via_html, erpt, opts)
 
     diagnostics: list[dict] = []
