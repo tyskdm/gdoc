@@ -72,14 +72,7 @@ class Synchronization(Feature):
     def _method_did_open(self, packet: JsonRpc) -> JsonRpc | None:
         result: dict | None = None
 
-        logger.debug(f"{packet.method}.params = {packet.params}")
-        self.server.get_feature("PublishDiagnostics").publish_diagnostics(
-            packet.params["textDocument"]["uri"],
-            verify(
-                packet.params["textDocument"]["uri"],
-                packet.params["textDocument"]["text"],
-            ),
-        )
+        logger.info(f" {packet.method}.params = {packet.params}")
         for handler in self._did_open_handlers:
             handler(cast(DidOpenTextDocumentParams, packet.params))
 
@@ -88,15 +81,7 @@ class Synchronization(Feature):
     def _method_did_change(self, packet: JsonRpc) -> JsonRpc | None:
         result: dict | None = None
 
-        logger.debug(f"{packet.method}.params = {packet.params}")
-        params = cast(DidChangeTextDocumentParams, packet.params)
-        self.server.get_feature("PublishDiagnostics").publish_diagnostics(
-            params["textDocument"]["uri"],
-            verify(
-                params["textDocument"]["uri"],
-                params["contentChanges"][0]["text"],
-            ),
-        )
+        logger.info(f" {packet.method}.params = {packet.params}")
         for handler in self._did_change_handlers:
             handler(cast(DidChangeTextDocumentParams, packet.params))
 
@@ -105,7 +90,7 @@ class Synchronization(Feature):
     def _method_did_save(self, packet: JsonRpc) -> JsonRpc | None:
         result: dict | None = None
 
-        logger.debug(f"{packet.method}.params = {packet.params}")
+        logger.info(f" {packet.method}.params = {packet.params}")
         for handler in self._did_save_handlers:
             handler(cast(DidSaveTextDocumentParams, packet.params))
 
@@ -114,71 +99,8 @@ class Synchronization(Feature):
     def _method_did_close(self, packet: JsonRpc) -> JsonRpc | None:
         result: dict | None = None
 
-        logger.debug(f"{packet.method}.params = {packet.params}")
-        self.server.get_feature("PublishDiagnostics").publish_diagnostics(
-            packet.params["textDocument"]["uri"],
-            [],
-        )
+        logger.info(f" {packet.method}.params = {packet.params}")
         for handler in self._did_close_handlers:
             handler(cast(DidCloseTextDocumentParams, packet.params))
 
         return result
-
-
-from typing import cast
-
-from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
-from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.lib.gdocparser import tokeninfocache
-from gdoc.util import ErrorReport, Settings
-
-
-def verify(uri: str, filedata: str | None = None) -> list[dict]:
-    filepath: str = uri.removeprefix("file://")
-    opts: Settings = Settings({})
-    erpt: ErrorReport
-    fileformat: str | None = "gfm"
-    via_html: bool | None = True
-    erpt: ErrorReport = ErrorReport(cont=True)
-    tokeninfocache.clear_tokens()
-    _, e = GdocCompiler().compile(filepath, fileformat, via_html, filedata, erpt, opts)
-
-    diagnostics: list[dict] = []
-    if e is not None:
-        errors: list[GdocSyntaxError] = cast(list[GdocSyntaxError], e.get_errors())
-        for err in errors:
-            diagnostics.append(
-                get_diagnostic(err),
-            )
-
-    return diagnostics
-
-
-def get_diagnostic(err: GdocSyntaxError) -> dict:
-    diagnostic = {
-        "range": {},
-        "message": "",
-        "severity": 1,
-    }
-
-    if err.lineno is not None:
-        diagnostic["range"]["start"] = {}
-        diagnostic["range"]["start"]["line"] = err.lineno - 1
-        if err._data_pos is not None:
-            diagnostic["range"]["start"]["character"] = err._data_pos.start.col - 1
-        elif err.offset is not None:
-            diagnostic["range"]["start"]["character"] = err.offset - 1
-
-        if (err.end_offset is not None) and (err.end_offset != 0):
-            diagnostic["range"]["end"] = {}
-            diagnostic["range"]["end"]["line"] = cast(int, err.end_lineno) - 1
-            diagnostic["range"]["end"]["character"] = err.end_offset - 1
-        else:
-            diagnostic["range"]["end"] = {
-                "line": diagnostic["range"]["start"]["line"],
-                "character": diagnostic["range"]["start"]["character"],
-            }
-
-    diagnostic["message"] = f"{type(err).__name__}: {str(err.msg)}"
-
-    return diagnostic

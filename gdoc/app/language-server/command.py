@@ -5,6 +5,7 @@ import sys
 
 from gdoc.util import loggingconfig
 
+from .gdoc.objectbuilder import GdocObjectBuilder
 from .jsonstream import JsonStream
 from .languageserver import LanguageServer
 from .textdocument.publishdiagnostics import PublishDiagnostics
@@ -38,11 +39,15 @@ def run(args):
     ercd = LanguageServer(
         JsonStream(sys.stdin, sys.stdout),
         [
+            # Language Server Protocol
+            DidCangeWatchedFiles,
             PublishDiagnostics,
             Synchronization,
             SemanticTokens,
-            DidCangeWatchedFiles,
+            # Language-independent features
             TextDocuments,
+            # Language-dependent features
+            GdocObjectBuilder,
         ],
     ).execute()
 
