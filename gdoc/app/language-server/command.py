@@ -10,6 +10,7 @@ from .languageserver import LanguageServer
 from .textdocument.publishdiagnostics import PublishDiagnostics
 from .textdocument.semantictokens import SemanticTokens
 from .textdocument.synchronization import Synchronization
+from .textdocument.textdocuments import TextDocuments
 from .workspace.didchangewatchedfiles import DidCangeWatchedFiles
 
 
@@ -41,6 +42,7 @@ def run(args):
             Synchronization,
             SemanticTokens,
             DidCangeWatchedFiles,
+            TextDocuments,
         ],
     ).execute()
 

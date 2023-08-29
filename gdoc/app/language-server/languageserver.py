@@ -45,6 +45,9 @@ class LanguageServer(BaseProtocol):
         for feature in features:
             self._features[feature.__name__] = feature(self)
 
+    def get_feature(self, name: str) -> Feature | None:
+        return self._features.get(name)
+
     def execute(self) -> int:
         logger.info("Starting language server")
         self.info("Starting language server")
@@ -143,7 +146,10 @@ class LanguageServer(BaseProtocol):
     def _callback_register_capability(
         self, packet: JsonRpc, id: int, method: str, params: Any
     ) -> JsonRpc | Any | None:
-        logger.debug(f"packet `{packet.jsonobj}` for {method}.params = {params}")
+        logger.debug(
+            f"_callback_register_capability: packet `{packet.jsonobj}`\n"
+            f"for {method}.params = {params}"
+        )
         callback = self._waiting_register_capability.pop(id)
         if callback is not None:
             callback(id, packet.error)
