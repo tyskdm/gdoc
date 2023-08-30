@@ -6,10 +6,11 @@ import sys
 from gdoc.util import loggingconfig
 
 from .gdoc.objectbuilder import GdocObjectBuilder
+from .gdoc.packagemanager import GdocPackageManager
+from .gdoc.semantictokens import GdocSemanticTokens
 from .jsonstream import JsonStream
 from .languageserver import LanguageServer
 from .textdocument.publishdiagnostics import PublishDiagnostics
-from .textdocument.semantictokens import SemanticTokens
 from .textdocument.synchronization import Synchronization
 from .textdocument.textdocuments import TextDocuments
 from .workspace.didchangewatchedfiles import DidCangeWatchedFiles
@@ -43,11 +44,12 @@ def run(args):
             DidCangeWatchedFiles,
             PublishDiagnostics,
             Synchronization,
-            SemanticTokens,
             # Language-independent features
             TextDocuments,
             # Language-dependent features
             GdocObjectBuilder,
+            GdocPackageManager,
+            GdocSemanticTokens,
         ],
     ).execute()
 

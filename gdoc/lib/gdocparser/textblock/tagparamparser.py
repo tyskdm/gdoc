@@ -6,7 +6,7 @@ from gdoc.lib.gdoc.inlinetag import InlineTag
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from ..tokeninfocache import TokenInfoCache, push_tokens
+from ..tokeninfocache import TokenInfoCache
 
 TagParameter: TypeAlias = dict[str, TextString | list[TextString] | None]
 
@@ -84,8 +84,9 @@ class TagParameterParser:
                 if following_text is None:
                     if len(line.strip()) > 0:
                         # remove leading spaces after the tag.
-                        # if target_tag is None, the line is the first line of the textblock
-                        # that will not be the following text. So, keep the leading spaces.
+                        # if target_tag is None, the line is the first line of the
+                        # textblock that will not be the following text. So, keep
+                        # the leading spaces.
                         following_text = line.lstrip() if target_tag else line
                 else:
                     following_lines.append(line)
@@ -128,7 +129,6 @@ class TagParameterParser:
                         following_text,
                         following_lines,
                     )
-                    push_tokens(target_tag, tag_param)
                     if self.tokeninfo:
                         self.tokeninfo.add_blocktag(target_tag, tag_param)
 
@@ -138,7 +138,8 @@ class TagParameterParser:
                         # BlockTag was already found.
                         if srpt.should_exit(
                             GdocSyntaxError(
-                                "A TextBlock takes at most one BlockTag but was given more.",
+                                "A TextBlock takes at most one BlockTag but was "
+                                "given more.",
                                 target_tag.get_data_pos(),
                                 (
                                     target_tag.get_str(),
@@ -157,7 +158,8 @@ class TagParameterParser:
                         following_text,
                         following_lines,
                     )
-                    push_tokens(target_tag, tag_param)
+                    if self.tokeninfo:
+                        self.tokeninfo.add_inlinetag(target_tag, tag_param)
                     inlinetag_params.append((target_tag, tag_param))
 
                 if next_tag is not None:

@@ -36,10 +36,24 @@ class Position(TypedDict):
     character: int
 
 
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workDoneProgressParams
+class WorkDoneProgressParams(TypedDict, total=False):
+    #  * An optional token that a server can use to report work done progress.
+    # workDoneToken?: ProgressToken;
+    workDoneToken: int | str
+
+
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#partialResultParams
+class PartialResultParams(TypedDict, total=False):
+    #  * An optional token that a server can use to report partial results (e.g.
+    #  * streaming) to the client.
+    # partialResultToken?: ProgressToken;
+    partialResultToken: int | str
+
+
 #
 # TextDocumentContentChangeEvent
 #
-
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentContentChangeEvent
 class TextDocumentContentChangeEvent_Full(TypedDict):
     #  * The new text of the whole document.
@@ -124,3 +138,27 @@ class DidCloseTextDocumentParams(TypedDict):
     # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#didCloseTextDocumentParams
     #  * The document that was closed.
     textDocument: TextDocumentIdentifier
+
+
+#
+# Semantic Tokens
+#
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#semanticTokensParams
+class SemanticTokensParams(WorkDoneProgressParams, PartialResultParams):
+    #  * The text document.
+    textDocument: TextDocumentIdentifier
+
+
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#semanticTokens
+class SemanticTokens_Option(TypedDict, total=False):
+    #  * An optional result id. If provided and clients support delta updating
+    #  * the client will include the result id in the next semantic token request.
+    #  * A server can then instead of computing all semantic tokens again simply
+    #  * send a delta.
+    # resultId?: string;
+    resultId: str
+
+
+class SemanticTokens(SemanticTokens_Option):
+    #  * The actual tokens.
+    data: list[int]

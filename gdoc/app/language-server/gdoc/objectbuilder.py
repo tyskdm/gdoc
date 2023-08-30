@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from logging import getLogger
-from typing import cast
+from typing import Callable, cast
 
 from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.lib.gdocparser import tokeninfocache
+from gdoc.lib.gdocparser.tokeninfocache import TokenInfoCache
 from gdoc.lib.gobj.types import Document
 from gdoc.util import ErrorReport, Settings
 
@@ -23,8 +23,8 @@ class DocumentInfo:
     document_item: TextDocumentItem | None
     text_position: TextPosition | None
     gdoc_document: Document | None
-    workspace: str | None
-    filepath: str | None
+    # workspace: str | None
+    # filepath: str | None
 
 
 class GdocObjectBuilder(Feature):
@@ -32,6 +32,9 @@ class GdocObjectBuilder(Feature):
     feat_textdocuments: TextDocuments | None = None
     publish_diagnostics: PublishDiagnostics | None = None
     documents: dict[str, DocumentInfo]
+    update_handler: Callable[
+        [str, tuple[DocumentInfo, ErrorReport | None, TokenInfoCache] | None], None
+    ] | None = None
 
     def __init__(self, languageserver) -> None:
         """
@@ -67,6 +70,7 @@ class GdocObjectBuilder(Feature):
         """
         Called when a text document is updated.
         """
+        logger.info(f" _textdocuments_update_handler(uri = {uri})")
         if doc_info is None:
             if uri in self.documents:
                 self.documents[uri].document_item = None
@@ -75,45 +79,63 @@ class GdocObjectBuilder(Feature):
             if self.publish_diagnostics is not None:
                 self.publish_diagnostics.publish_diagnostics(uri, [])
 
+            if self.update_handler is not None:
+                self.update_handler(uri, None)
+
         else:
-            document = self.documents.setdefault(
-                uri, DocumentInfo(None, None, None, None, None)
+            document: DocumentInfo = self.documents.setdefault(
+                uri, DocumentInfo(None, None, None)
             )
             document.document_item = doc_info.document_item
             document.text_position = doc_info.text_position
-            document.gdoc_document, diagnostics = _create_object(
+            document.gdoc_document, erpt, tokeninfo = _create_object(
                 uri, doc_info.document_item["text"]
             )
             if self.publish_diagnostics is not None:
+                diagnostics: list[dict] = []
+                if erpt is not None:
+                    errors: list[GdocSyntaxError] = cast(
+                        list[GdocSyntaxError], erpt.get_errors()
+                    )
+                    for err in errors:
+                        diagnostics.append(
+                            _get_diagnostic(err),
+                        )
                 self.publish_diagnostics.publish_diagnostics(uri, diagnostics)
 
+            if self.update_handler is not None:
+                self.update_handler(uri, (document, erpt, tokeninfo))
+
         return
+
+    def add_update_handler(
+        self,
+        handler: Callable[
+            [str, tuple[DocumentInfo, ErrorReport | None, TokenInfoCache] | None],
+            None,
+        ],
+    ) -> None:
+        """
+        Add a handler for text document updates.
+        """
+        self.update_handler = handler
 
 
 def _create_object(
     uri: str, filedata: str | None = None
-) -> tuple[Document | None, list[dict]]:
+) -> tuple[Document | None, ErrorReport | None, TokenInfoCache]:
     filepath: str = uri.removeprefix("file://")
-    opts: Settings = Settings({})
-    erpt: ErrorReport
     fileformat: str | None = "gfm"
     via_html: bool | None = True
-    erpt: ErrorReport = ErrorReport(cont=True)
-    tokeninfocache.clear_tokens()
 
-    document, e = GdocCompiler().compile(
-        filepath, fileformat, via_html, filedata, erpt, opts
+    tokeninfo: TokenInfoCache = TokenInfoCache()
+
+    erpt: ErrorReport | None
+    document, erpt = GdocCompiler(tokeninfocache=tokeninfo).compile(
+        filepath, fileformat, via_html, filedata, ErrorReport(cont=True), Settings({})
     )
 
-    diagnostics: list[dict] = []
-    if e is not None:
-        errors: list[GdocSyntaxError] = cast(list[GdocSyntaxError], e.get_errors())
-        for err in errors:
-            diagnostics.append(
-                _get_diagnostic(err),
-            )
-
-    return document, diagnostics
+    return document, erpt, tokeninfo
 
 
 def _get_diagnostic(err: GdocSyntaxError) -> dict:
