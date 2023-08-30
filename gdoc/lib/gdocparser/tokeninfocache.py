@@ -39,15 +39,9 @@ class TokenInfo(NamedTuple):
     info: dict[str, Any]
 
 
-class LineInfo(NamedTuple):
-    line: int  # 0-based row
-    len: int  # for the future - line length in utf-16
-    tokens: list[TokenInfo]
-
-
 class TokenInfoCache:
     _info: dict[TextString, dict[str, Any]]
-    _index: list[LineInfo] | None
+    _index: list[tuple[int, list[TokenInfo]]] | None
 
     def __init__(self):
         self._info = {}
@@ -59,11 +53,11 @@ class TokenInfoCache:
     def get(self, token: TextString, key: str, default: Any = None) -> Any:
         return self._info[token].get(key, default)
 
-    def get_index(self) -> list[LineInfo]:
+    def get_index(self) -> list[tuple[int, list[TokenInfo]]]:
         if self._index is not None:
             return self._index
 
-        index: list[LineInfo] = []
+        index: list[tuple[int, list[TokenInfo]]] = []
         for token in reversed(self._info):
             # Since `self._info` is arranged in order of appearance,
             # the reverse order is more efficient for searching.
@@ -80,32 +74,32 @@ class TokenInfoCache:
             )
 
             r: int = -1
-            lineinfo: LineInfo
+            lineinfo: tuple[int, list[TokenInfo]]
             for r, lineinfo in enumerate(index):
-                if lineinfo.line >= line:
+                if lineinfo[0] >= line:
                     break
             else:
                 r += 1
 
             if r == len(index):
-                index.append(LineInfo(line, 0, [token_info]))
-            elif index[r].line != line:
-                index.insert(r, LineInfo(line, 0, [token_info]))
+                index.append((line, [token_info]))
+            elif index[r][0] != line:
+                index.insert(r, (line, [token_info]))
             else:
                 # index[i].line == line
                 # insert token_info to existing list at index[i].tokens
                 c: int = -1
                 col_info: TokenInfo
-                for c, col_info in enumerate(index[c].tokens):
+                for c, col_info in enumerate(index[c][1]):
                     if col_info.col >= token_info.col:
                         break
                 else:
                     c += 1
 
-                if c == len(index[c].tokens):
-                    index[r].tokens.append(token_info)
+                if c == len(index[c][1]):
+                    index[r][1].append(token_info)
                 else:
-                    index[r].tokens.insert(c, token_info)
+                    index[r][1].insert(c, token_info)
 
         self._index = index
         return index
