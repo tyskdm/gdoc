@@ -70,11 +70,13 @@ class GdocObjectBuilder(Feature):
         """
         Called when a text document is updated.
         """
-        logger.info(f" _textdocuments_update_handler(uri = {uri})")
+        logger.info(
+            " _textdocuments_update_handler(uri = %s, doc_info = %s)", uri, doc_info
+        )
         if doc_info is None:
+            # uri is closed
             if uri in self.documents:
-                self.documents[uri].document_item = None
-                self.documents[uri].text_position = None
+                del self.documents[uri]
 
             if self.publish_diagnostics is not None:
                 self.publish_diagnostics.publish_diagnostics(uri, [])
@@ -83,6 +85,7 @@ class GdocObjectBuilder(Feature):
                 self.update_handler(uri, None)
 
         else:
+            # uri is opened or updated
             document: DocumentInfo = self.documents.setdefault(
                 uri, DocumentInfo(None, None, None)
             )
@@ -92,16 +95,9 @@ class GdocObjectBuilder(Feature):
                 uri, doc_info.document_item["text"]
             )
             if self.publish_diagnostics is not None:
-                diagnostics: list[dict] = []
-                if erpt is not None:
-                    errors: list[GdocSyntaxError] = cast(
-                        list[GdocSyntaxError], erpt.get_errors()
-                    )
-                    for err in errors:
-                        diagnostics.append(
-                            _get_diagnostic(err),
-                        )
+                diagnostics: list[dict] = _get_diagnostics(erpt, document.text_position)
                 self.publish_diagnostics.publish_diagnostics(uri, diagnostics)
+                logger.debug(" uri = %s diagnostics = %s", uri, diagnostics)
 
             if self.update_handler is not None:
                 self.update_handler(uri, (document, erpt, tokeninfo))
@@ -138,30 +134,60 @@ def _create_object(
     return document, erpt, tokeninfo
 
 
-def _get_diagnostic(err: GdocSyntaxError) -> dict:
-    diagnostic = {
+def _get_diagnostics(erpt: ErrorReport | None, text_position: TextPosition) -> list[dict]:
+    diagnostics: list[dict] = []
+    if erpt is not None:
+        errors: list[GdocSyntaxError] = cast(list[GdocSyntaxError], erpt.get_errors())
+        for err in errors:
+            if (d := _get_diagnostic(err, text_position)) is not None:
+                diagnostics.append(d)
+
+    return diagnostics
+
+
+def _get_diagnostic(err: GdocSyntaxError, text_position: TextPosition) -> dict | None:
+    if err.lineno is None:
+        logger.debug(" _get_diagnostic: err.lineno is None")
+        return None
+
+    diagnostic: dict = {
         "range": {},
         "message": "",
         "severity": 1,
     }
 
-    if err.lineno is not None:
-        diagnostic["range"]["start"] = {}
-        diagnostic["range"]["start"]["line"] = err.lineno - 1
-        if err._data_pos is not None:
-            diagnostic["range"]["start"]["character"] = err._data_pos.start.col - 1
-        elif err.offset is not None:
-            diagnostic["range"]["start"]["character"] = err.offset - 1
+    line: int = err.lineno - 1
+    diagnostic["range"]["start"] = {}
+    diagnostic["range"]["start"]["line"] = line
+    if err._data_pos is not None:
+        diagnostic["range"]["start"]["character"] = text_position.get_u16_column(
+            line, err._data_pos.start.col - 1
+        )
+    elif err.offset is not None:
+        diagnostic["range"]["start"]["character"] = text_position.get_u16_column(
+            line, err.offset - 1
+        )
+    else:
+        logger.debug(" _get_diagnostic: Both `arr._data_pos` and `err.offset` are None")
+        return None
 
-        if (err.end_offset is not None) and (err.end_offset != 0):
-            diagnostic["range"]["end"] = {}
-            diagnostic["range"]["end"]["line"] = cast(int, err.end_lineno) - 1
-            diagnostic["range"]["end"]["character"] = err.end_offset - 1
-        else:
-            diagnostic["range"]["end"] = {
-                "line": diagnostic["range"]["start"]["line"],
-                "character": diagnostic["range"]["start"]["character"],
-            }
+    if (err.end_offset is not None) and (err.end_offset != 0):
+        line = cast(int, err.end_lineno) - 1
+        diagnostic["range"]["end"] = {}
+        diagnostic["range"]["end"]["line"] = line
+        diagnostic["range"]["end"]["character"] = diagnostic["range"]["start"][
+            "character"
+        ] = text_position.get_u16_column(line, err.end_offset - 1)
+    else:
+        logger.debug(
+            " _get_diagnostic: err.end_offset is None (start.line = %s, start.char = %s)",
+            diagnostic["range"]["start"]["line"],
+            diagnostic["range"]["start"]["character"],
+        )
+        diagnostic["range"]["end"] = {
+            "line": diagnostic["range"]["start"]["line"],
+            "character": diagnostic["range"]["start"]["character"],
+        }
 
     diagnostic["message"] = f"{err.__class__.__name__}: {str(err.msg)}"
 

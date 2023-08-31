@@ -86,6 +86,7 @@ class GdocSemanticTokens(Feature):
         line_diff: int
         char_diff: int
         char_col: int
+        token_len: int
         for line, tokens in tokenlist:
             line_diff = line - prev_line
             prev_line = line
@@ -94,14 +95,23 @@ class GdocSemanticTokens(Feature):
                 tokentype: str = cast(str, token.info.get("type", (None, []))[0])
                 # should add type hint for token.info
                 if tokentype in self.token_types:
-                    char_col = token.col
+                    if textposition is not None:
+                        char_col = textposition.get_u16_column(line, token.col)
+                        token_len = (
+                            textposition.get_u16_column(line, token.col + token.len)
+                            - char_col
+                        )
+                    else:
+                        char_col = token.col
+                        token_len = token.len
+
                     char_diff = char_col - prev_char
                     prev_char = char_col
                     data.extend(
                         [
                             line_diff,
                             char_diff,
-                            token.len,
+                            token_len,
                             self.token_types[tokentype],
                             0,
                         ]
