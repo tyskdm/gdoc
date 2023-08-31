@@ -1,9 +1,18 @@
 from typing import Any, TypeAlias, TypedDict, Union
 
+########################################################
+#
+# Basic Types
+#
+########################################################
+
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#uri
+DocumentUri: TypeAlias = str
+
 
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentIdentifier
 class TextDocumentIdentifier(TypedDict):
-    uri: str
+    uri: DocumentUri
 
 
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#versionedTextDocumentIdentifier
@@ -13,7 +22,7 @@ class VersionedTextDocumentIdentifier(TextDocumentIdentifier):
 
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentItem
 class TextDocumentItem(TypedDict):
-    uri: str
+    uri: DocumentUri
     languageId: str
     version: int
     text: str
@@ -36,19 +45,68 @@ class Position(TypedDict):
     character: int
 
 
-# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workDoneProgressParams
-class WorkDoneProgressParams(TypedDict, total=False):
-    #  * An optional token that a server can use to report work done progress.
-    # workDoneToken?: ProgressToken;
-    workDoneToken: int | str
+# A range in a text document expressed as (zero-based) start and end positions. A range
+# is comparable to a selection in an editor. Therefore, the end position is exclusive.
+# If you want to specify a range that contains a line including the line ending
+# character(s) then use an end position denoting the start of the next line.
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#range
+class Range(TypedDict):
+    #  * The range's start position.
+    start: Position
+    #  * The range's end position.
+    end: Position
 
 
-# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#partialResultParams
-class PartialResultParams(TypedDict, total=False):
-    #  * An optional token that a server can use to report partial results (e.g.
-    #  * streaming) to the client.
-    # partialResultToken?: ProgressToken;
-    partialResultToken: int | str
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#location
+class Location(TypedDict):
+    uri: DocumentUri
+    range: Range
+
+
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#locationLink
+class LocationLink_Option(TypedDict, total=False):
+    #  * Span of the origin of this link.
+    #  *
+    #  * Used as the underlined span for mouse interaction. Defaults to the word
+    #  * range at the mouse position.
+    originSelectionRange: Range
+
+
+class LocationLink(LocationLink_Option):
+    #  * Span of the origin of this link.
+    #  *
+    #  * Used as the underlined span for mouse interaction. Defaults to the word
+    #  * range at the mouse position.
+    # originSelectionRange?: Range;
+
+    #  * The target resource identifier of this link.
+    targetUri: DocumentUri
+
+    #  * The full target range of this link. If the target for example is a symbol
+    #  * then target range is the range enclosing this symbol not including
+    #  * leading/trailing whitespace but everything else like comments. This
+    #  * information is typically used to highlight the range in the editor.
+    targetRange: Range
+
+    #  * The range that should be selected and revealed when this link is being
+    #  * followed, e.g the name of a function. Must be contained by the
+    #  * `targetRange`. See also `DocumentSymbol#range`
+    targetSelectionRange: Range
+
+
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#semanticTokens
+class SemanticTokens_Option(TypedDict, total=False):
+    #  * An optional result id. If provided and clients support delta updating
+    #  * the client will include the result id in the next semantic token request.
+    #  * A server can then instead of computing all semantic tokens again simply
+    #  * send a delta.
+    # resultId?: string;
+    resultId: str
+
+
+class SemanticTokens(SemanticTokens_Option):
+    #  * The actual tokens.
+    data: list[int]
 
 
 #
@@ -95,6 +153,36 @@ TextDocumentContentChangeEvent: TypeAlias = Union[
     TextDocumentContentChangeEvent_Full,
     TextDocumentContentChangeEvent_Incremental,
 ]
+
+
+########################################################
+#
+# Parameter Types
+#
+########################################################
+
+
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentPositionParams
+class TextDocumentPositionParams(TypedDict):
+    #  * The text document.
+    textDocument: TextDocumentIdentifier
+    #  * The position inside the text document.
+    position: Position
+
+
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workDoneProgressParams
+class WorkDoneProgressParams(TypedDict, total=False):
+    #  * An optional token that a server can use to report work done progress.
+    # workDoneToken?: ProgressToken;
+    workDoneToken: int | str
+
+
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#partialResultParams
+class PartialResultParams(TypedDict, total=False):
+    #  * An optional token that a server can use to report partial results (e.g.
+    #  * streaming) to the client.
+    # partialResultToken?: ProgressToken;
+    partialResultToken: int | str
 
 
 class DidOpenTextDocumentParams(TypedDict):
@@ -149,16 +237,15 @@ class SemanticTokensParams(WorkDoneProgressParams, PartialResultParams):
     textDocument: TextDocumentIdentifier
 
 
-# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#semanticTokens
-class SemanticTokens_Option(TypedDict, total=False):
-    #  * An optional result id. If provided and clients support delta updating
-    #  * the client will include the result id in the next semantic token request.
-    #  * A server can then instead of computing all semantic tokens again simply
-    #  * send a delta.
-    # resultId?: string;
-    resultId: str
+#
+# Goto Definition
+#
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#definitionParams
+class DefinitionParams(
+    TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams
+):
+    pass
 
 
-class SemanticTokens(SemanticTokens_Option):
-    #  * The actual tokens.
-    data: list[int]
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#definitionParams
+DefinitionResponse: TypeAlias = Location | list[Location] | list[LocationLink] | None

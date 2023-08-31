@@ -1,6 +1,7 @@
 """
 textblockparser.py: TextBlockParser class
 """
+from logging import getLogger
 from typing import Union, cast
 
 from gdoc.lib.gdoc import TextBlock, TextString
@@ -12,6 +13,8 @@ from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 from ..tokeninfocache import TokenInfoCache
 from .lineparser import detect_CommentTag, parse_Line
 from .tagparamparser import TagParameter, TagParameterParser
+
+logger = getLogger(__name__)
 
 
 class TextBlockParser:
@@ -92,6 +95,20 @@ class TextBlockParser:
             )
             if e and srpt.should_exit(e):
                 return Err(erpt.submit(srpt))
+
+        if (
+            (self.tokeninfo is not None)
+            and (child is not None)
+            and (child.class_refpath is not None)
+        ):
+            for name in cast(list[TextString], child.class_refpath)[:-1]:
+                logger.debug("type(namepath) = %s", type(name))
+                self.tokeninfo.set(name, "type", ("namespace", []))
+
+            logger.debug("type(name) = %s", type(child.class_refpath[-1]))
+            self.tokeninfo.set(
+                cast(TextString, child.class_refpath[-1]), "type", ("variable", [])
+            )
 
         #
         # Append Properties

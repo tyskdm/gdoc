@@ -27,6 +27,7 @@ class Object(Element):
     class_version: str = ""
     class_refpath: list[TextString | str] | None = None
     class_referent: Union["Object", None] = None
+    _object_names_: list[TextString]
     _class_categories_: CategoryManager | None = None
     _class_category_: Category | None = None
     _class_type_info_: dict[str, Any] = {
@@ -119,6 +120,12 @@ class Object(Element):
 
         for key in type_args.keys():
             self.set_prop(key, type_args[key])
+
+        self._object_names_ = []
+        if type(name) is TextString:
+            self._object_names_.append(name)
+        if type(alias) is TextString:
+            self._object_names_.append(alias)
 
     @final
     def add_new_object(
@@ -611,18 +618,38 @@ class Object(Element):
         if child.class_refpath is None:
             return Ok(cast(Optional[Object], None))
 
-        referent: Optional[Object] = cast(
-            Optional[Object], self.resolve([str(name) for name in child.class_refpath])
-        )
-        if referent is None:
-            erpt.submit(
-                GdocReferenceError(
-                    "Referent Object was not found",
-                    None,
-                    None,
-                )
+        referent: Optional[Object] = None
+        if type(child.class_refpath[-1]) is str:
+            referent = cast(
+                Optional[Object],
+                self.resolve([str(name) for name in child.class_refpath]),
             )
-            return Err(erpt)
+            if referent is None:
+                pathname = ".".join(cast(list[str], child.class_refpath))
+                erpt.submit(
+                    GdocReferenceError(
+                        f"Referent Object '{pathname}' was not found",
+                    )
+                )
+                return Err(erpt)
+        else:
+            for name in cast(list[TextString], child.class_refpath):
+                if referent is None:
+                    referent = cast(Optional[Object], self.resolve([str(name)]))
+                else:
+                    # todo: Add check if child is not a import object.
+                    referent = cast(Optional[Object], referent.get_child(str(name)))
+                if referent is None:
+                    erpt.submit(
+                        GdocReferenceError(
+                            f"Referent Object '{str(name)}' was not found",
+                            name.get_data_pos(),
+                        )
+                    )
+                    return Err(erpt)
+
+                # todo: TEMPORARY IMPLEMENTATION
+                name.__setattr__("_referent_object_", referent)
 
         if referent is self.get_child(str(child.class_refpath[-1])):
             # Referent found in local scope
@@ -631,6 +658,7 @@ class Object(Element):
         # TODO: Check referent's type, props, etc.
         # TODO: Check cyclic reference
 
+        assert referent is not None
         child.bidir_link_to(referent)
         child.class_referent = referent
         return Ok(cast(Optional[Object], None))

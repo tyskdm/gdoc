@@ -5,6 +5,7 @@ import sys
 
 from gdoc.util import loggingconfig
 
+from .gdoc.definition import GdocDefinition
 from .gdoc.objectbuilder import GdocObjectBuilder
 from .gdoc.packagemanager import GdocPackageManager
 from .gdoc.semantictokens import GdocSemanticTokens
@@ -50,6 +51,7 @@ def run(args):
             GdocObjectBuilder,
             GdocPackageManager,
             GdocSemanticTokens,
+            GdocDefinition,
         ],
     ).execute()
 

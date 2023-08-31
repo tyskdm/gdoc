@@ -25,6 +25,29 @@ class PackagedDocumentInfo:
     tokeninfo: TokenInfoCache
     tokenlist: list[tuple[int, list[TokenInfo]]]
     text_pos: TextPosition | None
+    line_tokens_map: dict[int, list[TokenInfo]] | None = None
+
+    def get_tokeninfo(self, line: int, column: int) -> TokenInfo | None:
+        line_tokens: list[TokenInfo] | None = self._get_line_tokens_map().get(line)
+        if line_tokens is None:
+            return None
+
+        col = self.text_pos.get_str_column(line, column) if self.text_pos else column
+        for token in line_tokens:
+            if token.col <= col and col <= token.col + token.len:
+                return token
+
+        return None
+
+    def _get_line_tokens_map(self) -> dict[int, list[TokenInfo]]:
+        if self.line_tokens_map is not None:
+            return self.line_tokens_map
+
+        self.line_tokens_map = {}
+        for line, tokenlist in self.tokenlist:
+            self.line_tokens_map[line] = tokenlist
+
+        return self.line_tokens_map
 
 
 @dataclass
