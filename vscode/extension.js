@@ -36,6 +36,10 @@ function activate(context) {
                 {
                     scheme: "file",
                     language: "markdown",
+                },
+                {
+                    scheme: "file",
+                    language: "gdoc",
                 }
             ],
         };
