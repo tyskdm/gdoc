@@ -1,4 +1,4 @@
-from typing import Any, TypeAlias, TypedDict, Union
+from typing import Any, Literal, TypeAlias, TypedDict, Union
 
 ########################################################
 #
@@ -155,6 +155,21 @@ TextDocumentContentChangeEvent: TypeAlias = Union[
 ]
 
 
+#
+# MarkupContent
+# A MarkupContent literal represents a string value which content can be represented in
+# different formats. Currently plaintext and markdown are supported formats.
+# A MarkupContent is usually used in documentation properties of result literals like
+# CompletionItem or SignatureInformation. If the format is markdown the content should
+# follow the GitHub Flavored Markdown Specification.
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#markupContent
+class MarkupContent(TypedDict):
+    #  * The type of the Markup
+    kind: Literal["plaintext", "markdown"]  # MarkupKind type
+    #  * The content itself
+    value: str
+
+
 ########################################################
 #
 # Parameter Types
@@ -249,3 +264,41 @@ class DefinitionParams(
 
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#definitionParams
 DefinitionResponse: TypeAlias = Location | list[Location] | list[LocationLink] | None
+
+
+#
+# Hover
+#
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#hoverParams
+class HoverParams(TextDocumentPositionParams, WorkDoneProgressParams):
+    pass
+
+
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#markedString
+class MarkedString_Language(TypedDict):
+    # * The pair of a language and a value is an equivalent to markdown:
+    # * ```${language}
+    # * ${value
+    # * ```
+    #
+    # * @deprecated use MarkupContent instead.
+    #   ^^^^^^^^^^^
+    language: str
+    value: str
+
+
+MarkedString: TypeAlias = str | MarkedString_Language
+
+
+# The result of a hover request
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#hover
+class Hover_Option(TypedDict, total=False):
+    #  * An optional range is a range inside a text document
+    #  * that is used to visualize a hover, e.g. by changing the background color.
+    # range?: Range;
+    range: Range
+
+
+class Hover(Hover_Option):
+    #  * The hover's content
+    contents: MarkedString | list[MarkedString] | MarkupContent
