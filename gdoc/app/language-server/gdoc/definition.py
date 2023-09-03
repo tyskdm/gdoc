@@ -6,7 +6,7 @@ from gdoc.lib.gdocparser.tokeninfocache import TokenInfo
 from gdoc.lib.gobj.types import Object as GdocObject
 from gdoc.util import Settings
 
-from ..basicjsonstructures import DefinitionParams, DefinitionResponse, Location, Range
+from ..basicjsonstructures import DefinitionParams, Location, LocationLink, Range
 from ..feature import Feature
 from ..jsonrpc import JsonRpc
 from ..languageserver import LanguageServer
@@ -41,7 +41,7 @@ class GdocDefinition(Feature):
     def _method_goto_definition(self, packet: JsonRpc) -> JsonRpc | None:
         logger.debug(" %s.params = %s", packet.method, packet.params)
         params: DefinitionParams = cast(DefinitionParams, packet.params)
-        response: DefinitionResponse = None
+        response: Location | list[Location] | list[LocationLink] | None = None
 
         uri: str = params["textDocument"]["uri"]
         line: int = params["position"]["line"]
