@@ -36,11 +36,14 @@ class TextPosition:
 
         if type(length) is int:
             # len(utf-8) == len(utf-16-le)
-            return column if column < length else length
+            if (column < 0) or (column >= length):
+                return length
+            else:
+                return column
 
         # len(utf-8) != len(utf-16-le)
         length = cast(tuple[int, int], length)
-        if column >= length[1]:
+        if (column < 0) or (column >= length[1]):
             return length[0]
 
         u16_line: bytes = cast(bytes, self.lines[line].utf16)
@@ -51,11 +54,14 @@ class TextPosition:
 
         if type(length) is int:
             # len(utf-8) == len(utf-16-le)
-            return column if column < length else length
+            if (column < 0) or (column >= length):
+                return length
+            else:
+                return column
 
         # len(utf-8) != len(utf-16-le)
         length = cast(tuple[int, int], length)
-        if column >= length[0]:
+        if (column < 0) or (column >= length[0]):
             return length[1]
 
         chars: int = column
