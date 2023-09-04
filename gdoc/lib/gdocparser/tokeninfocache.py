@@ -28,6 +28,9 @@ class TokenInfoCache:
     def get(self, token: TextString, key: str, default: Any = None) -> Any:
         return self._info[token].get(key, default)
 
+    def get_all(self) -> dict[TextString, dict[str, Any]]:
+        return self._info
+
     def get_index(self) -> list[tuple[int, list[TokenInfo]]]:
         if self._index is not None:
             return self._index

@@ -8,6 +8,8 @@ from gdoc.util import Settings
 from ..feature import Feature
 from ..languageserver import LanguageServer
 from ..textdocument.publishdiagnostics import PublishDiagnostics
+from ..textdocument.tokenmap import TokenMap
+from .gdoctoken import GdocToken
 from .objectbuilder import DocumentInfo, GdocObjectBuilder
 
 logger = getLogger(__name__)
@@ -16,11 +18,19 @@ logger = getLogger(__name__)
 CONFIGURATION_FILE_NAME = ".gdoc.json"
 
 
-@dataclass
 class PackagedDocumentInfo:
     doc_info: DocumentInfo
     tokenlist: list[tuple[int, list[TokenInfo]]]
     line_tokens_map: dict[int, list[TokenInfo]] | None = None
+    tokenmap: TokenMap
+
+    def __init__(self, doc_info: DocumentInfo):
+        self.doc_info = doc_info
+        self.tokenlist = doc_info.gdoc_tokeninfo.get_index()
+
+        self.tokenmap = TokenMap(doc_info.text_position)
+        for textstr, data in doc_info.gdoc_tokeninfo.get_all().items():
+            self.tokenmap.add_token(GdocToken(textstr, data))
 
     def get_tokeninfo(self, line: int, column: int) -> TokenInfo | None:
         line_tokens: list[TokenInfo] | None = self._get_line_tokens_map().get(line)
@@ -96,30 +106,19 @@ class GdocPackageManager(Feature):
         return
 
     def _document_object_update_handler(
-        self,
-        uri: str,
-        # doc_info: tuple[DocumentInfo, ErrorReport | None, TokenInfoCache] | None,
-        doc_info: DocumentInfo | None,
+        self, uri: str, doc_info: DocumentInfo | None
     ) -> None:
         """
         Called when a text document is updated.
         """
         logger.info(f" _document_object_update_handler(uri = {uri})")
-        # tokeninfo: TokenInfoCache
-        # tokenlist: list[tuple[int, list[TokenInfo]]] = []
 
         if doc_info is None:
             if uri in self.packages[None].documents:
                 del self.packages[None].documents[uri]
             return
 
-        self.packages[None].documents[uri] = PackagedDocumentInfo(
-            # document.gdoc_document, erpt, tokeninfo, tokenlist, document.text_position
-            doc_info,
-            doc_info.gdoc_tokeninfo.get_index(),
-        )
-
-        return
+        self.packages[None].documents[uri] = PackagedDocumentInfo(doc_info)
 
     def get_package(self, uri: str) -> PackageInfo | None:
         if uri not in self.packages:
