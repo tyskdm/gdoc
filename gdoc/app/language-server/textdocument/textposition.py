@@ -30,11 +30,7 @@ class TextPosition:
         pass
 
     def get_str_column(self, line: int, column: int) -> int:
-        length: None | int | tuple[int, int] = self.lines[line]["length"]
-
-        if length is None:
-            # The line has not been checked yet.
-            length = self._set_linedata(line)
+        length: None | int | tuple[int, int] = self._get_length(line)
 
         if type(length) is int:
             # len(utf-8) == len(utf-16-le)
@@ -49,11 +45,7 @@ class TextPosition:
         return len(u16_line[: column * 2].decode(UTF16_TYPE))
 
     def get_u16_column(self, line: int, column: int) -> int:
-        length: None | int | tuple[int, int] = self.lines[line]["length"]
-
-        if length is None:
-            # The line has not been checked yet.
-            length = self._set_linedata(line)
+        length: None | int | tuple[int, int] = self._get_length(line)
 
         if type(length) is int:
             # len(utf-8) == len(utf-16-le)
@@ -99,6 +91,33 @@ class TextPosition:
             offset_utf16 += self._get_u16_offset(line, i, offset_char, chars)
 
         return offset_utf16
+
+    def get_str_length(self, line: int) -> int:
+        length: None | int | tuple[int, int] = self._get_length(line)
+
+        if type(length) is int:
+            # len(utf-8) == len(utf-16-le)
+            return length
+
+        # len(utf-8) != len(utf-16-le)
+        return cast(tuple[int, int], length)[0]
+
+    def get_u16_length(self, line: int) -> int:
+        length: None | int | tuple[int, int] = self._get_length(line)
+
+        if type(length) is int:
+            # len(utf-8) == len(utf-16-le)
+            return length
+
+        # len(utf-8) != len(utf-16-le)
+        return cast(tuple[int, int], length)[1]
+
+    def _get_length(self, line: int) -> int | tuple[int, int]:
+        length: None | int | tuple[int, int] = self.lines[line]["length"]
+        if length is None:
+            # The line has not been checked yet.
+            length = self._set_linedata(line)
+        return length
 
     def _set_linedata(self, line) -> int | tuple[int, int]:
         text: str = self.lines[line]["text"]
