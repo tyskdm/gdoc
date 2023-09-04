@@ -1,6 +1,5 @@
-from dataclasses import dataclass
 from logging import getLogger
-from typing import Callable, cast
+from typing import Callable, NamedTuple, cast
 
 from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
@@ -18,13 +17,12 @@ from ..textdocument.textposition import TextPosition
 logger = getLogger(__name__)
 
 
-@dataclass
-class DocumentInfo:
-    document_item: TextDocumentItem | None
-    text_position: TextPosition | None
+class DocumentInfo(NamedTuple):
+    document_item: TextDocumentItem
+    text_position: TextPosition
     gdoc_document: Document | None
-    # workspace: str | None
-    # filepath: str | None
+    gdoc_erpt: ErrorReport | None
+    gdoc_tokeninfo: TokenInfoCache
 
 
 class GdocObjectBuilder(Feature):
@@ -32,9 +30,10 @@ class GdocObjectBuilder(Feature):
     feat_textdocuments: TextDocuments | None = None
     publish_diagnostics: PublishDiagnostics | None = None
     documents: dict[str, DocumentInfo]
-    update_handler: Callable[
-        [str, tuple[DocumentInfo, ErrorReport | None, TokenInfoCache] | None], None
-    ] | None = None
+    # update_handler: Callable[
+    #     [str, tuple[DocumentInfo, ErrorReport | None, TokenInfoCache] | None], None
+    # ] | None = None
+    update_handler: Callable[[str, DocumentInfo | None], None] | None = None
 
     def __init__(self, languageserver) -> None:
         """
@@ -86,28 +85,33 @@ class GdocObjectBuilder(Feature):
 
         else:
             # uri is opened or updated
-            document: DocumentInfo = self.documents.setdefault(
-                uri, DocumentInfo(None, None, None)
+            document: DocumentInfo = DocumentInfo(
+                *doc_info, *_create_object(uri, doc_info.document_item["text"])
             )
-            document.document_item = doc_info.document_item
-            document.text_position = doc_info.text_position
-            document.gdoc_document, erpt, tokeninfo = _create_object(
-                uri, doc_info.document_item["text"]
-            )
+            self.documents[uri] = document
+
             if self.publish_diagnostics is not None:
-                diagnostics: list[dict] = _get_diagnostics(erpt, document.text_position)
+                diagnostics: list[dict] = _get_diagnostics(
+                    document.gdoc_erpt, document.text_position
+                )
                 self.publish_diagnostics.publish_diagnostics(uri, diagnostics)
                 logger.debug(" uri = %s diagnostics = %s", uri, diagnostics)
 
             if self.update_handler is not None:
-                self.update_handler(uri, (document, erpt, tokeninfo))
+                self.update_handler(
+                    # uri, (document, document.gdoc_erpt, document.gdoc_tokeninfo)
+                    uri,
+                    document,
+                )
 
         return
 
     def add_update_handler(
         self,
         handler: Callable[
-            [str, tuple[DocumentInfo, ErrorReport | None, TokenInfoCache] | None],
+            # [str, tuple[DocumentInfo, ErrorReport | None, TokenInfoCache] | None],
+            # None,
+            [str, DocumentInfo | None],
             None,
         ],
     ) -> None:

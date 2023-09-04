@@ -79,7 +79,7 @@ class GdocSemanticTokens(Feature):
 
         data: list[int] = []
         tokenlist: list[tuple[int, list[TokenInfo]]] | None = docinfo.tokenlist
-        textposition: TextPosition | None = docinfo.text_pos
+        textposition: TextPosition | None = docinfo.doc_info.text_position
 
         prev_line: int = 0
         prev_char: int
