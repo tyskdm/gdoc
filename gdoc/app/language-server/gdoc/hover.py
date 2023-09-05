@@ -2,7 +2,7 @@ import logging
 from typing import cast
 
 from gdoc.lib.gdoc import TextString
-from gdoc.lib.gdocparser.tokeninfocache import TokenInfo
+from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfo
 from gdoc.lib.gobj.types import Object as GdocObject
 from gdoc.util import Settings
 

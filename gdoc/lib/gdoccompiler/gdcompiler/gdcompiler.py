@@ -6,7 +6,7 @@ from typing import Optional
 
 from gdoc.lib.gdoc import Document as GdocDocument
 from gdoc.lib.gdocparser.documentparser import DocumentParser
-from gdoc.lib.gdocparser.tokeninfocache import TokenInfoCache
+from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfoBuffer
 from gdoc.lib.gobj.types import BaseCategory
 from gdoc.lib.gobj.types import Document as GobjDocument
 from gdoc.lib.pandocastobject.pandoc import Pandoc
@@ -19,10 +19,10 @@ class GdocCompiler:
     """ """
 
     _categories_: CategoryManager
-    _tokeninfocache: TokenInfoCache | None
+    _tokeninfocache: TokenInfoBuffer | None
 
     def __init__(
-        self, plugins: list[Category] = [], tokeninfocache: TokenInfoCache | None = None
+        self, plugins: list[Category] = [], tokeninfocache: TokenInfoBuffer | None = None
     ) -> None:
         self._categories_ = CategoryManager().add_category(BaseCategory)
         for p in plugins:

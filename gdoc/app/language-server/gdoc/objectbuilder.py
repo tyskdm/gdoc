@@ -3,7 +3,7 @@ from typing import Callable, NamedTuple, cast
 
 from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.lib.gdocparser.tokeninfocache import TokenInfoCache
+from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfoBuffer
 from gdoc.lib.gobj.types import Document
 from gdoc.util import ErrorReport, Settings
 
@@ -22,7 +22,7 @@ class DocumentInfo(NamedTuple):
     text_position: TextPosition
     gdoc_document: Document | None
     gdoc_erpt: ErrorReport | None
-    gdoc_tokeninfo: TokenInfoCache
+    gdoc_tokeninfo: TokenInfoBuffer
 
 
 class GdocObjectBuilder(Feature):
@@ -123,12 +123,12 @@ class GdocObjectBuilder(Feature):
 
 def _create_object(
     uri: str, filedata: str | None = None
-) -> tuple[Document | None, ErrorReport | None, TokenInfoCache]:
+) -> tuple[Document | None, ErrorReport | None, TokenInfoBuffer]:
     filepath: str = uri.removeprefix("file://")
     fileformat: str | None = "gfm"
     via_html: bool | None = True
 
-    tokeninfo: TokenInfoCache = TokenInfoCache()
+    tokeninfo: TokenInfoBuffer = TokenInfoBuffer()
 
     erpt: ErrorReport | None
     document, erpt = GdocCompiler(tokeninfocache=tokeninfo).compile(

@@ -2,7 +2,7 @@ import logging
 from typing import cast
 
 from gdoc.lib.gdoc import TextString
-from gdoc.lib.gdocparser.tokeninfocache import TokenInfo
+from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfo
 from gdoc.lib.gobj.types import Object as GdocObject
 from gdoc.util import Settings
 
@@ -53,7 +53,7 @@ class GdocDefinition(Feature):
             logger.error("document '%s' is None(not open).", uri)
 
         elif (tokeninfo := document.get_tokeninfo(line, character)) is not None:
-            text_pos: TextPosition | None = document.text_pos
+            text_pos: TextPosition | None = document.doc_info.text_position
             if hasattr(tokeninfo.token, "_referent_object_"):
                 object_names: list[TextString] = cast(
                     GdocObject, tokeninfo.token._referent_object_

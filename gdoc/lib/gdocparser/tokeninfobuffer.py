@@ -14,7 +14,7 @@ class TokenInfo(NamedTuple):
     info: dict[str, Any]
 
 
-class TokenInfoCache:
+class TokenInfoBuffer:
     _info: dict[TextString, dict[str, Any]]
     _index: list[tuple[int, list[TokenInfo]]] | None
 

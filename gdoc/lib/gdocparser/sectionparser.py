@@ -6,16 +6,16 @@ from gdoc.lib.gobj.types import Object
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 from .textblock.textblockparser import TextBlockParser
-from .tokeninfocache import TokenInfoCache
+from .tokeninfobuffer import TokenInfoBuffer
 
 
 class SectionParser:
-    tokeninfo: TokenInfoCache | None
+    tokeninfo: TokenInfoBuffer | None
     config: Settings | None
     textblockparser: TextBlockParser
 
     def __init__(
-        self, tokeninfo: TokenInfoCache | None = None, config: Settings | None = None
+        self, tokeninfo: TokenInfoBuffer | None = None, config: Settings | None = None
     ) -> None:
         self.tokeninfo = tokeninfo
         self.config = config

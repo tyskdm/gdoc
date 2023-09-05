@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from logging import getLogger
 from typing import cast
 
-from gdoc.lib.gdocparser.tokeninfocache import TokenInfo
+from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfo
 from gdoc.util import Settings
 
 from ..feature import Feature

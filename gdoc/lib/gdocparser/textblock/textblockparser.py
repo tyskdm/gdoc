@@ -10,7 +10,7 @@ from gdoc.lib.gdoc.inlinetag import InlineTag
 from gdoc.lib.gobj.types import Object
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from ..tokeninfocache import TokenInfoCache
+from ..tokeninfobuffer import TokenInfoBuffer
 from .lineparser import detect_CommentTag, parse_Line
 from .tagparamparser import TagParameter, TagParameterParser
 
@@ -18,12 +18,12 @@ logger = getLogger(__name__)
 
 
 class TextBlockParser:
-    tokeninfo: TokenInfoCache | None
+    tokeninfo: TokenInfoBuffer | None
     config: Settings | None
     tagparameterparser: TagParameterParser
 
     def __init__(
-        self, tokeninfo: TokenInfoCache | None = None, config: Settings | None = None
+        self, tokeninfo: TokenInfoBuffer | None = None, config: Settings | None = None
     ) -> None:
         self.tokeninfo = tokeninfo
         self.config = config

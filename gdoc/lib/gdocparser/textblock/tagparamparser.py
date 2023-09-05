@@ -6,17 +6,17 @@ from gdoc.lib.gdoc.inlinetag import InlineTag
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from ..tokeninfocache import TokenInfoCache
+from ..tokeninfobuffer import TokenInfoBuffer
 
 TagParameter: TypeAlias = dict[str, TextString | list[TextString] | None]
 
 
 class TagParameterParser:
-    tokeninfo: TokenInfoCache | None
+    tokeninfo: TokenInfoBuffer | None
     config: Settings | None
 
     def __init__(
-        self, tokeninfo: TokenInfoCache | None = None, config: Settings | None = None
+        self, tokeninfo: TokenInfoBuffer | None = None, config: Settings | None = None
     ) -> None:
         self.tokeninfo = tokeninfo
         self.config = config
