@@ -132,7 +132,12 @@ def _create_object(
 
     erpt: ErrorReport | None
     document, erpt = GdocCompiler(tokeninfocache=tokeninfo).compile(
-        filepath, fileformat, via_html, filedata, ErrorReport(cont=True), Settings({})
+        filepath,
+        fileformat,
+        via_html,
+        filedata,
+        ErrorReport(cont=True),
+        Settings({"token_info_buffer": tokeninfo}),
     )
 
     return document, erpt, tokeninfo

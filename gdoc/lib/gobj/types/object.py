@@ -11,6 +11,7 @@ from gdoc.lib.gdoccompiler.gdexception import (
     GdocSyntaxError,
 )
 from gdoc.lib.gdocparser import nameparser
+from gdoc.lib.gdocparser.tokeninfobuffer import set_opts_token_info
 from gdoc.lib.plugins import Category, CategoryManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
@@ -156,7 +157,7 @@ class Object(Element):
         # Create Object
         #
         r = type_constructor._create_object_(
-            type_name, class_info, class_args, class_kwargs, tag_params, self, erpt
+            type_name, class_info, class_args, class_kwargs, tag_params, self, opts, erpt
         )
         if r.is_err():
             return Err(erpt.submit(r.err()))
@@ -167,7 +168,7 @@ class Object(Element):
         #
         referent_in_local_scope: Object | None = None
         if child.class_refpath is not None:
-            r = self._resolve_reference_(child, erpt)
+            r = self._resolve_reference_(child, erpt, opts)
             if r.is_err():
                 return Err(erpt.submit(r.err()))
             referent_in_local_scope = r.unwrap()
@@ -318,6 +319,9 @@ class Object(Element):
 
                 else:
                     # The explicitly specified category does not have the specified type.
+                    set_opts_token_info(
+                        opts, cast(TextString, class_info[0]), "type", ("namespace", [])
+                    )
                     tstrs: list[TextString]
                     tstrs = tag_body.split(maxsplit=1)[0].split(":", retsep=True)[:2]
                     tstr: TextString = tstrs[0]
@@ -381,6 +385,7 @@ class Object(Element):
         class_kwargs: list[tuple[TextString, TextString]],
         tag_params: dict,
         parent_obj: "Object",
+        opts: Settings | None,
         erpt: ErrorReport,
     ) -> Result["Object", ErrorReport]:
         # def __init__(
@@ -408,7 +413,7 @@ class Object(Element):
         #
         names: list[TextString]
         args: list[TextString]
-        r = cls._pop_name_(class_args, erpt)
+        r = cls._pop_name_(class_args, erpt, opts)
         if r.is_err():
             return Err(erpt.submit(r.err()))
 
@@ -568,7 +573,7 @@ class Object(Element):
 
     @staticmethod
     def _pop_name_(
-        class_args: list[TextString], erpt: ErrorReport
+        class_args: list[TextString], erpt: ErrorReport, opts: Settings | None = None
     ) -> Result[
         tuple[TextString | None, list[TextString], list[TextString], list[TextString]],
         ErrorReport,
@@ -610,10 +615,13 @@ class Object(Element):
             return Err(erpt.submit(r.err()))
         names, tags = r.unwrap()
 
+        if scope is not None:
+            set_opts_token_info(opts, scope, "type", ("keyword", []))
+
         return Ok((scope, names, tags, args))
 
     def _resolve_reference_(
-        self, child: "Object", erpt: ErrorReport
+        self, child: "Object", erpt: ErrorReport, opts: Settings | None = None
     ) -> Result[Optional["Object"], ErrorReport]:
         if child.class_refpath is None:
             return Ok(cast(Optional[Object], None))
@@ -650,6 +658,8 @@ class Object(Element):
 
                 # todo: TEMPORARY IMPLEMENTATION
                 name.__setattr__("_referent_object_", referent)
+                set_opts_token_info(opts, name, "type", ("namespace", []))
+                set_opts_token_info(opts, name, "referent", referent)
 
         if referent is self.get_child(str(child.class_refpath[-1])):
             # Referent found in local scope

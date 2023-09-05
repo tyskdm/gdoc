@@ -3,6 +3,7 @@ from typing import Any, NamedTuple, TypeAlias, cast
 from gdoc.lib.gdoc import DataPos, Quoted, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.lib.gdoc.inlinetag import InlineTag
+from gdoc.util import Settings
 
 TagParameter: TypeAlias = dict[str, TextString | list[TextString] | None]
 
@@ -140,3 +141,22 @@ class TokenInfoBuffer:
                 self.set(val, "type", ("string", []))
 
         self.set(inlinetag[-1:], "type", ("keyword", []))
+
+
+def set_opts_token_info(opts: Settings | None, token: TextString, key: str, val: Any):
+    if opts is None:
+        return
+
+    token_buff: TokenInfoBuffer | None = cast(
+        TokenInfoBuffer | None, opts.get("token_info_buffer")
+    )
+
+    if token_buff is not None:
+        token_buff.set(cast(TextString, token), key, val)
+
+
+def set_buff_token_info(
+    token_buff: TokenInfoBuffer | None, token: TextString, key: str, val: Any
+):
+    if token_buff is not None:
+        token_buff.set(cast(TextString, token), key, val)
