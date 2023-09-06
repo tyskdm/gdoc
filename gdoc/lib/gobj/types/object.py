@@ -29,6 +29,7 @@ class Object(Element):
     class_refpath: list[TextString | str] | None = None
     class_referent: Union["Object", None] = None
     _object_names_: list[TextString]
+    _object_info_: dict[str, Any]
     _class_categories_: CategoryManager | None = None
     _class_category_: Category | None = None
     _class_type_info_: dict[str, Any] = {
@@ -122,6 +123,7 @@ class Object(Element):
         for key in type_args.keys():
             self.set_prop(key, type_args[key])
 
+        self._object_info_ = {}
         self._object_names_ = []
         if type(name) is TextString:
             self._object_names_.append(name)
@@ -656,10 +658,11 @@ class Object(Element):
                     )
                     return Err(erpt)
 
-                # todo: TEMPORARY IMPLEMENTATION
-                name.__setattr__("_referent_object_", referent)
                 set_opts_token_info(opts, name, "type", ("namespace", []))
                 set_opts_token_info(opts, name, "referent", referent)
+
+            if len(child._object_names_) > 1:
+                set_opts_token_info(opts, child._object_names_[1], "referent", referent)
 
         if referent is self.get_child(str(child.class_refpath[-1])):
             # Referent found in local scope

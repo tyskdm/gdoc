@@ -4,7 +4,7 @@ textblockparser.py: TextBlockParser class
 from logging import getLogger
 from typing import Union, cast
 
-from gdoc.lib.gdoc import TextBlock, TextString
+from gdoc.lib.gdoc import DataPos, TextBlock, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.lib.gdoc.inlinetag import InlineTag
 from gdoc.lib.gobj.types import Object
@@ -96,19 +96,33 @@ class TextBlockParser:
             if e and srpt.should_exit(e):
                 return Err(erpt.submit(srpt))
 
-        if (
-            (self.tokeninfo is not None)
-            and (child is not None)
-            and (child.class_refpath is not None)
-        ):
-            for name in cast(list[TextString], child.class_refpath)[:-1]:
-                logger.debug("type(namepath) = %s", type(name))
-                self.tokeninfo.set(name, "type", ("namespace", []))
+            if (child is not None) and (self.tokeninfo is not None):
+                # Set info for language server
+                if child.class_refpath is not None:
+                    for name in cast(list[TextString], child.class_refpath)[:-1]:
+                        self.tokeninfo.set(name, "type", ("namespace", []))
 
-            logger.debug("type(name) = %s", type(child.class_refpath[-1]))
-            self.tokeninfo.set(
-                cast(TextString, child.class_refpath[-1]), "type", ("variable", [])
-            )
+                    self.tokeninfo.set(
+                        cast(TextString, child.class_refpath[-1]),
+                        "type",
+                        ("variable", []),
+                    )
+
+                location_data: dict = {}
+                start_dpos: DataPos | None = target_tag.get_data_pos()
+                end_dpos: DataPos | None = cast(
+                    TextString,
+                    # (tag_param.get("brief") or tag_param.get("name") or target_tag),
+                    (tag_param.get("name") or target_tag),
+                ).get_data_pos()
+                location_data["tagetRange"] = (start_dpos, end_dpos)
+
+                if len(child._object_names_) > 0:
+                    location_data["targetSelectionRange"] = child._object_names_[
+                        0
+                    ].get_data_pos()
+
+                child._object_info_["defintion"] = location_data
 
         #
         # Append Properties

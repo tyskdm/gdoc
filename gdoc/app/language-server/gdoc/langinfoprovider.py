@@ -50,42 +50,114 @@ class GdocLanguageInfoProvider(Feature):
 
         referent: GdocObject | None = token.token_data.get("referent")
         if referent is not None:
-            uri: str
-            document = referent.get_root()
+            document = cast(GdocObject, referent.get_root())
             if not (document and document.name):
                 logger.error(f"document '{document}' of the '{referent}'has no name.")
                 return response
 
-            uri: str = "file://" + document.name  # should be actual uri.
-            object_names: list[TextString] = referent._object_names_
-
+            uri: str = document._object_info_.get("uri", "file://" + document.name)
             doc_info: DocumentInfo | None
             doc_info = self.feat_packagemanager.get_document_info(uri)
             text_pos: TextPosition | None = doc_info and doc_info.text_position
 
-            if len(object_names) > 0:
-                object_name = object_names[0]
-                dpos: DataPos | None = object_name.get_data_pos()
-                if dpos is not None:
-                    data_range = Range(
-                        start={
-                            "line": dpos.start.ln - 1,
-                            "character": text_pos.get_u16_column(
-                                dpos.start.ln - 1, dpos.start.col - 1
-                            )
-                            if text_pos
-                            else dpos.start.col - 1,
-                        },
-                        end={
-                            "line": dpos.stop.ln - 1,
-                            "character": text_pos.get_u16_column(
-                                dpos.stop.ln - 1, dpos.stop.col - 1
-                            )
-                            if text_pos
-                            else dpos.stop.col - 1,
-                        },
+            # targetRange: Range
+            target_range: Range | None = None
+            target_range_dpos: tuple[DataPos, DataPos] | None
+            target_range_dpos = referent._object_info_.get("defintion", {}).get(
+                "tagetRange"
+            )
+            if target_range_dpos is not None:
+                target_range = Range(
+                    start={
+                        "line": target_range_dpos[0].start.ln - 1,
+                        "character": text_pos.get_u16_column(
+                            target_range_dpos[0].start.ln - 1,
+                            target_range_dpos[0].start.col - 1,
+                        )
+                        if text_pos
+                        else target_range_dpos[0].start.col - 1,
+                    },
+                    end={
+                        "line": target_range_dpos[1].stop.ln - 1,
+                        "character": text_pos.get_u16_column(
+                            target_range_dpos[1].stop.ln - 1,
+                            target_range_dpos[1].stop.col - 1,
+                        )
+                        if text_pos
+                        else target_range_dpos[1].stop.col - 1,
+                    },
+                )
+
+            # targetSelectionRange: Range
+            target_selection_range: Range | None = None
+            selection_range: DataPos | None = referent._object_info_.get(
+                "defintion", {}
+            ).get("targetSelectionRange")
+            if selection_range is not None:
+                target_selection_range = Range(
+                    start={
+                        "line": selection_range.start.ln - 1,
+                        "character": text_pos.get_u16_column(
+                            selection_range.start.ln - 1,
+                            selection_range.start.col - 1,
+                        )
+                        if text_pos
+                        else selection_range.start.col - 1,
+                    },
+                    end={
+                        "line": selection_range.stop.ln - 1,
+                        "character": text_pos.get_u16_column(
+                            selection_range.stop.ln - 1,
+                            selection_range.stop.col - 1,
+                        )
+                        if text_pos
+                        else selection_range.stop.col - 1,
+                    },
+                )
+
+            # originSelectionRange: Range
+            original_selection_range: Range | None = None
+            selection_range: DataPos | None = token.textstr.get_data_pos()
+            if selection_range is not None:
+                original_selection_range = Range(
+                    start={
+                        "line": selection_range.start.ln - 1,
+                        "character": text_pos.get_u16_column(
+                            selection_range.start.ln - 1,
+                            selection_range.start.col - 1,
+                        )
+                        if text_pos
+                        else selection_range.start.col - 1,
+                    },
+                    end={
+                        "line": selection_range.stop.ln - 1,
+                        "character": text_pos.get_u16_column(
+                            selection_range.stop.ln - 1,
+                            selection_range.stop.col - 1,
+                        )
+                        if text_pos
+                        else selection_range.stop.col - 1,
+                    },
+                )
+
+            if (
+                (target_range is not None)
+                and (target_selection_range is not None)
+                and (original_selection_range is not None)
+            ):
+                logger.debug(f" target_range = {target_range}")
+                logger.debug(f" target_selection_range = {target_selection_range}")
+                response = [
+                    LocationLink(
+                        originSelectionRange=original_selection_range,
+                        targetUri=uri,
+                        targetRange=target_range,
+                        targetSelectionRange=target_range,
+                        # targetSelectionRange=target_selection_range,
                     )
-                    response = Location(uri=uri, range=data_range)
+                ]
+            else:
+                response = None
 
         return response
 
@@ -95,8 +167,6 @@ class GdocLanguageInfoProvider(Feature):
         """
         token = cast(GdocToken, token)
         response: Hover | None = None
-
-        logger.debug(f" get_hover_handler: token = {token}")
 
         referent: GdocObject | None = token.token_data.get("referent")
         if referent is not None:

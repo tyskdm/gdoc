@@ -104,6 +104,9 @@ class GdocObjectBuilder(Feature):
             document: DocumentInfo = DocumentInfo(
                 *doc_info, gdoc_document, gdoc_erpt, token_map
             )
+            if gdoc_document is not None:
+                gdoc_document._object_info_["uri"] = uri
+                gdoc_document._object_info_["document_info"] = document
             self.documents[uri] = document
 
             if self.publish_diagnostics is not None:
