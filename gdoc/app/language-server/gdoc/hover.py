@@ -1,15 +1,14 @@
 import logging
 from typing import cast
 
-from gdoc.lib.gdoc import TextString
-from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfo
-from gdoc.lib.gobj.types import Object as GdocObject
 from gdoc.util import Settings
 
-from ..basicjsonstructures import Hover, HoverParams, MarkupContent
+from ..basicjsonstructures import Hover, HoverParams
 from ..feature import Feature
 from ..jsonrpc import JsonRpc
 from ..languageserver import LanguageServer
+from ..textdocument.tokenmap import Token
+from .objectbuilder import DocumentInfo
 from .packagemanager import GdocPackageManager
 
 logger = logging.getLogger(__name__)
@@ -46,38 +45,14 @@ class GdocHover(Feature):
         line: int = params["position"]["line"]
         character: int = params["position"]["character"]
 
-        tokeninfo: TokenInfo | None
-        document = self.feat_packagemanager.get_document_info(uri)
+        token: Token | None
+        document: DocumentInfo | None = self.feat_packagemanager.get_document_info(uri)
         if document is None:
             logger.error("document '%s' is None(not open).", uri)
-
-        elif (tokeninfo := document.get_tokeninfo(line, character)) is not None:
-            if hasattr(tokeninfo.token, "_referent_object_"):
-                target_object: GdocObject = cast(
-                    GdocObject, tokeninfo.token._referent_object_
-                )
-
-                markdown: str = "({}:{}) {}".format(
-                    target_object.class_category,
-                    target_object.class_type,
-                    target_object.name,
-                )
-                if len(target_object._object_names_) > 1:
-                    markdown += " | {}".format(target_object._object_names_[1].get_str())
-                if (brief := target_object.get_prop("brief")) is not None:
-                    markdown += " \n" + (
-                        brief.get_str() if isinstance(brief, TextString) else str(brief)
-                    )
-                if (text := target_object.get_prop("text")) is not None:
-                    if type(text) is not list:
-                        text = [text]
-                    for t in text:
-                        if t is not None:
-                            markdown += " \n- " + t.get_str()
-
-                response = Hover(
-                    contents=MarkupContent(kind="markdown", value=markdown),
-                )
+        elif (
+            token := document.token_map.get_token_by_u16pos(line, character)
+        ) is not None:
+            response = token.get_hover()
 
         logger.debug(f" {packet.method}.result = {response}")
         return JsonRpc.Response(packet.id, response)

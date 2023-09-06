@@ -2,14 +2,10 @@ from dataclasses import dataclass
 from logging import getLogger
 from typing import cast
 
-from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfo
 from gdoc.util import Settings
 
 from ..feature import Feature
 from ..languageserver import LanguageServer
-from ..textdocument.publishdiagnostics import PublishDiagnostics
-from ..textdocument.tokenmap import TokenMap
-from .gdoctoken import GdocToken
 from .objectbuilder import DocumentInfo, GdocObjectBuilder
 
 logger = getLogger(__name__)
@@ -18,54 +14,12 @@ logger = getLogger(__name__)
 CONFIGURATION_FILE_NAME = ".gdoc.json"
 
 
-class PackagedDocumentInfo:
-    doc_info: DocumentInfo
-    tokenlist: list[tuple[int, list[TokenInfo]]]
-    line_tokens_map: dict[int, list[TokenInfo]] | None = None
-    tokenmap: TokenMap
-
-    def __init__(self, doc_info: DocumentInfo):
-        self.doc_info = doc_info
-        self.tokenlist = doc_info.gdoc_tokeninfo.get_index()
-
-        self.tokenmap = TokenMap(doc_info.text_position)
-        for textstr, data in doc_info.gdoc_tokeninfo.get_all().items():
-            self.tokenmap.add_token(GdocToken(textstr, data))
-
-    def get_tokeninfo(self, line: int, column: int) -> TokenInfo | None:
-        line_tokens: list[TokenInfo] | None = self._get_line_tokens_map().get(line)
-        if line_tokens is None:
-            return None
-
-        # col = self.text_pos.get_str_column(line, column) if self.text_pos else column
-        col = (
-            self.doc_info.text_position.get_str_column(line, column)
-            if self.doc_info.text_position
-            else column
-        )
-        for token in line_tokens:
-            if token.col <= col and col <= token.col + token.len:
-                return token
-
-        return None
-
-    def _get_line_tokens_map(self) -> dict[int, list[TokenInfo]]:
-        if self.line_tokens_map is not None:
-            return self.line_tokens_map
-
-        self.line_tokens_map = {}
-        for line, tokenlist in self.tokenlist:
-            self.line_tokens_map[line] = tokenlist
-
-        return self.line_tokens_map
-
-
 @dataclass
 class PackageInfo:
     uri: str | None
     name: str | None
     config: Settings
-    documents: dict[str, PackagedDocumentInfo]  # Change to package class in the future.
+    documents: dict[str, DocumentInfo]  # Change to package class in the future.
 
 
 class GdocPackageManager(Feature):
@@ -86,9 +40,6 @@ class GdocPackageManager(Feature):
         """
         Check client capabilities and return the capabilities for the client.
         """
-        self.publish_diagnostics = cast(
-            PublishDiagnostics, self.server.get_feature("PublishDiagnostics")
-        )
         self.feat_objectbuilder = cast(
             GdocObjectBuilder, self.server.get_feature("GdocObjectBuilder")
         )
@@ -118,14 +69,14 @@ class GdocPackageManager(Feature):
                 del self.packages[None].documents[uri]
             return
 
-        self.packages[None].documents[uri] = PackagedDocumentInfo(doc_info)
+        self.packages[None].documents[uri] = doc_info
 
     def get_package(self, uri: str) -> PackageInfo | None:
         if uri not in self.packages:
             return None
         return self.packages[uri]
 
-    def get_document_info(self, uri: str) -> PackagedDocumentInfo | None:
+    def get_document_info(self, uri: str) -> DocumentInfo | None:
         if uri not in self.packages[None].documents:
             return None
         return self.packages[None].documents[uri]

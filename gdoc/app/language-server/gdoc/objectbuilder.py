@@ -13,6 +13,8 @@ from ..languageserver import LanguageServer
 from ..textdocument.publishdiagnostics import PublishDiagnostics
 from ..textdocument.textdocuments import TextDocumentInfo, TextDocuments
 from ..textdocument.textposition import TextPosition
+from ..textdocument.tokenmap import TokenMap
+from .gdoctoken import GdocToken
 
 logger = getLogger(__name__)
 
@@ -22,7 +24,7 @@ class DocumentInfo(NamedTuple):
     text_position: TextPosition
     gdoc_document: Document | None
     gdoc_erpt: ErrorReport | None
-    gdoc_tokeninfo: TokenInfoBuffer
+    token_map: TokenMap
 
 
 class GdocObjectBuilder(Feature):
@@ -30,9 +32,6 @@ class GdocObjectBuilder(Feature):
     feat_textdocuments: TextDocuments | None = None
     publish_diagnostics: PublishDiagnostics | None = None
     documents: dict[str, DocumentInfo]
-    # update_handler: Callable[
-    #     [str, tuple[DocumentInfo, ErrorReport | None, TokenInfoCache] | None], None
-    # ] | None = None
     update_handler: Callable[[str, DocumentInfo | None], None] | None = None
 
     def __init__(self, languageserver) -> None:
@@ -63,6 +62,15 @@ class GdocObjectBuilder(Feature):
         """
         return
 
+    def add_update_handler(
+        self,
+        handler: Callable[[str, DocumentInfo | None], None],
+    ) -> None:
+        """
+        Add a handler for text document updates.
+        """
+        self.update_handler = handler
+
     def _textdocuments_update_handler(
         self, uri: str, doc_info: TextDocumentInfo | None
     ) -> None:
@@ -85,8 +93,16 @@ class GdocObjectBuilder(Feature):
 
         else:
             # uri is opened or updated
+            gdoc_tokeninfo: TokenInfoBuffer
+            gdoc_document, gdoc_erpt, gdoc_tokeninfo = _create_object(
+                uri, doc_info.document_item["text"]
+            )
+            token_map = TokenMap(doc_info.text_position)
+            for textstr, data in gdoc_tokeninfo.get_all().items():
+                token_map.add_token(GdocToken(textstr, data))
+
             document: DocumentInfo = DocumentInfo(
-                *doc_info, *_create_object(uri, doc_info.document_item["text"])
+                *doc_info, gdoc_document, gdoc_erpt, token_map
             )
             self.documents[uri] = document
 
@@ -98,27 +114,9 @@ class GdocObjectBuilder(Feature):
                 logger.debug(" uri = %s diagnostics = %s", uri, diagnostics)
 
             if self.update_handler is not None:
-                self.update_handler(
-                    # uri, (document, document.gdoc_erpt, document.gdoc_tokeninfo)
-                    uri,
-                    document,
-                )
+                self.update_handler(uri, document)
 
         return
-
-    def add_update_handler(
-        self,
-        handler: Callable[
-            # [str, tuple[DocumentInfo, ErrorReport | None, TokenInfoCache] | None],
-            # None,
-            [str, DocumentInfo | None],
-            None,
-        ],
-    ) -> None:
-        """
-        Add a handler for text document updates.
-        """
-        self.update_handler = handler
 
 
 def _create_object(

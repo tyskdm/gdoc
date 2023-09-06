@@ -2,7 +2,9 @@ from logging import getLogger
 from typing import Any
 
 from gdoc.lib.gdoc import DataPos, TextString
+from gdoc.lib.gobj.types import Object as GdocObject
 
+from ..basicjsonstructures import Location, LocationLink, Range
 from ..textdocument.token import Token, TokenRange
 
 logger = getLogger(__name__)
@@ -12,6 +14,7 @@ class GdocToken(Token):
     textstr: TextString
     tokentype: str
     tokenmodifiers: list[str]
+    token_data: dict[str, Any]
     start_line: int = -1
     start_character: int
     end_line: int

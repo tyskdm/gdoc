@@ -1,16 +1,14 @@
 import logging
 from typing import cast
 
-from gdoc.lib.gdoc import TextString
-from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfo
-from gdoc.lib.gobj.types import Object as GdocObject
 from gdoc.util import Settings
 
-from ..basicjsonstructures import DefinitionParams, Location, LocationLink, Range
+from ..basicjsonstructures import DefinitionParams, Location, LocationLink
 from ..feature import Feature
 from ..jsonrpc import JsonRpc
 from ..languageserver import LanguageServer
-from ..textdocument.textposition import TextPosition
+from ..textdocument.tokenmap import Token
+from .objectbuilder import DocumentInfo
 from .packagemanager import GdocPackageManager
 
 logger = logging.getLogger(__name__)
@@ -47,41 +45,14 @@ class GdocDefinition(Feature):
         line: int = params["position"]["line"]
         character: int = params["position"]["character"]
 
-        tokeninfo: TokenInfo | None
-        document = self.feat_packagemanager.get_document_info(uri)
+        token: Token | None
+        document: DocumentInfo | None = self.feat_packagemanager.get_document_info(uri)
         if document is None:
             logger.error("document '%s' is None(not open).", uri)
-
-        elif (tokeninfo := document.get_tokeninfo(line, character)) is not None:
-            text_pos: TextPosition | None = document.doc_info.text_position
-            if hasattr(tokeninfo.token, "_referent_object_"):
-                object_names: list[TextString] = cast(
-                    GdocObject, tokeninfo.token._referent_object_
-                )._object_names_
-
-                if len(object_names) > 0:
-                    object_name = object_names[0]
-                    dpos = object_name.get_data_pos()
-                    if dpos is not None:
-                        data_range = Range(
-                            start={
-                                "line": dpos.start.ln - 1,
-                                "character": text_pos.get_u16_column(
-                                    dpos.start.ln - 1, dpos.start.col - 1
-                                )
-                                if text_pos
-                                else dpos.start.col - 1,
-                            },
-                            end={
-                                "line": dpos.stop.ln - 1,
-                                "character": text_pos.get_u16_column(
-                                    dpos.stop.ln - 1, dpos.stop.col - 1
-                                )
-                                if text_pos
-                                else dpos.stop.col - 1,
-                            },
-                        )
-                        response = Location(uri=uri, range=data_range)
+        elif (
+            token := document.token_map.get_token_by_u16pos(line, character)
+        ) is not None:
+            response = token.get_definition()
 
         logger.debug(f" {packet.method}.result = {response}")
         return JsonRpc.Response(packet.id, response)

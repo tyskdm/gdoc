@@ -7,7 +7,8 @@ from ..basicjsonstructures import SemanticTokens, SemanticTokensParams
 from ..feature import Feature
 from ..jsonrpc import JsonRpc
 from ..languageserver import LanguageServer
-from .packagemanager import GdocPackageManager, PackagedDocumentInfo
+from .objectbuilder import DocumentInfo
+from .packagemanager import GdocPackageManager
 
 logger = logging.getLogger(__name__)
 
@@ -68,9 +69,9 @@ class GdocSemanticTokens(Feature):
             logger.debug("self.feat_packagemanager is None -> return []")
             return []
 
-        docinfo: PackagedDocumentInfo | None
+        docinfo: DocumentInfo | None
         if (docinfo := self.feat_packagemanager.get_document_info(uri)) is None:
             logger.debug("docinfo is None -> return []")
             return []
 
-        return docinfo.tokenmap.get_semantic_tokens_data(uri, self.token_types)
+        return docinfo.token_map.get_semantic_tokens_data(uri, self.token_types)

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import NamedTuple
 
-from ..basicjsonstructures import Location, LocationLink, MarkupContent
+from ..basicjsonstructures import Hover, Location, LocationLink
 
 
 class TokenRange(NamedTuple):
@@ -73,7 +73,7 @@ class Token(ABC):
         """
         return None
 
-    def get_hover(self) -> MarkupContent | None:
+    def get_hover(self) -> Hover | None:
         """
         Get the hover text for the token.
         """
