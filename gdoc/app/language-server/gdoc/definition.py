@@ -1,5 +1,5 @@
 import logging
-from typing import cast
+from typing import Callable, cast
 
 from gdoc.util import Settings
 
@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 class GdocDefinition(Feature):
     server: LanguageServer
     feat_packagemanager: GdocPackageManager
+    get_definition_handler: Callable[
+        [str, Token], Location | list[Location] | list[LocationLink] | None
+    ]
 
     def __init__(self, languageserver: LanguageServer) -> None:
         self.server = languageserver
@@ -36,6 +39,14 @@ class GdocDefinition(Feature):
         )
         return {"definitionProvider": True}
 
+    def add_definition_handler(
+        self,
+        handler: Callable[
+            [str, Token], Location | list[Location] | list[LocationLink] | None
+        ],
+    ) -> None:
+        self.get_definition_handler = handler
+
     def _method_goto_definition(self, packet: JsonRpc) -> JsonRpc | None:
         logger.debug(" %s.params = %s", packet.method, packet.params)
         params: DefinitionParams = cast(DefinitionParams, packet.params)
@@ -52,7 +63,7 @@ class GdocDefinition(Feature):
         elif (
             token := document.token_map.get_token_by_u16pos(line, character)
         ) is not None:
-            response = token.get_definition()
+            response = self.get_definition_handler(uri, token)
 
         logger.debug(f" {packet.method}.result = {response}")
         return JsonRpc.Response(packet.id, response)
