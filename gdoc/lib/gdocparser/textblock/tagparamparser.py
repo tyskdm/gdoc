@@ -6,162 +6,183 @@ from gdoc.lib.gdoc.inlinetag import InlineTag
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from .tokens import push_tokens
+from ..tokeninfobuffer import TokenInfoBuffer
 
 TagParameter: TypeAlias = dict[str, TextString | list[TextString] | None]
 
 
-def parse_TagParameter(
-    parsed_lines: list[list[TextString]], erpt: ErrorReport, opts: Settings | None = None
-) -> Result[
-    tuple[Optional[tuple[BlockTag, TagParameter]], list[tuple[InlineTag, TagParameter]]],
-    ErrorReport,
-]:
-    """
-    _summary_
+class TagParameterParser:
+    tokeninfo: TokenInfoBuffer | None
+    config: Settings | None
 
-    @param parsed_lines (list[list[TextString]]) : _description_
-    @param opts (Settings) : _description_
-    @param erpt (ErrorReport) : _description_
+    def __init__(
+        self, tokeninfo: TokenInfoBuffer | None = None, config: Settings | None = None
+    ) -> None:
+        self.tokeninfo = tokeninfo
+        self.config = config
 
-    @return Result[
+    def parse(
+        self,
+        parsed_lines: list[list[TextString]],
+        erpt: ErrorReport,
+        opts: Settings | None = None,
+    ) -> Result[
         tuple[
-            Optional[TagParameter],
-            list[TagParameter]
+            Optional[tuple[BlockTag, TagParameter]], list[tuple[InlineTag, TagParameter]]
         ],
-        ErrorReport
-    ] : _description_
-    """
-    # Results
-    blocktag_param: Optional[tuple[BlockTag, TagParameter]] = None
-    inlinetag_params: list[tuple[InlineTag, TagParameter]] = []
-    srpt: ErrorReport = erpt.new_subreport()
+        ErrorReport,
+    ]:
+        """
+        _summary_
 
-    # Precedings
-    preceding_lines: list[TextString] = []
-    preceding_text: TextString | None = None
-    target_tag: TextString | None = None
-    # Followings
-    following_text: TextString | None
-    following_lines: list[TextString]
-    next_tag: TextString | None
+        @param parsed_lines (list[list[TextString]]) : _description_
+        @param opts (Settings) : _description_
+        @param erpt (ErrorReport) : _description_
 
-    # Other variables
-    tag_param: TagParameter
-    line: TextString
-    line_items: list[TextString]
-    item: TextString
-    row: int = 0
-    col: int = 0
-    while True:
-        following_text = None
-        following_lines = []
-        next_tag = None
-        for row, line_items in enumerate(parsed_lines[row:], row):
-            line = TextString()
+        @return Result[
+            tuple[
+                Optional[TagParameter],
+                list[TagParameter]
+            ],
+            ErrorReport
+        ] : _description_
+        """
+        # Results
+        blocktag_param: Optional[tuple[BlockTag, TagParameter]] = None
+        inlinetag_params: list[tuple[InlineTag, TagParameter]] = []
+        srpt: ErrorReport = erpt.new_subreport()
 
-            for col, item in enumerate(line_items[col:], col):
-                if type(item) in (BlockTag, InlineTag):
-                    next_tag = item
-                    break
-                line += item
+        # Precedings
+        preceding_lines: list[TextString] = []
+        preceding_text: TextString | None = None
+        target_tag: TextString | None = None
+        # Followings
+        following_text: TextString | None
+        following_lines: list[TextString]
+        next_tag: TextString | None
 
-            if following_text is None:
-                if len(line.strip()) > 0:
-                    # remove leading spaces after the tag.
-                    # if target_tag is None, the line is the first line of the textblock
-                    # that will not be the following text. So, keep the leading spaces.
-                    following_text = line.lstrip() if target_tag else line
-            else:
-                following_lines.append(line)
-
-            if next_tag is not None:
-                # Start with the next column for the next time
-                col += 1
-                break
-
-            # continue to the top of next line
-            col = 0
-
-        if (target_tag is None) and (next_tag is not None):
-            #
-            # The first tag found in the textblock:
-            # Move followings to precedings and continue to get followings
-            #
-            if following_text is not None:
-                following_lines = [following_text] + following_lines
-
-            preceding_lines = following_lines
-            following_lines = []
+        # Other variables
+        tag_param: TagParameter
+        line: TextString
+        line_items: list[TextString]
+        item: TextString
+        row: int = 0
+        col: int = 0
+        while True:
             following_text = None
-
-            preceding_text = None
-            if (len(preceding_lines) > 0) and (not preceding_lines[-1].endswith("\n")):
-                preceding_text = preceding_lines.pop()
-
-            target_tag = next_tag
+            following_lines = []
             next_tag = None
-            continue
+            for row, line_items in enumerate(parsed_lines[row:], row):
+                line = TextString()
 
-        elif target_tag is not None:
-            if type(target_tag) is BlockTag:
-                tag_param, preceding_lines = _get_blocktag_params(
-                    preceding_lines,
-                    preceding_text,
-                    following_text,
-                    following_lines,
-                )
-                push_tokens(target_tag, tag_param)
+                for col, item in enumerate(line_items[col:], col):
+                    if type(item) in (BlockTag, InlineTag):
+                        next_tag = item
+                        break
+                    line += item
 
-                if blocktag_param is None:
-                    blocktag_param = (target_tag, tag_param)
+                if following_text is None:
+                    if len(line.strip()) > 0:
+                        # remove leading spaces after the tag.
+                        # if target_tag is None, the line is the first line of the
+                        # textblock that will not be the following text. So, keep
+                        # the leading spaces.
+                        following_text = line.lstrip() if target_tag else line
                 else:
-                    # BlockTag was already found.
-                    if srpt.should_exit(
-                        GdocSyntaxError(
-                            "A TextBlock takes at most one BlockTag but was given more.",
-                            target_tag.get_data_pos(),
-                            (
-                                target_tag.get_str(),
-                                0,
-                                len(target_tag.get_str()),
-                            ),
-                        )
-                    ):
-                        return Err(erpt.submit(srpt))
+                    following_lines.append(line)
 
-            else:  # type(target_tag) is InlineTag:
-                target_tag = cast(InlineTag, target_tag)
-                tag_param, preceding_lines = _get_inlinetag_params(
-                    preceding_lines,
-                    preceding_text,
-                    following_text,
-                    following_lines,
-                )
-                push_tokens(target_tag, tag_param)
-                inlinetag_params.append((target_tag, tag_param))
+                if next_tag is not None:
+                    # Start with the next column for the next time
+                    col += 1
+                    break
 
-            if next_tag is not None:
-                target_tag = next_tag
-                next_tag = None
+                # continue to the top of next line
+                col = 0
 
+            if (target_tag is None) and (next_tag is not None):
+                #
+                # The first tag found in the textblock:
+                # Move followings to precedings and continue to get followings
+                #
+                if following_text is not None:
+                    following_lines = [following_text] + following_lines
+
+                preceding_lines = following_lines
+                following_lines = []
+                following_text = None
+
+                preceding_text = None
                 if (len(preceding_lines) > 0) and (
                     not preceding_lines[-1].endswith("\n")
                 ):
-                    preceding_text = preceding_lines.pop().rstrip()
-                else:
-                    preceding_text = None
+                    preceding_text = preceding_lines.pop()
 
+                target_tag = next_tag
+                next_tag = None
                 continue
 
-        # elif target_tag is None and next_tag is None:
-        # -> No any/more tags was found in the textblock.
-        break
+            elif target_tag is not None:
+                if type(target_tag) is BlockTag:
+                    tag_param, preceding_lines = _get_blocktag_params(
+                        preceding_lines,
+                        preceding_text,
+                        following_text,
+                        following_lines,
+                    )
+                    if self.tokeninfo:
+                        self.tokeninfo.add_blocktag(target_tag, tag_param)
 
-    if srpt.haserror():
-        return Err(erpt.submit(srpt), (blocktag_param, inlinetag_params))
+                    if blocktag_param is None:
+                        blocktag_param = (target_tag, tag_param)
+                    else:
+                        # BlockTag was already found.
+                        if srpt.should_exit(
+                            GdocSyntaxError(
+                                "A TextBlock takes at most one BlockTag but was "
+                                "given more.",
+                                target_tag.get_data_pos(),
+                                (
+                                    target_tag.get_str(),
+                                    0,
+                                    len(target_tag.get_str()),
+                                ),
+                            )
+                        ):
+                            return Err(erpt.submit(srpt))
 
-    return Ok((blocktag_param, inlinetag_params))
+                else:  # type(target_tag) is InlineTag:
+                    target_tag = cast(InlineTag, target_tag)
+                    tag_param, preceding_lines = _get_inlinetag_params(
+                        preceding_lines,
+                        preceding_text,
+                        following_text,
+                        following_lines,
+                    )
+                    if self.tokeninfo:
+                        self.tokeninfo.add_inlinetag(target_tag, tag_param)
+                    inlinetag_params.append((target_tag, tag_param))
+
+                if next_tag is not None:
+                    target_tag = next_tag
+                    next_tag = None
+
+                    if (len(preceding_lines) > 0) and (
+                        not preceding_lines[-1].endswith("\n")
+                    ):
+                        preceding_text = preceding_lines.pop().rstrip()
+                    else:
+                        preceding_text = None
+
+                    continue
+
+            # elif target_tag is None and next_tag is None:
+            # -> No any/more tags was found in the textblock.
+            break
+
+        if srpt.haserror():
+            return Err(erpt.submit(srpt), (blocktag_param, inlinetag_params))
+
+        return Ok((blocktag_param, inlinetag_params))
 
 
 def _get_blocktag_params(

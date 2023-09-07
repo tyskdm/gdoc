@@ -16,7 +16,7 @@ from unittest import mock
 import pytest
 
 from gdoc.lib.gdoc import Document
-from gdoc.lib.gdocparser.textblock import parse_TextBlock
+from gdoc.lib.gdocparser.textblock.textblockparser import TextBlockParser
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
 from gdoc.util import ErrorReport
@@ -56,7 +56,7 @@ def test_parse_TextBlock_1(mocker: mock, filename, formattype, html):
     erpt_mock = ErrorReport()
 
     # Execution
-    parse_TextBlock(target_data, gdobject, erpt_mock, None)
+    TextBlockParser().parse(target_data, gdobject, erpt_mock, None)
 
     # Assertion
     gdobject.add_new_object.assert_called_once()

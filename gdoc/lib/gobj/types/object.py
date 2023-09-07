@@ -1,22 +1,24 @@
 """
 baseobject.py: BaseObject class
 """
-from typing import Any, Union, cast, final
+from typing import Any, Optional, Union, cast, final
 
 from gdoc.lib.gdoc import DataPos, TextString
 from gdoc.lib.gdoccompiler.gdexception import (
     GdocNameError,
+    GdocReferenceError,
     GdocRuntimeError,
     GdocSyntaxError,
 )
 from gdoc.lib.gdocparser import nameparser
+from gdoc.lib.gdocparser.tokeninfobuffer import set_opts_token_info
 from gdoc.lib.plugins import Category, CategoryManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from ..object import Object
+from ..element import Element
 
 
-class BaseObject(Object):
+class Object(Element):
     """
     BaseObject class
     """
@@ -24,7 +26,10 @@ class BaseObject(Object):
     class_category: str = ""
     class_type: str = ""
     class_version: str = ""
-    class_isref: bool = False
+    class_refpath: list[TextString | str] | None = None
+    class_referent: Union["Object", None] = None
+    _object_names_: list[TextString]
+    _object_info_: dict[str, Any]
     _class_categories_: CategoryManager | None = None
     _class_category_: Category | None = None
     _class_type_info_: dict[str, Any] = {
@@ -77,13 +82,13 @@ class BaseObject(Object):
         categories: CategoryManager | None = None,
         _isimport_: bool = False,
     ):
-        gobj_type: Object.Type
+        gobj_type: Element.Type
         if _isimport_:
-            gobj_type = Object.Type.IMPORT
+            gobj_type = Element.Type.IMPORT
         elif refpath is None:
-            gobj_type = Object.Type.OBJECT
+            gobj_type = Element.Type.OBJECT
         else:
-            gobj_type = Object.Type.REFERENCE
+            gobj_type = Element.Type.REFERENCE
 
         super().__init__(name, scope=scope, alias=alias, tags=tags, _type=gobj_type)
 
@@ -101,19 +106,29 @@ class BaseObject(Object):
         self.class_type = (
             typename.get_str() if (type(typename) is TextString) else cast(str, typename)
         )
-        self.class_isref = refpath is not None
-        self._set_attr_(
-            "class",
-            {
-                "category": self.class_category,
-                "type": self.class_type,
-                "version": self.class_version,
-                "refpath": refpath,
-            },
-        )
+        self.class_refpath = refpath
+
+        #
+        # Store self.class_* in Object's attribute
+        #
+        class_attr: dict = {
+            "category": self.class_category,
+            "type": self.class_type,
+            "version": self.class_version,
+        }
+        if refpath is not None:
+            class_attr["refpath"] = [str(name) for name in refpath]
+        self._set_attr_("class", class_attr)
 
         for key in type_args.keys():
             self.set_prop(key, type_args[key])
+
+        self._object_info_ = {}
+        self._object_names_ = []
+        if type(name) is TextString:
+            self._object_names_.append(name)
+        if type(alias) is TextString:
+            self._object_names_.append(alias)
 
     @final
     def add_new_object(
@@ -125,14 +140,14 @@ class BaseObject(Object):
         tag_body: TextString,
         erpt: ErrorReport,
         opts: Settings | None = None,
-    ) -> Result["BaseObject", ErrorReport]:
+    ) -> Result["Object", ErrorReport]:
         """
         Object Factory
         """
         #
         # Get Constructor
         #
-        type_constructor: BaseObject | None = None
+        type_constructor: Object | None = None
         type_name: str | None = ""
 
         r = self._get_constructor_(class_info, tag_body, erpt, opts)
@@ -144,11 +159,25 @@ class BaseObject(Object):
         # Create Object
         #
         r = type_constructor._create_object_(
-            class_info, class_args, class_kwargs, tag_params, self, erpt
+            type_name, class_info, class_args, class_kwargs, tag_params, self, opts, erpt
         )
         if r.is_err():
             return Err(erpt.submit(r.err()))
-        child: BaseObject | None = r.unwrap()
+        child: Object | None = r.unwrap()
+
+        #
+        # Resolve reference
+        #
+        referent_in_local_scope: Object | None = None
+        if child.class_refpath is not None:
+            r = self._resolve_reference_(child, erpt, opts)
+            if r.is_err():
+                return Err(erpt.submit(r.err()))
+            referent_in_local_scope = r.unwrap()
+
+            if referent_in_local_scope is not None:
+                # Referent found in local scope
+                return Ok(referent_in_local_scope)
 
         #
         # Add as a child
@@ -176,20 +205,20 @@ class BaseObject(Object):
         tag_body: TextString,
         erpt: ErrorReport,
         opts: Settings | None = None,
-    ) -> Result[tuple[str, "BaseObject"], ErrorReport]:
+    ) -> Result[tuple[str, "Object"], ErrorReport]:
         """
         Get Constructor
         """
 
         class_cat: str | None = None
         if class_info[0] is not None:
-            class_cat = class_info[0].get_str().upper()
+            class_cat = class_info[0].get_str()
 
         class_type: str = ""
         if class_info[1] is not None:
             class_type = class_info[1].get_str()
 
-        type_constructor: BaseObject | None = None
+        type_constructor: Object | None = None
         type_name: str | None = ""
         cat: Category | None = None
         pos: DataPos | None = None
@@ -225,7 +254,7 @@ class BaseObject(Object):
         # Context sensitive types
         #
         else:
-            obj: BaseObject | None = self
+            obj: Object | None = self
             parent_type: str | None = obj.class_type
             while obj is not None:
                 #
@@ -264,7 +293,7 @@ class BaseObject(Object):
                     # OK: Constructor found
                     break
 
-                obj = cast(BaseObject | None, obj.get_parent())
+                obj = cast(Object | None, obj.get_parent())
                 parent_type = None
 
         #
@@ -292,6 +321,9 @@ class BaseObject(Object):
 
                 else:
                     # The explicitly specified category does not have the specified type.
+                    set_opts_token_info(
+                        opts, cast(TextString, class_info[0]), "type", ("namespace", [])
+                    )
                     tstrs: list[TextString]
                     tstrs = tag_body.split(maxsplit=1)[0].split(":", retsep=True)[:2]
                     tstr: TextString = tstrs[0]
@@ -340,7 +372,7 @@ class BaseObject(Object):
         class_cat: str | None,
         class_type: str | None,
         opts: Settings | None = None,
-    ) -> tuple[Union[str, None], Union["BaseObject", None]]:
+    ) -> tuple[Union[str, None], Union["Object", None]]:
         """ """
         constructor = None
         class_name = None
@@ -349,13 +381,15 @@ class BaseObject(Object):
     @classmethod
     def _create_object_(
         cls,
+        typename: str,
         class_info: tuple[TextString | None, TextString | None, TextString | None],
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
         tag_params: dict,
-        parent_obj: "BaseObject",
+        parent_obj: "Object",
+        opts: Settings | None,
         erpt: ErrorReport,
-    ) -> Result["BaseObject", ErrorReport]:
+    ) -> Result["Object", ErrorReport]:
         # def __init__(
         #     self,
         #     typename: TextString | str | None,
@@ -367,7 +401,7 @@ class BaseObject(Object):
         #     type_args: dict = {},
         #     categories: CategoryManager | None = None,
         # ):
-        typename = class_info[1]
+        # typename = class_info[1]
         name: TextString | None = None
         scope: TextString | str | None = None
         alias: TextString | None = tag_params.get("name")  # should be None as default
@@ -381,7 +415,7 @@ class BaseObject(Object):
         #
         names: list[TextString]
         args: list[TextString]
-        r = cls._pop_name_(class_args, erpt)
+        r = cls._pop_name_(class_args, erpt, opts)
         if r.is_err():
             return Err(erpt.submit(r.err()))
 
@@ -494,7 +528,7 @@ class BaseObject(Object):
         #
         # Construct Object
         #
-        child: BaseObject = cls(
+        child: Object = cls(
             typename,
             name,
             scope=scope,
@@ -518,7 +552,7 @@ class BaseObject(Object):
     ) -> Result[TextString | None, ErrorReport]:
         name: TextString | None = None
 
-        parent: BaseObject | None
+        parent: Object | None
         pname: TextString
         pname_str: str
         if len(names) > 0:
@@ -535,13 +569,13 @@ class BaseObject(Object):
                             )
                         )
                     )
-                parent = cast(BaseObject, parent.get_parent())
+                parent = cast(Object, parent.get_parent())
 
         return Ok(name)
 
     @staticmethod
     def _pop_name_(
-        class_args: list[TextString], erpt: ErrorReport
+        class_args: list[TextString], erpt: ErrorReport, opts: Settings | None = None
     ) -> Result[
         tuple[TextString | None, list[TextString], list[TextString], list[TextString]],
         ErrorReport,
@@ -583,7 +617,64 @@ class BaseObject(Object):
             return Err(erpt.submit(r.err()))
         names, tags = r.unwrap()
 
+        if scope is not None:
+            set_opts_token_info(opts, scope, "type", ("keyword", []))
+
         return Ok((scope, names, tags, args))
+
+    def _resolve_reference_(
+        self, child: "Object", erpt: ErrorReport, opts: Settings | None = None
+    ) -> Result[Optional["Object"], ErrorReport]:
+        if child.class_refpath is None:
+            return Ok(cast(Optional[Object], None))
+
+        referent: Optional[Object] = None
+        if type(child.class_refpath[-1]) is str:
+            referent = cast(
+                Optional[Object],
+                self.resolve([str(name) for name in child.class_refpath]),
+            )
+            if referent is None:
+                pathname = ".".join(cast(list[str], child.class_refpath))
+                erpt.submit(
+                    GdocReferenceError(
+                        f"Referent Object '{pathname}' was not found",
+                    )
+                )
+                return Err(erpt)
+        else:
+            for name in cast(list[TextString], child.class_refpath):
+                if referent is None:
+                    referent = cast(Optional[Object], self.resolve([str(name)]))
+                else:
+                    # todo: Add check if child is not a import object.
+                    referent = cast(Optional[Object], referent.get_child(str(name)))
+                if referent is None:
+                    erpt.submit(
+                        GdocReferenceError(
+                            f"Referent Object '{str(name)}' was not found",
+                            name.get_data_pos(),
+                        )
+                    )
+                    return Err(erpt)
+
+                set_opts_token_info(opts, name, "type", ("namespace", []))
+                set_opts_token_info(opts, name, "referent", referent)
+
+            if len(child._object_names_) > 1:
+                set_opts_token_info(opts, child._object_names_[1], "referent", referent)
+
+        if referent is self.get_child(str(child.class_refpath[-1])):
+            # Referent found in local scope
+            return Ok(cast(Optional[Object], referent))
+
+        # TODO: Check referent's type, props, etc.
+        # TODO: Check cyclic reference
+
+        assert referent is not None
+        child.bidir_link_to(referent)
+        child.class_referent = referent
+        return Ok(cast(Optional[Object], None))
 
     def add_new_property(
         self,

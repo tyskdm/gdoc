@@ -5,22 +5,22 @@ from gdoc.lib.plugins.category import Category
 from gdoc.lib.plugins.categorymanager import CategoryManager
 from gdoc.util import Settings
 
-from .baseobject import BaseObject
+from .object import Object
 
 
-class Document(BaseObject):
+class Document(Object):
     """ """
 
     def __init__(self, id, name=None, categories: CategoryManager | None = None):
         """ """
-        super().__init__("DOCUMENT", id, alias=name, categories=categories)
+        super().__init__("Document", id, alias=name, categories=categories)
 
     def _get_additional_constructor_(
         self,
         class_cat: str | None,
         class_type: str | None,
         opts: Settings | None = None,
-    ) -> tuple[str | None, BaseObject | None]:
+    ) -> tuple[str | None, Object | None]:
         """ """
         constructor = None
         class_name = None

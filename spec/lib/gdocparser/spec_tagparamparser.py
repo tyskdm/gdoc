@@ -16,9 +16,9 @@ from gdoc.lib.gdoc.inlinetag import InlineTag
 from gdoc.lib.gdocparser.textblock.lineparser import parse_Line
 from gdoc.lib.gdocparser.textblock.tagparamparser import (
     TagParameter,
+    TagParameterParser,
     _get_blocktag_params,
     _get_inlinetag_params,
-    parse_TagParameter,
 )
 from gdoc.util import ErrorReport
 
@@ -935,7 +935,7 @@ class Spec_parse_TagParameter:
             Optional[tuple[BlockTag, TagParameter]], list[tuple[InlineTag, TagParameter]]
         ] | None
         err: ErrorReport | None
-        result, err = parse_TagParameter(*arguments)
+        result, err = TagParameterParser().parse(*arguments)
 
         # THEN
         if expected["err"] is None:
