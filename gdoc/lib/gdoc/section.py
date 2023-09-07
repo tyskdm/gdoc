@@ -6,6 +6,7 @@ from typing import cast
 from gdoc.lib.pandocastobject.pandocast import PandocElement
 
 from .config import DEFAULTS
+from .table import Table
 from .textblock import TextBlock
 
 _TEXT_BLOCK_TYPES: list = (
@@ -68,6 +69,10 @@ class Section(list):
             # Text Block
             elif block_type in _TEXT_BLOCK_TYPES:
                 self[i] = TextBlock(block)
+
+            # Table
+            elif block_type == "Table":
+                self[i] = Table(block, Section)
 
             # # Setup Gdoc data class here
             # else:
