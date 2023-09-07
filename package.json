@@ -9,9 +9,19 @@
     },
     "main": "./vscode/extension.js",
     "activationEvents": [
-        "onLanguage:markdown"
+        "onLanguage:markdown",
+        "onLanguage:gdoc"
     ],
-    "contributes": {},
+    "contributes": {
+        "languages": [
+            {
+                "id": "gdoc",
+                "extensions": [
+                    ".gmd"
+                ]
+            }
+        ]
+    },
     "dependencies": {
         "vscode-languageclient": "^7.0.0"
     },

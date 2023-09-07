@@ -528,7 +528,7 @@ class Spec___get_children:
     ## [\@spec] `__get_children`
 
     ```py
-    def __get_children(self) -> list[Namespace]:
+    def get_local_children(self) -> list[Namespace]:
     ```
 
     returns children of the namespace managed by itself in it's nametable.
@@ -570,7 +570,7 @@ class Spec___get_children:
         for child in stimulus:
             parent.add_child(Namespace(**child))
 
-        children = parent._Namespace__get_children()
+        children = parent.get_local_children()
 
         assert len(children) == len(expected["children"])
         for i in range(len(expected["children"])):

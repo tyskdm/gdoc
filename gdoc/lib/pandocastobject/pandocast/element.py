@@ -453,7 +453,7 @@ class Element:
 
         _parts: list[str] = []
         p: str
-        for p in parts[1].split("-"):
+        for p in parts[-1].split("-"):
             _parts += p.split(":")
 
         return path, [int(p) for p in _parts]

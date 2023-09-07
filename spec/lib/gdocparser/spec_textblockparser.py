@@ -11,12 +11,12 @@ from typing import Any, NamedTuple
 import pytest
 
 from gdoc.lib.gdoc import TextBlock, TextString
-from gdoc.lib.gdocparser.textblock.textblockparser import parse_TextBlock
-from gdoc.lib.gobj.types import BaseObject
+from gdoc.lib.gdocparser.textblock.textblockparser import TextBlockParser
+from gdoc.lib.gobj.types import Object
 from gdoc.util import ErrorReport
 
 
-class Spec_parse_TextBlock:
+class Spec_TextBlockParser_parse:
     r"""
     ## [\@spec] `parse_Line`
 
@@ -56,7 +56,7 @@ class Spec_parse_TextBlock:
                     },
                     "child_result": {
                         "add_new_prop": (None, None),
-                        "_get_type_": BaseObject.Type.OBJECT,
+                        "_get_type_": Object.Type.OBJECT,
                     },
                 },
                 # stimulus
@@ -104,7 +104,7 @@ class Spec_parse_TextBlock:
                     },
                     "child_result": {
                         "add_new_prop": (None, None),
-                        "_get_type_": BaseObject.Type.OBJECT,
+                        "_get_type_": Object.Type.OBJECT,
                     },
                 },
                 # stimulus
@@ -145,7 +145,7 @@ class Spec_parse_TextBlock:
                     },
                     "child_result": {
                         "add_new_prop": (None, None),
-                        "_get_type_": BaseObject.Type.IMPORT,
+                        "_get_type_": Object.Type.IMPORT,
                     },
                 },
                 # stimulus
@@ -193,7 +193,7 @@ class Spec_parse_TextBlock:
                     },
                     "child_result": {
                         "add_new_prop": (None, None),
-                        "_get_type_": BaseObject.Type.OBJECT,
+                        "_get_type_": Object.Type.OBJECT,
                     },
                 },
                 # stimulus
@@ -233,7 +233,7 @@ class Spec_parse_TextBlock:
                     },
                     "child_result": {
                         "add_new_prop": (None, None),
-                        "_get_type_": BaseObject.Type.OBJECT,
+                        "_get_type_": Object.Type.OBJECT,
                     },
                 },
                 # stimulus
@@ -272,7 +272,7 @@ class Spec_parse_TextBlock:
                     },
                     "child_result": {
                         "add_new_prop": (None, None),
-                        "_get_type_": BaseObject.Type.OBJECT,
+                        "_get_type_": Object.Type.OBJECT,
                     },
                 },
                 # stimulus
@@ -320,7 +320,7 @@ class Spec_parse_TextBlock:
                     },
                     "child_result": {
                         "add_new_prop": (None, None),
-                        "_get_type_": BaseObject.Type.OBJECT,
+                        "_get_type_": Object.Type.OBJECT,
                     },
                 },
                 # stimulus
@@ -372,7 +372,7 @@ class Spec_parse_TextBlock:
                     },
                     "child_result": {
                         "add_new_prop": (None, None),
-                        "_get_type_": BaseObject.Type.OBJECT,
+                        "_get_type_": Object.Type.OBJECT,
                     },
                 },
                 # stimulus
@@ -429,7 +429,7 @@ class Spec_parse_TextBlock:
                     },
                     "child_result": {
                         "add_new_prop": (None, "SOME ERROR"),
-                        "_get_type_": BaseObject.Type.OBJECT,
+                        "_get_type_": Object.Type.OBJECT,
                     },
                 },
                 # stimulus
@@ -501,9 +501,9 @@ class Spec_parse_TextBlock:
         arguments = [textblock, parent] + stimulus
 
         # WHEN
-        result: BaseObject | None
+        result: Object | TextString | None
         err: ErrorReport | None
-        result, err = parse_TextBlock(*arguments)
+        result, err = TextBlockParser().parse(*arguments)
 
         #
         # THEN

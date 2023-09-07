@@ -5,7 +5,8 @@ import os
 from typing import Optional
 
 from gdoc.lib.gdoc import Document as GdocDocument
-from gdoc.lib.gdocparser.documentparser import parse_Document
+from gdoc.lib.gdocparser.documentparser import DocumentParser
+from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfoBuffer
 from gdoc.lib.gobj.types import BaseCategory
 from gdoc.lib.gobj.types import Document as GobjDocument
 from gdoc.lib.pandocastobject.pandoc import Pandoc
@@ -18,17 +19,22 @@ class GdocCompiler:
     """ """
 
     _categories_: CategoryManager
+    _tokeninfocache: TokenInfoBuffer | None
 
-    def __init__(self, plugins: list[Category] = []) -> None:
+    def __init__(
+        self, plugins: list[Category] = [], tokeninfocache: TokenInfoBuffer | None = None
+    ) -> None:
         self._categories_ = CategoryManager().add_category(BaseCategory)
         for p in plugins:
             self._categories_.add_category(p)
+        self._tokeninfocache = tokeninfocache
 
     def compile(
         self,
         filepath: str,
         fileformat: str | None = None,
         via_html: bool | None = None,
+        filedata: str | None = None,
         erpt: Optional[ErrorReport] = None,
         opts: Optional[Settings] = None,
     ) -> Result[GobjDocument, ErrorReport]:
@@ -50,13 +56,13 @@ class GdocCompiler:
             )
             return Err(erpt)
 
-        pandoc_json = Pandoc().get_json(filepath, fileformat, via_html)
+        pandoc_json = Pandoc().get_json(filepath, fileformat, via_html, filedata)
         pandoc_ast = PandocAst(pandoc_json)
         gdoc = GdocDocument(pandoc_ast)
 
         gobj = GobjDocument(None, filepath, self._categories_)
 
-        gobj, e = parse_Document(gdoc, gobj, erpt, opts)
+        gobj, e = DocumentParser(self._tokeninfocache).parse(gdoc, gobj, erpt, opts)
         if e:
             erpt.submit(e)
             return Err(erpt, gobj)

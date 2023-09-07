@@ -46,7 +46,9 @@ def run(args):
 
     for filepath in args.filepath:
         erpt: ErrorReport = ErrorReport(cont=args.check_only, filename=filepath)
-        gobj, e = GdocCompiler().compile(filepath, fileformat, via_html, erpt, opts)
+        gobj, e = GdocCompiler().compile(
+            filepath, fileformat, via_html, erpt=erpt, opts=opts
+        )
 
         if gobj is not None:
             data = gobj.dumpd()

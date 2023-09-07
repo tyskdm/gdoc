@@ -588,3 +588,48 @@ class TextString(Text, Sequence, ReturnType, ret_subclass=True):
                     start = end
 
         return result
+
+    def find(
+        self,
+        sub: str,
+        start: int | None = None,
+        end: int | None = None,
+    ) -> int:
+        """
+        find(
+            __sub: str,
+            __start: SupportsIndex | None = ...,
+            __end: SupportsIndex | None = ...,
+            /
+        ) -> int
+
+        @return _type_ : _description_
+        """
+        target: TextString = self[:]
+        pos: int = 0
+
+        if len(target) == 0:
+            return "".find(sub, start, end)
+
+        result: int = -1
+        while len(target) > 0:
+            # skip leading TextString not containing `String`.
+            texts: list[Text] = target._deque_while(
+                lambda text: not (type(text) is String)
+            )
+            pos += len(texts)
+
+            # get sub-TextString containing only `String`.
+            sub_tstr: TextString = self.__class__._returntype_(
+                target._deque_while(lambda text: (type(text) is String))
+            )
+            substr: str = sub_tstr.get_str()
+            if len(substr) > 0:
+                p = substr.find(sub, start, end)
+                if p >= 0:
+                    result = pos + p
+                    break
+
+            pos += len(sub_tstr)
+
+        return result
