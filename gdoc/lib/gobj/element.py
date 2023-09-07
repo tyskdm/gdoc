@@ -165,7 +165,7 @@ class Element(Namespace):
         data["p"] = self._cast_to_str(self._properties)
 
         data["c"] = []
-        children = cast(list[Element], self.get_children())
+        children = cast(list[Element], self.get_local_children())
         child: "Element"
         for child in children:
             data["c"].append(child.dumpd())

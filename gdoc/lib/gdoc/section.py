@@ -11,6 +11,9 @@ from .textblock import TextBlock
 _TEXT_BLOCK_TYPES: list = (
     DEFAULTS.get("pandocast", {}).get("types", {}).get("textblock", [])
 )
+_LIST_BLOCK_TYPES: list = (
+    DEFAULTS.get("pandocast", {}).get("types", {}).get("listblock", [])
+)
 
 
 class Section(list):
@@ -56,6 +59,11 @@ class Section(list):
                 # Replace the range of blocks with the new Section.
                 section = Section(self[i:subend], sublevel)
                 self[i:subend] = [section]
+
+            # List Block
+            elif block_type in _LIST_BLOCK_TYPES:
+                listblock = Section(block.get_child_items())
+                self[i] = listblock
 
             # Text Block
             elif block_type in _TEXT_BLOCK_TYPES:
