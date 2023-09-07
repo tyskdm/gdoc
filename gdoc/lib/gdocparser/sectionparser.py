@@ -45,7 +45,7 @@ class SectionParser:
             if e and srpt.should_exit(e):
                 return Err(erpt.submit(srpt))
 
-            if type(r) is Object or r is None:
+            if isinstance(r, Object) or (r is None):
                 context = r or gobj
             else:
                 # This Section is a comment.
