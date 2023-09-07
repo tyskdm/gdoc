@@ -1,32 +1,32 @@
 *<div align=right><small>
-[@^ doctype="gdoc 0.3", category="sysml 2"]
+@doctype: gdoc 0.3
 </small></div>*
 
-# [@ swad] Gdoc Architectural Design
+# [@ SWAD] Gdoc Architecture Design
 
 *@Summary:*  \
 This document describes the software architectural design of gdoc.
 
 <br>
 
-## \[@#\] TABLE OF CONTENTS<!-- omit in toc -->
+## [#] TABLE OF CONTENTS <!-- omit in toc -->
 
 - [1. REFERENCES](#1-references)
 - [2. THE TARGET SOFTWARE](#2-the-target-software)
-- [3. [@ SA] SOFTWARE ARCHITECTURE](#3--sa-software-architecture)
+- [3. \[@ SA\] SOFTWARE ARCHITECTURE](#3--sa-software-architecture)
   - [3.1. Internal Blocks](#31-internal-blocks)
   - [3.2. Structure](#32-structure)
-    - [3.2.1. \[@Block& GDOC\] gdoc [Definitions of internal blocks]](#321-block-gdoc-gdoc-definitions-of-internal-blocks)
-    - [3.2.2. \[@Block& GDOC.gcl\] Gdoc Core Library [Definitions of internal blocks]](#322-block-gdocgcl-gdoc-core-library-definitions-of-internal-blocks)
+    - [3.2.1. \[@Block\& SWAD.GDOC\] gdoc : Definitions of internal blocks](#321-block-swadgdoc-gdoc--definitions-of-internal-blocks)
+    - [3.2.2. \[@Block\& GDOC.gcl\] Gdoc Core Library : Definitions of internal blocks](#322-block-gdocgcl-gdoc-core-library--definitions-of-internal-blocks)
   - [3.3. Behavior](#33-behavior)
     - [3.3.1. Execution Lifecycle](#331-execution-lifecycle)
     - [3.3.2. Creating An Object](#332-creating-an-object)
   - [3.4. \[@ ra\] Requirements Allocation](#34--ra-requirements-allocation)
-    - [3.4.1. [@ core] SWRS.Core](#341--core-swrscore)
-    - [3.4.2. [@ apps] SWRS.Apps](#342--apps-swrsapps)
-    - [3.4.3. [@ constraint] SWRS.Constraint](#343--constraint-swrsconstraint)
-- [4. [@ SE] SOFTWARE ELEMENTS](#4--se-software-elements)
-  - [4.1. \[@Block& GDOC.gcl.gdp\] gdocPackage [ Done ]](#41-block-gdocgclgdp-gdocpackage--done-)
+    - [3.4.1. \[@ core\] SWRS.Core](#341--core-swrscore)
+    - [3.4.2. \[@ apps\] SWRS.Apps](#342--apps-swrsapps)
+    - [3.4.3. \[@ constraint\] SWRS.Constraint](#343--constraint-swrsconstraint)
+- [4. \[@ SE\] SOFTWARE ELEMENTS](#4--se-software-elements)
+  - [4.1. \[@Block\& SWAD.GDOC.gcl.gdp\] gdocPackage : #done](#41-block-swadgdocgclgdp-gdocpackage--done)
     - [4.1.1. Requirements](#411-requirements)
       - [4.1.1.1. Usecases](#4111-usecases)
     - [4.1.2. Internal Blocks](#412-internal-blocks)
@@ -36,8 +36,8 @@ This document describes the software architectural design of gdoc.
     - [4.1.4. Behavior](#414-behavior)
       - [4.1.4.1. Build](#4141-build)
       - [4.1.4.2. Lint](#4142-lint)
-    - [4.1.5. [@ ra] Requirements allocation](#415--ra-requirements-allocation)
-  - [4.2. \[@Block& GDOC.gcl.gdc\] gdocCompiler [ Done ]](#42-block-gdocgclgdc-gdoccompiler--done-)
+    - [4.1.5. \[@ ra\] Requirements allocation](#415--ra-requirements-allocation)
+  - [4.2. \[@Block\& SWAD.GDOC.gcl.gdc\] gdocCompiler : #done](#42-block-swadgdocgclgdc-gdoccompiler--done)
     - [4.2.1. Requirements](#421-requirements)
     - [4.2.2. Internal Blocks](#422-internal-blocks)
     - [4.2.3. Structure](#423-structure)
@@ -45,16 +45,16 @@ This document describes the software architectural design of gdoc.
       - [4.2.3.2. Interfaces](#4232-interfaces)
     - [4.2.4. Behavior](#424-behavior)
       - [4.2.4.1. Compile](#4241-compile)
-    - [4.2.5. [@ ra] Requirements allocation](#425--ra-requirements-allocation)
+    - [4.2.5. \[@ ra\] Requirements allocation](#425--ra-requirements-allocation)
       - [4.2.5.1. Core Requirements](#4251-core-requirements)
       - [4.2.5.2. Constraints](#4252-constraints)
       - [4.2.5.3. Design Specification](#4253-design-specification)
-  - [4.3. \[@Block& GDOC.gcl.pao\] pandocAstObject [ Done ]](#43-block-gdocgclpao-pandocastobject--done-)
+  - [4.3. \[@Block\& SWAD.GDOC.gcl.pao\] pandocAstObject : #done](#43-block-swadgdocgclpao-pandocastobject--done)
     - [4.3.1. Requirements](#431-requirements)
     - [4.3.2. Structure](#432-structure)
       - [4.3.2.1. Blocks](#4321-blocks)
-    - [4.3.3. [@ ra] Requirements allocation](#433--ra-requirements-allocation)
-  - [4.4. \[@Block& GDOC.gcl.pim\] PluginManager [ Done ]](#44-block-gdocgclpim-pluginmanager--done-)
+    - [4.3.3. \[@ ra\] Requirements allocation](#433--ra-requirements-allocation)
+  - [4.4. \[@Block\& SWAD.GDOC.gcl.pim\] PluginManager : #done](#44-block-swadgdocgclpim-pluginmanager--done)
     - [4.4.1. Requirements](#441-requirements)
     - [4.4.2. Architectural Strategy](#442-architectural-strategy)
       - [4.4.2.1. Adding Plugins](#4421-adding-plugins)
@@ -63,9 +63,9 @@ This document describes the software architectural design of gdoc.
       - [4.4.3.1. Blocks](#4431-blocks)
       - [4.4.3.2. Interfaces](#4432-interfaces)
     - [4.4.4. Requirement Allocation](#444-requirement-allocation)
-  - [4.5. \[@Block& GDOC.pis\] Plugins [ Done ]](#45-block-gdocpis-plugins--done-)
+  - [4.5. \[@Block\& SWAD.GDOC.pis\] Plugins : #done](#45-block-swadgdocpis-plugins--done)
     - [4.5.1. Requirements](#451-requirements)
-      - [4.5.1.1. [@ dr] Design requirement](#4511--dr-design-requirement)
+      - [4.5.1.1. \[@ dr\] Design requirement](#4511--dr-design-requirement)
       - [4.5.1.2. Adding properties](#4512-adding-properties)
       - [4.5.1.3. Adding children](#4513-adding-children)
     - [4.5.2. Structure](#452-structure)
@@ -74,16 +74,16 @@ This document describes the software architectural design of gdoc.
     - [4.5.3. Behavior](#453-behavior)
       - [4.5.3.1. Add Properties](#4531-add-properties)
       - [4.5.3.2. Add Child](#4532-add-child)
-    - [4.5.4. [@ ra] Requirements allocation](#454--ra-requirements-allocation)
-  - [4.6. \[@Block& GDOC.asc\] ApplicationSubcommand [ Done ]](#46-block-gdocasc-applicationsubcommand--done-)
+    - [4.5.4. \[@ ra\] Requirements allocation](#454--ra-requirements-allocation)
+  - [4.6. \[@Block\& SWAD.GDOC.asc\] ApplicationSubcommand : #done](#46-block-swadgdocasc-applicationsubcommand--done)
     - [4.6.1. Requirements](#461-requirements)
     - [4.6.2. Structure](#462-structure)
       - [4.6.2.1. Blocks](#4621-blocks)
       - [4.6.2.2. Interfaces](#4622-interfaces)
-  - [4.7. \[@Block& GDOC.cli\] gdocCli [ T.B.D. ]](#47-block-gdoccli-gdoccli--tbd-)
+  - [4.7. \[@Block\& SWAD.GDOC.cli\] gdocCli : #tbd](#47-block-swadgdoccli-gdoccli--tbd)
     - [4.7.1. Requirements](#471-requirements)
     - [4.7.2. Structure](#472-structure)
-    - [4.7.3. [@ ra] Requirements allocation](#473--ra-requirements-allocation)
+    - [4.7.3. \[@ ra\] Requirements allocation](#473--ra-requirements-allocation)
 
 <br>
 
@@ -105,11 +105,11 @@ This document refers to the following documents.
 
 ## 2. THE TARGET SOFTWARE
 
-- [@Block GDOC] gdoc  \
-  Block representing the target software in this software architectural design.
+[@Block GDOC] gdoc  \
+Block representing the target software in this software architectural design.
 
-  GDOC shall satisfy each of the following requirements.  \
-  @Trace(Satisfy): SWRS.name SWRS.core SWRS.apps SWRS.constraint
+GDOC shall satisfy each of the following requirements.  \
+@trace(Satisfy): SWRS.name SWRS.core SWRS.apps SWRS.constraint
 
 <br>
 
@@ -121,7 +121,7 @@ The figure below shows the internal blocks of GDOC.
 
 | ![@fig source="" type=puml](./ArchitecturalDesign.png) |
 | :-----: |
-| [@fig 3.1\] gdoc Internal Block Diagram [rough sketch] |
+| [@fig 3.1] gdoc Internal Block Diagram [rough sketch] |
 
 1. [@Strategy s1] Pluggable Application subcommand \
    Keep subcommands separate from others to make it easier for users to add their own subcommands.
@@ -135,11 +135,11 @@ The figure below shows the internal blocks of GDOC.
 
 | [![@source: ./ArchitecturalDesign.puml#GdocArchitecturalDesign @type: puml](./_puml_/ArchitecturalDesign/GdocArchitecturalDesign.png)](./ArchitecturalDesign.puml) |
 | :-----: |
-| [@fig 3.2\] gdoc Internal Blocks |
+| [@fig 3.2] gdoc Internal Blocks |
 
 The blocks in the figure are defined as follows.
 
-#### 3.2.1. \[@Block& GDOC\] gdoc [Definitions of internal blocks]
+#### 3.2.1. [@Block& SWAD.GDOC] gdoc : Definitions of internal blocks
 
 - [@Table 3.1] Gdoc internal block definitions
 
@@ -151,6 +151,15 @@ The blocks in the figure are defined as follows.
   | pis  | Plugins | includes gdObject constructors of specific types and applicational subcommands of gdoc using gdObjects generated by the constructors.
   | gcl  | gdocCoreLibrary |
 
+[@Block cli] gdocCli
+
+[@Block asc] ApplicationSubcommand
+
+[@Block pis] Plugins \
+includes gdObject constructors of specific types and applicational subcommands of gdoc using gdObjects generated by the constructors.
+
+[@Block gcl] gdocCoreLibrary
+
 - [@Table 3.2] Related blocks
 
   | @Blk | Name | Description |
@@ -160,7 +169,7 @@ The blocks in the figure are defined as follows.
 
 <br>
 
-#### 3.2.2. \[@Block& GDOC.gcl\] Gdoc Core Library [Definitions of internal blocks]
+#### 3.2.2. [@Block& GDOC.gcl] Gdoc Core Library : Definitions of internal blocks
 
 - [@Table 3.3] Gdoc Core Library Internal Block definitions
 
@@ -172,6 +181,18 @@ The blocks in the figure are defined as follows.
   | pao  | pandocAstObject | takes a source file and returns a PandocAst object. Currently, the PandocAST file will be generated by external pandoc command.
   | pim  | PluginManager | Handles plugin settings, resolves plugin and type names, calls out plugins.
 
+[@Block gdp] gdocPackage \
+takes source files and a configuration object and creates a gdPackage containing one or more objects or packages linked to each other.
+
+[@Block gdc] gdocCompiler \
+takes a source file one by one and parses it to convert to a gdObject.
+
+[@Block pao] pandocAstObject \
+takes a source file and returns a PandocAst object. Currently, the PandocAST file will be generated by external pandoc command.
+
+[@Block pim] PluginManager \
+Handles plugin settings, resolves plugin and type names, calls out plugins.
+
 <br>
 
 ### 3.3. Behavior
@@ -182,7 +203,7 @@ The following sequence shows the typical behavior of the GDOC command from start
 
 | [![@source: ./ArchitecturalDesign.puml#Gdoc_StartToFinish_Sequence  @type: puml](./_puml_/ArchitecturalDesign/Gdoc_StartToFinish_Sequence.png)](./ArchitecturalDesign.puml) |
 | :-----: |
-| [@fig 3.3\] gdoc execution lifecycle |
+| [@fig 3.3] gdoc execution lifecycle |
 
 #### 3.3.2. Creating An Object
 
@@ -191,11 +212,11 @@ When it finds a tag in the document, gdocComiler generates an object with class 
 
 | [![Creating an object](./_puml_/ArchitecturalDesign/Gdoc_CreateObject_Sequence.png)](./ArchitecturalDesign.puml) |
 | :-----: |
-| [@fig 3.4\] Creating an object |
+| [@fig 3.4] Creating an object |
 
 <br>
 
-### 3.4. \[@ ra\] Requirements Allocation
+### 3.4. [@ ra] Requirements Allocation
 
 #### 3.4.1. [@ core] SWRS.Core
 
@@ -261,7 +282,7 @@ All of the requirements SWRQ[Application Subcommand] are satisfied by Applicatio
 
 ## 4. [@ SE] SOFTWARE ELEMENTS
 
-### 4.1. \[@Block& GDOC.gcl.gdp\] gdocPackage [ Done ]
+### 4.1. [@Block& SWAD.GDOC.gcl.gdp] gdocPackage : #done
 
 [@Ref from=_table.id, name="gdocPackage"]
 
@@ -269,7 +290,7 @@ All of the requirements SWRQ[Application Subcommand] are satisfied by Applicatio
 > | :--: | ---- | ----------- |
 > | gdp  | gdocPackage | takes source files and a configuration object and creates a gdPackage containing one or more objects or packages linked to each other.
 
-[@access GDOC.gcl.gdp as=THIS]
+[@import -GDOC.gcl.gdp as=THIS]
 
 #### 4.1.1. Requirements
 
@@ -305,7 +326,7 @@ The followings are some of the usecases by application subcommands.
 
 | [![gdocPackage Internal Blocks](./_puml_/ArchitecturalDesign/gdocPackageInternalBlocks.png)](./ArchitecturalDesign.puml) |
 | :-----: |
-| [@fig 4.1.1\] gdocPackage Internal Blocks |
+| [@fig 4.1.1] gdocPackage Internal Blocks |
 
 #### 4.1.3. Structure
 
@@ -359,7 +380,7 @@ The build sequence is shown in the figure below.
 
 | [![gdocPackage Build sequence](./_puml_/ArchitecturalDesign/gdocPackage_Build_Sequence.png)](./ArchitecturalDesign.puml) |
 | :-----: |
-| [@fig 4.1.2\] gdocPackage Build sequence |
+| [@fig 4.1.2] gdocPackage Build sequence |
 
 ##### 4.1.4.2. Lint
 
@@ -367,7 +388,7 @@ The Link sequence is shown in the figure below.
 
 | [![gdocPackage Build sequence](./_puml_/ArchitecturalDesign/gdocPackage_Lint_Sequence.png)](./ArchitecturalDesign.puml) |
 | :-----: |
-| [@fig 4.1.2\] gdocPackage Build sequence |
+| [@fig 4.1.2] gdocPackage Build sequence |
 
 <br>
 
@@ -396,13 +417,13 @@ The Link sequence is shown in the figure below.
 
 <br>
 
-### 4.2. \[@Block& GDOC.gcl.gdc\] gdocCompiler [ Done ]
+### 4.2. [@Block& SWAD.GDOC.gcl.gdc] gdocCompiler : #done
 
 > | @Blk | Name | Description |
 > | :--: | ---- | ----------- |
 > | gdc  | gdocCompiler | takes a source file one by one and parses it to convert to a gdObject.
 
-[@access GDOC.gcl.gdc as=THIS]
+[@import -GDOC.gcl.gdc as=THIS]
 
 #### 4.2.1. Requirements
 
@@ -428,7 +449,7 @@ The requirements given to THIS are as follows.
 
 | [![gdocCompiler Internal Blocks](./_puml_/ArchitecturalDesign/gdocCompilerInternalBlocks.png)](./ArchitecturalDesign.puml) |
 | :-----: |
-| [@fig 4.2.1\] gdocCompiler Internal Blocks |
+| [@fig 4.2.1] gdocCompiler Internal Blocks |
 
 1. [@Strategy s1] gdParser \
    The parser functionality should be easy to test, as the specification is complex and is expected to change frequently.
@@ -482,7 +503,7 @@ The requirements given to THIS are as follows.
 
 | [![gdocCompiler Sequence Diagram](./_puml_/ArchitecturalDesign/gdocCompilerSequenceDiagram.png)](./ArchitecturalDesign.puml) |
 | :-----: |
-| [@fig 4.2.2\] gdocCompiler Sequence Diagram |
+| [@fig 4.2.2] gdocCompiler Sequence Diagram |
 
 <br>
 
@@ -539,13 +560,13 @@ The requirements given to THIS are as follows.
 
 <br>
 
-### 4.3. \[@Block& GDOC.gcl.pao\] pandocAstObject [ Done ]
+### 4.3. [@Block& SWAD.GDOC.gcl.pao] pandocAstObject : #done
 
 > | @Blk | Name | Description |
 > | :--: | ---- | ----------- |
 > | pao  | pandocAstObject | takes a source file and returns a PandocAst object. Currently, the PandocAST file will be generated by external pandoc command.
 
-[@access GDOC.gcl.pao as=THIS]
+[@import -GDOC.gcl.pao as=THIS]
 
 #### 4.3.1. Requirements
 
@@ -558,7 +579,7 @@ The requirements given to THIS are as follows.
 
 | [![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/pandocAstObjectArchitecturalDesign.png)](./ArchitecturalDesign.puml) |
 | :-----: |
-| [@fig 4.1\] pandocAstObject Internal Blocks |
+| [@fig 4.1] pandocAstObject Internal Blocks |
 
 <br>
 
@@ -587,7 +608,7 @@ The requirements given to THIS are as follows.
 | @Spec | 3c.1  | pandoc外部コマンドをサブコマンドとして実行する。 | @Allocate: THIS.pan
 | @Spec | 3c.2  | 指定されたソースファイルを、PandocAST Jsonファイルへ変換する。 | @Allocate: THIS.pan
 
-### 4.4. \[@Block& GDOC.gcl.pim\] PluginManager [ Done ]
+### 4.4. [@Block& SWAD.GDOC.gcl.pim] PluginManager : #done
 
 This section defines the design of the plugin manager and the interfaces that the plugins should realize.
 
@@ -595,7 +616,7 @@ This section defines the design of the plugin manager and the interfaces that th
 > | :--: | ---- | ----------- |
 > | pim  | PluginManager | Handles plugin settings, resolves plugin and type names, calls out plugins.
 
-[@access GDOC.gcl.pim as=THIS]
+[@import -GDOC.gcl.pim as=THIS]
 
 #### 4.4.1. Requirements
 
@@ -674,9 +695,9 @@ And plugin manager realizes two interfaces.
 
 <br>
 
-### 4.5. \[@Block& GDOC.pis\] Plugins [ Done ]
+### 4.5. [@Block& SWAD.GDOC.pis] Plugins : #done
 
-[@access GDOC.pis as=THIS]
+[@import -GDOC.pis as=THIS]
 
 > | @Blk | Name | Description |
 > | :--: | ---- | ----------- |
@@ -723,14 +744,14 @@ The requirements given to THIS are as follows.
 
 | [![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugin_Blcok_Diagram.png)](./ArchitecturalDesign.puml) |
 | :-----: |
-| [@fig 4.1\] pandocAstObject Internal Blocks |
+| [@fig 4.1] pandocAstObject Internal Blocks |
 
 - 参考： gdoc Classes
   - [ ] PluginClassの設計書へ移動する
 
   | [![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugins_ClassDiagram.png)](./ArchitecturalDesign.puml) |
   | :-----: |
-  | [@fig 4.1\] pandocAstObject Internal Blocks |
+  | [@fig 4.1] pandocAstObject Internal Blocks |
 
 <br>
 
@@ -747,7 +768,7 @@ The requirements given to THIS are as follows.
 
 ##### 4.5.2.2. Interfaces
 
-###### PluginModule<!-- omit in toc -->
+###### PluginModule <!-- omit in toc -->
 
 | @Opr | Name | Description |
 | :--: | ---- | ----------- |
@@ -756,7 +777,7 @@ The requirements given to THIS are as follows.
 |      |            | out PluginClass
 |      | trace      | @derive:
 
-###### PluginClass<!-- omit in toc -->
+###### PluginClass <!-- omit in toc -->
 
 | @Opr | Name | Description |
 | :--: | ---- | ----------- |
@@ -775,7 +796,7 @@ The requirements given to THIS are as follows.
 
 | [![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugins_AddProp_Sequence.png)](./ArchitecturalDesign.puml) |
 | :-----: |
-| [@fig 4.1\] pandocAstObject Internal Blocks |
+| [@fig 4.1] pandocAstObject Internal Blocks |
 
 このシーケンスではgdObject.set_prop()とgdObject._set_prop()の関係を表しているが、固定ではない。
 プラグインには以下の設計自由度がある。
@@ -789,7 +810,7 @@ The requirements given to THIS are as follows.
 
 | [![pandocAstObject Internal Blocks](./_puml_/ArchitecturalDesign/Plugins_AddChild_Sequence.png)](./ArchitecturalDesign.puml) |
 | :-----: |
-| [@fig 4.1\] pandocAstObject Internal Blocks |
+| [@fig 4.1] pandocAstObject Internal Blocks |
 
 <br>
 
@@ -808,9 +829,9 @@ The requirements given to THIS are as follows.
 
 <br>
 
-### 4.6. \[@Block& GDOC.asc\] ApplicationSubcommand [ Done ]
+### 4.6. [@Block& SWAD.GDOC.asc] ApplicationSubcommand : #done
 
-[@access GDOC.asc as=THIS]
+[@import -GDOC.asc as=THIS]
 
 > | @Blk | Name | Description |
 > | :--: | ---- | ----------- |
@@ -834,7 +855,7 @@ The requirements given to THIS are as follows.
 
 | [![ApplicationSubcommand_Block_Definition](./_puml_/ArchitecturalDesign/ApplicationSubcommand_Block_Definition.png)](./ArchitecturalDesign.puml) |
 | :-----: |
-| [@fig 4.1\] ApplicationSubcommand_Block_Definition |
+| [@fig 4.1] ApplicationSubcommand_Block_Definition |
 
 ##### 4.6.2.1. Blocks
 
@@ -860,11 +881,11 @@ ApplicationSubcommand has the following two interfaces.
 
 <br>
 
-### 4.7. \[@Block& GDOC.cli\] gdocCli [ T.B.D. ]
+### 4.7. [@Block& SWAD.GDOC.cli] gdocCli : #tbd
 
 - [ ] .gdocconfig の取り扱いを実装を進めつつ検討し、それをここへ記載する。
 
-[@access GDOC.cli as=THIS]
+[@import -GDOC.cli as=THIS]
 
 > | @Blk | Name | Description |
 > | :--: | ---- | ----------- |

@@ -4,6 +4,7 @@ command.py
 import json
 
 from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
+from gdoc.lib.plugins import std
 from gdoc.util import ErrorReport, Settings
 
 
@@ -46,7 +47,7 @@ def run(args):
 
     for filepath in args.filepath:
         erpt: ErrorReport = ErrorReport(cont=args.check_only, filename=filepath)
-        gobj, e = GdocCompiler().compile(
+        gobj, e = GdocCompiler(plugins=[std.category]).compile(
             filepath, fileformat, via_html, erpt=erpt, opts=opts
         )
 
