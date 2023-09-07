@@ -143,13 +143,18 @@ class Namespace:
     def resolve(self, names: list[str]) -> Optional["Namespace"]:
         target: "Namespace" | None
 
-        target = self.get_child(names[0])
-        if target is None:
-            target = self
-            while target is not None:
-                if (target.name == names[0]) or (target.names == names[0]):
-                    break
-                target = target.get_parent()
+        # target = self.get_child(names[0])
+        # if target is None:
+        target = self
+        while target is not None:
+            child = target.get_child(names[0])
+            if child is not None:
+                target = child
+                break
+            # if (target.name == names[0]) or (target.names == names[0]):
+            if names[0] in target.names:
+                break
+            target = target.get_parent()
 
         if target is not None:
             for name in names[1:]:
