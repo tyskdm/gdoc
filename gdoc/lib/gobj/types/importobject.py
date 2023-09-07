@@ -44,7 +44,7 @@ class ImportObject(Object):
         )
 
     @classmethod
-    def _create_object_(
+    def x_create_object_(
         cls,
         typename: str,
         class_info: tuple[TextString | None, TextString | None, TextString | None],
