@@ -5,6 +5,7 @@ from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfoBuffer
 from gdoc.lib.gobj.types import Document
+from gdoc.lib.plugins import std
 from gdoc.util import ErrorReport, Settings
 
 from ..basicjsonstructures import TextDocumentItem
@@ -132,7 +133,9 @@ def _create_object(
     tokeninfo: TokenInfoBuffer = TokenInfoBuffer()
 
     erpt: ErrorReport | None
-    document, erpt = GdocCompiler(tokeninfocache=tokeninfo).compile(
+    document, erpt = GdocCompiler(
+        tokeninfocache=tokeninfo, plugins=[std.category]
+    ).compile(
         filepath,
         fileformat,
         via_html,
