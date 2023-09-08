@@ -1,10 +1,11 @@
 """
 section.py: Section class
 """
-from typing import cast
+from typing import Iterable, cast
 
 from gdoc.lib.pandocastobject.pandocast import PandocElement
 
+from .block import Block
 from .config import DEFAULTS
 from .table import Table
 from .textblock import TextBlock
@@ -17,7 +18,7 @@ _LIST_BLOCK_TYPES: list = (
 )
 
 
-class Section(list):
+class Section(list, Block):
     """ """
 
     # Header level:
@@ -25,7 +26,7 @@ class Section(list):
     # == 0, if this section is a BlockList such as Document, ListItem, etc.
     hlevel: int
 
-    def __init__(self, iterable=[], level: int = 0):
+    def __init__(self, iterable: Iterable[PandocElement] = [], level: int = 0):
         super().__init__(iterable)
         self.hlevel = level
 

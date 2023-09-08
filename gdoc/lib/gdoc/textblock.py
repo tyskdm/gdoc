@@ -5,6 +5,7 @@ from typing import Union
 
 from gdoc.lib.pandocastobject.pandocast import PandocElement
 
+from .block import Block
 from .config import DEFAULTS
 from .textstring import TextString
 
@@ -14,7 +15,7 @@ _IGNORE_TYPES: list = DEFAULTS.get("pandocast", {}).get("types", {}).get("ignore
 _IGNORE_TYPES += DEFAULTS.get("pandocast", {}).get("types", {}).get("decorator", [])
 
 
-class TextBlock(list):
+class TextBlock(list, Block):
     """ """
 
     _element: PandocElement | None
