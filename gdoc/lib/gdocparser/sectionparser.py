@@ -35,13 +35,13 @@ class SectionParser:
         if len(section) == 0:
             return Ok(gobj)
 
+        #
+        # The first block
+        #
         next: int = 0
-        if type(section[0]) is TextBlock:
+        if isinstance((block := section[0]), TextBlock):
             next += 1
-            #
-            # The first block
-            #
-            r, e = self.textblockparser.parse(section[0], context, srpt, opts)
+            r, e = self.textblockparser.parse(block, context, srpt, opts)
             if e and srpt.should_exit(e):
                 return Err(erpt.submit(srpt))
 
@@ -51,18 +51,16 @@ class SectionParser:
                 # This Section is a comment.
                 return Ok(gobj)
 
-        # for i in range(next, len(section)):
+        #
+        # Following blocks
+        #
         for block in section[next:]:
-            #
-            # Following blocks
-            #
-            blocktype = type(block)
-            if blocktype is TextBlock:
+            if isinstance(block, TextBlock):
                 _, e = self.textblockparser.parse(block, context, srpt, opts)
                 if e and srpt.should_exit(e):
                     return Err(erpt.submit(srpt))
 
-            elif blocktype is Section:
+            elif isinstance(block, Section):
                 _, e = self.parse(block, context, srpt, opts)
                 if e and srpt.should_exit(e):
                     return Err(erpt.submit(srpt))

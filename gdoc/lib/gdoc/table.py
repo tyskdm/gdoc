@@ -1,7 +1,7 @@
 """
 table.py: Table class
 """
-from typing import Callable, Iterable
+from typing import Callable
 
 from gdoc.lib.pandocastobject.pandocast import PandocElement
 
@@ -10,8 +10,8 @@ from .textblock import TextBlock
 from .textstring import TextString
 
 
-class Cell(list[Block]):
-    def __init__(self, iterable: Iterable[Block]):
+class Cell(list[Block | None]):
+    def __init__(self, iterable: list[Block | None]):
         super().__init__(iterable)
 
     def get_first_line(self) -> TextString | None:
@@ -27,8 +27,8 @@ class Cell(list[Block]):
 class Row(list[Cell | None]):
     def __init__(
         self,
-        row: Iterable[PandocElement],
-        section: Callable[[Iterable[PandocElement]], Iterable[Block]],
+        row: list[PandocElement],
+        section: Callable[[list[PandocElement]], list[Block | None]],
     ):
         super().__init__()
         for cell in row:
@@ -49,7 +49,7 @@ class Table(list[Row], Block):
     def __init__(
         self,
         tableblock: PandocElement,
-        section: Callable[[Iterable[PandocElement]], Iterable[Block]],
+        section: Callable[[list[PandocElement]], list[Block | None]],
     ):
         super().__init__()
 
@@ -60,7 +60,7 @@ class Table(list[Row], Block):
         table_head: PandocElement = table_blocks[0]
         table_foot: PandocElement = table_blocks[-1]
 
-        rows: Iterable[PandocElement]
+        rows: list[PandocElement]
         row: PandocElement
         #
         # Setup TableHead
@@ -73,7 +73,7 @@ class Table(list[Row], Block):
         #
         # Setup TableBody
         #
-        row_heads: Iterable[PandocElement]
+        row_heads: list[PandocElement]
         for table_body in table_blocks[1:-1]:
             row_heads = table_body.get_children()[0].get_children()
             rows = table_body.get_children()[1].get_children()

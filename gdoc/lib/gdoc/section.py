@@ -1,7 +1,7 @@
 """
 section.py: Section class
 """
-from typing import Iterable, cast
+from typing import cast
 
 from gdoc.lib.pandocastobject.pandocast import PandocElement
 
@@ -18,65 +18,58 @@ _LIST_BLOCK_TYPES: list = (
 )
 
 
-class Section(list, Block):
-    """ """
-
+class Section(list[Block | None], Block):
     # Header level:
     # > 0, if this section is a logical section delimited by a Header.
     # == 0, if this section is a BlockList such as Document, ListItem, etc.
     hlevel: int
 
-    def __init__(self, iterable: Iterable[PandocElement] = [], level: int = 0):
-        super().__init__(iterable)
+    def __init__(self, blocks: list[PandocElement] = [], level: int = 0):
+        super().__init__()
         self.hlevel = level
 
         block: PandocElement
         i = 0
-        while i < len(self):
-            block = self[i]
-            block_type = block.get_type()
+        while i < len(blocks):
+            block = blocks[i]
+            block_type: str = block.get_type()
 
             # Sub Section
             if (block_type == "Header") and (
-                # fmt: off
                 # To avoid infinite recursive calls, make sure that this header is
                 # NOT the one that caused this constructor call to create a Section.
-                not (
-                    i == 0                  # Here is the top of this section
-                    and self.hlevel != 0    # and Section level is set(== sub-section).
-                )
-                # fmt: on
+                i != 0  # Here is NOT the top of this section.
+                or self.hlevel == 0  # Here is the top, but Section level is NOT set.
             ):
                 sublevel = cast(int, block.get_prop("Level"))
 
                 # Find out the range of this logical subsection.
                 subend = i + 1
-                while subend < len(self):
-                    subblock: PandocElement = self[subend]
-                    lv: int = cast(int, subblock.get_prop("Level"))
-                    if (subblock.get_type() == "Header") and (lv <= sublevel):
+                while subend < len(blocks):
+                    subblock: PandocElement = blocks[subend]
+                    if (subblock.get_type() == "Header") and (
+                        cast(int, subblock.get_prop("Level")) <= sublevel
+                    ):
                         break
                     subend += 1
 
-                # Replace the range of blocks with the new Section.
-                section = Section(self[i:subend], sublevel)
-                self[i:subend] = [section]
+                section = Section(blocks[i:subend], sublevel)
+                self.append(section)
+                i = subend - 1
 
             # List Block
             elif block_type in _LIST_BLOCK_TYPES:
-                listblock = Section(block.get_child_items())
-                self[i] = listblock
+                self.append(Section(block.get_child_items()))
 
             # Text Block
             elif block_type in _TEXT_BLOCK_TYPES:
-                self[i] = TextBlock(block)
+                self.append(TextBlock(block))
 
             # Table
             elif block_type == "Table":
-                self[i] = Table(block, Section)
+                self.append(Table(block, Section))
 
-            # # Setup Gdoc data class here
-            # else:
-            #     self[i] = BlockClassTypes(self[i])
+            else:
+                self.append(None)
 
             i += 1
