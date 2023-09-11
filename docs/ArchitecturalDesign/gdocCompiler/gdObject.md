@@ -1,30 +1,28 @@
 *<div align=right><small>
-[@^ doctype="gdoc 0.3" class="systemdesign:"]
+@doctype: "gdoc 0.3"
 </small></div>*
 
 # [@ swdd] gdObject Detailed Design
 
-
-
-## \[@#\] TABLE OF CONTENTS<!-- omit in toc -->
+## [#] TABLE OF CONTENTS <!-- omit in toc -->
 
 - [1. REFERENCES](#1-references)
 - [2. THE TARGET SOFTWARE ELEMENT](#2-the-target-software-element)
-- [3. [@ rq] REQUIREMENTS](#3--rq-requirements)
-- [4. [@ sg] STRATEGY](#4--sg-strategy)
-- [5. [@ sc] STRUCTURE](#5--sc-structure)
+- [3. \[@G rq\] REQUIREMENTS](#3-g-rq-requirements)
+- [4. \[@S sg\] STRATEGY](#4-s-sg-strategy)
+- [5. \[@ sc\] STRUCTURE](#5--sc-structure)
   - [5.1. Class definitions](#51-class-definitions)
     - [5.1.1. Internal classes](#511-internal-classes)
     - [5.1.2. Gdoc Primitive types](#512-gdoc-primitive-types)
-  - [5.2. [@class& t4] Package](#52-class-t4-package)
-  - [5.3. [@class& C4] GdDocument](#53-class-c4-gddocument)
-- [6. [@ bh] BEHAVIOR](#6--bh-behavior)
+  - [5.2. \[@Class\& t4\] Package](#52-class-t4-package)
+  - [5.3. \[@Class\& C4\] GdDocument](#53-class-c4-gddocument)
+- [6. \[@ bh\] BEHAVIOR](#6--bh-behavior)
   - [6.1. Compile](#61-compile)
   - [6.2. Json dumps/loads](#62-json-dumpsloads)
     - [6.2.1. dumps](#621-dumps)
     - [6.2.2. loads](#622-loads)
-- [7. [@ ra] Requirements allocation](#7--ra-requirements-allocation)
-- [8. [@ su] SOFTWARE UNITS](#8--su-software-units)
+- [7. \[@ ra\] Requirements allocation](#7--ra-requirements-allocation)
+- [8. \[@ su\] SOFTWARE UNITS](#8--su-software-units)
   - [8.1. GdSymbol](#81-gdsymbol)
   - [8.2. GdSymbolTable](#82-gdsymboltable)
   - [8.3. GdObject](#83-gdobject)
@@ -60,7 +58,7 @@ This document refers to the following documents.
    Grammar definition of Gdoc markup language.
 
 3. Gdoc Object Format  \
-   [@import GDML from="[../../GdocMarkupLanguage/GdocObjectFormat](../../GdocMarkupLanguage/GdocObjectFormat.md)"]
+   [@import GDOF from="[../../GdocMarkupLanguage/GdocObjectFormat](../../GdocMarkupLanguage/GdocObjectFormat.md)"]
 
    GdocObject format definition.
 
@@ -68,38 +66,39 @@ This document refers to the following documents.
 
 ## 2. THE TARGET SOFTWARE ELEMENT
 
-- [@access SWAD.GDOC[gdocCoreLibrary][gdocCompiler][gdObject] as=THIS]
+- [@import - SWAD.GDOC.gdocCoreLibrary.gdocCompiler.gdObject as=THIS]
 
   The block representing the target software in this document.
 
 <br>
 
-## 3. [@ rq] REQUIREMENTS
+## 3. [@G rq] REQUIREMENTS
 
-- [@access SWAD.SE.GDC.RA]
+- [@import - SWAD.SE.GDC.RA]
 
   Requirements_Allocated to this Software_Element, GdocObject from SoftWare_Architectural_Design.
 
 | @Reqt | Name | Text | Trace |
 | :---: | ---- | ---- | :---: |
 | FR    | Functional Requirement |
-| @     | FR.1 | gdObjectを生成する | @copy: RA.1a.3
-| @     | FR.2 | 指定された型のオブジェクト・プロパティを生成する | @copy: RA.1a2.2
-| @     | FR.3 | ソースファイルをオブジェクト化した情報から、json形式文字列を生成する | @copy: RA.5a.1
+| @     | 1 | gdObjectを生成する | @copy: RA.1a.3
+| @     | 2 | 指定された型のオブジェクト・プロパティを生成する | @copy: RA.1a2.2
+| @     | 3 | ソースファイルをオブジェクト化した情報から、json形式文字列を生成する | @copy: RA.5a.1
 | DS    | Design Specification    |
-| @     | DS.1 | gdObject classは、ファイルのようにOpen/Closeを伴うインターフェースメソッドを提供する。 | @copy: RA.gdo.1
-| @     | DS.2 | インターフェースメソッドにより生成されるオブジェクト/プロパティが登録される場所を示す、WritePoint情報を持つ。 | @copy: RA.gdo.2
-| @     | DS.3 | インターフェースメソッドによる指示内容の実オブジェクトデータへの変換は、クラスのコンストラクタが行う。 | @copy: RA.gdo.3
-| @     | DS.4 | クラス（プラグイン含む）情報はgdObjectのOpen時に外部から供給される。 | @copy: RA.gdo.4
-| @     | DS.5 | 生成されたクラスインスタンスは、クラスの名前とバージョンをセットで保持する。 | @copy: RA.gdo.5
-|       | Rationale | エクスポートされたデータがどのクラスのどのバージョンから生成されたものであるか追跡可能にするため。
-| @     | DS.6 | json形式テキストデータへのエクスポート及びインポート機能を提供する | @copy: RA.gdo.6
+| @     | 1 | gdObject classは、ファイルのようにOpen/Closeを伴うインターフェースメソッドを提供する。 | @copy: RA.gdo.1
+| @     | 2 | インターフェースメソッドにより生成されるオブジェクト/プロパティが登録される場所を示す、WritePoint情報を持つ。 | @copy: RA.gdo.2
+| @     | 3 | インターフェースメソッドによる指示内容の実オブジェクトデータへの変換は、クラスのコンストラクタが行う。 | @copy: RA.gdo.3
+| @     | 4 | クラス（プラグイン含む）情報はgdObjectのOpen時に外部から供給される。 | @copy: RA.gdo.4
+| @     | 5 | 生成されたクラスインスタンスは、クラスの名前とバージョンをセットで保持する。 | @copy: RA.gdo.5
+|       | rationale | エクスポートされたデータがどのクラスのどのバージョンから生成されたものであるか追跡可能にするため。
+| @     | 6 | json形式テキストデータへのエクスポート及びインポート機能を提供する | @copy: RA.gdo.6
 
 <br>
 
-## 4. [@ sg] STRATEGY
+## 4. [@S sg] STRATEGY
 
-1. [@Strategy sg1] THIS provides property access methods like dict. \
+1. [@Strategy sg1] property \
+   THIS provides property access methods like dict. \
    ex.
 
    ```py
@@ -110,7 +109,8 @@ This document refers to the following documents.
    >>> 'NOTE2-PROPERTY'
    ```
 
-2. [@Strategy sg2] THIS provides create_object() method that creates new object and return it. \
+2. [@Strategy sg2] object factory \
+   THIS provides create_object() method that creates new object and return it. \
    @trace(derive): rq.DS.1
 
    ```py
@@ -119,7 +119,8 @@ This document refers to the following documents.
 
    @note: Instead of open()/close(), each object provide this method.
 
-3. [@Strategy sg3] THIS provides object controll methods for compiler, linker and application subcommands.
+3. [@Strategy sg3] controller \
+   THIS provides object controll methods for compiler, linker and application subcommands.
 
    ex. resolve() rsolve long object id and return the object.
 
@@ -127,7 +128,8 @@ This document refers to the following documents.
     obj = gdobj.resolve("SWAD.FR[Component1][Part2].c1")
     ```
 
-4. [@Strategy sg4] THIS provides primitive data types for GdocObject and its plugin interface class.
+4. [@Strategy sg4] data types \
+   THIS provides primitive data types for GdocObject and its plugin interface class.
    1. OBJECT: the base type of all extended types of plugins.
    2. IMPORT
    3. ACCESS
@@ -150,7 +152,7 @@ This document refers to the following documents.
 
 These are internal classes that provide the basic mechanisms.
 
-| @class | Name | Description |
+| @Class | Name | Description |
 | :----: | ---- | ----------- |
 |        | Association   | @partof: THIS
 | c1     | GdSymbol      | GdSymbol class
@@ -159,7 +161,7 @@ These are internal classes that provide the basic mechanisms.
 
 #### 5.1.2. Gdoc Primitive types
 
-| @class | Name | Description |
+| @Class | Name | Description |
 | :----: | ---- | ----------- |
 |        | Association   | @partof: THIS
 | t1    | BaseObject    | The base class for all gdoc objects except Import and Access.
@@ -169,7 +171,7 @@ These are internal classes that provide the basic mechanisms.
 | t5    | Package       | An object that represents the source document file.
 | t6    | Category      | Interface class of Object Category plugin module.
 
-### 5.2. [@class& t4] Package
+### 5.2. [@Class& t4] Package
 
 - @responsibility(1): \
   Manage multiple source files or directories as packages.
@@ -180,7 +182,7 @@ These are internal classes that provide the basic mechanisms.
 - @fr(1): \
   Convert package name to actual file path.
 
-### 5.3. [@class& C4] GdDocument
+### 5.3. [@Class& C4] GdDocument
 
 - @responsibility(1): \
   Manage a source file infromation.
@@ -256,42 +258,42 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
 ### 8.1. GdSymbol
 
-| @class& | Name | Description |
+| @Class& | Name | Description |
 | :-----: | ---- | ----------- |
-| c1      | GdSymbol       | GdSymbol class
-| # | Class methods
+| THIS.c1 | GdSymbol       | GdSymbol class
+| # | Classmethods
 | @Method | is_valid_symbol | returns if the symbol string is valid.
-|         | @param         | in symbol : str \| PandocStr
-|         | @param         | out : bool
+|         | param          | (in) symbol : str \| PandocStr
+|         |                | (out) : bool
 | @Method | is_valid_id    | returns if the id is a single valid id string.
-|         | @param         | in id : str \| PandocStr
-|         | @param         | out : bool
-| # | Instance methods
+|         | param          | (in) id : str \| PandocStr
+|         |                | (out) : bool
+| # | Instancemethods
 | @Method | is_id          | returns if the leaf symbol is id.
-|         | @param         | out : bool
+|         | param          | (out) : bool
 | @Method | get_symbols    | Returns the list of splited symbol strings.
-|         | @param         | out : list(str \| PandocStr)
+|         | param          | (out) : list(str \| PandocStr)
 | @Method | get_symbol_str | Returns the entire unsplited symbol string, excluding tags.
-|         | @param         | out : str \| PandocStr
+|         | param          | (out) : str \| PandocStr
 | @Method | get_tags       | Returns the list of tag strings.
-|         | @param         | out : list(str \| PandocStr)
+|         | param          | (out) : list(str \| PandocStr)
 
 ### 8.2. GdSymbolTable
 
-| @class&  | Name | Description |
+| @Class&  | Name | Description |
 | :------: | ---- | ----------- |
-| c2       | GdSymbolTable  | Symbol table to reference objects by id and name.
+| THIS.c2  | GdSymbolTable  | Symbol table to reference objects by id and name.
 | @Method  | get_parent     |
 | @Method  | add_child      | `def add_child(self, child)`
-|          | @param         | in child : GdSymbolTable
+|          | param          | in child : GdSymbolTable
 | @Method  | __add_reference | `def __add_reference(self, child)`
-|          | @param         | in child : GdSymbolTable
+|          | param          | in child : GdSymbolTable
 | @Method  | __get_children | get children named without starting '&'
 | @Method  | __get_references | get children named with starting '&'
 | @Method  | unidir_link_to | can link to OBJECT, REFERENCE, IMPORT/ACCESS<br>from IMPORT/ACCESS<br>**TODO**: should detects circular references and sends an exception.
-|          | @param         | in target : GdSymbolTable
+|          | param          | in target : GdSymbolTable
 | @Method  | bidir_link_to  | can link only to OBJECT or REFERENCE from REFERENCE<br>**TODO**: should detects circular references and sends an exception.
-|          | @param         | in target : GdSymbolTable
+|          | param          | in target : GdSymbolTable
 | @Method  | __get_linkto_target | gets target OBJECT referenced by multilevels indirectly link_to references.<br>**TODO**: should detects circular references and sends an exception.
 | @Method  | __get_linkfrom_list | gets list of OBJECTs that reference `self` by multilevels indirectly link_from reference tree.<br>**TODO**: should detects circular references and sends an exception.
 | @Method  | get_children   |
@@ -311,9 +313,9 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 1. Reference objects can have additional children but not additional properties.
    - Properties in references are copy of original.
 
-| @class&  | Name | Description |
+| @Class&  | Name | Description |
 | :------: | ---- | ----------- |
-| c3       | GdObject         | Inherit from GdSymboltable
+| THIS.c3  | GdObject         | Inherit from GdSymboltable
 | #        | **classmethods** |
 | @Method  | set_category      | sets the category module of the class.
 | @Method  | get_category      | returns the category module of the class.
@@ -365,43 +367,43 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
 ### 8.4. BaseObject
 
-| @class& | Name | Description |
+| @Class& | Name | Description |
 | :-----: | ---- | ----------- |
-| t1      | BaseObject        | The base class for all gdoc objects except Import and Access.
-| @Method | \_\_init\_\_      | Creates an object and sets the values of the type_args as properties.
-|         | @Param typename   | in typename: str
-|         | @Param id         | in id: str \| PandocStr
-|         | @Param scope      | in scope: str (`+`/`-`)
-|         | @Param name       | in name: str \| PandocStr
-|         | @Param tags       | in tags: list(str \| PandocStr)
-|         | @Param ref        | in ref: str \| PandocStr<br># None to OBJECT / path_str to REFERENCE<br># * IMPORT/ACCESS can not be referenced
-|         | @Param type_args  | in type_args: dict<br># keyword arguments to the type constructor
-|         | @Param object     | out object: BaseObject
-| @Method | create_object     | creates new object and return it.
-|         | @Param cat_name   | in cat_name: str \| PandocStr
-|         | @Param type_name  | in type_name: str \| PandocStr
-|         | @Param isref      | in isref: bool
-|         | @Param scope      | in scope: str \| PandocStr
-|         | @Param symbol     | in symbol: str \| PandocStr \| GdSymbol
-|         | @Param type_args  | in type_args: dict<br># keyword arguments to the type constructor
-|         | @Param object     | out object: BaseObject
+| t1      | BaseObject    | The base class for all gdoc objects except Import and Access.
+| @Method | \_\_init\_\_  | Creates an object and sets the values of the type_args as properties.
+|         | param         | (in) typename: str
+|         |               | (in) id: str \| PandocStr
+|         |               | (in) scope: str (`+`/`-`)
+|         |               | (in) name: str \| PandocStr
+|         |               | (in) tags: list(str \| PandocStr)
+|         |               | (in) ref: str \| PandocStr<br># None to OBJECT / path_str to REFERENCE<br># * IMPORT/ACCESS can not be referenced
+|         |               | (in) type_args: dict<br># keyword arguments to the type constructor
+|         |               | (out) object: BaseObject
+| @Method | create_object | creates new object and return it.
+|         | param         | (in) cat_name: str \| PandocStr
+|         |               | (in) type_name: str \| PandocStr
+|         |               | (in) isref: bool
+|         |               | (in) scope: str \| PandocStr
+|         |               | (in) symbol: str \| PandocStr \| GdSymbol
+|         |               | (in) type_args: dict<br># keyword arguments to the type constructor
+|         |               | (out) object: BaseObject
 | @Method | __get_constructor |
 
 ### 8.5. Import
 
-| @class& | Name | Description |
+| @Class& | Name | Description |
 | :-----: | ---- | ----------- |
 | t2      | Import        | Unidirectional reference to other object.
 
 ### 8.6. Access
 
-| @class& | Name | Description |
+| @Class& | Name | Description |
 | :-----: | ---- | ----------- |
 | t3      | Access        | Same as Import but has private visibility.
 
 ### 8.7. Document
 
-| @class& | Name | Description |
+| @Class& | Name | Description |
 | :-----: | ---- | ----------- |
 | t4      | Document      | An object that represents the source document file.
 | @prperty | __file_path      | package relative path
@@ -411,7 +413,7 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 | @prperty | __gdoc_type      | [plain \| gdoc]
 | @prperty | __external_link  | list of file or package paths.
 | @Method  | set_ext_link     |
-| @Method  | link     |
+| @Method  | link             |
 | @Method  | dumps            |
 | #        | **objects**      | Override
 | @Method  | _get_class       | get object class by name
@@ -477,7 +479,7 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
 ### 8.8. Package
 
-| @class&  | Name | Description |
+| @Class&  | Name | Description |
 | :------: | ---- | ----------- |
 | t5       | gdPackage        |
 | @prperty | __package_path   | cwd relative path
@@ -489,7 +491,7 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
 ### 8.8. Category
 
-| @class&  | Name | Description |
+| @Class&  | Name | Description |
 | :------: | ---- | ----------- |
 | t6       | Category      | Interface class of gdoc data type plugin module.
 | @Method  | get_type      | get object class by name
