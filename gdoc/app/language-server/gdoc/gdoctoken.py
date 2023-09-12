@@ -9,7 +9,8 @@ logger = getLogger(__name__)
 
 
 class GdocToken(Token):
-    textstr: TextString
+    token: TextString | DataPos
+    datapos: DataPos
     tokentype: str
     tokenmodifiers: list[str]
     token_data: dict[str, Any]
@@ -23,17 +24,20 @@ class GdocToken(Token):
         token: TextString,
         token_data: dict[str, Any],
     ) -> None:
-        self.textstr = token
+        self.token = token
         self.tokentype = token_data.get("type", ("", []))[0]
         self.tokenmodifiers = token_data.get("type", ("", []))[1]
         self.token_data = token_data
 
-        dpos: DataPos | None = token.get_data_pos()
+        dpos: DataPos | None = (
+            token.get_data_pos() if isinstance(token, TextString) else token
+        )
         if dpos is None:
             self.start_line = -1
             logger.warning(f" GdocToken: token '{token.get_str()}' has no data position.")
             return
 
+        self.datapos = dpos
         self.start_line = dpos.start.ln - 1
         self.start_character = dpos.start.col - 1
         self.end_line = dpos.stop.ln - 1 if dpos.stop.ln > 0 else self.start_line
