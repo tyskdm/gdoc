@@ -6,6 +6,7 @@ from typing import Callable
 from gdoc.lib.pandocastobject.pandocast import PandocElement
 
 from .block import Block
+from .datapos import DataPos
 from .textblock import TextBlock
 from .textstring import TextString
 
@@ -22,6 +23,14 @@ class Cell(list[Block | None]):
             return None
 
         return block[0]  # The first line
+
+    def get_data_pos(self) -> DataPos | None:
+        #
+        # This method assumes that the cell is a single TextBlock.
+        #
+        if (len(self) == 0) or not isinstance(block := self[0], TextBlock):
+            return None
+        return block.get_data_pos()
 
 
 class Row(list[Cell | None]):

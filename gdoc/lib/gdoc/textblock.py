@@ -1,13 +1,17 @@
 """
 section.py: Section class
 """
+from logging import getLogger
 from typing import Union
 
 from gdoc.lib.pandocastobject.pandocast import PandocElement
 
 from .block import Block
 from .config import DEFAULTS
+from .datapos import DataPos
 from .textstring import TextString
+
+logger = getLogger(__name__)
 
 _REMOVE_TYPES: list = DEFAULTS.get("pandocast", {}).get("types", {}).get("remove", [])
 
@@ -15,7 +19,7 @@ _IGNORE_TYPES: list = DEFAULTS.get("pandocast", {}).get("types", {}).get("ignore
 _IGNORE_TYPES += DEFAULTS.get("pandocast", {}).get("types", {}).get("decorator", [])
 
 
-class TextBlock(list, Block):
+class TextBlock(list[TextString], Block):
     """ """
 
     _element: PandocElement | None
@@ -59,6 +63,24 @@ class TextBlock(list, Block):
         else:
             raise TypeError("invalid initial data")
 
+    def get_data_pos(self) -> DataPos | None:
+        start: DataPos | None = None
+        for i, text in enumerate(self):
+            if (start := text.get_data_pos()) is not None:
+                break
+        else:
+            return None
+
+        stop: DataPos | None = None
+        for idx in range(len(self) - 1, i, -1):
+            if (stop := self[idx].get_data_pos()) is not None:
+                break
+
+        if (stop is not None) and (stop is not start):
+            start = start.extend(stop)
+
+        return start
+
     def dumpd(self) -> list:
         result: list[list[str | list]] = []
 
@@ -70,7 +92,6 @@ class TextBlock(list, Block):
 
     @classmethod
     def loadd(cls, data: list) -> "TextBlock":
-
         if data[0] != "TextBlock":
             raise TypeError(f'invalid data type "{data[0]}"')
 

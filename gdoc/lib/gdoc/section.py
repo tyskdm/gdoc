@@ -19,6 +19,11 @@ _LIST_BLOCK_TYPES: list = (
 
 
 class Section(list[Block | None], Block):
+    #
+    # NOTE: Section as list of Blocks accepts None as a member.
+    #       This is because there are some blocks that are not supported yet
+    #       and len(Section) should be equal to len(PandocAST.get_children().
+    #
     # Header level:
     # > 0, if this section is a logical section delimited by a Header.
     # == 0, if this section is a BlockList such as Document, ListItem, etc.
