@@ -22,7 +22,11 @@ class Cell(list[Block | None]):
         if not isinstance(block := self[0], TextBlock):
             return None
 
-        return block[0]  # The first line
+        line: TextString = block[0]
+        if line.endswith("\n"):
+            line = line[:-1]
+
+        return line  # The first line
 
     def get_data_pos(self) -> DataPos | None:
         #

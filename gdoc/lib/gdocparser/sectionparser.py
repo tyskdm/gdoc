@@ -1,10 +1,11 @@
 """
 sectionparser.py: parse_Section function
 """
-from gdoc.lib.gdoc import Section, TextBlock
+from gdoc.lib.gdoc import Section, Table, TextBlock
 from gdoc.lib.gobj.types import Object
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
+from .table.tableparser import TableParser
 from .textblock.textblockparser import TextBlockParser
 from .tokeninfobuffer import TokenInfoBuffer
 
@@ -20,6 +21,7 @@ class SectionParser:
         self.tokeninfo = tokeninfo
         self.config = config
         self.textblockparser = TextBlockParser(tokeninfo, config)
+        self.tableparser = TableParser(tokeninfo, config)
 
     def parse(
         self,
@@ -62,6 +64,11 @@ class SectionParser:
 
             elif isinstance(block, Section):
                 _, e = self.parse(block, context, srpt, opts)
+                if e and srpt.should_exit(e):
+                    return Err(erpt.submit(srpt))
+
+            elif isinstance(block, Table):
+                _, e = self.tableparser.parse(block, context, srpt, opts)
                 if e and srpt.should_exit(e):
                     return Err(erpt.submit(srpt))
 

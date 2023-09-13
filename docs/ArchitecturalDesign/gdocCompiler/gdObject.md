@@ -2,44 +2,80 @@
 @doctype: "gdoc 0.3"
 </small></div>*
 
-# [@ swdd] gdObject Detailed Design
+# `gdObject` DETAILED DESIGN
 
 ## [#] TABLE OF CONTENTS <!-- omit in toc -->
 
 - [1. REFERENCES](#1-references)
 - [2. THE TARGET SOFTWARE ELEMENT](#2-the-target-software-element)
-- [3. \[@G rq\] REQUIREMENTS](#3-g-rq-requirements)
-- [4. \[@S sg\] STRATEGY](#4-s-sg-strategy)
-- [5. \[@ sc\] STRUCTURE](#5--sc-structure)
-  - [5.1. Class definitions](#51-class-definitions)
+- [3. REQUIREMENTS](#3-requirements)
+  - [3.1. \[@Req EXRQ\] External Requirements](#31-req-exrq-external-requirements)
+- [4. STRATEGY](#4-strategy)
+  - [4.1. \[@ INST\] Internal Design Strategy](#41--inst-internal-design-strategy)
+- [5. STRUCTURE](#5-structure)
+  - [5.1. \[@Block\& THIS\] gdObject : Class definitions](#51-block-this-gdobject--class-definitions)
     - [5.1.1. Internal classes](#511-internal-classes)
     - [5.1.2. Gdoc Primitive types](#512-gdoc-primitive-types)
-  - [5.2. \[@Class\& t4\] Package](#52-class-t4-package)
-  - [5.3. \[@Class\& C4\] GdDocument](#53-class-c4-gddocument)
-- [6. \[@ bh\] BEHAVIOR](#6--bh-behavior)
+  - [5.2. \[@Class\& THIS.t5\] Package](#52-class-thist5-package)
+  - [5.3. \[@Class\& THIS.t4\] Document](#53-class-thist4-document)
+- [6. BEHAVIOR](#6-behavior)
   - [6.1. Compile](#61-compile)
   - [6.2. Json dumps/loads](#62-json-dumpsloads)
     - [6.2.1. dumps](#621-dumps)
     - [6.2.2. loads](#622-loads)
-- [7. \[@ ra\] Requirements allocation](#7--ra-requirements-allocation)
-- [8. \[@ su\] SOFTWARE UNITS](#8--su-software-units)
-  - [8.1. GdSymbol](#81-gdsymbol)
-  - [8.2. GdSymbolTable](#82-gdsymboltable)
-  - [8.3. GdObject](#83-gdobject)
+- [7. REQUIREMENTS ALLOCATION](#7-requirements-allocation)
+- [8. \[@\] SOFTWARE UNITS](#8--software-units)
+  - [8.1. \[@Class\& THIS.c1\] GdSymbol : Class Methods](#81-class-thisc1-gdsymbol--class-methods)
+  - [8.2. \[@Class\& THIS.c2\] GdSymbolTable : Class Methods](#82-class-thisc2-gdsymboltable--class-methods)
+  - [8.3. \[@Class\& THIS.c3\] GdObject : Class Methods](#83-class-thisc3-gdobject--class-methods)
     - [8.3.1. Behavior](#831-behavior)
       - [8.3.1.1. `_get_class()`](#8311-_get_class)
       - [8.3.1.2. `create_object()`](#8312-create_object)
-  - [8.4. BaseObject](#84-baseobject)
-  - [8.5. Import](#85-import)
-  - [8.6. Access](#86-access)
-  - [8.7. Document](#87-document)
-    - [8.7.1. Behavior](#871-behavior)
-      - [8.7.1.1. `_get_class()`](#8711-_get_class)
-    - [8.7.2. Link process steps](#872-link-process-steps)
-    - [8.7.3. What gdDocument should satisfy](#873-what-gddocument-should-satisfy)
-    - [8.7.4. What gdPackage should satisfy](#874-what-gdpackage-should-satisfy)
-  - [8.8. Package](#88-package)
-  - [8.8. Category](#88-category)
+  - [8.4. \[@Class\& THIS.t1\] BaseObject : Class Methods](#84-class-thist1-baseobject--class-methods)
+  - [8.5. \[@Class\& THIS.t2\] Import](#85-class-thist2-import)
+  - [8.6. \[@Class\& THIS.t4\] Document](#86-class-thist4-document)
+    - [8.6.1. Behavior](#861-behavior)
+      - [8.6.1.1. `_get_class()`](#8611-_get_class)
+    - [8.6.2. Link process steps](#862-link-process-steps)
+    - [8.6.3. What gdDocument should satisfy](#863-what-gddocument-should-satisfy)
+    - [8.6.4. What gdPackage should satisfy](#864-what-gdpackage-should-satisfy)
+  - [8.7. \[@Class\& THIS.t5\] Package](#87-class-thist5-package)
+  - [8.8. \[@Class\& THIS.t6\] Category](#88-class-thist6-category)
+- [1. REFERENCES](#1-references)
+- [2. THE TARGET SOFTWARE ELEMENT](#2-the-target-software-element)
+- [3. REQUIREMENTS](#3-requirements)
+  - [3.1. \[@Req EXRQ\] External Requirements](#31-req-exrq-external-requirements)
+- [4. STRATEGY](#4-strategy)
+  - [4.1. \[@ INST\] Internal Design Strategy](#41--inst-internal-design-strategy)
+- [5. STRUCTURE](#5-structure)
+  - [5.1. \[@Block\& THIS\] gdObject : Class definitions](#51-block-this-gdobject--class-definitions)
+    - [5.1.1. Internal classes](#511-internal-classes)
+    - [5.1.2. Gdoc Primitive types](#512-gdoc-primitive-types)
+  - [5.2. \[@Class\& THIS.t5\] Package](#52-class-thist5-package)
+  - [5.3. \[@Class\& THIS.t4\] Document](#53-class-thist4-document)
+- [6. BEHAVIOR](#6-behavior)
+  - [6.1. Compile](#61-compile)
+  - [6.2. Json dumps/loads](#62-json-dumpsloads)
+    - [6.2.1. dumps](#621-dumps)
+    - [6.2.2. loads](#622-loads)
+- [7. Requirements allocation](#7-requirements-allocation)
+- [8. \[@\] SOFTWARE UNITS](#8--software-units)
+  - [8.1. \[@Class\& THIS.c1\] GdSymbol : Class Methods](#81-class-thisc1-gdsymbol--class-methods)
+  - [8.2. \[@Class\& THIS.c2\] GdSymbolTable : Class Methods](#82-class-thisc2-gdsymboltable--class-methods)
+  - [8.3. \[@Class\& THIS.c3\] GdObject : Class Methods](#83-class-thisc3-gdobject--class-methods)
+    - [8.3.1. Behavior](#831-behavior)
+      - [8.3.1.1. `_get_class()`](#8311-_get_class)
+      - [8.3.1.2. `create_object()`](#8312-create_object)
+  - [8.4. \[@Class\& THIS.t1\] BaseObject : Class Methods](#84-class-thist1-baseobject--class-methods)
+  - [8.5. \[@Class\& THIS.t2\] Import](#85-class-thist2-import)
+  - [8.6. \[@Class\& THIS.t4\] Document](#86-class-thist4-document)
+    - [8.6.1. Behavior](#861-behavior)
+      - [8.6.1.1. `_get_class()`](#8611-_get_class)
+    - [8.6.2. Link process steps](#862-link-process-steps)
+    - [8.6.3. What gdDocument should satisfy](#863-what-gddocument-should-satisfy)
+    - [8.6.4. What gdPackage should satisfy](#864-what-gdpackage-should-satisfy)
+  - [8.7. \[@Class\& THIS.t5\] Package](#87-class-thist5-package)
+  - [8.8. \[@Class\& THIS.t6\] Category](#88-class-thist6-category)
 
 <br>
 
@@ -66,19 +102,24 @@ This document refers to the following documents.
 
 ## 2. THE TARGET SOFTWARE ELEMENT
 
-- [@import - SWAD.GDOC.gdocCoreLibrary.gdocCompiler.gdObject as=THIS]
+- [@import - SWAD.GDOC.gdocCoreLibrary.gdocCompiler.gdObject as=TARGET]
+
+- [@Block - THIS] gdObject \
+  @trace(realize): TARGET
 
   The block representing the target software in this document.
 
 <br>
 
-## 3. [@G rq] REQUIREMENTS
+## 3. REQUIREMENTS
+
+### 3.1. [@Req EXRQ] External Requirements
 
 - [@import - SWAD.SE.GDC.RA]
 
   Requirements_Allocated to this Software_Element, GdocObject from SoftWare_Architectural_Design.
 
-| @Reqt | Name | Text | Trace |
+| @Req  | Name | Text | Trace |
 | :---: | ---- | ---- | :---: |
 | FR    | Functional Requirement |
 | @     | 1 | gdObjectを生成する | @copy: RA.1a.3
@@ -95,7 +136,9 @@ This document refers to the following documents.
 
 <br>
 
-## 4. [@S sg] STRATEGY
+## 4. STRATEGY
+
+### 4.1. [@ INST] Internal Design Strategy
 
 1. [@Strategy sg1] property \
    THIS provides property access methods like dict. \
@@ -138,9 +181,9 @@ This document refers to the following documents.
 
 <br>
 
-## 5. [@ sc] STRUCTURE
+## 5. STRUCTURE
 
-### 5.1. Class definitions
+### 5.1. [@Block& THIS] gdObject : Class definitions
 
 | [![](./_puml_/gdObject/GdObject_hierarchy.png)](./gdObject.puml) |
 | :-----: |
@@ -154,16 +197,14 @@ These are internal classes that provide the basic mechanisms.
 
 | @Class | Name | Description |
 | :----: | ---- | ----------- |
-|        | Association   | @partof: THIS
 | c1     | GdSymbol      | GdSymbol class
 | c2     | GdSymbolTable | GdSymbol table
 | c3     | GdObject      | gdoc Object base class
 
 #### 5.1.2. Gdoc Primitive types
 
-| @Class | Name | Description |
+| @Class | Name | text |
 | :----: | ---- | ----------- |
-|        | Association   | @partof: THIS
 | t1    | BaseObject    | The base class for all gdoc objects except Import and Access.
 | t2    | Import        | Unidirectional reference to other object.
 | t3    | Access        | Same as Import but has private visibility.
@@ -171,7 +212,7 @@ These are internal classes that provide the basic mechanisms.
 | t5    | Package       | An object that represents the source document file.
 | t6    | Category      | Interface class of Object Category plugin module.
 
-### 5.2. [@Class& t4] Package
+### 5.2. [@Class& THIS.t5] Package
 
 - @responsibility(1): \
   Manage multiple source files or directories as packages.
@@ -182,7 +223,7 @@ These are internal classes that provide the basic mechanisms.
 - @fr(1): \
   Convert package name to actual file path.
 
-### 5.3. [@Class& C4] GdDocument
+### 5.3. [@Class& THIS.t4] Document
 
 - @responsibility(1): \
   Manage a source file infromation.
@@ -192,7 +233,7 @@ These are internal classes that provide the basic mechanisms.
 
 <br>
 
-## 6. [@ bh] BEHAVIOR
+## 6. BEHAVIOR
 
 ### 6.1. Compile
 
@@ -226,81 +267,85 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
 <br>
 
-## 7. [@ ra] Requirements allocation
+## 7. REQUIREMENTS ALLOCATION
 
-| @Reqt& | Name | Text | Trace |
+| @Req& | Name | Text | Trace |
 | :----: | ---- | ---- | :---: |
-| rq.FR.1 |   | gdObjectを生成する | @allocate: sc[BaseObject]
-| rq.FR.2 |   | 指定された型のオブジェクト・プロパティを生成する | @allocate: sc[GdObject]
-| rq.FR.3 |   | ソースファイルをオブジェクト化した情報から、json形式文字列を生成する | @allocate: sc[GdObject]
-| rq.DS.1 |   | gdObject classは、ファイルのようにOpen/Closeを伴うインターフェースメソッドを提供する。 |
-| @Spec   | 1 |  | @allocate:
-| rq.DS.2 |   | インターフェースメソッドにより生成されるオブジェクト/プロパティが登録される場所を示す、WritePoint情報を持つ。 |
-| @Spec   | 1 |  | @allocate:
-| rq.DS.3 |   | インターフェースメソッドによる指示内容の実オブジェクトデータへの変換は、クラスのコンストラクタが行う。 | @allocate: sc[GdObject]
-| rq.DS.4 |   | クラス（プラグイン含む）情報はgdObjectのOpen時に外部から供給される。 |
-| @Spec   | 1 |  | @allocate:
-| rq.DS.5 |   | 生成されたクラスインスタンスは、クラスの名前とバージョンをセットで保持する。 | @allocate: sc[BaseObject]
-| rq.DS.6 |   | json形式テキストデータへのエクスポート及びインポート機能を提供する | @allocate: sc[GdObject]
+| EXRQ.FR.1 |   | gdObjectを生成する | @allocate: THIS.BaseObject
+| EXRQ.FR.2 |   | 指定された型のオブジェクト・プロパティを生成する | @allocate: THIS.GdObject
+| EXRQ.FR.3 |   | ソースファイルをオブジェクト化した情報から、json形式文字列を生成する | @allocate: THIS.GdObject
+| EXRQ.DS.1 |   | gdObject classは、ファイルのようにOpen/Closeを伴うインターフェースメソッドを提供する。 |
+| @Spec     | 1 |  | @allocate:
+| EXRQ.DS.2 |   | インターフェースメソッドにより生成されるオブジェクト/プロパティが登録される場所を示す、WritePoint情報を持つ。 |
+| @Spec     | 1 |  | @allocate:
+| EXRQ.DS.3 |   | インターフェースメソッドによる指示内容の実オブジェクトデータへの変換は、クラスのコンストラクタが行う。 | @allocate: THIS.GdObject
+| EXRQ.DS.4 |   | クラス（プラグイン含む）情報はgdObjectのOpen時に外部から供給される。 |
+| @Spec     | 1 |  | @allocate:
+| EXRQ.DS.5 |   | 生成されたクラスインスタンスは、クラスの名前とバージョンをセットで保持する。 | @allocate: THIS.BaseObject
+| EXRQ.DS.6 |   | json形式テキストデータへのエクスポート及びインポート機能を提供する | @allocate: THIS.GdObject
 
 <br>
 
-| @Reqt& | Name | Text | Trace |
+| @Req& | Name | Text | Trace |
 | :----: | ---- | ---- | :---: |
-| sg.sg1 | | THIS provides property access methods like dict. | @allocate: sc[GdObject]
-| sg.sg2 | | THIS provides create_object() method that creates new object and return it. | sc[BaseObject]
+| INST.sg1 | | THIS provides property access methods like dict. | @allocate: THIS.GdObject
+| INST.sg2 | | THIS provides create_object() method that creates new object and return it. | THIS.BaseObject
 
 - sg3 and sg4 are reflected in the structural design.
 
 <br>
 
-## 8. [@ su] SOFTWARE UNITS
+## 8. [@] SOFTWARE UNITS
 
-### 8.1. GdSymbol
+### 8.1. [@Class& THIS.c1] GdSymbol : Class Methods
 
 | @Class& | Name | Description |
 | :-----: | ---- | ----------- |
-| THIS.c1 | GdSymbol       | GdSymbol class
-| # | Classmethods
-| @Method | is_valid_symbol | returns if the symbol string is valid.
-|         | param          | (in) symbol : str \| PandocStr
-|         |                | (out) : bool
-| @Method | is_valid_id    | returns if the id is a single valid id string.
-|         | param          | (in) id : str \| PandocStr
-|         |                | (out) : bool
-| # | Instancemethods
-| @Method | is_id          | returns if the leaf symbol is id.
-|         | param          | (out) : bool
-| @Method | get_symbols    | Returns the list of splited symbol strings.
-|         | param          | (out) : list(str \| PandocStr)
-| @Method | get_symbol_str | Returns the entire unsplited symbol string, excluding tags.
-|         | param          | (out) : str \| PandocStr
-| @Method | get_tags       | Returns the list of tag strings.
-|         | param          | (out) : list(str \| PandocStr)
+| c1        | GdSymbol          | Symbol class to represent the symbol string.
+| #         | Classmethods
+| @Method   | `is_valid_symbol` | returns if the symbol string is valid.
+|           | param             | (in) symbol : str \| PandocStr
+|           |                   | (out) : bool
+| @Method   | `is_valid_id`     | returns if the id is a single valid id string.
+|           | param             | (in) id : str \| PandocStr
+|           |                   | (out) : bool
+| #         | Instancemethods
+| @Method   | `is_id`           | returns if the leaf symbol is id.
+|           | param             | (out) : bool
+| @Method   | `get_symbols`     | Returns the list of splited symbol strings.
+|           | param             | (out) : list(str \| PandocStr)
+| @Method   | `get_symbol_str`  | Returns the entire unsplited symbol string, excluding tags.
+|           | param             | (out) : str \| PandocStr
+| @Method   | `get_tags`        | Returns the list of tag strings.
+|           | param             | (out) : list(str \| PandocStr)
+| #         | Properties
+| @Property | `__file_path`     | package relative path
+| @Property | `__file_type`     | [json(pandocast) \| gfm \| ...]
+| @Property | `__metadata`      | pandoc ast document metadata(dict gdoc).
 
-### 8.2. GdSymbolTable
+### 8.2. [@Class& THIS.c2] GdSymbolTable : Class Methods
 
-| @Class&  | Name | Description |
-| :------: | ---- | ----------- |
-| THIS.c2  | GdSymbolTable  | Symbol table to reference objects by id and name.
-| @Method  | get_parent     |
-| @Method  | add_child      | `def add_child(self, child)`
-|          | param          | in child : GdSymbolTable
-| @Method  | __add_reference | `def __add_reference(self, child)`
-|          | param          | in child : GdSymbolTable
-| @Method  | __get_children | get children named without starting '&'
-| @Method  | __get_references | get children named with starting '&'
-| @Method  | unidir_link_to | can link to OBJECT, REFERENCE, IMPORT/ACCESS<br>from IMPORT/ACCESS<br>**TODO**: should detects circular references and sends an exception.
-|          | param          | in target : GdSymbolTable
-| @Method  | bidir_link_to  | can link only to OBJECT or REFERENCE from REFERENCE<br>**TODO**: should detects circular references and sends an exception.
-|          | param          | in target : GdSymbolTable
-| @Method  | __get_linkto_target | gets target OBJECT referenced by multilevels indirectly link_to references.<br>**TODO**: should detects circular references and sends an exception.
-| @Method  | __get_linkfrom_list | gets list of OBJECTs that reference `self` by multilevels indirectly link_from reference tree.<br>**TODO**: should detects circular references and sends an exception.
-| @Method  | get_children   |
-| @Method  | get_child      |
-| @Method  | get_child_by_name |
-| @Method  | resolve        | `def resolve(self, symbol)`<br>**todo**: visibility and import/access.
-| @Method  | [**todo**] find           | `def find_items(self, symbol)`
+| @Class& | Name | Description |
+| :-----: | ---- | ----------- |
+| c2      | GdSymbolTable       | Symbol table to reference objects by id and name.
+| @Method | get_parent          |
+| @Method | add_child           | `def add_child(self, child)`
+|         | param               | in child : GdSymbolTable
+| @Method | __add_reference     | `def __add_reference(self, child)`
+|         | param               | in child : GdSymbolTable
+| @Method | __get_children      | get children named without starting '&'
+| @Method | __get_references    | get children named with starting '&'
+| @Method | unidir_link_to      | can link to OBJECT, REFERENCE, IMPORT/ACCESS from IMPORT/ACCESS<br>**TODO**: should detects circular references and sends an exception.
+|         | param               | in target : GdSymbolTable
+| @Method | bidir_link_to       | can link only to OBJECT or REFERENCE from REFERENCE<br>**TODO**: should detects circular references and sends an exception.
+|         | param               | in target : GdSymbolTable
+| @Method | __get_linkto_target | gets target OBJECT referenced by multilevels indirectly link_to references.<br>**TODO**: should detects circular references and sends an exception.
+| @Method | __get_linkfrom_list | gets list of OBJECTs that reference `self` by multilevels indirectly link_from reference tree.<br>**TODO**: should detects circular references and sends an exception.
+| @Method | get_children        |
+| @Method | get_child           |
+| @Method | get_child_by_name   |
+| @Method | resolve             | `def resolve(self, symbol)`<br>**todo**: visibility and import/access.
+| @Method | [**todo**] find     | `def find_items(self, symbol)`
 
 1. GdSymbol handle 3 types of entities.
    1. Object
@@ -308,34 +353,34 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
    3. Import/Access
 2. Import/Access cannot have any children.
 
-### 8.3. GdObject
+### 8.3. [@Class& THIS.c3] GdObject : Class Methods
 
 1. Reference objects can have additional children but not additional properties.
    - Properties in references are copy of original.
 
-| @Class&  | Name | Description |
-| :------: | ---- | ----------- |
-| THIS.c3  | GdObject         | Inherit from GdSymboltable
-| #        | **classmethods** |
-| @Method  | set_category      | sets the category module of the class.
-| @Method  | get_category      | returns the category module of the class.
-| #        | **instancemethods** |
-| @Method  | set_prop         | sets the property specified by key and value.<br>@See: [../../GdocMarkupLanguage/Properties](../../GdocMarkupLanguage/Properties.md)
-| @Method  | get_prop         |
-| @Method  | get_keys         | returns list of property sub-keys. It's similar to keys, but does not include value-key("") in the list.
-| @Method  | dumpd            |
-| #        | **abc.Mapping**  | Simply call the method of the same name in __properties.
-| @Method  | \_\_getitem\_\_  |
-| @Method  | \_\_iter\_\_     |
-| @Method  | \_\_len\_\_      |
-| @Method  | \_\_contains\_\_ |
-| @Method  | \_\_eq\_\_       |
-| @Method  | \_\_ne\_\_       |
-| @Method  | keys             |
-| @Method  | items            |
-| @Method  | values           |
-| @Method  | get              |
-| @Method  | update           | **TODO**: add spec
+| @Class& | Name | Description |
+| :-----: | ---- | ----------- |
+| THIS.c3 | GdObject       | Inherit from GdSymboltable
+| #       | classmethods
+| @Method | `set_category` | sets the category module of the class.
+| @Method | `get_category` | returns the category module of the class.
+| #       | instancemethods
+| @Method | `set_prop`     | sets the property specified by key and value.<br>@See: [../../GdocMarkupLanguage/Properties](../../GdocMarkupLanguage/Properties.md)
+| @Method | `get_prop`     |
+| @Method | `get_keys`     | returns list of property sub-keys. It's similar to keys, but does not include value-key("") in the list.
+| @Method | dumpd          |
+| #       | abc.Mapping    | Simply call the method of the same name in __properties.
+| @Method | `__getitem__`  |
+| @Method | `__iter__`     |
+| @Method | `__len__`      |
+| @Method | `__contains__` |
+| @Method | `__eq__`       |
+| @Method | `__ne__`       |
+| @Method | `keys`         |
+| @Method | `items`        |
+| @Method | `values`       |
+| @Method | `get`          |
+| @Method | `update`       | **TODO**: add spec
 
 #### 8.3.1. Behavior
 
@@ -365,62 +410,58 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 - child = class(opts)
 - self.add_child(child)
 
-### 8.4. BaseObject
+### 8.4. [@Class& THIS.t1] BaseObject : Class Methods
 
 | @Class& | Name | Description |
 | :-----: | ---- | ----------- |
-| t1      | BaseObject    | The base class for all gdoc objects except Import and Access.
-| @Method | \_\_init\_\_  | Creates an object and sets the values of the type_args as properties.
-|         | param         | (in) typename: str
-|         |               | (in) id: str \| PandocStr
-|         |               | (in) scope: str (`+`/`-`)
-|         |               | (in) name: str \| PandocStr
-|         |               | (in) tags: list(str \| PandocStr)
-|         |               | (in) ref: str \| PandocStr<br># None to OBJECT / path_str to REFERENCE<br># * IMPORT/ACCESS can not be referenced
-|         |               | (in) type_args: dict<br># keyword arguments to the type constructor
-|         |               | (out) object: BaseObject
-| @Method | create_object | creates new object and return it.
-|         | param         | (in) cat_name: str \| PandocStr
-|         |               | (in) type_name: str \| PandocStr
-|         |               | (in) isref: bool
-|         |               | (in) scope: str \| PandocStr
-|         |               | (in) symbol: str \| PandocStr \| GdSymbol
-|         |               | (in) type_args: dict<br># keyword arguments to the type constructor
-|         |               | (out) object: BaseObject
+| THIS.t1 | BaseObject      | The base class for all gdoc objects except Import and Access.
+| @Method | `__init__`      | Creates an object and sets the values of the type_args as properties.
+|         | param           | (in) typename: str
+|         |                 | (in) id: str \| PandocStr
+|         |                 | (in) scope: str (`+`/`-`)
+|         |                 | (in) name: str \| PandocStr
+|         |                 | (in) tags: list(str \| PandocStr)
+|         |                 | (in) ref: str \| PandocStr<br># None to OBJECT / path_str to REFERENCE<br># * IMPORT/ACCESS can not be referenced
+|         |                 | (in) type_args: dict<br># keyword arguments to the type constructor
+|         |                 | (out) object: BaseObject
+| @Method | `create_object` | creates new object and return it.
+|         | param           | (in) cat_name: str \| PandocStr
+|         |                 | (in) type_name: str \| PandocStr
+|         |                 | (in) isref: bool
+|         |                 | (in) scope: str \| PandocStr
+|         |                 | (in) symbol: str \| PandocStr \| GdSymbol
+|         |                 | (in) type_args: dict<br># keyword arguments to the type constructor
+|         |                 | (out) object: BaseObject
 | @Method | __get_constructor |
 
-### 8.5. Import
+### 8.5. [@Class& THIS.t2] Import
 
 | @Class& | Name | Description |
 | :-----: | ---- | ----------- |
-| t2      | Import        | Unidirectional reference to other object.
+| THIS.t2 | Import        | Unidirectional reference to other object.
 
-### 8.6. Access
+### 8.6. [@Class& THIS.t4] Document
 
-| @Class& | Name | Description |
-| :-----: | ---- | ----------- |
-| t3      | Access        | Same as Import but has private visibility.
+| @Class&   | Name | Description |
+| :-----:   | ---- | ----------- |
+| THIS.t4   | Document           | An object that represents the source document file.
+| #         | Properties
+| @Property | `__file_path`      | package relative path
+| @Property | `__file_type`      | [json(pandocast) \| gfm \| ...]
+| @Property | `__metadata`       | pandoc ast document metadata(dict gdoc).
+| @Property | `__gdml_ver`       | gdml version
+| @Property | `__gdoc_type`      | [plain \| gdoc]
+| @Property | `__external_link`  | list of file or package paths.
+| #         | Methods
+| @Method   | `set_ext_link`     |
+| @Method   | `link`             |
+| @Method   | `dumps`            |
+| #         | Override
+| @Method   | `_get_class`       | get object class by name
 
-### 8.7. Document
+#### 8.6.1. Behavior
 
-| @Class& | Name | Description |
-| :-----: | ---- | ----------- |
-| t4      | Document      | An object that represents the source document file.
-| @prperty | __file_path      | package relative path
-| @prperty | __file_type      | [json(pandocast) \| gfm \| ...]
-| @prperty | __metadata       | pandoc ast document metadata(dict gdoc).
-| @prperty | __gdml_ver       | gdml version
-| @prperty | __gdoc_type      | [plain \| gdoc]
-| @prperty | __external_link  | list of file or package paths.
-| @Method  | set_ext_link     |
-| @Method  | link             |
-| @Method  | dumps            |
-| #        | **objects**      | Override
-| @Method  | _get_class       | get object class by name
-
-#### 8.7.1. Behavior
-
-##### 8.7.1.1. `_get_class()`
+##### 8.6.1.1. `_get_class()`
 
 - type = super()._get_class()
 
@@ -429,7 +470,7 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
 - return type
 
-#### 8.7.2. Link process steps
+#### 8.6.2. Link process steps
 
 1. GdDocument: link document-internal object-references.
    - Walk through all GdObjects
@@ -454,7 +495,7 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
       - Walk through all GdObject in all packages.
       - same as GdDocument-internal object-references.
 
-#### 8.7.3. What gdDocument should satisfy
+#### 8.6.3. What gdDocument should satisfy
 
 - walk through()
 - link1
@@ -464,7 +505,7 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 - link2
   - resolve and check remaining list
 
-#### 8.7.4. What gdPackage should satisfy
+#### 8.6.4. What gdPackage should satisfy
 
 1. collect documents and packages
 
@@ -477,22 +518,21 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
    - while(remaining list):
      - link again(link2)
 
-### 8.8. Package
+### 8.7. [@Class& THIS.t5] Package
 
-| @Class&  | Name | Description |
-| :------: | ---- | ----------- |
-| t5       | gdPackage        |
-| @prperty | __package_path   | cwd relative path
-| @prperty | __main_file      | the main document. None if it's implicit package.
-| @prperty | __file_list      | package-wd relative path excluding main file.
-| @prperty | __gdml_ver       | gdml version
-| @prperty | __external_link  | list of file or package paths.
-| @prperty | __package_config |
+| @Class&   | Name | Description |
+| :------:  | ---- | ----------- |
+| t5        | gdPackage          |
+| @Property | `__package_path`   | cwd relative path
+| @Property | `__main_file`      | the main document. None if it's implicit package.
+| @Property | `__file_list`      | package-wd relative path excluding main file.
+| @Property | `__gdml_ver`       | gdml version
+| @Property | `__external_link`  | list of file or package paths.
+| @Property | `__package_config` |
 
-### 8.8. Category
+### 8.8. [@Class& THIS.t6] Category
 
 | @Class&  | Name | Description |
 | :------: | ---- | ----------- |
 | t6       | Category      | Interface class of gdoc data type plugin module.
-| @Method  | get_type      | get object class by name
-
+| @Method  | `get_type`    | get object class by name
