@@ -2,13 +2,14 @@
 section.py: Section class
 """
 from logging import getLogger
-from typing import Union
+from typing import Any, Union
 
 from gdoc.lib.pandocastobject.pandocast import PandocElement
 
 from .block import Block
 from .config import DEFAULTS
 from .datapos import DataPos
+from .string import String
 from .textstring import TextString
 
 logger = getLogger(__name__)
@@ -43,11 +44,16 @@ class TextBlock(list[TextString], Block):
                 if elem_type in _REMOVE_TYPES:
                     continue
 
-                line.append(item)
-
                 if elem_type == "LineBreak":
+                    line.append(item)
                     self.append(TextString(line))
                     line = []
+                elif (elem_type == "RawInline") and self.is_br(item):
+                    line.append(self.create_br_string(item))
+                    self.append(TextString(line))
+                    line = []
+                else:
+                    line.append(item)
 
             if len(line) > 0:
                 self.append(TextString(line))
@@ -100,3 +106,21 @@ class TextBlock(list[TextString], Block):
             textstr.append(TextString.loadd(line))
 
         return cls(textstr)
+
+    @staticmethod
+    def is_br(html_item: PandocElement) -> bool:
+        tag: Any = html_item.get_content()
+        if not isinstance(tag, str):
+            return False
+
+        t = tag.split(maxsplit=1)
+        if len(t) == 1:
+            return t[0].lower() in ("<br>", "<br/>")
+        return (t[0].lower() == "<br") and (t[1] in (">", "/>"))
+
+    @staticmethod
+    def create_br_string(item: PandocElement) -> String:
+        dpos = item.get_data_pos()
+        if dpos is not None:
+            dpos = DataPos(*dpos)
+        return String("\n", dpos=dpos)
