@@ -216,7 +216,7 @@ When it finds a tag in the document, gdocComiler generates an object with class 
 
 Requirements from SWRS.Core are broken down to "@Spec"s and allocated to each blocks as follows.
 
-| @Reqt | Name | Text | Trace |
+| @Req | Name | Text | Trace |
 | :---: | ---- | ---- | :---: |
 | 1     | Retrieving information from documents | 文書をパースし、含まれる情報をオブジェクトとして収集する。 | @copy: SWRS.Core.1
 | @Spec | 1.1  | １つのファイルをパースし、gdObjectを生成する。 | @Allocate: GDOC.gcl.gdc
@@ -256,7 +256,7 @@ All of the requirements SWRQ[Application Subcommand] are satisfied by Applicatio
 
 #### 3.4.3. [@ constraint] SWRS.Constraint
 
-| @Reqt | Name | Text | Trace |
+| @Req | Name | Text | Trace |
 | :---: | ---- | ---- | :---: |
 | 1     |       | Python 3.x で動作する。 | @copy: SWRQ.Constraint.1
 | @Spec | 1.1   | Python 対象バージョンを 3.x の後半から特定する。 | @Allocate: GDOC
@@ -292,7 +292,7 @@ The requirements given to THIS are as follows.
 
 [@Ref from=_table.id, trace="@Allocate: GDOC.gcl.gdp"]
 
-> | @Reqt | Name | Text | Trace |
+> | @Req | Name | Text | Trace |
 > | :---: | ---- | ---- | :---: |
 > | @Spec | 1.2  | 生成された1つ以上の gdObject を相互リンクする。 | @Allocate: GDOC.gcl.gdp
 > | @Spec | 5.2  | リンク後のオブジェクト情報をjson形式でエクスポートできる。 | @Allocate: GDOC.gcl.gdp
@@ -390,7 +390,7 @@ The Link sequence is shown in the figure below.
 
 - [ ] gdocPackage: Lint要件、Ex/Im port要件を紐づけする。現状シーケンス図も紐付いていない。
 
-| @Reqt | Name | Text | Trace |
+| @Req | Name | Text | Trace |
 | :---: | ---- | ---- | :---: |
 | 1b    |      | 生成された1つ以上の gdObject を相互リンクする。 | @copy: SA.ra.Core.1.2
 | @Spec | 1b.1 | 指定されたターゲットを検索・コンパイル・パッケージ化する制御を行う。 | @Allocate: gdb
@@ -424,7 +424,7 @@ The Link sequence is shown in the figure below.
 The requirements given to THIS are as follows.
 
 > [@ from=SA.ra.core]
-> | @Reqt | Name | Text | Trace |
+> | @Req | Name | Text | Trace |
 > | :---: | ---- | ---- | :---: |
 > | @Spec | 1.1  | １つのファイルをパースし、gdObjectを生成する。 | @Allocate: GDOC.gcl.gdc
 > | @Spec | 1a.2 | gdObjectは、タグ指定により型と固有のプロパティを持つことができる。 | @Allocate: GDOC.gcl.gdc
@@ -435,7 +435,7 @@ The requirements given to THIS are as follows.
 > | @Spec | 5.1  | ソースファイルをオブジェクト化した情報をjson形式でエクスポートできる。 | @Allocate: GDOC.gcl.gdc
 >
 > [@ from=SA.ra.constraint]
-> | @Reqt | Name | Text | Trace |
+> | @Req | Name | Text | Trace |
 > | :---: | ---- | ---- | :---: |
 > | @Spec | 3.2   | 変換されたPandocAst Objectを入力として、パース処理を行う。 | @AllocatTo: GDOC.gcl.gdc
 
@@ -505,7 +505,7 @@ The requirements given to THIS are as follows.
 
 ##### 4.2.5.1. Core Requirements
 
-| @Reqt | Name | Text | Trace |
+| @Req | Name | Text | Trace |
 | :---: | ---- | ---- | :---: |
 | 1a    |       | １つのファイルをパースし、gdObjectを生成する。 | @copy: SA.ra.Core.1.1
 | @spec | 1a.1  | gdObject生成の全体制御を行う | @allocate: gdc
@@ -523,7 +523,7 @@ The requirements given to THIS are as follows.
 
 ##### 4.2.5.2. Constraints
 
-| @Reqt | Name | Text | Trace |
+| @Req | Name | Text | Trace |
 | :---: | ---- | ---- | :---: |
 | 3b    |      | 変換されたPandocAst Objectを入力として、パース処理を行う。 | @copy: SA.ra.Constraint.3.2
 | @spec | 3b.1 | 入力として与えられたファイルをPandocAstObjectを利用してPandocAst Objectへ変換する | @allocate: gdc
@@ -531,7 +531,7 @@ The requirements given to THIS are as follows.
 
 ##### 4.2.5.3. Design Specification
 
-| @Reqt | Name | Text |
+| @Req | Name | Text |
 | :---: | ---- | ---- |
 | gdp   | gdParser    |
 |       | Trace       | @refine: s1, @allocate: gdp
@@ -564,7 +564,7 @@ The requirements given to THIS are as follows.
 
 #### 4.3.1. Requirements
 
-> | @Reqt | Name | Text | Trace |
+> | @Req | Name | Text | Trace |
 > | :---: | ---- | ---- | :---: |
 > | @Spec | 3.1   | 指定されたソースファイルを、PandocAst Objectに変換する。 | @AllocatTo: GDOC.gcl.pao
 > | @Spec | 3.3   | pandoc外部コマンドを使用して、ソースファイルをPandocAST Jsonファイルへ変換する。 | @AllocatTo: GDOC.gcl.pao
@@ -591,7 +591,7 @@ The requirements given to THIS are as follows.
 
 #### 4.3.3. [@ ra] Requirements allocation
 
-| @Reqt | Name | Text | Trace |
+| @Req | Name | Text | Trace |
 | :---: | ---- | ---- | :---: |
 | 3a    |       | 指定されたソースファイルを、PandocAst Objectに変換する。 | @copy: SA.ra.Constraint.3.1
 | @Spec | 3a.1  | panを使用して、指定されたソースファイルをPandocAST Jsonファイルへ変換する。 | @Allocate: THIS.ast
@@ -616,7 +616,7 @@ This section defines the design of the plugin manager and the interfaces that th
 
 > [@ from=SA.ra.core]
 >
-> | @Reqt | Name | Text | Trace |
+> | @Req | Name | Text | Trace |
 > | :---: | ---- | ---- | :---: |
 > | @Spec | 1b.2 | 外部化したPluginを、追加登録・検索・利用可能にする。 | @Allocate: GDOC.gcl.pim
 
@@ -678,7 +678,7 @@ And plugin manager realizes two interfaces.
 
 #### 4.4.4. Requirement Allocation
 
-| @Reqt | Name | Text | Trace |
+| @Req | Name | Text | Trace |
 | :---: | ---- | ---- | :---: |
 | 1b2   |       | 外部化したPluginを、追加登録・検索・利用可能にする。 | @copy: SA.ra.Core.1b.2
 | @Spec | 1b2.1 | 名前で指定されたモジュールを、与えられたサーチパスから検索・取得して返す。 | @Allocate: THIS.gpi
@@ -703,7 +703,7 @@ The requirements given to THIS are as follows.
 
 > [@ from=SA.ra.core]
 >
-> | @Reqt | Name | Text | Trace |
+> | @Req | Name | Text | Trace |
 > | :---: | ---- | ---- | :---: |
 > | @Spec | 1b.1 | 型固有の情報操作をPluginとしてパッケージ化し、外部化した設計とする。 | @Allocate: GDOC.pis
 
@@ -812,7 +812,7 @@ The requirements given to THIS are as follows.
 
 #### 4.5.4. [@ ra] Requirements allocation
 
-| @Reqt | Name | Text | Trace |
+| @Req | Name | Text | Trace |
 | :---: | ---- | ---- | :---: |
 | 1b1   |       | 型固有の情報操作をPluginとしてパッケージ化し、外部化した設計とする。 | @copy: SA.ra.Core.1b.1
 | @Spec | 1b1.1 | プラグインをmodule（動的import対象となる単位）として実現する。 | @Allocate: THIS.pmod
@@ -840,7 +840,7 @@ The requirements given to THIS are as follows.
   >   @Trace(Satisfy): SWRS.Apps \
   >   @Trace(Derive): SA.s1
 
-- > | @Reqt | Name | Text | Trace |
+- > | @Req | Name | Text | Trace |
   > | :---: | ---- | ---- | :---: |
   > | 2     | Pluggable application | アプリは対象となる型をもつ情報を参照し、型固有のニーズに基づいた機能を提供する。 | @copy: SWRS.Core.2
   > |       | Trace | @Allocate: GDOC.asc
@@ -891,7 +891,7 @@ The requirements given to THIS are as follows.
 
 > [@ from=SA.ra.constraint]
 >
-> | @Reqt | Name | Text | Trace |
+> | @Req | Name | Text | Trace |
 > | :---: | ---- | ---- | :---: |
 > | 5     |       | Command Line Interfaceを持つ。 | @copy: SWRQ.Constraint.5
 > | 　　　 | Trace | @AllocatTo: GDOC.cli
