@@ -7,18 +7,6 @@ let client;
 function activate(context) {
     try {
         const serverOptions = {
-            // command: "node",
-            // args: [
-            //     context.extensionPath + "/gdoc.js",
-            //     "--language-server"
-            // ]
-            // command: "python3",
-            // args: [
-            //     "-m",
-            //     context.extensionPath + "/gdoc",
-            //     "language-server",
-            //     "--help",
-            // ]
             command: context.extensionPath + "/bin/gdoc",
             args: [
                 "language-server",
