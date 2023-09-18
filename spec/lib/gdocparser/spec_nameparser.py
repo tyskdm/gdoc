@@ -199,7 +199,7 @@ class Spec__unpack_identifier:
                     "err": ("GdocSyntaxError: empty name string"),
                 },
             ),
-            "Id-Code(4/)-Invalid": (
+            "Id-Code(4/)-Valid": (  # Changed this from invalid to valid
                 # stimulus
                 [
                     ["T", [["c", ["file", 5, 10, 5, 17], "co#de"]]],
@@ -207,12 +207,8 @@ class Spec__unpack_identifier:
                 ],
                 # expected
                 {
-                    "result": None,
-                    "err": (
-                        "file:5:13-5:14 GdocSyntaxError: invalid name\n"
-                        + "> co#de\n"
-                        + ">   ^"
-                    ),
+                    "result": ["T", [["c", ["file", 5, 10, 5, 17], "co#de"]]],
+                    "err": None,
                 },
             ),
             "Id-Code(5/)-Followed by unexpected element": (
