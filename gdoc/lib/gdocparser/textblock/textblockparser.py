@@ -10,6 +10,7 @@ from gdoc.lib.gdoc.inlinetag import InlineTag
 from gdoc.lib.gobj.types import Object
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
+from ..objectfactory import ObjectFactory
 from ..tokeninfobuffer import TokenInfoBuffer
 from .lineparser import detect_CommentTag, parse_Line
 from .tagparamparser import TagParameter, TagParameterParser
@@ -32,7 +33,7 @@ class TextBlockParser:
     def parse(
         self,
         textblock: TextBlock,
-        gobj: Object,
+        gobj: ObjectFactory,
         erpt: ErrorReport,
         opts: Settings | None = None,
     ) -> Result[Object | TextString | None, ErrorReport]:
@@ -127,7 +128,7 @@ class TextBlockParser:
         #
         # Append Properties
         #
-        target_obj: Object = child or gobj
+        target_obj: ObjectFactory = ObjectFactory(child) if child else gobj
         for i in range(len(inlinetag_params)):
             target_tag, tag_param = inlinetag_params[i]
             prop, e = target_obj.add_new_property(

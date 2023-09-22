@@ -7,11 +7,14 @@ from typing import NamedTuple
 from gdoc.lib.gdoc import TextString
 from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.lib.gdoc.inlinetag import InlineTag
-from gdoc.lib.gobj.types import Object
+
+from ..objectfactory import ObjectFactory
+
+# from gdoc.lib.gobj.types import Object
 
 
 class Context(NamedTuple):
-    obj: Object
+    obj: ObjectFactory
     tag: InlineTag | BlockTag
 
 

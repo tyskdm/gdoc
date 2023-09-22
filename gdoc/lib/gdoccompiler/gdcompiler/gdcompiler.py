@@ -2,10 +2,11 @@ r"""
 Gdoc Compiler class
 """
 import os
-from typing import Optional
+from typing import Optional, cast
 
 from gdoc.lib.gdoc import Document as GdocDocument
 from gdoc.lib.gdocparser.documentparser import DocumentParser
+from gdoc.lib.gdocparser.objectfactory import ObjectFactory
 from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfoBuffer
 from gdoc.lib.gobj.types import BaseCategory
 from gdoc.lib.gobj.types import Document as GobjDocument
@@ -59,12 +60,13 @@ class GdocCompiler:
         pandoc_json = Pandoc().get_json(filepath, fileformat, via_html, filedata)
         pandoc_ast = PandocAst(pandoc_json)
         gdoc = GdocDocument(pandoc_ast)
+        gobj: GobjDocument = GobjDocument(None, filepath, self._categories_)
+        obj_factory = ObjectFactory(gobj)
 
-        gobj = GobjDocument(None, filepath, self._categories_)
-
-        gobj, e = DocumentParser(self._tokeninfocache).parse(gdoc, gobj, erpt, opts)
-        if e:
-            erpt.submit(e)
+        r = DocumentParser(self._tokeninfocache).parse(gdoc, obj_factory, erpt, opts)
+        if r.is_err():
+            erpt.submit(r.err())
             return Err(erpt, gobj)
+        gobj = cast(GobjDocument, r.unwrap())
 
         return Ok(gobj)

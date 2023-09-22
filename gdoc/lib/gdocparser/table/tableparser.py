@@ -12,6 +12,7 @@ from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gobj.types import Object
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
+from ..objectfactory import ObjectFactory
 from ..tag.inlinetagparser import parse_InlineTag
 from ..tag.objecttaginfoparser import ObjectTagInfo, parse_ObjectTagInfo
 from ..tokeninfobuffer import TokenInfoBuffer
@@ -37,7 +38,7 @@ class TableParser:
     def parse(
         self,
         table: Table,
-        gobj: Object,
+        gobj: ObjectFactory,
         erpt: ErrorReport,
         opts: Settings | None = None,
     ) -> Result[Object | None, ErrorReport]:

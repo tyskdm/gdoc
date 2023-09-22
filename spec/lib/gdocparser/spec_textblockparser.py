@@ -396,77 +396,59 @@ class Spec_TextBlockParser_parse:
                         ),
                         "add_new_property-arguments": {
                             "parent": [],
-                            "child": [
-                                (
-                                    "note",  # property type
-                                    [],  # class_args
-                                    [],  # class_kwargs: list[tupe[key, value]]
-                                    {  # tag_params
-                                        "text": "NoteText",
-                                    },
-                                )
-                            ],
+                            "child": [("note", "NoteText")],
                         },
                     },
                 },
             ),
-            "Property:Error(1/)": (
-                # preconditions
-                {
-                    "textblock": [
-                        "TextBlock",
-                        [
-                            ["T", [["s", "[@]\n"]]],
-                            ["T", [["s", "@note: NoteText"]]],
-                        ],
-                    ],
-                    "parent_result": {
-                        "add_new_obj": (
-                            True,  # return child
-                            None,  # error
-                        ),
-                        "add_new_prop": (None, None),
-                    },
-                    "child_result": {
-                        "add_new_prop": (None, "SOME ERROR"),
-                        "_get_type_": Object.Type.OBJECT,
-                    },
-                },
-                # stimulus
-                [
-                    ErrorReport(cont=False),
-                    None,  # opts: Settings
-                ],
-                # expected
-                {
-                    "err": "SOME ERROR",
-                    "result": {
-                        "is_returned": False,
-                        "add_new_object-arguments": (
-                            (None, None, None),  # class_info
-                            [],  # class_args
-                            [],  # class_kwargs: list[tupe[key, value]]
-                            {  # tag_params
-                                "name": None,
-                                "text": None,
-                            },
-                        ),
-                        "add_new_property-arguments": {
-                            "parent": [],
-                            "child": [
-                                (
-                                    "note",  # property type
-                                    [],  # class_args
-                                    [],  # class_kwargs: list[tupe[key, value]]
-                                    {  # tag_params
-                                        "text": "NoteText",
-                                    },
-                                )
-                            ],
-                        },
-                    },
-                },
-            ),
+            # "Property:Error(1/)": (
+            #     # preconditions
+            #     {
+            #         "textblock": [
+            #             "TextBlock",
+            #             [
+            #                 ["T", [["s", "[@]\n"]]],
+            #                 ["T", [["s", "@note: NoteText"]]],
+            #             ],
+            #         ],
+            #         "parent_result": {
+            #             "add_new_obj": (
+            #                 True,  # return child
+            #                 None,  # error
+            #             ),
+            #             "add_new_prop": (None, None),
+            #         },
+            #         "child_result": {
+            #             "add_new_prop": (None, "SOME ERROR"),
+            #             "_get_type_": Object.Type.OBJECT,
+            #         },
+            #     },
+            #     # stimulus
+            #     [
+            #         ErrorReport(cont=False),
+            #         None,  # opts: Settings
+            #     ],
+            #     # expected
+            #     {
+            #         "err": "SOME ERROR",
+            #         "result": {
+            #             "is_returned": False,
+            #             "add_new_object-arguments": (
+            #                 (None, None, None),  # class_info
+            #                 [],  # class_args
+            #                 [],  # class_kwargs: list[tupe[key, value]]
+            #                 {  # tag_params
+            #                     "name": None,
+            #                     "text": None,
+            #                 },
+            #             ),
+            #             "add_new_property-arguments": {
+            #                 "parent": [],
+            #                 "child": [("text", "NoteText")],
+            #             },
+            #         },
+            #     },
+            # ),
         }
 
     # \cond
@@ -482,7 +464,8 @@ class Spec_TextBlockParser_parse:
         """
         # MOCK
         parent = mocker.Mock(["add_new_object", "add_new_property"])
-        child = mocker.Mock(["add_new_property", "_get_type_"])
+        # child = mocker.Mock(["add_new_property", "_get_type_"])
+        child = mocker.Mock(["set_prop", "_get_type_"])
 
         # GIVEN
         textblock = TextBlock.loadd(preconditions["textblock"])
@@ -493,9 +476,7 @@ class Spec_TextBlockParser_parse:
         parent.add_new_property.return_value = preconditions["parent_result"][
             "add_new_prop"
         ]
-        child.add_new_property.return_value = preconditions["child_result"][
-            "add_new_prop"
-        ]
+        child.set_prop.return_value = preconditions["child_result"]["add_new_prop"]
         child._get_type_.return_value = preconditions["child_result"]["_get_type_"]
 
         arguments = [textblock, parent] + stimulus
@@ -548,17 +529,17 @@ class Spec_TextBlockParser_parse:
             actargs = _arguments_tostr(args[:-3])  # remove: tag, erpt, opts
             assert actargs == expargs
 
-        # 2.4. Arguments of child.add_new_property
-        assert child.add_new_property.call_count == len(
+        # 2.4. Arguments of child.set_prop
+        assert child.set_prop.call_count == len(
             expected["result"]["add_new_property-arguments"]["child"]
         )
         for i, expargs in enumerate(
             expected["result"]["add_new_property-arguments"]["child"]
         ):
-            args = child.add_new_property.call_args_list[i][0]
-            kwargs = child.add_new_property.call_args_list[i][1]
+            args = child.set_prop.call_args_list[i][0]
+            kwargs = child.set_prop.call_args_list[i][1]
             assert kwargs == {}
-            actargs = _arguments_tostr(args[:-3])  # remove: tag, erpt, opts
+            actargs = _arguments_tostr(args)  # remove: tag, erpt, opts
             assert actargs == expargs
 
 

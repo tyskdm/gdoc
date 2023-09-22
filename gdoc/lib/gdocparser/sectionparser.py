@@ -5,6 +5,7 @@ from gdoc.lib.gdoc import Section, Table, TextBlock
 from gdoc.lib.gobj.types import Object
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
+from .objectfactory import ObjectFactory
 from .table.tableparser import TableParser
 from .textblock.textblockparser import TextBlockParser
 from .tokeninfobuffer import TokenInfoBuffer
@@ -26,16 +27,16 @@ class SectionParser:
     def parse(
         self,
         section: Section,
-        gobj: Object,
+        gobj: ObjectFactory,
         erpt: ErrorReport,
         opts: Settings | None = None,
     ) -> Result[Object, ErrorReport]:
         """ """
         srpt: ErrorReport = erpt.new_subreport()
-        context: Object = gobj
+        context: ObjectFactory = ObjectFactory(gobj._current_)
 
         if len(section) == 0:
-            return Ok(gobj)
+            return Ok(gobj._current_)
 
         #
         # The first block
@@ -48,10 +49,11 @@ class SectionParser:
                 return Err(erpt.submit(srpt))
 
             if isinstance(r, Object) or (r is None):
-                context = r or gobj
+                if r:
+                    context.set_current_parent(r)
             else:
                 # This Section is a comment.
-                return Ok(gobj)
+                return Ok(gobj._current_)
 
         #
         # Following blocks
@@ -73,6 +75,6 @@ class SectionParser:
                     return Err(erpt.submit(srpt))
 
         if srpt.haserror():
-            return Err(erpt.submit(srpt), gobj)
+            return Err(erpt.submit(srpt), gobj._current_)
 
-        return Ok(gobj)
+        return Ok(gobj._current_)
