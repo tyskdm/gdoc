@@ -13,6 +13,7 @@ from .table import Table
 from .text import Text
 from .textblock import TextBlock
 from .textstring import TextString
+from .uri import Uri, UriInfo
 
 __all__ = [
     "Gdoc",
@@ -24,6 +25,8 @@ __all__ = [
     "Quoted",
     "TextString",
     "Parenthesized",
+    "Uri",
+    "UriInfo",
     "Table",
     "TextBlock",
     "Section",

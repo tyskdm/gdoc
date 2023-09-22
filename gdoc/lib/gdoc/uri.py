@@ -80,7 +80,10 @@ class Uri(TextString):
     @classmethod
     def create(cls, textstr: TextString, erpt: ErrorReport) -> Result["Uri", ErrorReport]:
         r, e = Uri.get_uri_info(textstr, erpt)
-        if e and erpt.should_exit(e):
+        if e:
+            if (not erpt.should_exit(e)) and (r is not None):
+                uri = cast(Uri, cls(textstr, r))
+                return Err(erpt, uri)
             return Err(erpt)
 
         uri = cast(Uri, cls(textstr, cast(UriInfo, r)))
@@ -162,6 +165,9 @@ class Uri(TextString):
             else:
                 # fragment
                 uri_info.fragment = following
+
+        if srpt.haserror():
+            return Err(erpt.submit(srpt), uri_info)
 
         return Ok(uri_info)
 

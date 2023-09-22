@@ -13,13 +13,6 @@ from gdoc.lib.gdoc.uri import Uri, UriInfo
 from gdoc.util import ErrorReport
 
 
-class Spec___init__:
-    r"""
-    ## [\@spec] `__init__`
-    """
-    pass
-
-
 class Spec_get_uri_info:
     r"""
     ## [\@spec] `get_uri_info`
@@ -749,6 +742,18 @@ class Spec_get_uri_info:
                     "result": None,
                 },
             ),
+            "AllPatterns(27/)": (
+                # stimulus
+                [
+                    ["T", []],
+                    ErrorReport(cont=True),  # Continue even if error occurs
+                ],
+                # expected
+                {
+                    "err": "SOME_ERROR",
+                    "result": None,
+                },
+            ),
             ##
             # #### [\@case 3] Relative path
             #
@@ -912,6 +917,68 @@ class Spec_get_uri_info:
                     },
                 },
             ),
+            ##
+            # #### [\@case 6] Only relative path and fragment
+            #
+            "RelativePath and Fragment(1/)": (
+                # stimulus
+                [
+                    ["T", [["s", "doc.md#A.B.C"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": None,
+                    "result": {
+                        "scheme": None,
+                        "colon": None,
+                        "double_slash": None,
+                        "authority": None,
+                        "path": "doc.md",
+                        "question_mark": None,
+                        "query": None,
+                        "number_sign": "#",
+                        "fragment": "A.B.C",
+                    },
+                },
+            ),
+            ##
+            # #### [\@case 7] Error cases
+            #
+            "ErrorCases(1/)": (
+                # stimulus
+                [
+                    ["T", [["s", "https//example.com"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": "SOME_ERROR",
+                    "result": None,
+                },
+            ),
+            "ErrorCases(2/)": (
+                # stimulus
+                [
+                    ["T", [["s", "https//example.com"]]],
+                    ErrorReport(cont=True),  # Continue even if error occurs
+                ],
+                # expected
+                {
+                    "err": "SOME_ERROR",
+                    "result": {
+                        "scheme": None,
+                        "colon": None,
+                        "double_slash": "//",
+                        "authority": "example.com",
+                        "path": None,
+                        "question_mark": None,
+                        "query": None,
+                        "number_sign": None,
+                        "fragment": None,
+                    },
+                },
+            ),
         }
 
     @pytest.mark.parametrize(
@@ -939,6 +1006,125 @@ class Spec_get_uri_info:
             assert r is None
         else:
             assert equals(r, expected["result"])
+
+
+class Spec_create:
+    r"""
+    ## [\@spec] `create`
+    ```
+    def create(cls, textstr: TextString, erpt: ErrorReport)
+    -> Result["Uri", ErrorReport]:
+    ```
+    """
+
+    @staticmethod
+    def cases_1():
+        r"""
+        ### [\@case 1] Dump data of the object in jsonizable format.
+        """
+        return {
+            ##
+            # #### [\@case 1] Simple: Full URI or Missing only one component
+            #
+            "Simple(1/)": (
+                # stimulus
+                [
+                    ["T", [["s", "https://example.com/path/to/doc.md?query#frag::ment"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": None,
+                    "result": {
+                        "scheme": "https",
+                        "colon": ":",
+                        "double_slash": "//",
+                        "authority": "example.com",
+                        "path": "/path/to/doc.md",
+                        "question_mark": "?",
+                        "query": "query",
+                        "number_sign": "#",
+                        "fragment": "frag::ment",
+                    },
+                },
+            ),
+            ##
+            # #### [\@case 1] Error cases
+            #
+            "ErrorCases(1/)": (
+                # stimulus
+                [
+                    ["T", [["s", "https//example.com"]]],
+                    ErrorReport(cont=False),
+                ],
+                # expected
+                {
+                    "err": "SOME_ERROR",
+                    "result": None,
+                },
+            ),
+            "ErrorCases(2/)": (
+                # stimulus
+                [
+                    ["T", [["s", "https//example.com"]]],
+                    ErrorReport(cont=True),  # Continue even if error occurs
+                ],
+                # expected
+                {
+                    "err": "SOME_ERROR",
+                    "result": {
+                        "scheme": None,
+                        "colon": None,
+                        "double_slash": "//",
+                        "authority": "example.com",
+                        "path": None,
+                        "question_mark": None,
+                        "query": None,
+                        "number_sign": None,
+                        "fragment": None,
+                    },
+                },
+            ),
+            "ErrorCases(3/)": (
+                # stimulus
+                [
+                    ["T", [["s", ""]]],
+                    ErrorReport(cont=True),  # Continue even if error occurs
+                ],
+                # expected
+                {
+                    "err": "SOME_ERROR",
+                    "result": None,
+                },
+            ),
+        }
+
+    @pytest.mark.parametrize(
+        "stimulus, expected",
+        list(cases_1().values()),
+        ids=list(cases_1().keys()),
+    )
+    def spec_1(self, stimulus, expected):
+        r"""
+        ### [\@spec 1]
+        """
+        # GIVEN
+        arguments = (TextString.loadd(stimulus[0]), stimulus[1])
+
+        # WHEN
+        r, e = Uri.create(*arguments)
+
+        # THEN
+        if expected["err"] is None:
+            assert e is None
+        else:
+            assert e is not None
+
+        if expected["result"] is None:
+            assert r is None
+        else:
+            assert r is not None
+            assert equals(r.uri_info, expected["result"])
 
 
 def equals(actual: UriInfo | None, expected: dict) -> bool:
