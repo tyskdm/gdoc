@@ -128,7 +128,7 @@ class TextBlockParser:
         #
         # Append Properties
         #
-        target_obj: ObjectContext = ObjectContext(child) if child else gobj
+        target_obj: ObjectContext = gobj.get_sub_context(child) if child else gobj
         for i in range(len(inlinetag_params)):
             target_tag, tag_param = inlinetag_params[i]
             prop, e = target_obj.add_new_property(

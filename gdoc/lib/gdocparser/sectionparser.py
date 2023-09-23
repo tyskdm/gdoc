@@ -33,10 +33,10 @@ class SectionParser:
     ) -> Result[Object, ErrorReport]:
         """ """
         srpt: ErrorReport = erpt.new_subreport()
-        context: ObjectContext = ObjectContext(gobj._current_)
+        context: ObjectContext = gobj
 
         if len(section) == 0:
-            return Ok(gobj._current_)
+            return Ok(gobj.current)
 
         #
         # The first block
@@ -50,10 +50,10 @@ class SectionParser:
 
             if isinstance(r, Object) or (r is None):
                 if r:
-                    context.set_current_parent(r)
+                    context = context.get_sub_context(r)
             else:
                 # This Section is a comment.
-                return Ok(gobj._current_)
+                return Ok(gobj.current)
 
         #
         # Following blocks
@@ -75,6 +75,6 @@ class SectionParser:
                     return Err(erpt.submit(srpt))
 
         if srpt.haserror():
-            return Err(erpt.submit(srpt), gobj._current_)
+            return Err(erpt.submit(srpt), gobj.current)
 
-        return Ok(gobj._current_)
+        return Ok(gobj.current)

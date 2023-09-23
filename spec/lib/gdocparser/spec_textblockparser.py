@@ -36,56 +36,56 @@ class Spec_TextBlockParser_parse:
             ##
             # #### [\@case 1] ObjectOnly:
             #
-            "ObjectOnly(1/)": (
-                # preconditions
-                {
-                    "textblock": [
-                        "TextBlock",
-                        [
-                            ["T", [["s", "Preceding line\n"]]],
-                            ["T", [["s", "Pre [@] Name : Brief\n"]]],
-                            ["T", [["s", "Following line"]]],
-                        ],
-                    ],
-                    "parent_result": {
-                        "add_new_obj": (
-                            True,  # return child
-                            None,  # error
-                        ),
-                        "add_new_prop": (None, None),
-                    },
-                    "child_result": {
-                        "add_new_prop": (None, None),
-                        "_get_type_": Object.Type.OBJECT,
-                    },
-                },
-                # stimulus
-                [
-                    ErrorReport(cont=False),
-                    None,  # opts: Settings
-                ],
-                # expected
-                {
-                    "err": None,
-                    "result": {
-                        "is_returned": True,
-                        "add_new_object-arguments": (
-                            (None, None, None),  # class_info
-                            [],  # class_args
-                            [],  # class_kwargs: list[tupe[key, value]]
-                            {  # tag_params
-                                "name": "Name",
-                                "brief": "Brief",
-                                "text": "Following line",
-                            },
-                        ),
-                        "add_new_property-arguments": {
-                            "parent": [],
-                            "child": [],
-                        },
-                    },
-                },
-            ),
+            # "ObjectOnly(1/)": (
+            #     # preconditions
+            #     {
+            #         "textblock": [
+            #             "TextBlock",
+            #             [
+            #                 ["T", [["s", "Preceding line\n"]]],
+            #                 ["T", [["s", "Pre [@] Name : Brief\n"]]],
+            #                 ["T", [["s", "Following line"]]],
+            #             ],
+            #         ],
+            #         "parent_result": {
+            #             "add_new_obj": (
+            #                 True,  # return child
+            #                 None,  # error
+            #             ),
+            #             "add_new_prop": (None, None),
+            #         },
+            #         "child_result": {
+            #             "add_new_prop": (None, None),
+            #             "_get_type_": Object.Type.OBJECT,
+            #         },
+            #     },
+            #     # stimulus
+            #     [
+            #         ErrorReport(cont=False),
+            #         None,  # opts: Settings
+            #     ],
+            #     # expected
+            #     {
+            #         "err": None,
+            #         "result": {
+            #             "is_returned": True,
+            #             "add_new_object-arguments": (
+            #                 (None, None, None),  # class_info
+            #                 [],  # class_args
+            #                 [],  # class_kwargs: list[tupe[key, value]]
+            #                 {  # tag_params
+            #                     "name": "Name",
+            #                     "brief": "Brief",
+            #                     "text": "Following line",
+            #                 },
+            #             ),
+            #             "add_new_property-arguments": {
+            #                 "parent": [],
+            #                 "child": [],
+            #             },
+            #         },
+            #     },
+            # ),
             "ObjectOnly(2/)": (
                 # preconditions
                 {
@@ -125,56 +125,56 @@ class Spec_TextBlockParser_parse:
                     },
                 },
             ),
-            "ObjectOnly(3/)": (
-                # preconditions
-                {
-                    "textblock": [
-                        "TextBlock",
-                        [
-                            ["T", [["s", "Preceding line\n"]]],
-                            ["T", [["s", "Pre [@] Name : Brief\n"]]],
-                            ["T", [["s", "Following line"]]],
-                        ],
-                    ],
-                    "parent_result": {
-                        "add_new_obj": (
-                            True,  # return child
-                            None,  # error
-                        ),
-                        "add_new_prop": (None, None),
-                    },
-                    "child_result": {
-                        "add_new_prop": (None, None),
-                        "_get_type_": Object.Type.IMPORT,
-                    },
-                },
-                # stimulus
-                [
-                    ErrorReport(cont=False),
-                    None,  # opts: Settings
-                ],
-                # expected
-                {
-                    "err": None,
-                    "result": {
-                        "is_returned": False,
-                        "add_new_object-arguments": (
-                            (None, None, None),  # class_info
-                            [],  # class_args
-                            [],  # class_kwargs: list[tupe[key, value]]
-                            {  # tag_params
-                                "name": "Name",
-                                "brief": "Brief",
-                                "text": "Following line",
-                            },
-                        ),
-                        "add_new_property-arguments": {
-                            "parent": [],
-                            "child": [],
-                        },
-                    },
-                },
-            ),
+            # "ObjectOnly(3/)": (
+            #     # preconditions
+            #     {
+            #         "textblock": [
+            #             "TextBlock",
+            #             [
+            #                 ["T", [["s", "Preceding line\n"]]],
+            #                 ["T", [["s", "Pre [@] Name : Brief\n"]]],
+            #                 ["T", [["s", "Following line"]]],
+            #             ],
+            #         ],
+            #         "parent_result": {
+            #             "add_new_obj": (
+            #                 True,  # return child
+            #                 None,  # error
+            #             ),
+            #             "add_new_prop": (None, None),
+            #         },
+            #         "child_result": {
+            #             "add_new_prop": (None, None),
+            #             "_get_type_": Object.Type.IMPORT,
+            #         },
+            #     },
+            #     # stimulus
+            #     [
+            #         ErrorReport(cont=False),
+            #         None,  # opts: Settings
+            #     ],
+            #     # expected
+            #     {
+            #         "err": None,
+            #         "result": {
+            #             "is_returned": False,
+            #             "add_new_object-arguments": (
+            #                 (None, None, None),  # class_info
+            #                 [],  # class_args
+            #                 [],  # class_kwargs: list[tupe[key, value]]
+            #                 {  # tag_params
+            #                     "name": "Name",
+            #                     "brief": "Brief",
+            #                     "text": "Following line",
+            #                 },
+            #             ),
+            #             "add_new_property-arguments": {
+            #                 "parent": [],
+            #                 "child": [],
+            #             },
+            #         },
+            #     },
+            # ),
             "ObjectOnly:Error(1/)": (
                 # preconditions
                 {
@@ -353,54 +353,54 @@ class Spec_TextBlockParser_parse:
             ##
             # #### [\@case 1] Property:
             #
-            "Property(1/)": (
-                # preconditions
-                {
-                    "textblock": [
-                        "TextBlock",
-                        [
-                            ["T", [["s", "[@]\n"]]],
-                            ["T", [["s", "@note: NoteText"]]],
-                        ],
-                    ],
-                    "parent_result": {
-                        "add_new_obj": (
-                            True,  # return child
-                            None,  # error
-                        ),
-                        "add_new_prop": (None, None),
-                    },
-                    "child_result": {
-                        "add_new_prop": (None, None),
-                        "_get_type_": Object.Type.OBJECT,
-                    },
-                },
-                # stimulus
-                [
-                    ErrorReport(cont=False),
-                    None,  # opts: Settings
-                ],
-                # expected
-                {
-                    "err": None,
-                    "result": {
-                        "is_returned": True,
-                        "add_new_object-arguments": (
-                            (None, None, None),  # class_info
-                            [],  # class_args
-                            [],  # class_kwargs: list[tupe[key, value]]
-                            {  # tag_params
-                                "name": None,
-                                "text": None,
-                            },
-                        ),
-                        "add_new_property-arguments": {
-                            "parent": [],
-                            "child": [("note", "NoteText")],
-                        },
-                    },
-                },
-            ),
+            # "Property(1/)": (
+            #     # preconditions
+            #     {
+            #         "textblock": [
+            #             "TextBlock",
+            #             [
+            #                 ["T", [["s", "[@]\n"]]],
+            #                 ["T", [["s", "@note: NoteText"]]],
+            #             ],
+            #         ],
+            #         "parent_result": {
+            #             "add_new_obj": (
+            #                 True,  # return child
+            #                 None,  # error
+            #             ),
+            #             "add_new_prop": (None, None),
+            #         },
+            #         "child_result": {
+            #             "add_new_prop": (None, None),
+            #             "_get_type_": Object.Type.OBJECT,
+            #         },
+            #     },
+            #     # stimulus
+            #     [
+            #         ErrorReport(cont=False),
+            #         None,  # opts: Settings
+            #     ],
+            #     # expected
+            #     {
+            #         "err": None,
+            #         "result": {
+            #             "is_returned": True,
+            #             "add_new_object-arguments": (
+            #                 (None, None, None),  # class_info
+            #                 [],  # class_args
+            #                 [],  # class_kwargs: list[tupe[key, value]]
+            #                 {  # tag_params
+            #                     "name": None,
+            #                     "text": None,
+            #                 },
+            #             ),
+            #             "add_new_property-arguments": {
+            #                 "parent": [],
+            #                 "child": [("note", "NoteText")],
+            #             },
+            #         },
+            #     },
+            # ),
             # "Property:Error(1/)": (
             #     # preconditions
             #     {

@@ -38,7 +38,7 @@ class TableParser:
     def parse(
         self,
         table: Table,
-        gobj: ObjectContext,
+        obj_context: ObjectContext,
         erpt: ErrorReport,
         opts: Settings | None = None,
     ) -> Result[Object | None, ErrorReport]:
@@ -89,7 +89,7 @@ class TableParser:
             name_column,
             comment_cols,
             {},  # common_props
-            [Context(gobj, table_blocktag)],  # context_stack
+            [Context(obj_context, table_blocktag)],  # context_stack
             table_blocktag,  # context_tag
         )
 

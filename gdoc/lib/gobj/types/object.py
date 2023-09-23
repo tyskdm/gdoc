@@ -5,6 +5,7 @@ from typing import Any, Union, cast
 
 from gdoc.lib.gdoc import TextString
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
+from gdoc.lib.gdocparser.objectfactorytools import ObjectFactoryTools
 from gdoc.lib.plugins import Category, CategoryManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
@@ -142,7 +143,8 @@ class Object(Element):
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
         tag_params: dict,
-        obj_factory,  # : ObjectFactory,
+        categories: CategoryManager,
+        obj_tools: ObjectFactoryTools,
         opts: Settings | None,
         erpt: ErrorReport,
     ) -> Result["Object", ErrorReport]:
@@ -171,7 +173,7 @@ class Object(Element):
         #
         names: list[TextString]
         args: list[TextString]
-        r = obj_factory._pop_name_(class_args, erpt, opts)
+        r = obj_tools.pop_name_from_args(class_args, erpt, opts)
         if r.is_err():
             return Err(erpt.submit(r.err()))
 
@@ -179,17 +181,8 @@ class Object(Element):
         scope = scope or "+"
 
         if len(names) > 0:
-            if class_info[2] is None:  # isref is None
-                # names[:-1] are explicit parent names
-                r = obj_factory._check_parent_names_(names, erpt)
-                if r.is_err():
-                    return Err(erpt.submit(r.err()))
-                name = r.unwrap()
-                refpath = None
-            else:
-                # names are object name to link
-                name = names[-1]
-                refpath = names
+            name = names[-1]
+            refpath = names
 
         #
         # Get args
@@ -198,7 +191,7 @@ class Object(Element):
         for arginfo in cls._class_type_info_.get("args", []):
             if len(args) > 0:
                 a = args.pop(0)
-                r = obj_factory._check_type_(a, arginfo[1], erpt)
+                r = obj_tools.check_type(a, arginfo[1], erpt)
                 if r.is_err():
                     return Err(erpt.submit(r.err()))
                 type_args[arginfo[0]] = r.unwrap()
@@ -231,7 +224,7 @@ class Object(Element):
             keywords.add(key)
             if key in kwargs:
                 arginfo = kwargs[key]
-                r = obj_factory._check_type_(valtstr, arginfo[1], erpt)
+                r = obj_tools.check_type(valtstr, arginfo[1], erpt)
                 if r.is_err():
                     return Err(erpt.submit(r.err()))
                 type_args[arginfo[0]] = r.unwrap()
@@ -266,7 +259,7 @@ class Object(Element):
             arginfo = cls._class_type_info_["params"][key]
             if key in tag_params:
                 a = tag_params[key]
-                r = obj_factory._check_type_(a, arginfo[1], erpt)
+                r = obj_tools.check_type(a, arginfo[1], erpt)
                 if r.is_err():
                     return Err(erpt.submit(r.err()))
                 type_args[arginfo[0]] = r.unwrap()
@@ -292,7 +285,7 @@ class Object(Element):
             tags=cast(list[TextString | str], tags),
             refpath=cast(list[TextString | str], refpath),
             type_args=type_args,
-            categories=obj_factory._current_._class_categories_,
+            categories=categories,
         )
 
         return Ok(child)

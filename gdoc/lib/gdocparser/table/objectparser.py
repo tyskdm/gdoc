@@ -97,8 +97,10 @@ class ObjectParser:
         # - Based on the hierarchal id name, deside parent object of new object.
         # - The top of the hierarchal id name points to top layer object of the table.
         #
+        object_context: ObjectContext = table_info.context_stack[0].obj
+
         class_args: list[TextString] = taginfo.class_args[:]
-        r = ObjectContext._pop_name_(class_args, srpt, opts)
+        r = object_context.tools.pop_name_from_args(class_args, srpt, opts)
         # _pop_name_() -> Ok((scope, names, tags, args))
         if r.is_err():
             return Err(erpt.submit(srpt.submit(r.err())))
@@ -106,7 +108,6 @@ class ObjectParser:
         name_hierarchy: int = len(name_tstrs)
 
         # Deside parent object of new object
-        parent_object: ObjectContext
         if name_hierarchy > 1:
             if len(table_info.context_stack) < (name_hierarchy - 1):
                 srpt.submit(
@@ -116,7 +117,7 @@ class ObjectParser:
                     )
                 )
                 return Err(erpt.submit(srpt))
-            parent_object = table_info.context_stack[name_hierarchy - 2].obj
+            object_context = table_info.context_stack[name_hierarchy - 2].obj
 
         elif textstr.startswith("@"):  # name_hierarchy in (0, 1)
             if len(table_info.context_stack) < 2:
@@ -127,15 +128,15 @@ class ObjectParser:
                     )
                 )
                 return Err(erpt.submit(srpt))
-            parent_object = table_info.context_stack[1].obj
+            object_context = table_info.context_stack[1].obj
 
         else:
-            parent_object = table_info.context_stack[0].obj
+            object_context = table_info.context_stack[0].obj
 
         #
         # Create object
         #
-        r = parent_object.add_new_object(
+        r = object_context.add_new_object(
             object_blocktag._class_info,
             taginfo.class_args,
             taginfo.class_kwargs,
@@ -162,8 +163,13 @@ class ObjectParser:
                 )
         table_info.context_tag = object_blocktag
         table_info.context_stack = table_info.context_stack[
-            : (name_hierarchy - 1 if textstr.startswith("@") else name_hierarchy)
-        ] + [Context(ObjectContext(child), object_blocktag)]
+            : name_hierarchy + (1 if textstr.startswith("@") else 0)
+        ]
+        table_info.context_stack += [
+            Context(
+                table_info.context_stack[-1][0].get_sub_context(child), object_blocktag
+            )
+        ]
 
         #
         # Create properties

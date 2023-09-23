@@ -61,7 +61,7 @@ class GdocCompiler:
         pandoc_ast = PandocAst(pandoc_json)
         gdoc = GdocDocument(pandoc_ast)
         gobj: GobjDocument = GobjDocument(None, filepath, self._categories_)
-        obj_factory = ObjectContext(gobj)
+        obj_factory = ObjectContext(self._categories_, gobj)
 
         r = DocumentParser(self._tokeninfocache).parse(gdoc, obj_factory, erpt, opts)
         if r.is_err():
