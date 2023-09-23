@@ -11,7 +11,7 @@ from gdoc.lib.gdoc.table import Cell
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from ..objectfactory import ObjectFactory
+from ..objectcontext import ObjectContext
 from ..parenthesesparser import parse_Parentheses
 from ..tag.inlinetagparser import parse_InlineTag
 from ..tokeninfobuffer import TokenInfoBuffer
@@ -56,7 +56,7 @@ class PropertyParser:
         if not isinstance(prop_key, InlineTag):
             return Err(erpt.submit(GdocSyntaxError("Invalid Cell data")))
 
-        obj: ObjectFactory = table_info.context_stack[-1].obj
+        obj: ObjectContext = table_info.context_stack[-1].obj
         for cell in row[2:]:
             prop_tstr: TextString | None = cell.get_first_line() if cell else None
             if prop_tstr is None:

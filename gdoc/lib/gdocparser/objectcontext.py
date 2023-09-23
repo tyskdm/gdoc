@@ -17,7 +17,7 @@ from gdoc.lib.plugins import Category
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 
-class ObjectFactory:
+class ObjectContext:
     """
     ObjectFactory class
     """

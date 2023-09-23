@@ -8,13 +8,13 @@ from gdoc.lib.gdoc import TextString
 from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.lib.gdoc.inlinetag import InlineTag
 
-from ..objectfactory import ObjectFactory
+from ..objectcontext import ObjectContext
 
 # from gdoc.lib.gobj.types import Object
 
 
 class Context(NamedTuple):
-    obj: ObjectFactory
+    obj: ObjectContext
     tag: InlineTag | BlockTag
 
 

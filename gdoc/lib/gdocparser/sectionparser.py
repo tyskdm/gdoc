@@ -5,7 +5,7 @@ from gdoc.lib.gdoc import Section, Table, TextBlock
 from gdoc.lib.gobj.types import Object
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from .objectfactory import ObjectFactory
+from .objectcontext import ObjectContext
 from .table.tableparser import TableParser
 from .textblock.textblockparser import TextBlockParser
 from .tokeninfobuffer import TokenInfoBuffer
@@ -27,13 +27,13 @@ class SectionParser:
     def parse(
         self,
         section: Section,
-        gobj: ObjectFactory,
+        gobj: ObjectContext,
         erpt: ErrorReport,
         opts: Settings | None = None,
     ) -> Result[Object, ErrorReport]:
         """ """
         srpt: ErrorReport = erpt.new_subreport()
-        context: ObjectFactory = ObjectFactory(gobj._current_)
+        context: ObjectContext = ObjectContext(gobj._current_)
 
         if len(section) == 0:
             return Ok(gobj._current_)

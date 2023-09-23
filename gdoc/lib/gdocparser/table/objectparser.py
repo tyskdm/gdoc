@@ -12,7 +12,7 @@ from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gobj.types import Object
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from ..objectfactory import ObjectFactory
+from ..objectcontext import ObjectContext
 from ..tag.objecttaginfoparser import ObjectTagInfo, parse_ObjectTagInfo
 from ..tokeninfobuffer import TokenInfoBuffer
 from .tableinfo import Context, TableInfo
@@ -98,7 +98,7 @@ class ObjectParser:
         # - The top of the hierarchal id name points to top layer object of the table.
         #
         class_args: list[TextString] = taginfo.class_args[:]
-        r = ObjectFactory._pop_name_(class_args, srpt, opts)
+        r = ObjectContext._pop_name_(class_args, srpt, opts)
         # _pop_name_() -> Ok((scope, names, tags, args))
         if r.is_err():
             return Err(erpt.submit(srpt.submit(r.err())))
@@ -106,7 +106,7 @@ class ObjectParser:
         name_hierarchy: int = len(name_tstrs)
 
         # Deside parent object of new object
-        parent_object: ObjectFactory
+        parent_object: ObjectContext
         if name_hierarchy > 1:
             if len(table_info.context_stack) < (name_hierarchy - 1):
                 srpt.submit(
@@ -163,7 +163,7 @@ class ObjectParser:
         table_info.context_tag = object_blocktag
         table_info.context_stack = table_info.context_stack[
             : (name_hierarchy - 1 if textstr.startswith("@") else name_hierarchy)
-        ] + [Context(ObjectFactory(child), object_blocktag)]
+        ] + [Context(ObjectContext(child), object_blocktag)]
 
         #
         # Create properties

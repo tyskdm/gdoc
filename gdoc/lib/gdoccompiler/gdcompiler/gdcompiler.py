@@ -6,7 +6,7 @@ from typing import Optional, cast
 
 from gdoc.lib.gdoc import Document as GdocDocument
 from gdoc.lib.gdocparser.documentparser import DocumentParser
-from gdoc.lib.gdocparser.objectfactory import ObjectFactory
+from gdoc.lib.gdocparser.objectcontext import ObjectContext
 from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfoBuffer
 from gdoc.lib.gobj.types import BaseCategory
 from gdoc.lib.gobj.types import Document as GobjDocument
@@ -61,7 +61,7 @@ class GdocCompiler:
         pandoc_ast = PandocAst(pandoc_json)
         gdoc = GdocDocument(pandoc_ast)
         gobj: GobjDocument = GobjDocument(None, filepath, self._categories_)
-        obj_factory = ObjectFactory(gobj)
+        obj_factory = ObjectContext(gobj)
 
         r = DocumentParser(self._tokeninfocache).parse(gdoc, obj_factory, erpt, opts)
         if r.is_err():
