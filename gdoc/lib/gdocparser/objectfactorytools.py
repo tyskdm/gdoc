@@ -126,7 +126,7 @@ class ObjectFactoryTools:
                 r = self.check_type(a, arginfo[0], erpt)
                 if r.is_err():
                     return Err(erpt.submit(r.err()))
-                result[arginfo[0]] = r.unwrap()
+                result[key] = r.unwrap()
 
             elif len(arginfo) > 1:
                 arginfo = cast(tuple[str, Any], arginfo)

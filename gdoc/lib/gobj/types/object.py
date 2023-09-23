@@ -4,7 +4,6 @@ baseobject.py: BaseObject class
 from typing import Any, Union, cast
 
 from gdoc.lib.gdoc import TextString
-from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gdocparser.objectfactorytools import ObjectFactoryTools
 from gdoc.lib.plugins import Category, CategoryManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
@@ -32,7 +31,8 @@ class Object(Element):
         ],
         "kwargs": {},
         "params": {
-            "text": ["text", None, None],  # text: Any = None
+            "name": [None, None],  # name: Any = None
+            "text": [None, None],  # text: Any = None
         },
     }
     _class_property_info_: dict[str, Any] = {
@@ -148,29 +148,14 @@ class Object(Element):
         opts: Settings | None,
         erpt: ErrorReport,
     ) -> Result["Object", ErrorReport]:
-        # def __init__(
-        #     self,
-        #     typename: TextString | str | None,
-        #     name: TextString | str | None = None,
-        #     scope: TextString | str = "+",
-        #     alias: TextString | str | None = None,
-        #     tags: list[TextString | str] = [],
-        #     refpath: list[TextString | str] | None = None,
-        #     type_args: dict = {},
-        #     categories: CategoryManager | None = None,
-        # ):
-        # typename = class_info[1]
-        name: TextString | None = None
-        scope: TextString | str | None = None
-        alias: TextString | None = tag_params.get("name")  # should be None as default
-        tags: list[TextString] = []
-        refpath: list[TextString] | None = None
-        type_args: dict = {}
-
         #
         # Get scope, name, tags, refpath, and the remaining args
         # from the top of the class_args.
         #
+        scope: TextString | str | None = None
+        tags: list[TextString] = []
+        name: TextString | None = None
+        refpath: list[TextString] | None = None
         names: list[TextString]
         args: list[TextString]
         r = obj_tools.pop_name_from_args(class_args, erpt, opts)
@@ -185,94 +170,34 @@ class Object(Element):
             refpath = names
 
         #
+        # Get type_args
+        #
+        type_args: dict = {}
+
         # Get args
-        #
-        arginfo: list[Any]
-        for arginfo in cls._class_type_info_.get("args", []):
-            if len(args) > 0:
-                a = args.pop(0)
-                r = obj_tools.check_type(a, arginfo[1], erpt)
-                if r.is_err():
-                    return Err(erpt.submit(r.err()))
-                type_args[arginfo[0]] = r.unwrap()
+        r = obj_tools.get_args(args, cls._class_type_info_.get("args", []), erpt)
+        if r.is_err():
+            return Err(erpt.submit(r.err()))
+        type_args.update(r.unwrap())
 
-            elif len(arginfo) > 2:
-                type_args[arginfo[0]] = arginfo[2]
-
-            else:
-                return Err(
-                    erpt.submit(GdocSyntaxError(f"Argument '{arginfo[0]}' is missing"))
-                )
-        else:
-            if len(args) > 0:
-                return Err(
-                    erpt.submit(
-                        GdocSyntaxError(
-                            f"Too many arguments: {len(args)} arguments are left"
-                        )
-                    )
-                )
-
-        #
         # Get kwargs
-        #
-        key: str
-        kwargs: dict = cls._class_type_info_.get("kwargs", {})
-        keywords: set[str] = set()
-        for keytstr, valtstr in class_kwargs:
-            key = keytstr.get_str()
-            keywords.add(key)
-            if key in kwargs:
-                arginfo = kwargs[key]
-                r = obj_tools.check_type(valtstr, arginfo[1], erpt)
-                if r.is_err():
-                    return Err(erpt.submit(r.err()))
-                type_args[arginfo[0]] = r.unwrap()
-            else:
-                return Err(
-                    erpt.submit(
-                        GdocSyntaxError(
-                            f"Unexpected argument '{key}' is specified",
-                            keytstr.get_data_pos(),
-                        )
-                    )
-                )
-        else:
-            # Check if all required kwargs are specified
-            keywords = set(kwargs.keys()) - keywords
-            for key in keywords:
-                arginfo = kwargs[key]
-                if len(arginfo) > 2:
-                    type_args[arginfo[0]] = arginfo[2]
-                else:
-                    return Err(
-                        erpt.submit(
-                            GdocSyntaxError(f"Argument '{arginfo[0]}' is missing")
-                        )
-                    )
+        r = obj_tools.get_kwargs(
+            class_kwargs, cls._class_type_info_.get("kwargs", []), erpt
+        )
+        if r.is_err():
+            return Err(erpt.submit(r.err()))
+        type_args.update(r.unwrap())
 
-        #
         # Get params
-        #
-        key: str
-        for key in cls._class_type_info_.get("params", {}).keys():
-            arginfo = cls._class_type_info_["params"][key]
-            if key in tag_params:
-                a = tag_params[key]
-                r = obj_tools.check_type(a, arginfo[1], erpt)
-                if r.is_err():
-                    return Err(erpt.submit(r.err()))
-                type_args[arginfo[0]] = r.unwrap()
+        r = obj_tools.get_params(
+            tag_params, cls._class_type_info_.get("params", []), erpt
+        )
+        if r.is_err():
+            return Err(erpt.submit(r.err()))
+        type_args.update(r.unwrap())
 
-            elif len(arginfo) > 2:
-                type_args[arginfo[0]] = arginfo[2]
-
-            else:
-                return Err(
-                    erpt.submit(
-                        GdocSyntaxError(f"Tag parameter '{arginfo[0]}' is missing")
-                    )
-                )
+        # Get alias
+        alias: TextString | None = type_args.pop("name", None)
 
         #
         # Construct Object
