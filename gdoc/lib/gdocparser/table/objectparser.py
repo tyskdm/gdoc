@@ -148,7 +148,10 @@ class ObjectParser:
         if r.is_err():
             return Err(erpt.submit(srpt.submit(r.err())))
 
-        child: Object = r.unwrap()
+        child: Object | None = r.unwrap()
+        #
+        # todo: fill missing case, child is None
+        #
         if (child is not None) and (self.tokeninfo is not None):
             # Set info for language server
             if child.class_refpath is not None:
@@ -161,15 +164,18 @@ class ObjectParser:
                     "type",
                     ("variable", []),
                 )
-        table_info.context_tag = object_blocktag
-        table_info.context_stack = table_info.context_stack[
-            : name_hierarchy + (1 if textstr.startswith("@") else 0)
-        ]
-        table_info.context_stack += [
-            Context(
-                table_info.context_stack[-1][0].get_sub_context(child), object_blocktag
-            )
-        ]
+
+        if child is not None:
+            table_info.context_tag = object_blocktag
+            table_info.context_stack = table_info.context_stack[
+                : name_hierarchy + (1 if textstr.startswith("@") else 0)
+            ]
+            table_info.context_stack += [
+                Context(
+                    table_info.context_stack[-1][0].get_sub_context(child),
+                    object_blocktag,
+                )
+            ]
 
         #
         # Create properties

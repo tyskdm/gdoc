@@ -61,7 +61,7 @@ class ObjectContext:
         tag_body: TextString,
         erpt: ErrorReport,
         opts: Settings | None = None,
-    ) -> Result[Object, ErrorReport]:
+    ) -> Result[Object | None, ErrorReport]:
         """
         Object Factory
         """
@@ -92,12 +92,32 @@ class ObjectContext:
         )
         if r.is_err():
             return Err(erpt.submit(r.err()))
-        child: Object | None = r.unwrap()
+        child: Object | list[Object] = r.unwrap()
 
+        #
+        # Add as a child Object
+        #
+        if isinstance(child, Object):
+            return self._add_child_object_(child, erpt, opts)
+
+        #
+        # Add as Import objects
+        #
+        for c in child:
+            r = self._add_import_object_(c, erpt)
+            if r.is_err():
+                return Err(erpt.submit(r.err()))
+        return Ok(cast(Optional[Object], None))
+
+    def _add_child_object_(
+        self, child: Object, erpt: ErrorReport, opts: Settings | None = None
+    ) -> Result[Object | None, ErrorReport]:
         #
         # Resolve reference
         #
-        if (child.class_refpath is not None) and (class_info[2] is not None):
+        if (child._get_type_() is Object.Type.REFERENCE) and (
+            child.class_refpath is not None
+        ):
             referent_in_local_scope: Object | None = None
             r = self._resolve_reference_(child, erpt, opts)
             if r.is_err():
@@ -106,16 +126,28 @@ class ObjectContext:
 
             if referent_in_local_scope is not None:
                 # Referent found in local scope
-                return Ok(referent_in_local_scope)
+                return Ok(cast(Optional[Object], referent_in_local_scope))
 
         #
         # Check explicit parent names
         #
-        if (child.class_refpath is not None) and (class_info[2] is None):
+        elif (child._get_type_() is Object.Type.OBJECT) and (
+            child.class_refpath is not None
+        ):
             r = self._check_parent_names_(child.class_refpath, erpt)
             if r.is_err():
                 return Err(erpt.submit(r.err()))
 
+        return self._add_as_a_child_(child, erpt)
+
+    def _add_import_object_(
+        self, child: Object, erpt: ErrorReport
+    ) -> Result[Object | None, ErrorReport]:
+        return self._add_as_a_child_(child, erpt)
+
+    def _add_as_a_child_(
+        self, child: Object, erpt: ErrorReport
+    ) -> Result[Object | None, ErrorReport]:
         #
         # Add as a child
         #
@@ -127,14 +159,14 @@ class ObjectContext:
                     erpt.submit(
                         GdocNameError(
                             f"Name '{name}' is already used.",
-                            name.get_data_pos() if type(name) is TextString else None,
+                            name.get_data_pos() if isinstance(name, TextString) else None,
                         )
                     )
                 )
 
         self.current.add_child(child)
 
-        return Ok(child)
+        return Ok(cast(Optional[Object], child))
 
     def _get_constructor_(
         self,

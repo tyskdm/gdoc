@@ -21,7 +21,7 @@ import inspect
 import pytest
 
 from gdoc.lib.gdoccompiler.gdexception import *
-from gdoc.lib.gobj.types.importobject import ImportObject
+from gdoc.lib.gobj.types.importobject import Import
 
 
 ## @{ @name \_\_init\_\_(str \| PandocStr)
@@ -39,14 +39,14 @@ def spec___init___1():
     r"""
     [@spec \_\_init\_\_.1] should be a class.
     """
-    assert inspect.isclass(ImportObject) == True
+    assert inspect.isclass(Import) == True
 
 
 def spec___init___2():
     r"""
     [@spec \_\_init\_\_.2] set attrs with default values.
     """
-    target = ImportObject("IMPORT", "ID")
+    target = Import("IMPORT", "ID")
 
     assert target._GdObject__properties == {
         "": {
@@ -73,7 +73,7 @@ def spec___init___3():
     r"""
     [@spec \_\_init\_\_.2] set attrs with default values.
     """
-    target = ImportObject("ACCESS", "ID")
+    target = Import("ACCESS", "ID")
 
     assert target._GdObject__properties == {
         "": {

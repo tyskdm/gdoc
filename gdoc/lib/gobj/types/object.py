@@ -40,7 +40,7 @@ class Object(Element):
         "TEXT": {
             "type": None,
             "params": {
-                "text": ["text", None, None],  # text: Any = None
+                "text": [None, None],  # text: Any = None
             },
         },
         "NOTE": {
@@ -49,7 +49,7 @@ class Object(Element):
                 ["id", "ShortName", None],  # id: ShortName = None
             ],
             "params": {
-                "text": ["text", None, None],  # text: Any = None
+                "text": [None, None],  # text: Any = None
             },
         },
         "*": {
@@ -59,7 +59,7 @@ class Object(Element):
                 ["id", "ShortName", None],  # id: ShortName = None
             ],
             "params": {
-                "text": ["text", None, None],  # text: Any = None
+                "text": [None, None],  # text: Any = None
             },
         },
     }
@@ -72,17 +72,11 @@ class Object(Element):
         alias: TextString | str | None = None,
         tags: list[TextString | str] = [],
         refpath: list[TextString | str] | None = None,
+        reftype: Element.Type | None = None,
         type_args: dict = {},  # For subclasses, Not used in this class.
         categories: CategoryManager | None = None,
-        _isimport_: bool = False,
     ):
-        gobj_type: Element.Type
-        if _isimport_:
-            gobj_type = Element.Type.IMPORT
-        elif refpath is None:
-            gobj_type = Element.Type.OBJECT
-        else:
-            gobj_type = Element.Type.REFERENCE
+        gobj_type: Element.Type = reftype if reftype else Element.Type.OBJECT
 
         super().__init__(name, scope=scope, alias=alias, tags=tags, _type=gobj_type)
 
@@ -147,7 +141,7 @@ class Object(Element):
         obj_tools: ObjectFactoryTools,
         opts: Settings | None,
         erpt: ErrorReport,
-    ) -> Result["Object", ErrorReport]:
+    ) -> Result[Union["Object", list["Object"]], ErrorReport]:
         #
         # Get scope, name, tags, refpath, and the remaining args
         # from the top of the class_args.
@@ -209,8 +203,9 @@ class Object(Element):
             alias=alias,
             tags=cast(list[TextString | str], tags),
             refpath=cast(list[TextString | str], refpath),
+            reftype=Element.Type.REFERENCE if class_info[2] else Element.Type.OBJECT,
             type_args=type_args,
             categories=categories,
         )
 
-        return Ok(child)
+        return Ok(cast(Object | list[Object], child))

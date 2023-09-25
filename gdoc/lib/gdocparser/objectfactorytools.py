@@ -4,6 +4,7 @@ objectfactory.py: ObjectFactory class
 from typing import Any, cast
 
 from gdoc.lib.gdoc import TextString
+from gdoc.lib.gdoc.uri import Uri
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 
 # from gdoc.lib.gobj.types import Object
@@ -54,7 +55,8 @@ class ObjectFactoryTools:
                 return Err(
                     erpt.submit(
                         GdocSyntaxError(
-                            f"Too many arguments: {len(args)} arguments are left"
+                            f"Too many arguments: {len(args)} more arguments are given",
+                            args[0].get_data_pos(),
                         )
                     )
                 )
@@ -121,7 +123,7 @@ class ObjectFactoryTools:
         key: str
         for key in param_types:
             arginfo = param_types[key]
-            if key in params:
+            if (key in params) and (params[key] is not None):
                 a = params[key]
                 r = self.check_type(a, arginfo[0], erpt)
                 if r.is_err():
@@ -193,6 +195,66 @@ class ObjectFactoryTools:
         return Ok((scope, names, tags, args))
 
     def check_type(
-        self, value: Any, value_type: str | None, erpt: ErrorReport
+        self, value: TextString, value_type: str | None, erpt: ErrorReport
     ) -> Result[Any, ErrorReport]:
-        return Ok(value)
+        match value_type:
+            case None:
+                return Ok(value)
+
+            case "ShortName":
+                return nameparser.unpack_identifier(value, erpt)
+
+            case "LongName":
+                return self._check_type_long_name(value, erpt)
+
+            case "Uri":
+                return self._check_type_uri(value, erpt)
+
+            case "UriName":
+                return self._check_type_uri_name(value, erpt)
+
+        return Err(
+            erpt.submit(
+                GdocSyntaxError(
+                    f"Unknown type '{value_type}' is specified",
+                    value.get_data_pos(),
+                )
+            )
+        )
+
+    def _check_type_long_name(
+        self, value: TextString, erpt: ErrorReport
+    ) -> Result[Any, ErrorReport]:
+        r = nameparser.parse_name(value, erpt)
+        if r.is_err():
+            return Err(erpt.submit(r.err()))
+
+        return Ok((value, r.unwrap()))
+
+    def _check_type_uri(
+        self, value: TextString, erpt: ErrorReport
+    ) -> Result[Any, ErrorReport]:
+        r = Uri.create(value, erpt)
+        if r.is_err():
+            return Err(erpt.submit(r.err()))
+
+        return Ok((value, r.unwrap()))
+
+    def _check_type_uri_name(
+        self, value: TextString, erpt: ErrorReport
+    ) -> Result[
+        tuple[Uri, tuple[list[TextString], list[TextString]] | None], ErrorReport
+    ]:
+        r = Uri.create(value, erpt)
+        if r.is_err():
+            return Err(erpt.submit(r.err()))
+        uri: Uri = r.unwrap()
+
+        names: None | tuple[list[TextString], list[TextString]] = None
+        if uri.uri_info.fragment is not None:
+            r = nameparser.parse_name(uri.uri_info.fragment, erpt)
+            if r.is_err():
+                return Err(erpt.submit(r.err()))
+            names = r.unwrap()
+
+        return Ok((uri, names))
