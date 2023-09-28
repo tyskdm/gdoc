@@ -205,3 +205,26 @@ class Node:
             _list += item.__get_linkfrom_list()
 
         return _list
+
+    def walk(
+        self,
+        action: Callable[["Node", "Node"], None],
+        post_action: Callable[["Node", "Node"], None] | None = None,
+        root: Union["Node", None] = None,
+    ):
+        """Walk through the node tree.
+        Walk through all local children and call the action and post_action functions.
+
+        @param action : Called for each node before calling walk() for their children.
+        @param post_action : Called after calling walk() for children. Defaults to None.
+        @param root : Start node of calling walk(). Defaults to None.
+        """
+        root = root or self
+
+        action(self, root)
+
+        for child in root.get_local_children():
+            child.walk(action, post_action, root)
+
+        if post_action is not None:
+            post_action(self, root)
