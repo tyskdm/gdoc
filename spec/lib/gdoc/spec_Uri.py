@@ -9,7 +9,7 @@ r"""
 import pytest
 
 from gdoc.lib.gdoc import TextString
-from gdoc.lib.gdoc.uri import Uri, UriInfo
+from gdoc.lib.gdoc.uri import Uri, UriComponents
 from gdoc.util import ErrorReport
 
 
@@ -1112,7 +1112,7 @@ class Spec_create:
         arguments = (TextString.loadd(stimulus[0]), stimulus[1])
 
         # WHEN
-        r, e = Uri.create(*arguments)
+        r, e = Uri.parse(*arguments)
 
         # THEN
         if expected["err"] is None:
@@ -1124,10 +1124,10 @@ class Spec_create:
             assert r is None
         else:
             assert r is not None
-            assert equals(r.uri_info, expected["result"])
+            assert equals(r.components, expected["result"])
 
 
-def equals(actual: UriInfo | None, expected: dict) -> bool:
+def equals(actual: UriComponents | None, expected: dict) -> bool:
     assert actual is not None
     for k, v in expected.items():
         a = getattr(actual, k)

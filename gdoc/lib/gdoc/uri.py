@@ -13,7 +13,7 @@ logger = getLogger(__name__)
 
 
 @dataclass
-class UriInfo:
+class UriComponents:
     # https://datatracker.ietf.org/doc/html/rfc3986#section-3
     #
     #    foo://example.com:8042/over/there?name=ferret#nose
@@ -71,14 +71,14 @@ class Uri(TextString):
     Uri class
     """
 
-    uri_info: UriInfo
+    components: UriComponents
 
-    def __init__(self, textstr: TextString, uri_info: UriInfo):
+    def __init__(self, textstr: TextString, uri_info: UriComponents):
         super().__init__(textstr)
-        self.uri_info = uri_info
+        self.components = uri_info
 
     @classmethod
-    def create(cls, textstr: TextString, erpt: ErrorReport) -> Result["Uri", ErrorReport]:
+    def parse(cls, textstr: TextString, erpt: ErrorReport) -> Result["Uri", ErrorReport]:
         r, e = Uri.get_uri_info(textstr, erpt)
         if e:
             if (not erpt.should_exit(e)) and (r is not None):
@@ -86,20 +86,20 @@ class Uri(TextString):
                 return Err(erpt, uri)
             return Err(erpt)
 
-        uri = cast(Uri, cls(textstr, cast(UriInfo, r)))
+        uri = cast(Uri, cls(textstr, cast(UriComponents, r)))
         return Ok(uri)
 
     @staticmethod
     def get_uri_info(
         textstr: TextString, erpt: ErrorReport
-    ) -> Result[UriInfo, ErrorReport]:
+    ) -> Result[UriComponents, ErrorReport]:
         if len(textstr) == 0:
             return Err(
                 erpt.submit(GdocSyntaxError("empty uri", textstr.get_data_pos())),
             )
 
         srpt: ErrorReport = erpt.new_subreport()
-        uri_info: UriInfo = UriInfo()
+        components: UriComponents = UriComponents()
         following: TextString
 
         #
@@ -108,49 +108,49 @@ class Uri(TextString):
         r, e = _pop_scheme(textstr, srpt)
         if (e is not None and srpt.should_exit(e)) or (r is None):
             return Err(erpt.submit(srpt))
-        uri_info.scheme, uri_info.colon, uri_info.double_slash, following = r
+        components.scheme, components.colon, components.double_slash, following = r
 
         #
         # pop authority from the beginning of following
         # - does not care if following is empty.
         #
-        if uri_info.double_slash is not None:
+        if components.double_slash is not None:
             if (
                 ((i := following.find("/")) >= 0)
                 or ((i := following.find("?")) >= 0)
                 or ((i := following.find("#")) >= 0)
             ):
-                uri_info.authority = following[:i]
+                components.authority = following[:i]
                 following = following[i:]
             else:  # i < 0 (not found)
-                uri_info.authority = following
+                components.authority = following
                 following = TextString()
 
         #
         # pop path from the beginning of following
         #
         if ((i := following.find("?")) >= 0) or ((i := following.find("#")) >= 0):
-            uri_info.path = following[:i] if i > 0 else None
+            components.path = following[:i] if i > 0 else None
             following = following[i:]
 
         #
         # pop query from the beginning of following
         #
         if following.startswith("?"):
-            uri_info.question_mark = following[:1]
+            components.question_mark = following[:1]
             if (i := following.find("#")) >= 0:
-                uri_info.query = following[1:i]
+                components.query = following[1:i]
                 following = following[i:]
             else:  # i < 0 (not found)
-                uri_info.query = following[1:]
+                components.query = following[1:]
                 following = TextString()
 
         #
         # pop fragment from the beginning of following
         #
         if following.startswith("#"):
-            uri_info.number_sign = following[:1]
-            uri_info.fragment = following[1:]
+            components.number_sign = following[:1]
+            components.fragment = following[1:]
             following = TextString()
 
         #
@@ -161,15 +161,15 @@ class Uri(TextString):
             # ex. "file:./readme.md", "./readme.md", "A.B.C"
             if following.find("/") >= 0:
                 # path
-                uri_info.path = following
+                components.path = following
             else:
                 # fragment
-                uri_info.fragment = following
+                components.fragment = following
 
         if srpt.haserror():
-            return Err(erpt.submit(srpt), uri_info)
+            return Err(erpt.submit(srpt), components)
 
-        return Ok(uri_info)
+        return Ok(components)
 
 
 def _pop_scheme(

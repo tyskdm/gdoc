@@ -100,7 +100,7 @@ category = Category(
                             "type": Property,
                             "args": [],
                             "params": {
-                                "text": ["UriName", None],  # text: Any = None
+                                "text": ["ObjectUri", None],  # text: Any = None
                             },
                         },
                         "note": {

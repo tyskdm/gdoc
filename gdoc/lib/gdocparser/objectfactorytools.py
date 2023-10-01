@@ -4,6 +4,7 @@ objectfactory.py: ObjectFactory class
 from typing import Any, cast
 
 from gdoc.lib.gdoc import TextString
+from gdoc.lib.gdoc.objecturi import ObjectUri
 from gdoc.lib.gdoc.uri import Uri
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 
@@ -210,8 +211,8 @@ class ObjectFactoryTools:
             case "Uri":
                 return self._check_type_uri(value, erpt)
 
-            case "UriName":
-                return self._check_type_uri_name(value, erpt)
+            case "ObjectUri":
+                return self._check_type_object_uri(value, erpt)
 
         return Err(
             erpt.submit(
@@ -234,27 +235,9 @@ class ObjectFactoryTools:
     def _check_type_uri(
         self, value: TextString, erpt: ErrorReport
     ) -> Result[Any, ErrorReport]:
-        r = Uri.create(value, erpt)
-        if r.is_err():
-            return Err(erpt.submit(r.err()))
+        return Uri.parse(value, erpt)
 
-        return Ok((value, r.unwrap()))
-
-    def _check_type_uri_name(
+    def _check_type_object_uri(
         self, value: TextString, erpt: ErrorReport
-    ) -> Result[
-        tuple[Uri, tuple[list[TextString], list[TextString]] | None], ErrorReport
-    ]:
-        r = Uri.create(value, erpt)
-        if r.is_err():
-            return Err(erpt.submit(r.err()))
-        uri: Uri = r.unwrap()
-
-        names: None | tuple[list[TextString], list[TextString]] = None
-        if uri.uri_info.fragment is not None:
-            r = nameparser.parse_name(uri.uri_info.fragment, erpt)
-            if r.is_err():
-                return Err(erpt.submit(r.err()))
-            names = r.unwrap()
-
-        return Ok((uri, names))
+    ) -> Result[ObjectUri, ErrorReport]:
+        return ObjectUri.parse(value, erpt)
