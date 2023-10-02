@@ -19,7 +19,7 @@ class ObjectUri(Uri):
     """
 
     # document_uri = [scheme:][//authority][path]
-    document_uri: TextString
+    document_uri: TextString | None = None
     document_obj: object | None = None
     object_names: list[TextString] | None
     object_tags: list[TextString] | None

@@ -65,7 +65,7 @@ class TableParser:
         # and Transpose the table if table_direction is ">".
         #
         r = self._parse_table_blocktag(textstr, table, srpt, opts)
-        if r.is_err() and (srpt.should_exit(r.err()) or (r is None)):
+        if r.is_err() and (srpt.should_exit(r.err()) or (r.ok() is None)):
             return Err(erpt.submit(srpt))
         table_blocktag, cell_matrix, table_direction = r.unwrap()
 

@@ -1,9 +1,10 @@
 r"""
 ImportObject class
 """
-from typing import Any, ClassVar, cast
+from typing import Any, ClassVar, Literal, cast
 
-from gdoc.lib.gdoc import TextString, Uri, UriInfo
+from gdoc.lib.gdoc import TextString, Uri, UriComponents
+from gdoc.lib.gdoc.objecturi import ObjectUri
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gdocparser import nameparser
 from gdoc.lib.gdocparser.objectfactorytools import ObjectFactoryTools
@@ -22,7 +23,7 @@ class Import(Object):
     _class_type_info_: ClassVar[dict[str, Any]] = {
         "args": [],
         "kwargs": {
-            "from": ["UriName", None],  # from: UriName = None
+            "from": ["ObjectUri", None],  # from: UriName = None
             "as": ["ShortName", None],  # as: ShortName = None
         },
     }
@@ -39,18 +40,10 @@ class Import(Object):
     }
 
     # Instance variables
-    _import_from_uri_: Uri | None = None
-    _import_from_names_: list[TextString] | None = None
-    _import_from_tags_: list[TextString] | None = None
-    _import_from_referent_object_: Object | None = None
-
-    _import_refpath_: tuple[
-        TextString | str,  # scope
-        UriInfo | None,
-        list[TextString],  # names
-        list[TextString],  # tags
-    ] | None = None
-    _import_referent_: Object | None = None
+    import_from_uri: ObjectUri | None = None
+    import_from_referent: Object | ErrorReport | Literal["External"] | None = None
+    import_uri: ObjectUri | None = None
+    import_referent: Object | ErrorReport | Literal["External"] | None = None
 
     @classmethod
     def _create_object_(
@@ -64,23 +57,22 @@ class Import(Object):
         obj_tools: ObjectFactoryTools,
         opts: Settings | None,
         erpt: ErrorReport,
-    ) -> Result[Object | list[Object], ErrorReport]:
+    ) -> Result[list[Object], ErrorReport]:
+        srpt: ErrorReport = erpt.new_subreport()
         #
         # Get kwargs
         #
         r = obj_tools.get_kwargs(
-            class_kwargs, cls._class_type_info_.get("kwargs", []), erpt
+            class_kwargs, cls._class_type_info_.get("kwargs", []), srpt
         )
         if r.is_err():
-            return Err(erpt.submit(r.err()))
+            return Err(srpt.submit(r.err()))
         type_args: dict = r.unwrap()
 
         # kwargs: from
-        from_uri: Uri | None = None
-        from_name: tuple[list[TextString], list[TextString]] | None = None
+        import_from_uri: ObjectUri | None = None
         if "from" in type_args and type_args["from"] is not None:
-            from_uri, from_name = type_args["from"]
-            type_args["from"] = from_uri
+            import_from_uri = cast(ObjectUri, type_args["from"])
 
         # kwargs: as
         arg_as: TextString | None = type_args.get("as", None)
@@ -90,28 +82,25 @@ class Import(Object):
         # Get list of scope, uri, names and tags from args
         #
         max_uris: int = len(aliases) if aliases else -1
-        r = cls._pop_uris_from_args_(class_args, max_uris, erpt, opts)
+        r = cls._pop_object_uris_from_args_(class_args, max_uris, srpt, opts)
         if r.is_err():
-            return Err(erpt.submit(r.err()))
+            return Err(srpt.submit(r.err()))
+        obj_uris: list[tuple[TextString | None, ObjectUri]] = r.unwrap()
 
-        uris: list[
-            tuple[TextString | None, Uri | None, list[TextString], list[TextString]]
-        ] = r.unwrap()
-
-        if len(uris) == 0:
+        if len(obj_uris) == 0:
             return Err(
-                erpt.submit(
+                srpt.submit(
                     GdocSyntaxError("Uri is missing", class_info[1].get_data_pos())
                     if class_info[1]
                     else None
                 )
             )
-        if aliases and len(uris) != len(aliases):
+        if aliases and len(obj_uris) != len(aliases):
             return Err(
-                erpt.submit(
+                srpt.submit(
                     GdocSyntaxError(
                         "Number of aliases does not match number of uris",
-                        aliases[len(uris)].get_data_pos(),
+                        aliases[len(obj_uris)].get_data_pos(),
                     )
                     if class_info[2]
                     else None
@@ -122,57 +111,111 @@ class Import(Object):
         # Construct Objects
         #
         children: list[Object] = []
-        uri: tuple[
-            TextString | None,  # [0] = scope
-            Uri | None,  # [1] = uri
-            list[TextString],  # [2] = names
-            list[TextString],  # [3] = tags
+        obj_uri: tuple[
+            TextString | None,  # scope
+            ObjectUri,
         ]
-        for i, uri in enumerate(uris):
-            #
-            # Construct an Object
-            #
-            scope: TextString | str = uri[0] or "+"
-            names: list[TextString] = (
-                from_name[0] if from_name is not None else []
-            ) + uri[2]
+        for i, obj_uri in enumerate(obj_uris):
+            scope: TextString | str = obj_uri[0] or "+"
+            import_uri: ObjectUri = obj_uri[1]
+            if import_uri.object_names is None:
+                e = GdocSyntaxError("Object name is missing", import_uri.get_data_pos())
+                if srpt.should_exit(e):
+                    return Err(erpt.submit(srpt))
+                continue
+            name: TextString | None = import_uri.object_names[-1]
 
-            name: TextString | None = names[-1]
             if len(name) == 1 and name.startswith("*"):
                 # name == "*"
                 # Note: TextString.__eq__ is not implemented yet.
                 if aliases is not None:
-                    return Err(
-                        erpt.submit(
-                            GdocSyntaxError(
-                                "Alias('as' argument) is not allowed for *",
-                                aliases[i].get_data_pos(),
-                            )
-                        )
+                    e = GdocSyntaxError(
+                        "Alias('as' argument) is not allowed for *",
+                        aliases[i].get_data_pos(),
                     )
+                    return Err(erpt.submit(srpt.submit(e)))
                 name = None
 
+            tags: list[TextString | str] = cast(
+                list[TextString | str],
+                import_uri.object_tags if import_uri.object_tags else [],
+            )
             child = cls(
                 typename,
                 name=aliases[i] if aliases else name,
                 scope=scope,
-                tags=cast(list[TextString | str], uri[3]),
+                tags=tags,
                 reftype=Object.Type.IMPORT,
                 type_args=type_args,
                 categories=categories,
             )
-            child._import_from_uri_ = from_uri
-            child._import_from_names_ = from_name[0] if from_name is not None else []
-            child._import_from_tags_ = from_name[1] if from_name is not None else []
-            child._import_refpath_ = (
-                scope,
-                uri[1].uri_info if uri[1] else None,
-                uri[2],  # names
-                uri[3],  # tags
-            )
+            child.import_from_uri = import_from_uri
+            child.import_uri = import_uri
+
             children.append(child)
 
-        return Ok(cast(Object | list[Object], children))
+        return Ok(children)
+
+    @classmethod
+    def _pop_object_uris_from_args_(
+        cls,
+        class_args: list[TextString],
+        max_uris: int,
+        erpt: ErrorReport,
+        opts: Settings | None = None,
+    ) -> Result[list[tuple[TextString | None, ObjectUri]], ErrorReport]:
+        args: list[TextString] = class_args[:]
+        scope: TextString | None = None
+        objuri_tstr: TextString | None = None
+
+        result: list[tuple[TextString | None, ObjectUri]] = []
+        while (len(args) > 0) and (max_uris != 0):
+            max_uris -= 1 if max_uris > 0 else 0
+            #
+            # pop scope
+            #
+            objuri_tstr = args.pop(0)
+            if objuri_tstr.startswith(("+", "-")):
+                if len(objuri_tstr) == 1:
+                    scope = objuri_tstr
+                    if len(args) == 0:
+                        pos = scope.get_data_pos()
+                        pos = pos.get_last_pos() if pos else None
+                        erpt.submit(GdocSyntaxError("Uri is missing", pos))
+                        return Err(erpt, result)
+                    objuri_tstr = args.pop(0)
+                else:
+                    scope = objuri_tstr[:1]
+                    objuri_tstr = objuri_tstr[1:]
+            else:
+                scope = None
+
+            r = Uri.get_uri_info(objuri_tstr, erpt)
+            if r.is_err():
+                return Err(erpt.submit(r.err()))
+            uri_info: UriComponents = r.unwrap()
+
+            names: list[TextString] = []
+            tags: list[TextString] = []
+            if uri_info.fragment is not None:
+                if len(uri_info.fragment) == 1 and uri_info.fragment.startswith("*"):
+                    # if uri_info.fragment == "*"
+                    # - Note: TextString.__eq__ is not implemented yet.
+                    names = [uri_info.fragment]
+                    tags = []
+                else:
+                    r = nameparser.parse_name(uri_info.fragment, erpt)
+                    if r.is_err():
+                        return Err(erpt.submit(r.err()))
+                    names, tags = r.unwrap()
+
+            result.append((scope, ObjectUri(objuri_tstr, uri_info, names, tags)))
+
+        if len(args) > 0:
+            erpt.submit(GdocSyntaxError("Too many uris", args[0].get_data_pos()))
+            return Err(erpt, result)
+
+        return Ok(result)
 
     @classmethod
     def _pop_uris_from_args_(
@@ -182,7 +225,7 @@ class Import(Object):
         erpt: ErrorReport,
         opts: Settings | None = None,
     ) -> Result[
-        list[tuple[TextString | None, Uri | None, list[TextString], list[TextString]]],
+        list[tuple[TextString | None, Uri, list[TextString], list[TextString]]],
         ErrorReport,
     ]:
         args: list[TextString] = class_args[:]
@@ -190,7 +233,7 @@ class Import(Object):
         uri_tstr: TextString | None = None
 
         result: list[
-            tuple[TextString | None, Uri | None, list[TextString], list[TextString]]
+            tuple[TextString | None, Uri, list[TextString], list[TextString]]
         ] = []
         while (len(args) > 0) and (max_uris != 0):
             max_uris -= 1 if max_uris > 0 else 0
@@ -216,7 +259,7 @@ class Import(Object):
             r = Uri.get_uri_info(uri_tstr, erpt)
             if r.is_err():
                 return Err(erpt.submit(r.err()))
-            uri_info: UriInfo = r.unwrap()
+            uri_info: UriComponents = r.unwrap()
 
             names: list[TextString] = []
             tags: list[TextString] = []

@@ -223,7 +223,7 @@ class Node:
 
         action(self, root)
 
-        for child in root.get_local_children():
+        for child in self.get_local_children():
             child.walk(action, post_action, root)
 
         if post_action is not None:
