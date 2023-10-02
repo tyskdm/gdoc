@@ -9,10 +9,6 @@ class GdocIdError(KeyError):
     pass
 
 
-class GdocImportError(ImportError):
-    pass
-
-
 class GdocKeyError(KeyError):
     pass
 
@@ -109,6 +105,10 @@ class GdocSyntaxError(SyntaxError):
             result.append(errstr)
 
         return result
+
+
+class GdocImportError(GdocSyntaxError):
+    pass
 
 
 class GdocNameError(GdocSyntaxError):

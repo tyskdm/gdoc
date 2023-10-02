@@ -117,28 +117,27 @@ class GdocLanguageInfoProvider(Feature):
 
             # originSelectionRange: Range
             original_selection_range: Range | None = None
-            selection_range: DataPos | None = token.textstr.get_data_pos()
-            if selection_range is not None:
-                original_selection_range = Range(
-                    start={
-                        "line": selection_range.start.ln - 1,
-                        "character": text_pos.get_u16_column(
-                            selection_range.start.ln - 1,
-                            selection_range.start.col - 1,
-                        )
-                        if text_pos
-                        else selection_range.start.col - 1,
-                    },
-                    end={
-                        "line": selection_range.stop.ln - 1,
-                        "character": text_pos.get_u16_column(
-                            selection_range.stop.ln - 1,
-                            selection_range.stop.col - 1,
-                        )
-                        if text_pos
-                        else selection_range.stop.col - 1,
-                    },
-                )
+            selection_range: DataPos | None = token.datapos
+            original_selection_range = Range(
+                start={
+                    "line": selection_range.start.ln - 1,
+                    "character": text_pos.get_u16_column(
+                        selection_range.start.ln - 1,
+                        selection_range.start.col - 1,
+                    )
+                    if text_pos
+                    else selection_range.start.col - 1,
+                },
+                end={
+                    "line": selection_range.stop.ln - 1,
+                    "character": text_pos.get_u16_column(
+                        selection_range.stop.ln - 1,
+                        selection_range.stop.col - 1,
+                    )
+                    if text_pos
+                    else selection_range.stop.col - 1,
+                },
+            )
 
             if (
                 (target_range is not None)

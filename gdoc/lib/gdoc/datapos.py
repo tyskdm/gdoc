@@ -25,3 +25,10 @@ class DataPos(PandocDataPos):
             start = Pos(self.start.ln, self.start.col)
 
         return DataPos(self.path, start, Pos(0, 0))
+
+    def extend(self, other: "DataPos") -> "DataPos":
+        return DataPos(
+            self.path,
+            self.start,
+            other.stop if (other.stop.ln > 0) else other.start,
+        )

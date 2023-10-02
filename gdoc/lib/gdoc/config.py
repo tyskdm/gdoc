@@ -15,6 +15,11 @@ DEFAULTS: dict = {
             ],
             "plaintext": ["Str", "Space", "SoftBreak"],
             "textblock": ["Plain", "Para", "LineBlock", "Header"],
+            "listblock": [
+                "ListItem",
+                "BulletList",
+                "OrderedList",
+            ],  # and "DefinitionList" will be added in the future.
         },
     },
 }

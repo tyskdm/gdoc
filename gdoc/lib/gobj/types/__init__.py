@@ -6,7 +6,7 @@ import sys
 from gdoc.lib.plugins import Category
 
 from .document import Document
-from .importobject import ImportObject
+from .importobject import Import
 from .object import Object
 
 BaseCategory = Category(
@@ -16,7 +16,7 @@ BaseCategory = Category(
         "module": sys.modules[__name__],
         "types": {
             "Object": Object,
-            "Import": ImportObject,
+            "import": Import,
         },
         "aliases": {
             # "Obj": "Object"
@@ -25,4 +25,4 @@ BaseCategory = Category(
     }
 )
 
-__all__ = ["BaseCategory", "Document", "Object", "ImportObject"]
+__all__ = ["BaseCategory", "Document", "Object", "Import"]

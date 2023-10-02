@@ -50,7 +50,11 @@ class LanguageServer(BaseProtocol):
 
     def execute(self) -> int:
         logger.info("Starting language server")
-        self.info("Starting language server")
+        self.info(
+            "Server status: Starting\n"
+            + "gdoc Language Server v0.0.2\n"
+            + "Based on Language Server Protocol v3.17",
+        )
 
         self._status = ServerStatus.NotInitialized
         logger.info(f"Server status: {self._status.name}")
