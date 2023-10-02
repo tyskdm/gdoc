@@ -12,6 +12,7 @@ from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gobj.types import Object
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
+from ..objectcontext import ObjectContext
 from ..tag.inlinetagparser import parse_InlineTag
 from ..tag.objecttaginfoparser import ObjectTagInfo, parse_ObjectTagInfo
 from ..tokeninfobuffer import TokenInfoBuffer
@@ -37,7 +38,7 @@ class TableParser:
     def parse(
         self,
         table: Table,
-        gobj: Object,
+        obj_context: ObjectContext,
         erpt: ErrorReport,
         opts: Settings | None = None,
     ) -> Result[Object | None, ErrorReport]:
@@ -64,7 +65,7 @@ class TableParser:
         # and Transpose the table if table_direction is ">".
         #
         r = self._parse_table_blocktag(textstr, table, srpt, opts)
-        if r.is_err() and (srpt.should_exit(r.err()) or (r is None)):
+        if r.is_err() and (srpt.should_exit(r.err()) or (r.ok() is None)):
             return Err(erpt.submit(srpt))
         table_blocktag, cell_matrix, table_direction = r.unwrap()
 
@@ -88,7 +89,7 @@ class TableParser:
             name_column,
             comment_cols,
             {},  # common_props
-            [Context(gobj, table_blocktag)],  # context_stack
+            [Context(obj_context, table_blocktag)],  # context_stack
             table_blocktag,  # context_tag
         )
 

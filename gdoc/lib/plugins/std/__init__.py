@@ -28,12 +28,11 @@ category = Category(
                     "_class_type_info_": {
                         "args": [
                             # positional args placed after 'scope-name-tags'
-                            ["stereotype", None, None],  # stereotype: Any = None
                         ],
                         "kwargs": {},
                         "params": {
-                            "name": ["alias", "Name", None],  # name: Name = None
-                            "text": ["text", None, None],  # text: Any = None
+                            "name": [None, None],  # name: Name = None
+                            "text": [None, None],  # text: Any = None
                         },
                     },
                     "_class_property_info_": {
@@ -41,7 +40,7 @@ category = Category(
                         "text": {
                             "type": Property,
                             "params": {
-                                "text": ["text", None, None],  # text: Any = None
+                                "text": [None, None],  # text: Any = None
                             },
                         },
                         "note": {
@@ -50,7 +49,7 @@ category = Category(
                                 ["id", "ShortName", None],  # id: ShortName = None
                             ],
                             "params": {
-                                "text": ["text", None, None],  # text: Any = None
+                                "text": [None, None],  # text: Any = None
                             },
                         },
                         "*": {
@@ -60,7 +59,7 @@ category = Category(
                                 ["id", "ShortName", None],  # id: ShortName = None
                             ],
                             "params": {
-                                "text": ["text", None, None],  # text: Any = None
+                                "text": [None, None],  # text: Any = None
                             },
                         },
                     },
@@ -73,12 +72,10 @@ category = Category(
                     "_class_type_info_": {
                         "args": [
                             # positional args placed after 'scope-name-tags'
-                            ["stereotype", None, None],  # stereotype: Any = None
-                            # How to get multiple args?
                         ],
                         "kwargs": {},
                         "params": {
-                            "name": ["alias", "Name", None],  # name: Name = None
+                            "name": [None, None],  # name: Name = None
                             "text": ["text", None, None],  # text: Any = None
                         },
                     },
@@ -87,7 +84,7 @@ category = Category(
                         "text": {
                             "type": Property,
                             "params": {
-                                "text": ["text", None, None],  # text: Any = None
+                                "text": [None, None],  # text: Any = None
                             },
                         },
                         "rationale": {
@@ -96,14 +93,14 @@ category = Category(
                                 ["id", "ShortName", None],  # id: ShortName = None
                             ],
                             "params": {
-                                "text": ["text", None, None],  # text: Any = None
+                                "text": [None, None],  # text: Any = None
                             },
                         },
-                        "satisfiedBy": {
+                        "allocate": {
                             "type": Property,
                             "args": [],
                             "params": {
-                                "text": ["text", None, None],  # text: Any = None
+                                "text": ["ObjectUri", None],  # text: Any = None
                             },
                         },
                         "note": {
@@ -113,7 +110,7 @@ category = Category(
                                 ["id", "ShortName", None],  # id: ShortName = None
                             ],
                             "params": {
-                                "text": ["text", None, None],  # text: Any = None
+                                "text": [None, None],  # text: Any = None
                             },
                         },
                     },
@@ -126,13 +123,11 @@ category = Category(
                     "_class_type_info_": {
                         "args": [
                             # positional args placed after 'scope-name-tags'
-                            ["stereotype", None, None],  # stereotype: Any = None
-                            # How to get multiple args?
                         ],
                         "kwargs": {},
                         "params": {
-                            "name": ["alias", "Name", None],  # name: Name = None
-                            "text": ["text", None, None],  # text: Any = None
+                            "name": [None, None],  # name: Name = None
+                            "text": [None, None],  # text: Any = None
                         },
                     },
                     "_class_property_info_": {
@@ -140,7 +135,7 @@ category = Category(
                         "text": {
                             "type": Property,
                             "params": {
-                                "text": ["text", None, None],  # text: Any = None
+                                "text": [None, None],  # text: Any = None
                             },
                         },
                         "note": {
@@ -150,7 +145,7 @@ category = Category(
                                 ["id", "ShortName", None],  # id: ShortName = None
                             ],
                             "params": {
-                                "text": ["text", None, None],  # text: Any = None
+                                "text": [None, None],  # text: Any = None
                             },
                         },
                     },
@@ -163,13 +158,11 @@ category = Category(
                     "_class_type_info_": {
                         "args": [
                             # positional args placed after 'scope-name-tags'
-                            ["stereotype", None, None],  # stereotype: Any = None
-                            # How to get multiple args?
                         ],
                         "kwargs": {},
                         "params": {
-                            "name": ["alias", "Name", None],  # name: Name = None
-                            "text": ["text", None, None],  # text: Any = None
+                            "name": [None, None],  # name: Name = None
+                            "text": [None, None],  # text: Any = None
                         },
                     },
                     "_class_property_info_": {
@@ -177,7 +170,7 @@ category = Category(
                         "text": {
                             "type": Property,
                             "params": {
-                                "text": ["text", None, None],  # text: Any = None
+                                "text": [None, None],  # text: Any = None
                             },
                         },
                         "note": {
@@ -187,7 +180,7 @@ category = Category(
                                 ["id", "ShortName", None],  # id: ShortName = None
                             ],
                             "params": {
-                                "text": ["text", None, None],  # text: Any = None
+                                "text": [None, None],  # text: Any = None
                             },
                         },
                     },
@@ -200,13 +193,11 @@ category = Category(
                     "_class_type_info_": {
                         "args": [
                             # positional args placed after 'scope-name-tags'
-                            ["stereotype", None, None],  # stereotype: Any = None
-                            # How to get multiple args?
                         ],
                         "kwargs": {},
                         "params": {
-                            "name": ["alias", "Name", None],  # name: Name = None
-                            "text": ["text", None, None],  # text: Any = None
+                            "name": [None, None],  # name: Name = None
+                            "text": [None, None],  # text: Any = None
                         },
                     },
                     "_class_property_info_": {
@@ -214,7 +205,7 @@ category = Category(
                         "text": {
                             "type": Property,
                             "params": {
-                                "text": ["text", None, None],  # text: Any = None
+                                "text": [None, None],  # text: Any = None
                             },
                         },
                         "note": {
@@ -224,7 +215,7 @@ category = Category(
                                 ["id", "ShortName", None],  # id: ShortName = None
                             ],
                             "params": {
-                                "text": ["text", None, None],  # text: Any = None
+                                "text": [None, None],  # text: Any = None
                             },
                         },
                     },

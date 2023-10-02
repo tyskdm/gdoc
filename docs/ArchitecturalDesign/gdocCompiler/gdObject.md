@@ -41,41 +41,6 @@
     - [8.6.4. What gdPackage should satisfy](#864-what-gdpackage-should-satisfy)
   - [8.7. \[@Class\& THIS.t5\] Package](#87-class-thist5-package)
   - [8.8. \[@Class\& THIS.t6\] Category](#88-class-thist6-category)
-- [1. REFERENCES](#1-references)
-- [2. THE TARGET SOFTWARE ELEMENT](#2-the-target-software-element)
-- [3. REQUIREMENTS](#3-requirements)
-  - [3.1. \[@Req EXRQ\] External Requirements](#31-req-exrq-external-requirements)
-- [4. STRATEGY](#4-strategy)
-  - [4.1. \[@ INST\] Internal Design Strategy](#41--inst-internal-design-strategy)
-- [5. STRUCTURE](#5-structure)
-  - [5.1. \[@Block\& THIS\] gdObject : Class definitions](#51-block-this-gdobject--class-definitions)
-    - [5.1.1. Internal classes](#511-internal-classes)
-    - [5.1.2. Gdoc Primitive types](#512-gdoc-primitive-types)
-  - [5.2. \[@Class\& THIS.t5\] Package](#52-class-thist5-package)
-  - [5.3. \[@Class\& THIS.t4\] Document](#53-class-thist4-document)
-- [6. BEHAVIOR](#6-behavior)
-  - [6.1. Compile](#61-compile)
-  - [6.2. Json dumps/loads](#62-json-dumpsloads)
-    - [6.2.1. dumps](#621-dumps)
-    - [6.2.2. loads](#622-loads)
-- [7. Requirements allocation](#7-requirements-allocation)
-- [8. \[@\] SOFTWARE UNITS](#8--software-units)
-  - [8.1. \[@Class\& THIS.c1\] GdSymbol : Class Methods](#81-class-thisc1-gdsymbol--class-methods)
-  - [8.2. \[@Class\& THIS.c2\] GdSymbolTable : Class Methods](#82-class-thisc2-gdsymboltable--class-methods)
-  - [8.3. \[@Class\& THIS.c3\] GdObject : Class Methods](#83-class-thisc3-gdobject--class-methods)
-    - [8.3.1. Behavior](#831-behavior)
-      - [8.3.1.1. `_get_class()`](#8311-_get_class)
-      - [8.3.1.2. `create_object()`](#8312-create_object)
-  - [8.4. \[@Class\& THIS.t1\] BaseObject : Class Methods](#84-class-thist1-baseobject--class-methods)
-  - [8.5. \[@Class\& THIS.t2\] Import](#85-class-thist2-import)
-  - [8.6. \[@Class\& THIS.t4\] Document](#86-class-thist4-document)
-    - [8.6.1. Behavior](#861-behavior)
-      - [8.6.1.1. `_get_class()`](#8611-_get_class)
-    - [8.6.2. Link process steps](#862-link-process-steps)
-    - [8.6.3. What gdDocument should satisfy](#863-what-gddocument-should-satisfy)
-    - [8.6.4. What gdPackage should satisfy](#864-what-gdpackage-should-satisfy)
-  - [8.7. \[@Class\& THIS.t5\] Package](#87-class-thist5-package)
-  - [8.8. \[@Class\& THIS.t6\] Category](#88-class-thist6-category)
 
 <br>
 
@@ -122,17 +87,17 @@ This document refers to the following documents.
 | @Req  | Name | Text | Trace |
 | :---: | ---- | ---- | :---: |
 | FR    | Functional Requirement |
-| @     | 1 | gdObjectを生成する | @copy: RA.1a.3
-| @     | 2 | 指定された型のオブジェクト・プロパティを生成する | @copy: RA.1a2.2
-| @     | 3 | ソースファイルをオブジェクト化した情報から、json形式文字列を生成する | @copy: RA.5a.1
+| @     | 1 | gdObjectを生成する | (copy) RA.1a.3
+| @     | 2 | 指定された型のオブジェクト・プロパティを生成する | (copy) RA.1a2.2
+| @     | 3 | ソースファイルをオブジェクト化した情報から、json形式文字列を生成する | (copy) RA.5a.1
 | DS    | Design Specification    |
-| @     | 1 | gdObject classは、ファイルのようにOpen/Closeを伴うインターフェースメソッドを提供する。 | @copy: RA.gdo.1
-| @     | 2 | インターフェースメソッドにより生成されるオブジェクト/プロパティが登録される場所を示す、WritePoint情報を持つ。 | @copy: RA.gdo.2
-| @     | 3 | インターフェースメソッドによる指示内容の実オブジェクトデータへの変換は、クラスのコンストラクタが行う。 | @copy: RA.gdo.3
-| @     | 4 | クラス（プラグイン含む）情報はgdObjectのOpen時に外部から供給される。 | @copy: RA.gdo.4
-| @     | 5 | 生成されたクラスインスタンスは、クラスの名前とバージョンをセットで保持する。 | @copy: RA.gdo.5
+| @     | 1 | gdObject classは、ファイルのようにOpen/Closeを伴うインターフェースメソッドを提供する。 | (copy) RA.gdo.1
+| @     | 2 | インターフェースメソッドにより生成されるオブジェクト/プロパティが登録される場所を示す、WritePoint情報を持つ。 | (copy) RA.gdo.2
+| @     | 3 | インターフェースメソッドによる指示内容の実オブジェクトデータへの変換は、クラスのコンストラクタが行う。 | (copy) RA.gdo.3
+| @     | 4 | クラス（プラグイン含む）情報はgdObjectのOpen時に外部から供給される。 | (copy) RA.gdo.4
+| @     | 5 | 生成されたクラスインスタンスは、クラスの名前とバージョンをセットで保持する。 | (copy) RA.gdo.5
 |       | rationale | エクスポートされたデータがどのクラスのどのバージョンから生成されたものであるか追跡可能にするため。
-| @     | 6 | json形式テキストデータへのエクスポート及びインポート機能を提供する | @copy: RA.gdo.6
+| @     | 6 | json形式テキストデータへのエクスポート及びインポート機能を提供する | (copy) RA.gdo.6
 
 <br>
 
@@ -271,24 +236,24 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
 | @Req& | Name | Text | Trace |
 | :----: | ---- | ---- | :---: |
-| EXRQ.FR.1 |   | gdObjectを生成する | @allocate: THIS.BaseObject
-| EXRQ.FR.2 |   | 指定された型のオブジェクト・プロパティを生成する | @allocate: THIS.GdObject
-| EXRQ.FR.3 |   | ソースファイルをオブジェクト化した情報から、json形式文字列を生成する | @allocate: THIS.GdObject
+| EXRQ.FR.1 |   | gdObjectを生成する | (allocate) THIS.BaseObject
+| EXRQ.FR.2 |   | 指定された型のオブジェクト・プロパティを生成する | (allocate) THIS.GdObject
+| EXRQ.FR.3 |   | ソースファイルをオブジェクト化した情報から、json形式文字列を生成する | (allocate) THIS.GdObject
 | EXRQ.DS.1 |   | gdObject classは、ファイルのようにOpen/Closeを伴うインターフェースメソッドを提供する。 |
-| @Spec     | 1 |  | @allocate:
+| @Spec     | 1 |  | (allocate)
 | EXRQ.DS.2 |   | インターフェースメソッドにより生成されるオブジェクト/プロパティが登録される場所を示す、WritePoint情報を持つ。 |
-| @Spec     | 1 |  | @allocate:
-| EXRQ.DS.3 |   | インターフェースメソッドによる指示内容の実オブジェクトデータへの変換は、クラスのコンストラクタが行う。 | @allocate: THIS.GdObject
+| @Spec     | 1 |  | (allocate)
+| EXRQ.DS.3 |   | インターフェースメソッドによる指示内容の実オブジェクトデータへの変換は、クラスのコンストラクタが行う。 | (allocate) THIS.GdObject
 | EXRQ.DS.4 |   | クラス（プラグイン含む）情報はgdObjectのOpen時に外部から供給される。 |
-| @Spec     | 1 |  | @allocate:
-| EXRQ.DS.5 |   | 生成されたクラスインスタンスは、クラスの名前とバージョンをセットで保持する。 | @allocate: THIS.BaseObject
-| EXRQ.DS.6 |   | json形式テキストデータへのエクスポート及びインポート機能を提供する | @allocate: THIS.GdObject
+| @Spec     | 1 |  | (allocate)
+| EXRQ.DS.5 |   | 生成されたクラスインスタンスは、クラスの名前とバージョンをセットで保持する。 | (allocate) THIS.BaseObject
+| EXRQ.DS.6 |   | json形式テキストデータへのエクスポート及びインポート機能を提供する | (allocate) THIS.GdObject
 
 <br>
 
 | @Req& | Name | Text | Trace |
 | :----: | ---- | ---- | :---: |
-| INST.sg1 | | THIS provides property access methods like dict. | @allocate: THIS.GdObject
+| INST.sg1 | | THIS provides property access methods like dict. | (allocate) THIS.GdObject
 | INST.sg2 | | THIS provides create_object() method that creates new object and return it. | THIS.BaseObject
 
 - sg3 and sg4 are reflected in the structural design.
@@ -330,15 +295,15 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 | c2      | GdSymbolTable       | Symbol table to reference objects by id and name.
 | @Method | get_parent          |
 | @Method | add_child           | `def add_child(self, child)`
-|         | param               | in child : GdSymbolTable
+|         | param               | (in) child : GdSymbolTable
 | @Method | __add_reference     | `def __add_reference(self, child)`
-|         | param               | in child : GdSymbolTable
+|         | param               | (in) child : GdSymbolTable
 | @Method | __get_children      | get children named without starting '&'
 | @Method | __get_references    | get children named with starting '&'
 | @Method | unidir_link_to      | can link to OBJECT, REFERENCE, IMPORT/ACCESS from IMPORT/ACCESS<br>**TODO**: should detects circular references and sends an exception.
-|         | param               | in target : GdSymbolTable
+|         | param               | (in) target : GdSymbolTable
 | @Method | bidir_link_to       | can link only to OBJECT or REFERENCE from REFERENCE<br>**TODO**: should detects circular references and sends an exception.
-|         | param               | in target : GdSymbolTable
+|         | param               | (in) target : GdSymbolTable
 | @Method | __get_linkto_target | gets target OBJECT referenced by multilevels indirectly link_to references.<br>**TODO**: should detects circular references and sends an exception.
 | @Method | __get_linkfrom_list | gets list of OBJECTs that reference `self` by multilevels indirectly link_from reference tree.<br>**TODO**: should detects circular references and sends an exception.
 | @Method | get_children        |

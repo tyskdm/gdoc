@@ -411,9 +411,7 @@ class Element:
 
             if target is not None:
                 # Check if self is the only a child of Div or Span:
-                if (target.get_type() not in ("Div", "Span")) or (
-                    len(cast(list[Element], target.get_children())) != 1
-                ):
+                if len(cast(list[Element], target.get_children())) != 1:
                     target = None
 
         if target is not None:

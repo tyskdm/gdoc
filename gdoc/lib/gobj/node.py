@@ -1,11 +1,11 @@
 r"""
-Namespace class
+Node class
 """
 from enum import Enum, auto
-from typing import Optional, Union
+from typing import Callable, Optional, Union
 
 
-class Namespace:
+class Node:
     """
     ;
     """
@@ -26,13 +26,13 @@ class Namespace:
     names: list[str]
     tags: list[str]
     __type: Type
-    __parent: Union["Namespace", None]
-    __children: list["Namespace"]
-    __nametable: dict[str, "Namespace"]
-    __link_to: Union["Namespace", None]
-    __link_from: list["Namespace"]
+    __parent: Union["Node", None]
+    __children: list["Node"]
+    __nametable: dict[str, "Node"]
+    __link_to: Union["Node", None]
+    __link_from: list["Node"]
     __cache: dict[str, dict]
-    _root: Union["Namespace", None]
+    _root: Union["Node", None]
 
     def __init__(
         self,
@@ -70,9 +70,9 @@ class Namespace:
                             f"not '{type(tag).__name__}'"
                         )
 
-            if type(_type) is not Namespace.Type:
+            if type(_type) is not Node.Type:
                 raise TypeError(
-                    f"only Namespace.Type can be set, not '{type(_type).__name__}'"
+                    f"only Node.Type can be set, not '{type(_type).__name__}'"
                 )
 
         self.name = name or alias
@@ -96,8 +96,8 @@ class Namespace:
     def _get_type_(self) -> Type:
         return self.__type
 
-    def add_child(self, child: "Namespace") -> None:
-        if self.__type is Namespace.Type.IMPORT:
+    def add_child(self, child: "Node") -> None:
+        if self.__type is Node.Type.IMPORT:
             raise TypeError("'Import' object cannot have children")
 
         for name in child.names:
@@ -109,26 +109,26 @@ class Namespace:
         child.__parent = self
         child._root = self._root or self
 
-    def get_parent(self) -> Optional["Namespace"]:
+    def get_parent(self) -> Optional["Node"]:
         return self.__parent
 
-    def get_root(self) -> Optional["Namespace"]:
+    def get_root(self) -> Optional["Node"]:
         return self._root or self
 
-    def get_children(self) -> list["Namespace"]:
-        children: list["Namespace"] = []
+    def get_children(self) -> list["Node"]:
+        children: list["Node"] = []
 
-        parents: list["Namespace"] = self.__get_linkto_target().__get_linkfrom_list()
+        parents: list["Node"] = self.__get_linkto_target().__get_linkfrom_list()
 
         for parent in parents:
             children += parent.get_local_children()
 
         return children
 
-    def get_child(self, name) -> Optional["Namespace"]:
-        child: Optional["Namespace"] = None
+    def get_child(self, name) -> Optional["Node"]:
+        child: Optional["Node"] = None
 
-        parents: list["Namespace"] = self.__get_linkto_target().__get_linkfrom_list()
+        parents: list["Node"] = self.__get_linkto_target().__get_linkfrom_list()
 
         for parent in parents:
             if name in parent.__nametable:
@@ -137,11 +137,11 @@ class Namespace:
 
         return child
 
-    def get_local_children(self) -> list["Namespace"]:
+    def get_local_children(self) -> list["Node"]:
         return self.__children[:]
 
-    def resolve(self, names: list[str]) -> Optional["Namespace"]:
-        target: "Namespace" | None
+    def resolve(self, names: list[str]) -> Optional["Node"]:
+        target: "Node" | None
 
         # target = self.get_child(names[0])
         # if target is None:
@@ -164,44 +164,67 @@ class Namespace:
 
         return target
 
-    def unidir_link_to(self, dst: "Namespace") -> None:
-        if self.__type is Namespace.Type.OBJECT:
+    def unidir_link_to(self, dst: "Node") -> None:
+        if self.__type is Node.Type.OBJECT:
             raise TypeError("'OBJECT' cannot unidir_link to any others")
 
-        elif self.__type is Namespace.Type.REFERENCE:
+        elif self.__type is Node.Type.REFERENCE:
             raise TypeError("'REFERENCE' cannot unidir_link to any others")
 
         self.__link_to = dst
 
-    def bidir_link_to(self, dst: "Namespace") -> None:
-        if self.__type is Namespace.Type.REFERENCE:
-            if dst.__type in (Namespace.Type.OBJECT, Namespace.Type.REFERENCE):
+    def bidir_link_to(self, dst: "Node") -> None:
+        if self.__type is Node.Type.REFERENCE:
+            if dst.__type in (Node.Type.OBJECT, Node.Type.REFERENCE):
                 self.__link_to = dst
                 dst.__link_from.append(self)
 
             else:
                 raise TypeError("cannot bidir_link to 'IMPORT'")
 
-        elif self.__type is Namespace.Type.OBJECT:
+        elif self.__type is Node.Type.OBJECT:
             raise TypeError("'OBJECT' cannot bidir_link to any others")
 
         else:
             raise TypeError("'IMPORT' cannot bidir_link to any others")
 
-    def __get_linkto_target(self) -> "Namespace":
-        target: "Namespace" = self
+    def __get_linkto_target(self) -> "Node":
+        target: "Node" = self
 
-        while target.__type is not Namespace.Type.OBJECT:
+        while target.__type is not Node.Type.OBJECT:
             if target.__link_to is None:
                 break
             target = target.__link_to
 
         return target
 
-    def __get_linkfrom_list(self) -> list["Namespace"]:
-        _list: list["Namespace"] = [self]
+    def __get_linkfrom_list(self) -> list["Node"]:
+        _list: list["Node"] = [self]
 
         for item in self.__link_from:
             _list += item.__get_linkfrom_list()
 
         return _list
+
+    def walk(
+        self,
+        action: Callable[["Node", "Node"], None],
+        post_action: Callable[["Node", "Node"], None] | None = None,
+        root: Union["Node", None] = None,
+    ):
+        """Walk through the node tree.
+        Walk through all local children and call the action and post_action functions.
+
+        @param action : Called for each node before calling walk() for their children.
+        @param post_action : Called after calling walk() for children. Defaults to None.
+        @param root : Start node of calling walk(). Defaults to None.
+        """
+        root = root or self
+
+        action(self, root)
+
+        for child in self.get_local_children():
+            child.walk(action, post_action, root)
+
+        if post_action is not None:
+            post_action(self, root)

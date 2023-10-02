@@ -1,22 +1,19 @@
 """
 tableparser.py: TableParser class
 """
-from dataclasses import dataclass
 from logging import getLogger
-from typing import Literal, NamedTuple, Optional, TypeAlias, Union, cast
+from typing import cast
 
-from gdoc.lib.gdoc import DataPos, String, TextBlock, TextString
+from gdoc.lib.gdoc import String, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.lib.gdoc.inlinetag import InlineTag
-from gdoc.lib.gdoc.table import Cell, Row, Table
+from gdoc.lib.gdoc.table import Cell
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
-from gdoc.lib.gobj.types import Object
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
+from ..objectcontext import ObjectContext
 from ..parenthesesparser import parse_Parentheses
 from ..tag.inlinetagparser import parse_InlineTag
-from ..tag.objecttaginfoparser import ClassInfo, ObjectTagInfo, parse_ObjectTagInfo
-from ..textblock.lineparser import detect_CommentTag, parse_Line
 from ..tokeninfobuffer import TokenInfoBuffer
 from .tableinfo import TableInfo
 
@@ -59,7 +56,7 @@ class PropertyParser:
         if not isinstance(prop_key, InlineTag):
             return Err(erpt.submit(GdocSyntaxError("Invalid Cell data")))
 
-        obj = table_info.context_stack[-1].obj
+        obj: ObjectContext = table_info.context_stack[-1].obj
         for cell in row[2:]:
             prop_tstr: TextString | None = cell.get_first_line() if cell else None
             if prop_tstr is None:

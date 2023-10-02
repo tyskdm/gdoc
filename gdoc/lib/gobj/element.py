@@ -6,10 +6,10 @@ from typing import Any, cast
 from gdoc.lib.gdoc import Text, TextString
 from gdoc.lib.gdoccompiler.gdexception import *
 
-from .namespace import Namespace
+from .node import Node
 
 
-class Element(Namespace):
+class Element(Node):
     """
     ;
     """
@@ -23,7 +23,7 @@ class Element(Namespace):
         scope: TextString | str = "+",
         alias: TextString | str | None = None,
         tags: list[TextString | str] = [],
-        _type: Namespace.Type = Namespace.Type.OBJECT,
+        _type: Node.Type = Node.Type.OBJECT,
     ):
         super().__init__(
             name=name.get_str() if (type(name) is TextString) else cast(str, name),

@@ -5,6 +5,7 @@ from gdoc.lib.gdoc import Document
 from gdoc.lib.gobj.types import Object
 from gdoc.util import ErrorReport, Result, Settings
 
+from .objectcontext import ObjectContext
 from .sectionparser import SectionParser
 from .tokeninfobuffer import TokenInfoBuffer
 
@@ -24,7 +25,7 @@ class DocumentParser:
     def parse(
         self,
         document: Document,
-        gobj: Object,
+        gobj: ObjectContext,
         erpt: ErrorReport,
         opts: Settings | None = None,
     ) -> Result[Object, ErrorReport]:

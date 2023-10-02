@@ -14,6 +14,10 @@ from .text import Text
 from .textblock import TextBlock
 from .textstring import TextString
 
+# following imports should be after importing TextString
+from .uri import Uri, UriComponents  # isort:skip
+from .objecturi import ObjectUri  # isort:skip
+
 __all__ = [
     "Gdoc",
     "Pos",
@@ -24,6 +28,9 @@ __all__ = [
     "Quoted",
     "TextString",
     "Parenthesized",
+    "Uri",
+    "UriComponents",
+    "ObjectUri",
     "Table",
     "TextBlock",
     "Section",

@@ -1,21 +1,19 @@
 """
 tableparser.py: TableParser class
 """
-from dataclasses import dataclass
 from logging import getLogger
-from typing import Literal, NamedTuple, Optional, TypeAlias, Union, cast
+from typing import cast
 
-from gdoc.lib.gdoc import DataPos, String, TextBlock, TextString
+from gdoc.lib.gdoc import String, TextString
 from gdoc.lib.gdoc.blocktag import BlockTag
 from gdoc.lib.gdoc.inlinetag import InlineTag
-from gdoc.lib.gdoc.table import Cell, Row, Table
+from gdoc.lib.gdoc.table import Cell
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gobj.types import Object
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
-from ..tag.inlinetagparser import parse_InlineTag
-from ..tag.objecttaginfoparser import ClassInfo, ObjectTagInfo, parse_ObjectTagInfo
-from ..textblock.lineparser import detect_CommentTag, parse_Line
+from ..objectcontext import ObjectContext
+from ..tag.objecttaginfoparser import ObjectTagInfo, parse_ObjectTagInfo
 from ..tokeninfobuffer import TokenInfoBuffer
 from .tableinfo import Context, TableInfo
 
@@ -99,8 +97,10 @@ class ObjectParser:
         # - Based on the hierarchal id name, deside parent object of new object.
         # - The top of the hierarchal id name points to top layer object of the table.
         #
+        object_context: ObjectContext = table_info.context_stack[0].obj
+
         class_args: list[TextString] = taginfo.class_args[:]
-        r = Object._pop_name_(class_args, srpt, opts)
+        r = object_context.tools.pop_name_from_args(class_args, srpt, opts)
         # _pop_name_() -> Ok((scope, names, tags, args))
         if r.is_err():
             return Err(erpt.submit(srpt.submit(r.err())))
@@ -108,7 +108,6 @@ class ObjectParser:
         name_hierarchy: int = len(name_tstrs)
 
         # Deside parent object of new object
-        parent_object: Object
         if name_hierarchy > 1:
             if len(table_info.context_stack) < (name_hierarchy - 1):
                 srpt.submit(
@@ -118,7 +117,7 @@ class ObjectParser:
                     )
                 )
                 return Err(erpt.submit(srpt))
-            parent_object = table_info.context_stack[name_hierarchy - 2].obj
+            object_context = table_info.context_stack[name_hierarchy - 2].obj
 
         elif textstr.startswith("@"):  # name_hierarchy in (0, 1)
             if len(table_info.context_stack) < 2:
@@ -129,15 +128,15 @@ class ObjectParser:
                     )
                 )
                 return Err(erpt.submit(srpt))
-            parent_object = table_info.context_stack[1].obj
+            object_context = table_info.context_stack[1].obj
 
         else:
-            parent_object = table_info.context_stack[0].obj
+            object_context = table_info.context_stack[0].obj
 
         #
         # Create object
         #
-        r = parent_object.add_new_object(
+        r = object_context.add_new_object(
             object_blocktag._class_info,
             taginfo.class_args,
             taginfo.class_kwargs,
@@ -149,7 +148,10 @@ class ObjectParser:
         if r.is_err():
             return Err(erpt.submit(srpt.submit(r.err())))
 
-        child: Object = r.unwrap()
+        child: Object | None = r.unwrap()
+        #
+        # todo: fill missing case, child is None
+        #
         if (child is not None) and (self.tokeninfo is not None):
             # Set info for language server
             if child.class_refpath is not None:
@@ -162,10 +164,18 @@ class ObjectParser:
                     "type",
                     ("variable", []),
                 )
-        table_info.context_tag = object_blocktag
-        table_info.context_stack = table_info.context_stack[
-            : (name_hierarchy - 1 if textstr.startswith("@") else name_hierarchy)
-        ] + [Context(child, object_blocktag)]
+
+        if child is not None:
+            table_info.context_tag = object_blocktag
+            table_info.context_stack = table_info.context_stack[
+                : name_hierarchy + (1 if textstr.startswith("@") else 0)
+            ]
+            table_info.context_stack += [
+                Context(
+                    table_info.context_stack[-1][0].get_sub_context(child),
+                    object_blocktag,
+                )
+            ]
 
         #
         # Create properties
@@ -190,7 +200,7 @@ class ObjectParser:
 
             prop_tstr: TextString = tstr
             prop_key: InlineTag = table_info.property_keys[i]
-            child.add_new_property(
+            table_info.context_stack[-1][0].add_new_property(
                 prop_key._prop_type,
                 prop_key._prop_args,
                 prop_key._prop_kwargs,
