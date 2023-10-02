@@ -36,6 +36,7 @@ line-length = 90
 [tool.isort]
 profile = "black"
 line_length = 90
+skip = []
 
 [tool.flake8]
 max-line-length = 90
