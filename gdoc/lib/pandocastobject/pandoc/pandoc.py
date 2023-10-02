@@ -98,7 +98,7 @@ class Pandoc:
 
         if (fileformat is None) and (file_ext == "md"):
             fileformat = "gfm+sourcepos"
-            via_html = True if via_html is None else via_html
+            via_html = False if via_html is None else via_html
         else:
             if fileformat in _SOURCEPOS_:
                 fileformat += "+sourcepos"

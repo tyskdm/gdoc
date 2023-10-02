@@ -128,7 +128,7 @@ def _create_object(
 ) -> tuple[Document | None, ErrorReport | None, TokenInfoBuffer]:
     filepath: str = uri.removeprefix("file://")
     fileformat: str | None = "gfm"
-    via_html: bool | None = True
+    via_html: bool | None = False
 
     tokeninfo: TokenInfoBuffer = TokenInfoBuffer()
 

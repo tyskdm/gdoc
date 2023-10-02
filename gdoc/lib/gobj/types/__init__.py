@@ -16,7 +16,7 @@ BaseCategory = Category(
         "module": sys.modules[__name__],
         "types": {
             "Object": Object,
-            "Import": ImportObject,
+            "import": ImportObject,
         },
         "aliases": {
             # "Obj": "Object"

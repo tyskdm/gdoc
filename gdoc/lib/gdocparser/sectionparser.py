@@ -1,10 +1,11 @@
 """
 sectionparser.py: parse_Section function
 """
-from gdoc.lib.gdoc import Section, TextBlock
+from gdoc.lib.gdoc import Section, Table, TextBlock
 from gdoc.lib.gobj.types import Object
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
+from .table.tableparser import TableParser
 from .textblock.textblockparser import TextBlockParser
 from .tokeninfobuffer import TokenInfoBuffer
 
@@ -20,6 +21,7 @@ class SectionParser:
         self.tokeninfo = tokeninfo
         self.config = config
         self.textblockparser = TextBlockParser(tokeninfo, config)
+        self.tableparser = TableParser(tokeninfo, config)
 
     def parse(
         self,
@@ -35,13 +37,13 @@ class SectionParser:
         if len(section) == 0:
             return Ok(gobj)
 
+        #
+        # The first block
+        #
         next: int = 0
-        if type(section[0]) is TextBlock:
+        if isinstance((block := section[0]), TextBlock):
             next += 1
-            #
-            # The first block
-            #
-            r, e = self.textblockparser.parse(section[0], context, srpt, opts)
+            r, e = self.textblockparser.parse(block, context, srpt, opts)
             if e and srpt.should_exit(e):
                 return Err(erpt.submit(srpt))
 
@@ -51,19 +53,22 @@ class SectionParser:
                 # This Section is a comment.
                 return Ok(gobj)
 
-        # for i in range(next, len(section)):
+        #
+        # Following blocks
+        #
         for block in section[next:]:
-            #
-            # Following blocks
-            #
-            blocktype = type(block)
-            if blocktype is TextBlock:
+            if isinstance(block, TextBlock):
                 _, e = self.textblockparser.parse(block, context, srpt, opts)
                 if e and srpt.should_exit(e):
                     return Err(erpt.submit(srpt))
 
-            elif blocktype is Section:
+            elif isinstance(block, Section):
                 _, e = self.parse(block, context, srpt, opts)
+                if e and srpt.should_exit(e):
+                    return Err(erpt.submit(srpt))
+
+            elif isinstance(block, Table):
+                _, e = self.tableparser.parse(block, context, srpt, opts)
                 if e and srpt.should_exit(e):
                     return Err(erpt.submit(srpt))
 

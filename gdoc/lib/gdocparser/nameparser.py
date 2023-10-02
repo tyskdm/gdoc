@@ -122,6 +122,10 @@ def _unpack_identifier(
         id_text = textstr
         id_str = textstr.get_str()
 
+        r = _is_valid_identifier(id_text, erpt, istag)
+        if r.is_err():
+            return Err(erpt.submit(r.err()))
+
     else:
         if len(textstr) > 1:
             return Err(
@@ -174,6 +178,13 @@ def _unpack_identifier(
                 )
             )
 
+    return Ok(id_text)
+
+
+def _is_valid_identifier(
+    textstr: TextString, erpt: ErrorReport, /, istag: bool = False
+) -> Result[TextString, ErrorReport]:
+    id_str = textstr.get_str()
     #
     # Check if id_str is valid identifier
     #
@@ -185,7 +196,7 @@ def _unpack_identifier(
                 erpt.submit(
                     GdocSyntaxError(
                         "invalid tag" if istag else "invalid name",
-                        id_text.get_char_pos(0),
+                        textstr.get_char_pos(0),
                         (id_str, 0, 1),
                     )
                 )
@@ -198,13 +209,13 @@ def _unpack_identifier(
                 erpt.submit(
                     GdocSyntaxError(
                         "invalid tag" if istag else "invalid name",
-                        id_text.get_char_pos(i),
+                        textstr.get_char_pos(i),
                         (id_str, i, 1),
                     )
                 )
             )
 
-    return Ok(id_text)
+    return Ok(textstr)
 
 
 def parse_name(

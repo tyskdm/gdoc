@@ -11,25 +11,28 @@ TagParameter: TypeAlias = dict[str, TextString | list[TextString] | None]
 class TokenInfo(NamedTuple):
     col: int  # 0-based start column
     len: int  # length
-    token: TextString
+    token: TextString | DataPos
+    datapos: DataPos
     info: dict[str, Any]
 
 
 class TokenInfoBuffer:
-    _info: dict[TextString, dict[str, Any]]
+    _info: dict[TextString | DataPos, dict[str, Any]]
     _index: list[tuple[int, list[TokenInfo]]] | None
 
     def __init__(self):
         self._info = {}
         self._index = None
 
-    def set(self, token: TextString, key: str, val: Any):
+    def set(self, token: TextString | DataPos | None, key: str, val: Any):
+        if token is None:
+            return
         self._info.setdefault(token, {})[key] = val
 
     def get(self, token: TextString, key: str, default: Any = None) -> Any:
         return self._info[token].get(key, default)
 
-    def get_all(self) -> dict[TextString, dict[str, Any]]:
+    def get_all(self) -> dict[TextString | DataPos, dict[str, Any]]:
         return self._info
 
     def get_index(self) -> list[tuple[int, list[TokenInfo]]]:
@@ -40,7 +43,9 @@ class TokenInfoBuffer:
         for token in reversed(self._info):
             # Since `self._info` is arranged in order of appearance,
             # the reverse order is more efficient for searching.
-            datapos: DataPos | None = token.get_data_pos()
+            datapos: DataPos | None = (
+                token.get_data_pos() if isinstance(token, TextString) else token
+            )
             if datapos is None:
                 continue
 

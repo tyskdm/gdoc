@@ -119,6 +119,117 @@ category = Category(
                     },
                 },
             ),
+            "Class": type(
+                "std:Class",
+                (Object,),
+                {
+                    "_class_type_info_": {
+                        "args": [
+                            # positional args placed after 'scope-name-tags'
+                            ["stereotype", None, None],  # stereotype: Any = None
+                            # How to get multiple args?
+                        ],
+                        "kwargs": {},
+                        "params": {
+                            "name": ["alias", "Name", None],  # name: Name = None
+                            "text": ["text", None, None],  # text: Any = None
+                        },
+                    },
+                    "_class_property_info_": {
+                        "doc": "text",
+                        "text": {
+                            "type": Property,
+                            "params": {
+                                "text": ["text", None, None],  # text: Any = None
+                            },
+                        },
+                        "note": {
+                            # All other than the above is treated as a Text property.
+                            "type": Property,
+                            "args": [
+                                ["id", "ShortName", None],  # id: ShortName = None
+                            ],
+                            "params": {
+                                "text": ["text", None, None],  # text: Any = None
+                            },
+                        },
+                    },
+                },
+            ),
+            "Method": type(
+                "std:Method",
+                (Object,),
+                {
+                    "_class_type_info_": {
+                        "args": [
+                            # positional args placed after 'scope-name-tags'
+                            ["stereotype", None, None],  # stereotype: Any = None
+                            # How to get multiple args?
+                        ],
+                        "kwargs": {},
+                        "params": {
+                            "name": ["alias", "Name", None],  # name: Name = None
+                            "text": ["text", None, None],  # text: Any = None
+                        },
+                    },
+                    "_class_property_info_": {
+                        "doc": "text",
+                        "text": {
+                            "type": Property,
+                            "params": {
+                                "text": ["text", None, None],  # text: Any = None
+                            },
+                        },
+                        "note": {
+                            # All other than the above is treated as a Text property.
+                            "type": Property,
+                            "args": [
+                                ["id", "ShortName", None],  # id: ShortName = None
+                            ],
+                            "params": {
+                                "text": ["text", None, None],  # text: Any = None
+                            },
+                        },
+                    },
+                },
+            ),
+            "Property": type(
+                "std:Property",
+                (Object,),
+                {
+                    "_class_type_info_": {
+                        "args": [
+                            # positional args placed after 'scope-name-tags'
+                            ["stereotype", None, None],  # stereotype: Any = None
+                            # How to get multiple args?
+                        ],
+                        "kwargs": {},
+                        "params": {
+                            "name": ["alias", "Name", None],  # name: Name = None
+                            "text": ["text", None, None],  # text: Any = None
+                        },
+                    },
+                    "_class_property_info_": {
+                        "doc": "text",
+                        "text": {
+                            "type": Property,
+                            "params": {
+                                "text": ["text", None, None],  # text: Any = None
+                            },
+                        },
+                        "note": {
+                            # All other than the above is treated as a Text property.
+                            "type": Property,
+                            "args": [
+                                ["id", "ShortName", None],  # id: ShortName = None
+                            ],
+                            "params": {
+                                "text": ["text", None, None],  # text: Any = None
+                            },
+                        },
+                    },
+                },
+            ),
         },
         "aliases": {
             "Blk": "Block",

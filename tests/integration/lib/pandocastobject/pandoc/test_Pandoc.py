@@ -212,7 +212,7 @@ class Test_get_json:
             # stimulus
             ["gfm", True],
             # expected
-            "test_1_md(NO_OPT).json",
+            "test_1_md(gfm_html_true).json",
         ),
     }
 
