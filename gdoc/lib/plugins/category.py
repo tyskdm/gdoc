@@ -1,6 +1,7 @@
 r"""
 Plugin class
 """
+from typing import Any
 
 
 class Category:
@@ -11,7 +12,7 @@ class Category:
         self.name = category_info["name"]
         self.version = category_info["version"]
         self.module = category_info["module"]
-        self.types = category_info["types"]
+        self.types: dict[str, Any] = category_info["types"]
         self.aliases = category_info["aliases"]
         self.defaults = category_info["defaults"]
 
@@ -44,3 +45,11 @@ class Category:
                 type_name = None
 
         return type_name, constructor
+
+    def get_type_name(self, type_constructor) -> str:
+        values = list(self.types.values())
+        return (
+            list(self.types.keys())[values.index(type_constructor)]
+            if type_constructor in values
+            else ""
+        )

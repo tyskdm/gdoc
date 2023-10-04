@@ -1,7 +1,7 @@
 r"""
 ImportObject class
 """
-from typing import Any, ClassVar, Literal, cast
+from typing import Any, ClassVar, Literal, Type, cast
 
 from gdoc.lib.gdoc import TextString, Uri, UriComponents
 from gdoc.lib.gdoc.objecturi import ObjectUri
@@ -49,7 +49,11 @@ class Import(Object):
     def _create_object_(
         cls,
         typename: str,
-        class_info: tuple[TextString | None, TextString | None, TextString | None],
+        class_info: tuple[
+            TextString | Type["Object"] | None,  # category | constructor
+            TextString | None,  # type
+            TextString | None,  # ifref("&")
+        ],
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
         tag_params: dict,

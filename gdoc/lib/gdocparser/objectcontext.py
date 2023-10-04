@@ -1,7 +1,7 @@
 """
 objectfactory.py: ObjectFactory class
 """
-from typing import Any, Optional, cast
+from typing import Any, Optional, Type, cast
 
 from gdoc.lib.gdoc import DataPos, TextString
 from gdoc.lib.gdoccompiler.gdexception import (
@@ -58,7 +58,11 @@ class ObjectContext:
 
     def add_new_object(
         self,
-        class_info: tuple[TextString | None, TextString | None, TextString | None],
+        class_info: tuple[
+            TextString | Type["Object"] | None,  # category | constructor
+            TextString | None,  # type
+            TextString | None,  # ifref("&")
+        ],
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
         tag_params: dict[str, Any],
@@ -72,10 +76,10 @@ class ObjectContext:
         #
         # Get Constructor
         #
-        type_constructor: Object | None = None
+        type_constructor: Type[Object] | None = None
         type_name: str | None = ""
 
-        r = self._get_constructor_(class_info, tag_body, erpt, opts)
+        r = self.get_constructor(class_info, tag_body, erpt, opts)
         if r.is_err():
             return Err(erpt.submit(r.err()))
         type_name, type_constructor = r.unwrap()
@@ -172,16 +176,40 @@ class ObjectContext:
 
         return Ok(cast(Optional[Object], child))
 
-    def _get_constructor_(
+    def get_constructor(
         self,
-        class_info: tuple[TextString | None, TextString | None, TextString | None],
+        class_info: tuple[
+            TextString | Type[Object] | None,  # category | constructor
+            TextString | None,  # type
+            TextString | None,  # ifref("&")
+        ],
         tag_body: TextString,
         erpt: ErrorReport,
         opts: Settings | None = None,
-    ) -> Result[tuple[str, Object], ErrorReport]:
+    ) -> Result[tuple[str, Type[Object]], ErrorReport]:
         """
         Get Constructor
         """
+        type_constructor: Type[Object] | None = None
+        type_name: str | None = ""
+        cat: Category | None = None
+        pos: DataPos | None = None
+
+        if isinstance(class_info[0], type):
+            type_constructor = cast(Type[Object], class_info[0])
+            cat = self.categories.get_category(class_info[0])
+            if cat is not None:
+                type_name = cat.get_type_name(type_constructor)
+            return Ok((type_name, type_constructor))
+
+        class_info = cast(
+            tuple[
+                TextString | None,  # category
+                TextString | None,  # type
+                TextString | None,  # ifref("&")
+            ],
+            class_info,
+        )
 
         class_cat: str | None = None
         if class_info[0] is not None:
@@ -190,11 +218,6 @@ class ObjectContext:
         class_type: str = ""
         if class_info[1] is not None:
             class_type = class_info[1].get_str()
-
-        type_constructor: Object | None = None
-        type_name: str | None = ""
-        cat: Category | None = None
-        pos: DataPos | None = None
 
         #
         # Primary types - OBJECT, IMPORT, ACCESS
