@@ -15,7 +15,7 @@ from gdoc.lib.plugins import Category, CategoryManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 from .objectfactorytools import ObjectFactoryTools
-from .tokeninfobuffer import set_opts_token_info
+from .tokeninfobuffer import TokenInfoBuffer, set_opts_token_info
 
 
 class ObjectContext:
@@ -28,16 +28,20 @@ class ObjectContext:
     current: Object
     tools: ObjectFactoryTools
     parent_context: Optional["ObjectContext"] = None
+    _tokeninfo: TokenInfoBuffer | None = None
 
     def __init__(
         self,
         categories: CategoryManager,
         root: Object,
+        tokeninfobuffer: TokenInfoBuffer | None = None,
         current: Object | None = None,
         tools: ObjectFactoryTools | None = None,
     ) -> None:
         self.categories = categories
         self.root_object = root
+        self._tokeninfo = tokeninfobuffer
+
         self.current = current if current else root
         self.tools = tools if tools else ObjectFactoryTools()
         self.parent_context = None
@@ -47,7 +51,7 @@ class ObjectContext:
 
     def get_sub_context(self, parent_obj: Object) -> "ObjectContext":
         sub_context = ObjectContext(
-            self.categories, self.root_object, parent_obj, self.tools
+            self.categories, self.root_object, self._tokeninfo, parent_obj, self.tools
         )
         sub_context.parent_context = self
         return sub_context
@@ -196,7 +200,7 @@ class ObjectContext:
         # Primary types - OBJECT, IMPORT, ACCESS
         #
         if class_cat == "":
-            cat: Category | None = (
+            cat = (
                 self.current._class_categories_.get_root_category()
                 if self.current._class_categories_
                 else None
@@ -230,7 +234,7 @@ class ObjectContext:
                 # Types managed by each category
                 #
                 if class_cat in (None, obj.class_category):
-                    cat: Category | None = obj._class_category_
+                    cat = obj._class_category_
                     if cat is not None:
                         type_name, type_constructor = cat.get_type(
                             class_type,
@@ -253,6 +257,7 @@ class ObjectContext:
                 #
                 # Types managed by each object
                 #
+                # todo: get cat to set to TokenInfoBuffer
                 type_name, type_constructor = obj._get_additional_constructor_(
                     class_cat,
                     class_type,
@@ -290,9 +295,6 @@ class ObjectContext:
 
                 else:
                     # The explicitly specified category does not have the specified type.
-                    set_opts_token_info(
-                        opts, cast(TextString, class_info[0]), "type", ("namespace", [])
-                    )
                     tstrs: list[TextString]
                     tstrs = tag_body.split(maxsplit=1)[0].split(":", retsep=True)[:2]
                     tstr: TextString = tstrs[0]
@@ -332,6 +334,17 @@ class ObjectContext:
                         )
                     )
                 )
+
+        #
+        # Add info to TokenInfoBuffer for Language Server
+        #
+        if self._tokeninfo:
+            if cat and class_info[0] and (len(class_info[0]) > 0):
+                self._tokeninfo.set_type(class_info[0], "class_cat")
+                # self._tokeninfo.set(class_info[0], "referent", cat)
+            if type_constructor and class_info[1] and (len(class_info[1]) > 0):
+                self._tokeninfo.set_type(class_info[1], "class_type")
+                # self._tokeninfo.set(class_info[1], "referent", type_constructor)
 
         type_name = cast(str, type_name)
         return Ok((type_name, type_constructor))
