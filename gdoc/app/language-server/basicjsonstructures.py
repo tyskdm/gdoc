@@ -10,6 +10,10 @@ from typing import Any, Literal, TypeAlias, TypedDict, Union
 DocumentUri: TypeAlias = str
 
 
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#uri
+URI: TypeAlias = str
+
+
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentIdentifier
 class TextDocumentIdentifier(TypedDict):
     uri: DocumentUri
@@ -107,6 +111,15 @@ class SemanticTokens_Option(TypedDict, total=False):
 class SemanticTokens(SemanticTokens_Option):
     #  * The actual tokens.
     data: list[int]
+
+
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceFolder
+class WorkspaceFolder(TypedDict):
+    #  * The associated URI for this workspace folder.
+    uri: URI
+    #  * The name of the workspace folder. Used to refer to this
+    #  * workspace folder in the user interface.
+    name: str
 
 
 #

@@ -170,6 +170,9 @@ class GdocLanguageInfoProvider(Feature):
 
         referent: GdocObject | None = token.data.get("referent")
         if referent is not None:
+            referent = cast(GdocObject | None, referent._get_linkto_target())
+
+        if referent is not None:
             markdown: str = "({}:{}) {}".format(
                 referent.class_category,
                 referent.class_type,

@@ -8,6 +8,7 @@ from gdoc.lib.gdoc.objecturi import ObjectUri
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gdocparser import nameparser
 from gdoc.lib.gdocparser.objectfactorytools import ObjectFactoryTools
+from gdoc.lib.gdocparser.tokeninfobuffer import set_opts_token_info
 from gdoc.lib.plugins import CategoryManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
@@ -155,6 +156,9 @@ class Import(Object):
             )
             child.import_from_uri = import_from_uri
             child.import_uri = import_uri
+
+            for name in child._object_names_:
+                set_opts_token_info(opts, name, "referent", child)
 
             children.append(child)
 
