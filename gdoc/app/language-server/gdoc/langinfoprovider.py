@@ -14,27 +14,27 @@ from .definition import GdocDefinition
 from .gdoctoken import GdocToken
 from .hover import GdocHover
 from .objectbuilder import DocumentInfo
-from .packagemanager import GdocPackageManager
+from .workspacemanager import GdocWorkspaceManager
 
 logger = logging.getLogger(__name__)
 
 
 class GdocLanguageInfoProvider(Feature):
     server: LanguageServer
-    feat_packagemanager: GdocPackageManager
+    feat_workspacemanager: GdocWorkspaceManager
 
     def __init__(self, languageserver: LanguageServer) -> None:
         self.server = languageserver
 
     def initialize(self, client_capabilities: Settings) -> dict:
         self.client_capability = client_capabilities
-        self.feat_packagemanager = cast(
-            GdocPackageManager, self.server.get_feature("GdocPackageManager")
+        self.feat_workspacemanager = cast(
+            GdocWorkspaceManager, self.server.get_feature(GdocWorkspaceManager.__name__)
         )
         cast(
-            GdocDefinition, self.server.get_feature("GdocDefinition")
+            GdocDefinition, self.server.get_feature(GdocDefinition.__name__)
         ).add_definition_handler(self.get_definition_handler)
-        cast(GdocHover, self.server.get_feature("GdocHover")).add_hover_handler(
+        cast(GdocHover, self.server.get_feature(GdocHover.__name__)).add_hover_handler(
             self.get_hover_handler
         )
         return {}
@@ -57,7 +57,7 @@ class GdocLanguageInfoProvider(Feature):
 
             uri: str = document._object_info_.get("uri", "file://" + document.name)
             doc_info: DocumentInfo | None
-            doc_info = self.feat_packagemanager.get_document_info(uri)
+            doc_info = self.feat_workspacemanager.get_document_info(uri)
             text_pos: TextPosition | None = doc_info and doc_info.text_position
 
             # targetRange: Range

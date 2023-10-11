@@ -8,17 +8,16 @@ from gdoc.lib.gdoc import ObjectUri, TextString
 from gdoc.util import ErrorReport, Settings
 
 from .document import Document
-from .object import Object
 
 
 class DocumentInfo(NamedTuple):
     file_path: Path | None
     document: Document | None
     err_report: ErrorReport | None
-    link_info: dict[str, Any] = {}
+    link_info: dict[str, Any]
 
 
-class Package(Object):
+class Package:
     uri: str
     folder_path: Path
     opts: Settings | None
@@ -48,6 +47,15 @@ class Package(Object):
 
     def del_document(self, uri: str):
         del self.documents[uri]
+
+    def update_document(self, uri: str, document: Document | None):
+        if uri not in self.documents:
+            return
+
+        if document is None:
+            self.del_document(uri)
+        else:
+            self.add_document(uri, document)
 
     def get_document(
         self, uri: ObjectUri | str, base_document: Document | None = None

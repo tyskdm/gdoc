@@ -8,8 +8,9 @@ from gdoc.lib.plugins import Category
 from .document import Document
 from .importobject import Import
 from .object import Object
+from .package import Package
 
-BaseCategory = Category(
+PrimitiveTypes = Category(
     {
         "name": "",
         "version": "",
@@ -25,4 +26,4 @@ BaseCategory = Category(
     }
 )
 
-__all__ = ["BaseCategory", "Document", "Object", "Import"]
+__all__ = ["PrimitiveTypes", "Document", "Object", "Import", "Package"]

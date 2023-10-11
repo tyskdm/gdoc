@@ -8,8 +8,8 @@ from gdoc.lib.gdoc import Document as GdocDocument
 from gdoc.lib.gdocparser.documentparser import DocumentParser
 from gdoc.lib.gdocparser.objectcontext import ObjectContext
 from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfoBuffer
-from gdoc.lib.gobj.types import BaseCategory
 from gdoc.lib.gobj.types import Document as GobjDocument
+from gdoc.lib.gobj.types import PrimitiveTypes
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
 from gdoc.lib.plugins import Category, CategoryManager
@@ -25,7 +25,7 @@ class GdocCompiler:
     def __init__(
         self, plugins: list[Category] = [], tokeninfocache: TokenInfoBuffer | None = None
     ) -> None:
-        self._categories_ = CategoryManager().add_category(BaseCategory)
+        self._categories_ = CategoryManager().add_category(PrimitiveTypes)
         for p in plugins:
             self._categories_.add_category(p)
         self._tokeninfocache = tokeninfocache

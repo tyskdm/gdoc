@@ -8,14 +8,14 @@ from ..feature import Feature
 from ..jsonrpc import JsonRpc
 from ..languageserver import LanguageServer
 from .objectbuilder import DocumentInfo
-from .packagemanager import GdocPackageManager
+from .workspacemanager import GdocWorkspaceManager
 
 logger = logging.getLogger(__name__)
 
 
 class GdocSemanticTokens(Feature):
     server: LanguageServer
-    feat_packagemanager: GdocPackageManager | None
+    feat_workspacemanager: GdocWorkspaceManager | None
 
     client_capability: Settings
     token_types: dict[str, int]
@@ -39,8 +39,8 @@ class GdocSemanticTokens(Feature):
                 "textDocument/semanticTokens/full": self._method_semanticTokens_full,
             }
         )
-        self.feat_packagemanager = cast(
-            GdocPackageManager, self.server.get_feature("GdocPackageManager")
+        self.feat_workspacemanager = cast(
+            GdocWorkspaceManager, self.server.get_feature(GdocWorkspaceManager.__name__)
         )
 
         return {
@@ -65,12 +65,12 @@ class GdocSemanticTokens(Feature):
         return JsonRpc.Response(packet.id, result)
 
     def get_tokens_data(self, uri: str) -> list[int]:
-        if self.feat_packagemanager is None:
-            logger.debug("self.feat_packagemanager is None -> return []")
+        if self.feat_workspacemanager is None:
+            logger.debug("self.feat_workspacemanager is None -> return []")
             return []
 
         docinfo: DocumentInfo | None
-        if (docinfo := self.feat_packagemanager.get_document_info(uri)) is None:
+        if (docinfo := self.feat_workspacemanager.get_document_info(uri)) is None:
             logger.debug("docinfo is None -> return []")
             return []
 

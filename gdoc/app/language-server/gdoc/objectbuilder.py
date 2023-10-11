@@ -47,10 +47,10 @@ class GdocObjectBuilder(Feature):
         Check client capabilities and return the capabilities for the client.
         """
         self.publish_diagnostics = cast(
-            PublishDiagnostics, self.server.get_feature("PublishDiagnostics")
+            PublishDiagnostics, self.server.get_feature(PublishDiagnostics.__name__)
         )
         self.feat_textdocuments = cast(
-            TextDocuments, self.server.get_feature("TextDocuments")
+            TextDocuments, self.server.get_feature(TextDocuments.__name__)
         )
         if self.feat_textdocuments is not None:
             self.feat_textdocuments.add_update_handler(self._textdocuments_update_handler)

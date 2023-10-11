@@ -9,8 +9,8 @@ from .gdoc.definition import GdocDefinition
 from .gdoc.hover import GdocHover
 from .gdoc.langinfoprovider import GdocLanguageInfoProvider
 from .gdoc.objectbuilder import GdocObjectBuilder
-from .gdoc.packagemanager import GdocPackageManager
 from .gdoc.semantictokens import GdocSemanticTokens
+from .gdoc.workspacemanager import GdocWorkspaceManager
 from .jsonstream import JsonStream
 from .languageserver import LanguageServer
 from .textdocument.publishdiagnostics import PublishDiagnostics
@@ -51,7 +51,7 @@ def run(args):
             TextDocuments,
             # Language-dependent features
             GdocObjectBuilder,
-            GdocPackageManager,
+            GdocWorkspaceManager,
             GdocLanguageInfoProvider,
             GdocSemanticTokens,
             GdocDefinition,

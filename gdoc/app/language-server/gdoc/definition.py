@@ -9,14 +9,14 @@ from ..jsonrpc import JsonRpc
 from ..languageserver import LanguageServer
 from ..textdocument.tokenmap import Token
 from .objectbuilder import DocumentInfo
-from .packagemanager import GdocPackageManager
+from .workspacemanager import GdocWorkspaceManager
 
 logger = logging.getLogger(__name__)
 
 
 class GdocDefinition(Feature):
     server: LanguageServer
-    feat_packagemanager: GdocPackageManager
+    feat_workspacemanager: GdocWorkspaceManager
     get_definition_handler: Callable[
         [str, Token], Location | list[Location] | list[LocationLink] | None
     ]
@@ -34,8 +34,8 @@ class GdocDefinition(Feature):
                 "textDocument/definition": self._method_goto_definition,
             }
         )
-        self.feat_packagemanager = cast(
-            GdocPackageManager, self.server.get_feature("GdocPackageManager")
+        self.feat_workspacemanager = cast(
+            GdocWorkspaceManager, self.server.get_feature(GdocWorkspaceManager.__name__)
         )
         return {"definitionProvider": True}
 
@@ -57,7 +57,7 @@ class GdocDefinition(Feature):
         character: int = params["position"]["character"]
 
         token: Token | None
-        document: DocumentInfo | None = self.feat_packagemanager.get_document_info(uri)
+        document: DocumentInfo | None = self.feat_workspacemanager.get_document_info(uri)
         if document is None:
             logger.error("document '%s' is None(not open).", uri)
         elif (
