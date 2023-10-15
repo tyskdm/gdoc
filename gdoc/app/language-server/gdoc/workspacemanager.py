@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from logging import getLogger
 from typing import cast
 
@@ -130,8 +129,10 @@ class GdocWorkspaceManager(Feature):
                 self.workspaces[workspace_name].in_memory_documents[uri] = doc_info
 
             if (workspace_name is None) or uri.startswith(workspace_name):
-                self.workspaces[workspace_name].package.update_document(
-                    uri, doc_info.gdoc_document if doc_info else None
+                self.workspaces[workspace_name].package.add_doc_object(
+                    uri,
+                    doc_info.gdoc_document if doc_info else None,
+                    doc_info.gdoc_erpt if doc_info else None,
                 )
 
     def get_workspace(self, uri: str) -> Workspace | None:

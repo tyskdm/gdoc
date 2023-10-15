@@ -38,7 +38,7 @@ class Linker:
                 continue
 
             # Collect import objects
-            link_info: LinkInfo = cast(LinkInfo, doc_info.link_info)
+            link_info: LinkInfo = cast(LinkInfo, doc_info.link_data or {})
             link_info["imports"] = self.collect_imports(doc_info.document)
 
             # Resolve document internal links
@@ -58,8 +58,8 @@ class Linker:
                 continue
 
             # Resolve document internal links
-            link_info: LinkInfo = cast(LinkInfo, doc_info.link_info)
-            for external_doc_uri in link_info["external_links"]:
+            link_info: LinkInfo = cast(LinkInfo, doc_info.link_data or {})
+            for external_doc_uri in link_info.setdefault("external_links", {}):
                 r, e = self.resolve_inter_document_links(
                     package,
                     doc_info.document,
@@ -256,7 +256,7 @@ class Linker:
                 )
                 return Err(erpt.submit(e))
 
-            target_doc = package.get_document(target_doc_uristr)
+            target_doc = package.get_doc_object(target_doc_uristr)
             if target_doc is None:
                 e = GdocReferenceError(
                     "Documet uri error", objuri.document_uri.get_data_pos()

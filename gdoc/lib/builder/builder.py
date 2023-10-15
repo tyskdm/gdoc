@@ -96,7 +96,7 @@ class Builder:
                 return Err(erpt.submit(srpt))
 
             if document is not None:
-                package.add_document(file, document)
+                package.add_doc_object(file, document)
 
         #
         # Link objects in the package documents

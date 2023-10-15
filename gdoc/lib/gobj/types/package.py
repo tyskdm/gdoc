@@ -1,8 +1,9 @@
 r"""
 Package class
 """
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, NamedTuple, cast
+from typing import Any, cast
 
 from gdoc.lib.gdoc import ObjectUri, TextString
 from gdoc.util import ErrorReport, Settings
@@ -10,66 +11,67 @@ from gdoc.util import ErrorReport, Settings
 from .document import Document
 
 
-class DocumentInfo(NamedTuple):
+@dataclass
+class DocumentInfo:
+    uri: str
     file_path: Path | None
-    document: Document | None
-    err_report: ErrorReport | None
-    link_info: dict[str, Any]
+    document: Document | None = None
+    compile_erpt: ErrorReport | None = None
+    link_data: dict[str, Any] | None = None
+    link_erpt: ErrorReport | None = None
 
 
 class Package:
     uri: str
     folder_path: Path
-    opts: Settings | None
+    config: Settings
     documents: dict[str, DocumentInfo]
     _docindex: dict[Document, str]
+    _base_opts: Settings | None
 
     def __init__(self, uri: str, folder_path: Path | str, opts: Settings | None = None):
         self.uri = uri
         self.folder_path = (
             folder_path if isinstance(folder_path, Path) else Path(folder_path)
         )
-        self.opts = opts
+        self._base_opts = opts
+        self.config = Settings() if opts is None else opts.derive([])
         self.documents = {}
         self._docindex = {}
 
-    def add_document(
-        self, docuri: str, document: Document, err_report: ErrorReport | None = None
+    def add_doc_object(
+        self,
+        docuri: str,
+        document: Document | None,
+        err_report: ErrorReport | None = None,
     ):
-        file_path: Path
-        if docuri.startswith(self.uri):
-            file_path = self.folder_path / docuri[len(self.uri) :]
+        if docuri in self.documents:
+            self.documents[docuri].document = document
+            self.documents[docuri].compile_erpt = err_report
+            self.documents[docuri].link_data = None
+            self.documents[docuri].link_erpt = None
+
         else:
-            # todo: Add handling of "scheme:" uri
-            file_path = Path(docuri)
-        self.documents[docuri] = DocumentInfo(file_path, document, err_report, {})
-        self._docindex[document] = docuri
+            file_path: Path
+            if docuri.startswith(self.uri):
+                file_path = self.folder_path / docuri[len(self.uri) :]
+            else:
+                # todo: Add handling of "scheme:" uri
+                file_path = Path(docuri.removeprefix("file://"))
 
-    def del_document(self, uri: str):
-        del self.documents[uri]
+            self.documents[docuri] = DocumentInfo(docuri, file_path, document, err_report)
+            if document is not None:
+                self._docindex[document] = docuri
 
-    def update_document(self, uri: str, document: Document | None):
-        if uri not in self.documents:
-            return
+    def del_doc_object(self, docuri: str):
+        if docuri in self.documents:
+            self.documents[docuri].document = None
+            self.documents[docuri].compile_erpt = None
+            self.documents[docuri].link_data = None
+            self.documents[docuri].link_erpt = None
 
-        if document is None:
-            self.del_document(uri)
-        else:
-            self.add_document(uri, document)
-
-    def get_document(
-        self, uri: ObjectUri | str, base_document: Document | None = None
-    ) -> Document | None:
-        document_uri: str | None = None
-        if isinstance(uri, ObjectUri):
-            document_uri = self.get_document_uristr(uri, base_document)
-        else:
-            document_uri = str(Path(uri))
-
-        docinfo: DocumentInfo | None = (
-            self.documents.get(document_uri) if document_uri else None
-        )
-
+    def get_doc_object(self, docuri: str) -> Document | None:
+        docinfo: DocumentInfo | None = self.documents.get(docuri)
         return docinfo.document if docinfo else None
 
     def get_document_uristr(
