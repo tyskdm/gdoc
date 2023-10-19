@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Callable, NamedTuple, cast
 
-from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
+from gdoc.lib.builder.compiler import Compiler
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfoBuffer
 from gdoc.lib.gobj.types import Document
@@ -133,9 +133,7 @@ def _create_object(
     tokeninfo: TokenInfoBuffer = TokenInfoBuffer()
 
     erpt: ErrorReport | None
-    document, erpt = GdocCompiler(
-        tokeninfocache=tokeninfo, plugins=[std.category]
-    ).compile(
+    document, erpt = Compiler(tokeninfocache=tokeninfo, plugins=[std.category]).compile(
         filepath,
         fileformat,
         via_html,

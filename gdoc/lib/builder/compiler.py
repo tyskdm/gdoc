@@ -16,7 +16,7 @@ from gdoc.lib.plugins import Category, CategoryManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 
-class GdocCompiler:
+class Compiler:
     """ """
 
     _categories_: CategoryManager

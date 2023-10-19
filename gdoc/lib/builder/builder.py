@@ -5,8 +5,8 @@ builder.py - Build a package from a package uri
 from logging import getLogger
 from pathlib import Path
 
+from gdoc.lib.builder.compiler import Compiler
 from gdoc.lib.gdoc.documenturi import DocumentUri
-from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
 from gdoc.lib.gdoccompiler.gdexception import GdocImportError, GdocTypeError
 from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfoBuffer
 from gdoc.lib.gobj.types import Document
@@ -20,7 +20,7 @@ logger = getLogger(__name__)
 
 
 class Builder:
-    compiler: GdocCompiler
+    compiler: Compiler
     linker: Linker
     package_aliases: dict[str, str]
     _tokeninfocache: TokenInfoBuffer | None
@@ -29,7 +29,7 @@ class Builder:
         self.package_aliases = (
             opts.get(["builder", "package_aliases"], {}) if opts else {}
         )
-        self.compiler = GdocCompiler(plugins=[std.category])
+        self.compiler = Compiler(plugins=[std.category])
         self.linker = Linker(opts)
 
     def build(
@@ -89,7 +89,7 @@ class Builder:
         #
         for file in files:
             document: Document | None
-            document, e = GdocCompiler(plugins=[std.category]).compile(
+            document, e = Compiler(plugins=[std.category]).compile(
                 file, erpt=srpt, opts=opts
             )
             if e and srpt.should_exit(e):
