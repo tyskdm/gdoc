@@ -3,9 +3,8 @@ Package class
 """
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
-from gdoc.lib.gdoc import ObjectUri, TextString
 from gdoc.util import ErrorReport, Settings
 
 from .document import Document
@@ -39,6 +38,18 @@ class Package:
         self.documents = {}
         self._docindex = {}
 
+    def add_doc_file(self, docuri: str):
+        if docuri not in self.documents:
+            self._add_doc_info(docuri)
+
+    def del_doc_file(self, docuri: str):
+        if docuri in self.documents:
+            document: Document | None = self.documents[docuri].document
+            if (document is not None) and (document in self._docindex):
+                del self._docindex[document]
+
+            del self.documents[docuri]
+
     def add_doc_object(
         self,
         docuri: str,
@@ -52,19 +63,16 @@ class Package:
             self.documents[docuri].link_erpt = None
 
         else:
-            file_path: Path
-            if docuri.startswith(self.uri):
-                file_path = self.folder_path / docuri[len(self.uri) :]
-            else:
-                # todo: Add handling of "scheme:" uri
-                file_path = Path(docuri.removeprefix("file://"))
-
-            self.documents[docuri] = DocumentInfo(docuri, file_path, document, err_report)
+            self._add_doc_info(docuri, document, err_report)
             if document is not None:
                 self._docindex[document] = docuri
 
     def del_doc_object(self, docuri: str):
         if docuri in self.documents:
+            document: Document | None = self.documents[docuri].document
+            if (document is not None) and (document in self._docindex):
+                del self._docindex[document]
+
             self.documents[docuri].document = None
             self.documents[docuri].compile_erpt = None
             self.documents[docuri].link_data = None
@@ -74,56 +82,23 @@ class Package:
         docinfo: DocumentInfo | None = self.documents.get(docuri)
         return docinfo.document if docinfo else None
 
-    def get_document_uristr(
-        self, objuri: ObjectUri | None, base_document: Document | None
-    ) -> str | None:
-        # Empty document uri
-        if (objuri is None) or (objuri.document_uri is None):
-            # return document uri of the base document
-            return self._docindex.get(base_document) if base_document else None
+    def get_doc_uri(self, document: Document) -> str | None:
+        return self._docindex.get(document)
 
-        # Non supported scheme
-        if objuri.components.scheme not in ("file", None):
-            # -> call external resolver in the future
-            return None
+    def get_doc_info(self, docuri: str) -> DocumentInfo | None:
+        return self.documents.get(docuri)
 
-        # Fully qualified document uri
-        if objuri.components.authority is not None:
-            return cast(TextString, objuri.document_uri).get_str()
-
-        # here, document_uri is "package" relative
-
-        if objuri.components.path is None:
-            # document uri is only "file:"
-            return self._docindex.get(base_document) if base_document else None
-
-        result: str | None = None
-        target_path: Path
-        if objuri.components.path.startswith("/"):
-            # path is "package" absolute
-            target_path = Path(objuri.components.path.get_str())
-
+    def _add_doc_info(
+        self,
+        docuri: str,
+        document: Document | None = None,
+        erpt: ErrorReport | None = None,
+    ):
+        file_path: Path
+        if docuri.startswith(self.uri):
+            file_path = self.folder_path / docuri[len(self.uri) :]
         else:
-            # path is "document" relative
-            if base_document is None:
-                return None
+            # todo: Add handling of "scheme:" uri
+            file_path = Path(docuri.removeprefix("file://"))
 
-            base_uristr: str | None = self._docindex.get(base_document)
-            if base_uristr is None:
-                return None
-            # remove package uri that may contain scheme or authority
-            # to get pure path to handle by Path.
-            base_path: Path = Path(base_uristr[len(self.uri) :])
-
-            target_path = base_path.parent / objuri.components.path.get_str()
-
-        result = (
-            self.uri
-            + (
-                "/"
-                if (not self.uri.endswith("/")) and (not str(target_path).startswith("/"))
-                else ""
-            )
-            + str(target_path)
-        )
-        return result
+        self.documents[docuri] = DocumentInfo(docuri, file_path, document, erpt)

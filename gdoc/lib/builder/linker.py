@@ -2,6 +2,7 @@
 builder.py - Build a package from a package uri
 """
 from logging import getLogger
+from pathlib import Path
 from typing import Literal, Optional, TypedDict, Union, cast
 
 from gdoc.lib.gdoc import ObjectUri
@@ -249,7 +250,7 @@ class Linker:
         target_doc_uristr: str | None
         target_doc: Document | None
         if objuri.document_uri:
-            target_doc_uristr = package.get_document_uristr(objuri, document)
+            target_doc_uristr = self.get_document_uristr(objuri, document, package)
             if target_doc_uristr is None:
                 e = GdocReferenceError(
                     "Documet uri error", objuri.document_uri.get_data_pos()
@@ -266,7 +267,7 @@ class Linker:
             result = (target_doc_uristr, target_doc)
 
         else:
-            target_doc_uristr = package.get_document_uristr(None, document)
+            target_doc_uristr = self.get_document_uristr(None, document, package)
             if target_doc_uristr is None:
                 e = GdocRuntimeError(
                     "Unexpected internal error: document uri is not found.",
@@ -277,6 +278,64 @@ class Linker:
             result = (target_doc_uristr, document)
 
         return Ok(result)
+
+    def get_document_uristr(
+        self,
+        objuri: ObjectUri | None,
+        base_document: Document | None,
+        package: Package,
+    ) -> str | None:
+        # Empty document uri
+        if (objuri is None) or (objuri.document_uri is None):
+            return package.get_doc_uri(base_document) if base_document else None
+
+        # Non supported scheme
+        if objuri.components.scheme not in ("file", None):
+            # -> call external resolver in the future
+            return None
+
+        # Fully qualified document uri
+        if objuri.components.authority is not None:
+            return objuri.document_uri.get_str()
+
+        # here, document_uri is "package" relative
+
+        if objuri.components.path is None:
+            # document uri is only "file:"
+            # return self._docindex.get(base_document) if base_document else None
+            return package.get_doc_uri(base_document) if base_document else None
+
+        result: str | None = None
+        target_path: Path
+        if objuri.components.path.startswith("/"):
+            # path is "package" absolute
+            target_path = Path(objuri.components.path.get_str())
+
+        else:
+            # path is "document" relative
+            if base_document is None:
+                return None
+
+            base_uristr: str | None = package.get_doc_uri(base_document)
+            if base_uristr is None:
+                return None
+            # remove package uri that may contain scheme or authority
+            # to get pure path to handle by Path.
+            base_path: Path = Path(base_uristr[len(package.uri) :])
+
+            target_path = base_path.parent / objuri.components.path.get_str()
+
+        result = (
+            package.uri
+            + (
+                "/"
+                if (not package.uri.endswith("/"))
+                and (not str(target_path).startswith("/"))
+                else ""
+            )
+            + str(target_path)
+        )
+        return result
 
     def resolve_uri_object_link(
         self,
