@@ -85,7 +85,20 @@ class Package:
     def get_doc_uri(self, document: Document) -> str | None:
         return self._docindex.get(document)
 
-    def get_doc_info(self, docuri: str) -> DocumentInfo | None:
+    def add_link_info(self, docuri: str, data: dict[str, Any] | None, erpt: ErrorReport):
+        if docuri in self.documents:
+            self.documents[docuri].link_data = data
+            self.documents[docuri].link_erpt = erpt
+
+    def get_link_erpt(self, docuri: str) -> ErrorReport | None:
+        docinfo: DocumentInfo | None = self.documents.get(docuri)
+        return docinfo.link_erpt if docinfo else None
+
+    def get_link_data(self, docuri: str) -> dict[str, Any] | None:
+        docinfo: DocumentInfo | None = self.documents.get(docuri)
+        return docinfo.link_data if docinfo else None
+
+    def _get_doc_info(self, docuri: str) -> DocumentInfo | None:
         return self.documents.get(docuri)
 
     def _add_doc_info(
