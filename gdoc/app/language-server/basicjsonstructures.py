@@ -1,4 +1,4 @@
-from typing import Any, Literal, TypeAlias, TypedDict, Union
+from typing import Any, Final, Literal, TypeAlias, TypedDict, Union
 
 ########################################################
 #
@@ -68,7 +68,7 @@ class Location(TypedDict):
 
 
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#locationLink
-class LocationLink_Option(TypedDict, total=False):
+class __LocationLink(TypedDict, total=False):
     #  * Span of the origin of this link.
     #  *
     #  * Used as the underlined span for mouse interaction. Defaults to the word
@@ -76,7 +76,7 @@ class LocationLink_Option(TypedDict, total=False):
     originSelectionRange: Range
 
 
-class LocationLink(LocationLink_Option):
+class LocationLink(__LocationLink):
     #  * Span of the origin of this link.
     #  *
     #  * Used as the underlined span for mouse interaction. Defaults to the word
@@ -99,7 +99,7 @@ class LocationLink(LocationLink_Option):
 
 
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#semanticTokens
-class SemanticTokens_Option(TypedDict, total=False):
+class __SemanticTokens(TypedDict, total=False):
     #  * An optional result id. If provided and clients support delta updating
     #  * the client will include the result id in the next semantic token request.
     #  * A server can then instead of computing all semantic tokens again simply
@@ -108,7 +108,7 @@ class SemanticTokens_Option(TypedDict, total=False):
     resultId: str
 
 
-class SemanticTokens(SemanticTokens_Option):
+class SemanticTokens(__SemanticTokens):
     #  * The actual tokens.
     data: list[int]
 
@@ -133,7 +133,7 @@ class TextDocumentContentChangeEvent_Full(TypedDict):
 
 
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentContentChangeEvent
-class TextDocumentContentChangeEvent_Incremental_Option(TypedDict, total=False):
+class __TextDocumentContentChangeEvent_Incremental(TypedDict, total=False):
     # {
     #  * The range of the document that changed.
     # range: Range;
@@ -147,7 +147,7 @@ class TextDocumentContentChangeEvent_Incremental_Option(TypedDict, total=False):
 
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentContentChangeEvent
 class TextDocumentContentChangeEvent_Incremental(
-    TextDocumentContentChangeEvent_Incremental_Option
+    __TextDocumentContentChangeEvent_Incremental
 ):
     # {
     #  * The range of the document that changed.
@@ -188,6 +188,27 @@ class MarkupContent(TypedDict):
 # Parameter Types
 #
 ########################################################
+
+
+#
+# Register Capability
+#
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#registration
+class RegistrationOptions(TypedDict):
+    pass
+
+
+class __Registration(TypedDict, total=False):
+    #  * Options necessary for the registration.
+    registerOptions: RegistrationOptions
+
+
+class Registration(__Registration):
+    #  * The id used to register the request. The id can be used to deregister
+    #  * the request again.
+    id: str
+    #  * The method / capability to register for.
+    method: str
 
 
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentPositionParams
@@ -257,6 +278,76 @@ class DidCloseTextDocumentParams(TypedDict):
 
 
 #
+# DidChangeWatchedFiles Notification
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_didChangeWatchedFiles
+#
+class FileEvent(TypedDict):
+    #  * The file's URI.
+    uri: DocumentUri
+    #  * The change type.
+    type: Literal[1, 2, 3]
+
+
+class FileChangeType:
+    # * The file got created.
+    Created: Final[int] = 1
+    # * The file got changed.
+    Changed: Final[int] = 2
+    # * The file got deleted.
+    Deleted: Final[int] = 3
+
+
+class DidChangeWatchedFilesParams(TypedDict):
+    #  * The actual file events.
+    changes: list[FileEvent]
+
+
+class WatchKind:
+    # * Interested in create events.
+    Create: Final[int] = 1
+    # * Interested in change events
+    Change: Final[int] = 2
+    # * Interested in delete events
+    Delete: Final[int] = 4
+
+
+class __FileSystemWatcher(TypedDict, total=False):
+    #  * The kind of events of interest. If omitted it defaults
+    #  * to WatchKind.Create | WatchKind.Change | WatchKind.Delete
+    #  * which is 7.
+    kind: Literal[1, 2, 3, 4, 5, 6, 7]  # WatchKind
+
+
+class FileSystemWatcher(__FileSystemWatcher):
+    #  * The glob pattern to watch.
+    globPattern: Any
+
+
+class DidChangeWatchedFilesRegistrationOptions(TypedDict):
+    watchers: list[FileSystemWatcher]
+
+
+#
+# DidChangeConfiguration Notification
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_didChangeWorkspaceFolders
+#
+
+
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceFoldersChangeEvent
+class WorkspaceFoldersChangeEvent(TypedDict):
+    #  * The array of added workspace folders
+    added: list[WorkspaceFolder]
+    #  * The array of the removed workspace folders
+    removed: list[WorkspaceFolder]
+
+
+# https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#didChangeWorkspaceFoldersParams
+class DidChangeWorkspaceFoldersParams(TypedDict):
+    #  * The actual workspace folder change event.
+    event: WorkspaceFoldersChangeEvent
+
+
+#
 # Semantic Tokens
 #
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#semanticTokensParams
@@ -301,13 +392,13 @@ MarkedString: TypeAlias = str | MarkedString_Language
 
 # The result of a hover request
 # https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#hover
-class Hover_Option(TypedDict, total=False):
+class __Hover(TypedDict, total=False):
     #  * An optional range is a range inside a text document
     #  * that is used to visualize a hover, e.g. by changing the background color.
     # range?: Range;
     range: Range
 
 
-class Hover(Hover_Option):
+class Hover(__Hover):
     #  * The hover's content
     contents: MarkedString | list[MarkedString] | MarkupContent
