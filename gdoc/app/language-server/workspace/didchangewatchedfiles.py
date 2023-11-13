@@ -1,53 +1,72 @@
-import logging
+from logging import getLogger
+from typing import Callable
 
 from gdoc.util import Settings
 
+from ..basicjsonstructures import (
+    DidChangeWatchedFilesRegistrationOptions,
+    FileEvent,
+    FileSystemWatcher,
+    Registration,
+)
 from ..feature import Feature
 from ..jsonrpc import JsonRpc
 from ..languageserver import LanguageServer
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 class DidCangeWatchedFiles(Feature):
     client_capability: Settings | None = None
     server: LanguageServer
+    _did_change_watched_files_handler: list[Callable[[list[FileEvent]], None]]
 
     def __init__(self, languageserver: LanguageServer) -> None:
         self.server = languageserver
+        self._did_change_wtched_files_handler = []
 
     def initialize(self, client_capabilities: Settings) -> dict:
-        self.client_capability = client_capabilities.derive(
+        self.client_capability = client_capabilities.get(
             "workspace.didChangeWatchedFiles"
         )
-        if not self.client_capability:
-            return {}
-
-        self.server.add_method_handlers(
-            {
-                "workspace/didChangeWatchedFiles": self._method_did_change_watched_files,
-            }
-        )
+        if self.client_capability:
+            self.server.add_method_handlers(
+                {
+                    "workspace/didChangeWatchedFiles": (
+                        self._method_did_change_watched_files
+                    )
+                }
+            )
         return {}
 
     def initialized(self, packet: JsonRpc) -> None:
-        self.server.register_capability(
-            registrations=[
-                {
-                    "id": "workspace/didChangeWatchedFiles",  # dummy, never used
-                    "method": "workspace/didChangeWatchedFiles",
-                    "registerOptions": {
-                        "watchers": [
-                            {"globPattern": "**/*.{md,text}"},
-                        ],
-                    },
-                }
-            ]
+        self.register_did_change_watched_files(
+            "workspace/didChangeWatchedFiles",  # dummy, never used
+            [{"globPattern": "**/*.{md,text}"}],
         )
 
+    def add_update_handler(self, handler: Callable[[list[FileEvent]], None]) -> None:
+        self._did_change_wtched_files_handler.append(handler)
+
+    def register_did_change_watched_files(
+        self,
+        id: str,
+        watchers: list[FileSystemWatcher] | None = None,
+    ) -> None:
+        registration: Registration = {
+            "id": id,
+            "method": "workspace/didChangeWatchedFiles",
+        }
+        if watchers:
+            registration["registerOptions"] = DidChangeWatchedFilesRegistrationOptions(
+                {
+                    "watchers": watchers,
+                },
+            )
+        self.server.register_capability(registrations=[registration])
+
     def _method_did_change_watched_files(self, packet: JsonRpc) -> JsonRpc | None:
-        result: dict | None = None
+        logger.debug(" %s.params = %s", packet.method, packet.params)
 
-        logger.debug(f"{packet.method}.params = {packet.params}")
-
-        return result
+        for handler in self._did_change_wtched_files_handler:
+            handler(packet.params)
