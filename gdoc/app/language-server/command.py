@@ -9,6 +9,7 @@ from .gdoc.definition import GdocDefinition
 from .gdoc.hover import GdocHover
 from .gdoc.langinfoprovider import GdocLanguageInfoProvider
 from .gdoc.objectbuilder import GdocObjectBuilder
+from .gdoc.packagemanager import GdocPackageManager
 from .gdoc.semantictokens import GdocSemanticTokens
 from .gdoc.workspacemanager import GdocWorkspaceManager
 from .jsonstream import JsonStream
@@ -17,6 +18,7 @@ from .textdocument.publishdiagnostics import PublishDiagnostics
 from .textdocument.synchronization import Synchronization
 from .textdocument.textdocuments import TextDocuments
 from .workspace.didchangewatchedfiles import DidCangeWatchedFiles
+from .workspace.workspacemanager import WorkspaceManager
 
 
 def setup(subparsers, name, _):
@@ -49,9 +51,11 @@ def run(args):
             Synchronization,
             # Language-independent features
             TextDocuments,
+            WorkspaceManager,
             # Language-dependent features
             GdocObjectBuilder,
             GdocWorkspaceManager,
+            GdocPackageManager,
             GdocLanguageInfoProvider,
             GdocSemanticTokens,
             GdocDefinition,

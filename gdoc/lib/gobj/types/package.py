@@ -24,7 +24,7 @@ class Package:
     uri: str
     folder_path: Path
     config: Settings
-    documents: dict[str, DocumentInfo]
+    documents: dict[str, DocumentInfo]  # key = uri
     _docindex: dict[Document, str]
     _base_opts: Settings | None
 
@@ -38,11 +38,21 @@ class Package:
         self.documents = {}
         self._docindex = {}
 
-    def add_doc_file(self, docuri: str):
-        if docuri not in self.documents:
-            self._add_doc_info(docuri)
+    def add_doc_file_path(self, file_path: str) -> DocumentInfo:
+        docuri: str = self.uri
+        if file_path.startswith(str(self.folder_path) + "/"):
+            docuri += file_path[len(str(self.folder_path) + "/") :]
+        else:
+            docuri = "file://" + file_path
 
-    def del_doc_file(self, docuri: str):
+        return self._add_doc_info(docuri, file_path)
+
+    def add_doc_file_uri(self, docuri: str) -> DocumentInfo:
+        if docuri in self.documents:
+            return self.documents[docuri]
+        return self._add_doc_info(docuri)
+
+    def del_doc_file_uri(self, docuri: str) -> None:
         if docuri in self.documents:
             document: Document | None = self.documents[docuri].document
             if (document is not None) and (document in self._docindex):
@@ -55,7 +65,7 @@ class Package:
         docuri: str,
         document: Document | None,
         err_report: ErrorReport | None = None,
-    ):
+    ) -> None:
         if docuri in self.documents:
             self.documents[docuri].document = document
             self.documents[docuri].compile_erpt = err_report
@@ -63,15 +73,16 @@ class Package:
             self.documents[docuri].link_erpt = None
 
         else:
-            self._add_doc_info(docuri, document, err_report)
-            if document is not None:
-                self._docindex[document] = docuri
+            self._add_doc_info(docuri, None, document, err_report)
 
-    def del_doc_object(self, docuri: str):
+        if document is not None:
+            self._docindex[document] = docuri
+
+    def del_doc_object(self, docuri: str) -> None:
         if docuri in self.documents:
             document: Document | None = self.documents[docuri].document
-            if (document is not None) and (document in self._docindex):
-                del self._docindex[document]
+            if document is not None:
+                self._docindex.pop(document)
 
             self.documents[docuri].document = None
             self.documents[docuri].compile_erpt = None
@@ -104,14 +115,18 @@ class Package:
     def _add_doc_info(
         self,
         docuri: str,
+        filepath: str | None = None,
         document: Document | None = None,
         erpt: ErrorReport | None = None,
-    ):
-        file_path: Path
-        if docuri.startswith(self.uri):
-            file_path = self.folder_path / docuri[len(self.uri) :]
+    ) -> DocumentInfo:
+        path: Path
+        if filepath is not None:
+            path = Path(filepath)
+        elif docuri.startswith(self.uri + "/"):
+            path = self.folder_path / docuri[len(self.uri + "/") :]
         else:
             # todo: Add handling of "scheme:" uri
-            file_path = Path(docuri.removeprefix("file://"))
+            path = Path(docuri.removeprefix("file://"))
+        self.documents[docuri] = DocumentInfo(docuri, path, document, erpt)
 
-        self.documents[docuri] = DocumentInfo(docuri, file_path, document, erpt)
+        return self.documents[docuri]
