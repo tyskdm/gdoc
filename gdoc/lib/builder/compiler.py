@@ -5,6 +5,7 @@ import os
 from typing import Optional, cast
 
 from gdoc.lib.gdoc import Document as GdocDocument
+from gdoc.lib.gdoccompiler.gdexception import GdocRuntimeError
 from gdoc.lib.gdocparser.documentparser import DocumentParser
 from gdoc.lib.gdocparser.objectcontext import ObjectContext
 from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfoBuffer
@@ -50,11 +51,8 @@ class Compiler:
         opts = opts or Settings({})
         erpt = erpt or ErrorReport()
 
-        if not os.path.isfile(filepath):
-            erpt.submit(
-                # should be Exception
-                f"{filepath} is not found."
-            )
+        if (filedata is None) and (not os.path.isfile(filepath)):
+            erpt.submit(GdocRuntimeError(f"{filepath} is not found."))
             return Err(erpt)
 
         pandoc_json = Pandoc().get_json(filepath, fileformat, via_html, filedata)
