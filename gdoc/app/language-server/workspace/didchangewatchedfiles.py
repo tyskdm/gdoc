@@ -39,12 +39,6 @@ class DidCangeWatchedFiles(Feature):
             )
         return {}
 
-    def initialized(self, packet: JsonRpc) -> None:
-        self.register_did_change_watched_files(
-            "workspace/didChangeWatchedFiles",  # dummy, never used
-            [{"globPattern": "**/*.{md,text}"}],
-        )
-
     def add_update_handler(
         self, handler: Callable[[DidChangeWatchedFilesParams], None]
     ) -> None:
