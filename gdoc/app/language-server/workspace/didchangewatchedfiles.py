@@ -4,8 +4,8 @@ from typing import Callable
 from gdoc.util import Settings
 
 from ..basicjsonstructures import (
+    DidChangeWatchedFilesParams,
     DidChangeWatchedFilesRegistrationOptions,
-    FileEvent,
     FileSystemWatcher,
     Registration,
 )
@@ -19,7 +19,7 @@ logger = getLogger(__name__)
 class DidCangeWatchedFiles(Feature):
     client_capability: Settings | None = None
     server: LanguageServer
-    _did_change_watched_files_handler: list[Callable[[list[FileEvent]], None]]
+    _did_change_watched_files_handler: list[Callable[[DidChangeWatchedFilesParams], None]]
 
     def __init__(self, languageserver: LanguageServer) -> None:
         self.server = languageserver
@@ -45,7 +45,9 @@ class DidCangeWatchedFiles(Feature):
             [{"globPattern": "**/*.{md,text}"}],
         )
 
-    def add_update_handler(self, handler: Callable[[list[FileEvent]], None]) -> None:
+    def add_update_handler(
+        self, handler: Callable[[DidChangeWatchedFilesParams], None]
+    ) -> None:
         self._did_change_wtched_files_handler.append(handler)
 
     def register_did_change_watched_files(
