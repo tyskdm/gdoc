@@ -8,15 +8,14 @@ from ..feature import Feature
 from ..jsonrpc import JsonRpc
 from ..languageserver import LanguageServer
 from ..textdocument.tokenmap import Token
-from .objectbuilder import DocumentInfo
-from .workspacemanager import GdocWorkspaceManager
+from .packagemanager import DocumentInfo, GdocPackageManager
 
 logger = logging.getLogger(__name__)
 
 
 class GdocHover(Feature):
     server: LanguageServer
-    feat_workspacemanager: GdocWorkspaceManager
+    feat_packagemanager: GdocPackageManager
     get_hover_handler: Callable[[str, Token], Hover | None]
 
     def __init__(self, languageserver: LanguageServer) -> None:
@@ -32,8 +31,8 @@ class GdocHover(Feature):
                 "textDocument/hover": self._method_hover,
             }
         )
-        self.feat_workspacemanager = cast(
-            GdocWorkspaceManager, self.server.get_feature(GdocWorkspaceManager.__name__)
+        self.feat_packagemanager = cast(
+            GdocPackageManager, self.server.get_feature(GdocPackageManager.__name__)
         )
         return {"hoverProvider": True}
 
@@ -53,7 +52,7 @@ class GdocHover(Feature):
         character: int = params["position"]["character"]
 
         token: Token | None
-        document: DocumentInfo | None = self.feat_workspacemanager.get_document_info(uri)
+        document: DocumentInfo | None = self.feat_packagemanager.get_document_info(uri)
         if document is None:
             logger.error("document '%s' is None(not open).", uri)
         elif (

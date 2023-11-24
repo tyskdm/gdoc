@@ -13,23 +13,22 @@ from ..textdocument.token import Token
 from .definition import GdocDefinition
 from .gdoctoken import GdocToken
 from .hover import GdocHover
-from .objectbuilder import DocumentInfo
-from .workspacemanager import GdocWorkspaceManager
+from .packagemanager import DocumentInfo, GdocPackageManager
 
 logger = logging.getLogger(__name__)
 
 
 class GdocLanguageInfoProvider(Feature):
     server: LanguageServer
-    feat_workspacemanager: GdocWorkspaceManager
+    feat_packagemanager: GdocPackageManager
 
     def __init__(self, languageserver: LanguageServer) -> None:
         self.server = languageserver
 
     def initialize(self, client_capabilities: Settings) -> dict:
         self.client_capability = client_capabilities
-        self.feat_workspacemanager = cast(
-            GdocWorkspaceManager, self.server.get_feature(GdocWorkspaceManager.__name__)
+        self.feat_packagemanager = cast(
+            GdocPackageManager, self.server.get_feature(GdocPackageManager.__name__)
         )
         cast(
             GdocDefinition, self.server.get_feature(GdocDefinition.__name__)
@@ -57,7 +56,7 @@ class GdocLanguageInfoProvider(Feature):
 
             uri: str = document._object_info_.get("uri", "file://" + document.name)
             doc_info: DocumentInfo | None
-            doc_info = self.feat_workspacemanager.get_document_info(uri)
+            doc_info = self.feat_packagemanager.get_document_info(uri)
             text_pos: TextPosition | None = doc_info and doc_info.text_position
 
             # targetRange: Range
