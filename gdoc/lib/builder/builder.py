@@ -22,7 +22,8 @@ logger = getLogger(__name__)
 class Builder:
     compiler: Compiler
     linker: Linker
-    package_aliases: dict[str, str]
+    package_aliases: dict[str, dict[str, dict[str, str]]]
+    # keys = scheme > authority > path : value = folder_path
     _tokeninfocache: TokenInfoBuffer | None
 
     def __init__(self, opts: Settings | None = None):
@@ -36,7 +37,7 @@ class Builder:
         self, uristr: str, erpt: ErrorReport, opts: Settings | None = None
     ) -> Result[Package, ErrorReport]:
         #
-        # 1. Parse URI and get target path
+        # 1. Parse uristr and get DocumentUri
         #
         r = DocumentUri.create(uristr, erpt)
         if r.is_err():
@@ -44,36 +45,47 @@ class Builder:
         uri: DocumentUri = r.unwrap()
 
         #
-        # 2. Select a package class from the scheme
+        # 2. Get the folder path of the package
         #
         scheme: str | None = uri.scheme
-        scheme = scheme.lower() if scheme else None
-        if scheme in ("file", None):
-            #
-            # 3. Create a package object with the target path
-            #
-            return self.build_folder_package(uri, erpt)
+        scheme = scheme.lower() if scheme else "file"
+        authority: str = uri.authority or ""
+        path: str = uri.path or ""
+        alias: str | None = (
+            self.package_aliases.get(scheme, {}).get(authority, {}).get(path)
+        )
 
-        return Err(erpt.submit(GdocTypeError(f"Unsupported scheme: {uri.scheme}")))
+        if alias is not None:
+            path = alias
+
+        elif scheme != "file":
+            return Err(erpt.submit(GdocTypeError(f"Unsupported scheme: '{scheme}'")))
+
+        elif len(authority) > 0:
+            return Err(
+                erpt.submit(GdocImportError(f"Package '{authority}' is not found"))
+            )
+
+        elif len(path) == 0:
+            return Err(erpt.submit(GdocImportError("Empty path")))
+
+        #
+        # 3. Create a package object with the target path
+        #
+        return self.build_folder_package(Path(path), uri, erpt)
 
     def build_folder_package(
-        self, uri: DocumentUri, erpt: ErrorReport, opts: Settings | None = None
+        self,
+        folder_path: Path,
+        uri: DocumentUri,
+        erpt: ErrorReport,
+        opts: Settings | None = None,
     ) -> Result[Package, ErrorReport]:
         srpt: ErrorReport = erpt.new_subreport()
 
         #
         # Create empty package
         #
-        folder_path: Path = Path()
-        authority: str | None = uri.authority
-        if (authority is not None) and (len(authority) > 0):
-            if authority in self.package_aliases:
-                folder_path = folder_path / self.package_aliases[authority]
-            else:
-                return Err(
-                    erpt.submit(GdocImportError(f"Package '{authority}' is not found"))
-                )
-        folder_path = folder_path / (uri.path if uri.path else "")
         package = Package(uri.uri_str, folder_path, opts)
 
         #
