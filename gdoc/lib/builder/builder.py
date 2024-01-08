@@ -111,9 +111,7 @@ class Builder:
         #
         for file in files:
             document: Document | None
-            document, e = Compiler(plugins=[std.category]).compile(
-                file, erpt=srpt, opts=opts
-            )
+            document, e = self.compile_document(file, package, erpt=srpt, opts=opts)
             if e and srpt.should_exit(e):
                 return Err(erpt.submit(srpt))
 
@@ -161,3 +159,21 @@ class Builder:
         result: list[str] = [str(file) for file in files]
 
         return Ok(result)
+
+    def compile_document(
+        self,
+        filepath: str,
+        package: Package,
+        fileformat: str | None = None,
+        via_html: bool = False,
+        filedata: str | None = None,
+        erpt: ErrorReport | None = None,
+        opts: Settings | None = None,
+    ) -> Result[Document, ErrorReport]:
+        """
+        Compile the document in the package.
+        """
+        config: Settings = package.get_config().derive("", (opts.get([]) if opts else {}))
+        return self.compiler.compile(
+            filepath, fileformat, via_html, filedata, erpt, opts=config
+        )
