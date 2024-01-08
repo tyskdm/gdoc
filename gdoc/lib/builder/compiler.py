@@ -8,7 +8,6 @@ from gdoc.lib.gdoc import Document as GdocDocument
 from gdoc.lib.gdoccompiler.gdexception import GdocRuntimeError
 from gdoc.lib.gdocparser.documentparser import DocumentParser
 from gdoc.lib.gdocparser.objectcontext import ObjectContext
-from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfoBuffer
 from gdoc.lib.gobj.types import Document as GobjDocument
 from gdoc.lib.gobj.types import PrimitiveTypes
 from gdoc.lib.pandocastobject.pandoc import Pandoc
@@ -21,15 +20,11 @@ class Compiler:
     """ """
 
     _categories_: CategoryManager
-    _tokeninfocache: TokenInfoBuffer | None
 
-    def __init__(
-        self, plugins: list[Category] = [], tokeninfocache: TokenInfoBuffer | None = None
-    ) -> None:
+    def __init__(self, plugins: list[Category] = []) -> None:
         self._categories_ = CategoryManager().add_category(PrimitiveTypes)
         for p in plugins:
             self._categories_.add_category(p)
-        self._tokeninfocache = tokeninfocache
 
     def compile(
         self,
@@ -61,7 +56,9 @@ class Compiler:
         gobj: GobjDocument = GobjDocument(None, filepath, self._categories_)
         obj_factory = ObjectContext(self._categories_, gobj)
 
-        r = DocumentParser(self._tokeninfocache).parse(gdoc, obj_factory, erpt, opts)
+        r = DocumentParser(opts.get("token_info_buffer")).parse(
+            gdoc, obj_factory, erpt, opts
+        )
         if r.is_err():
             erpt.submit(r.err())
             return Err(erpt, gobj)
