@@ -3,6 +3,7 @@ from logging import getLogger
 from pathlib import Path
 from typing import NamedTuple, cast
 
+from gdoc.lib.builder.builder import Builder
 from gdoc.lib.builder.compiler import Compiler
 from gdoc.lib.gdoccompiler.gdexception import GdocSyntaxError
 from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfoBuffer
@@ -20,9 +21,6 @@ from ..workspace.workspacemanager import FileInfo, FolderInfo, WorkspaceManager
 from .gdoctoken import GdocToken
 
 logger = getLogger(__name__)
-
-
-CONFIGURATION_FILE_NAME = ".gdpackage.json"
 
 
 class DocumentInfo(NamedTuple):
@@ -47,6 +45,7 @@ class GdocPackageManager(Feature):
     # Internal data
     packages: dict[str | None, Package]  # key = uri
     documents: dict[str, DocumentIndex]  # key = uri
+    builder: Builder
 
     def __init__(self, languageserver) -> None:
         """
@@ -55,6 +54,7 @@ class GdocPackageManager(Feature):
         self.server = languageserver
         self.packages = {}
         self.documents = {}
+        self.builder = Builder()
 
     def initialize(self, client_capabilities: Settings) -> dict:
         """
@@ -99,14 +99,12 @@ class GdocPackageManager(Feature):
             self.packages.pop(folder_uri)
             return
 
-        config: Settings | None = None
-        config_path: Path = folder_info.path / CONFIGURATION_FILE_NAME
-        if config_path.is_file():
-            r = Settings.load_config(config_path)
-            if r.is_ok():
-                config = r.ok()
+        package: Package | None
+        package, e = self.builder.build(folder_uri, erpt=ErrorReport(cont=True))
+        if package is None:
+            return
 
-        self.packages[folder_uri] = Package(folder_uri, folder_info.path, config)
+        self.packages[folder_uri] = package
 
         folder_path = folder_info.path
         pattern: str = "**/*.{md,gmd}"
