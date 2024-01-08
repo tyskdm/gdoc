@@ -7,7 +7,11 @@ from pathlib import Path
 
 from gdoc.lib.builder.compiler import Compiler
 from gdoc.lib.gdoc.documenturi import DocumentUri
-from gdoc.lib.gdoccompiler.gdexception import GdocImportError, GdocTypeError
+from gdoc.lib.gdoccompiler.gdexception import (
+    GdocImportError,
+    GdocRuntimeError,
+    GdocTypeError,
+)
 from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfoBuffer
 from gdoc.lib.gobj.types import Document
 from gdoc.lib.gobj.types.package import Package
@@ -17,6 +21,8 @@ from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 from .linker import Linker
 
 logger = getLogger(__name__)
+
+CONFIGURATION_FILE_NAME = "gdpackage.json"
 
 
 class Builder:
@@ -86,7 +92,11 @@ class Builder:
         #
         # Create empty package
         #
-        package = Package(uri.uri_str, folder_path, opts)
+        package: Package
+        r = self.create_folder_package(folder_path, uri, erpt, opts)
+        if r.is_err():
+            return Err(erpt.submit(r.err()))
+        package = r.unwrap()
 
         #
         # Create file list
@@ -119,6 +129,23 @@ class Builder:
             return Err(erpt.submit(srpt), package)
 
         return Ok(package)
+
+    def create_folder_package(
+        self,
+        folder_path: Path,
+        uri: DocumentUri,
+        erpt: ErrorReport,
+        opts: Settings | None = None,
+    ) -> Result[Package, ErrorReport]:
+        config: Settings | None = None
+        config_path: Path = folder_path / CONFIGURATION_FILE_NAME
+        if config_path.is_file():
+            config, e = Settings.load_config(config_path)
+            if e:
+                return Err(erpt.submit(GdocRuntimeError(e)))
+        if opts:
+            config = opts.derive(config.get([])) if config else opts
+        return Ok(Package(uri.uri_str, folder_path, config))
 
     def _create_document_list(
         self, filepath: str, erpt: ErrorReport
