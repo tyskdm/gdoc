@@ -100,7 +100,9 @@ class GdocPackageManager(Feature):
             return
 
         package: Package | None
-        package, e = self.builder.build(folder_uri, erpt=ErrorReport(cont=True))
+        package, e = self.builder.create_folder_package(
+            folder_info.path, folder_uri, erpt=ErrorReport(cont=True)
+        )
         if package is None:
             return
 
@@ -108,7 +110,6 @@ class GdocPackageManager(Feature):
 
         folder_path = folder_info.path
         pattern: str = "**/*.{md,gmd}"
-
         self.feat_workspacemanager.register_file_update_watchers(
             folder_uri,
             [
@@ -116,10 +117,12 @@ class GdocPackageManager(Feature):
             ],
         )
 
-        files: list[Path] = list(folder_path.glob(pattern))
-        file: Path
+        files: list[str] = []
+        r = self.builder.generate_document_list(package, erpt=ErrorReport(cont=True))
+        if r.is_ok():
+            files = r.unwrap()
         for file in files:
-            self.feat_workspacemanager.get_file_info_by_path(folder_uri, str(file))
+            self.feat_workspacemanager.get_file_info_by_path(folder_uri, file)
 
     def _file_update_handler(
         self, folder_uri: str, file_uri: str, file_info: FileInfo | None

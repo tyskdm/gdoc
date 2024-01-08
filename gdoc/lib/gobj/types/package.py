@@ -38,6 +38,14 @@ class Package:
         self.documents = {}
         self._docindex = {}
 
+    def get_config(self) -> Settings:
+        return self.config
+
+    def derive_config(self, config: Settings) -> None:
+        self.config = (
+            self._base_opts.derive("", config.get([])) if self._base_opts else config
+        )
+
     def add_doc_file_path(self, file_path: str) -> DocumentInfo:
         docuri: str = self.uri
         if file_path.startswith(str(self.folder_path) + "/"):

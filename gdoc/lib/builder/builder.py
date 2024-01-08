@@ -101,7 +101,7 @@ class Builder:
         #
         # Create file list
         #
-        r = self._create_document_list(str(folder_path), erpt)
+        r = self.generate_document_list(package, erpt)
         if r.is_err():
             return Err(erpt.submit(r.err()))
         files: list[str] = r.unwrap()
@@ -133,25 +133,28 @@ class Builder:
     def create_folder_package(
         self,
         folder_path: Path,
-        uri: DocumentUri,
+        uri: str | DocumentUri,
         erpt: ErrorReport,
         opts: Settings | None = None,
     ) -> Result[Package, ErrorReport]:
-        config: Settings | None = None
+        package: Package = Package(
+            (uri.uri_str if isinstance(uri, DocumentUri) else uri), folder_path, opts
+        )
+
         config_path: Path = folder_path / CONFIGURATION_FILE_NAME
         if config_path.is_file():
-            config, e = Settings.load_config(config_path)
-            if e:
-                return Err(erpt.submit(GdocRuntimeError(e)))
-        if opts:
-            config = opts.derive(config.get([])) if config else opts
-        return Ok(Package(uri.uri_str, folder_path, config))
+            r = Settings.load_config(config_path)
+            if r.is_err():
+                return Err(erpt.submit(GdocRuntimeError(r.err())))
+            package.derive_config(r.unwrap())
 
-    def _create_document_list(
-        self, filepath: str, erpt: ErrorReport
+        return Ok(package)
+
+    def generate_document_list(
+        self, package: Package, erpt: ErrorReport
     ) -> Result[list[str], ErrorReport]:
         try:
-            files: list[Path] = list(Path(filepath).glob("**/*.md"))
+            files: list[Path] = list(package.folder_path.glob("**/*.md"))
         except Exception as e:
             return Err(erpt.submit(GdocImportError(f"Failed to get files: {e}")))
 
