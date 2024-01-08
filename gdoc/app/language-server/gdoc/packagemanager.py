@@ -153,7 +153,7 @@ class GdocPackageManager(Feature):
         else:
             tokeninfo: TokenInfoBuffer
             document, erpt, tokeninfo = self._create_object(
-                file_uri.removeprefix("file://"), file_info.text_item["text"]
+                file_uri.removeprefix("file://"), package, file_info.text_item["text"]
             )
             package.add_doc_object(file_uri, document, erpt)
 
@@ -182,7 +182,7 @@ class GdocPackageManager(Feature):
                 logger.debug(" uri = %s diagnostics = %s", file_uri, diagnostics)
 
     def _create_object(
-        self, filepath: str, filedata: str | None = None
+        self, filepath: str, package: Package, filedata: str | None = None
     ) -> tuple[Document | None, ErrorReport | None, TokenInfoBuffer]:
         fileformat: str | None = "gfm"
         via_html: bool | None = False
@@ -190,10 +190,9 @@ class GdocPackageManager(Feature):
         tokeninfo: TokenInfoBuffer = TokenInfoBuffer()
 
         erpt: ErrorReport | None
-        document, erpt = Compiler(
-            tokeninfocache=tokeninfo, plugins=[std.category]
-        ).compile(
+        document, erpt = self.builder.compile_document(
             filepath,
+            package,
             fileformat,
             via_html,
             filedata,
