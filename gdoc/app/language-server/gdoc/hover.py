@@ -8,8 +8,7 @@ from ..feature import Feature
 from ..jsonrpc import JsonRpc
 from ..languageserver import LanguageServer
 from ..textdocument.tokenmap import Token
-from .objectbuilder import DocumentInfo
-from .packagemanager import GdocPackageManager
+from .packagemanager import DocumentInfo, GdocPackageManager
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +32,7 @@ class GdocHover(Feature):
             }
         )
         self.feat_packagemanager = cast(
-            GdocPackageManager, self.server.get_feature("GdocPackageManager")
+            GdocPackageManager, self.server.get_feature(GdocPackageManager.__name__)
         )
         return {"hoverProvider": True}
 

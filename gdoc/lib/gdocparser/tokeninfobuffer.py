@@ -7,6 +7,19 @@ from gdoc.util import Settings
 
 TagParameter: TypeAlias = dict[str, TextString | list[TextString] | None]
 
+TOKEN_TYPE: dict[str, tuple[str, list[str]]] = {
+    "tag_symbol": ("keyword", []),
+    "class_cat": ("namespace", []),
+    "class_type": ("class", []),
+    "class_isref": ("keyword", []),
+    "class_param": ("parameter", []),
+    "class_alias": ("parameter", []),
+    "class_brief": ("comment", []),
+    "quoted": ("string", []),
+    "prop_known_type": ("method", []),
+    "prop_type": ("parameter", []),
+}
+
 
 class TokenInfo(NamedTuple):
     col: int  # 0-based start column
@@ -18,11 +31,9 @@ class TokenInfo(NamedTuple):
 
 class TokenInfoBuffer:
     _info: dict[TextString | DataPos, dict[str, Any]]
-    _index: list[tuple[int, list[TokenInfo]]] | None
 
     def __init__(self):
         self._info = {}
-        self._index = None
 
     def set(self, token: TextString | DataPos | None, key: str, val: Any):
         if token is None:
@@ -35,117 +46,61 @@ class TokenInfoBuffer:
     def get_all(self) -> dict[TextString | DataPos, dict[str, Any]]:
         return self._info
 
-    def get_index(self) -> list[tuple[int, list[TokenInfo]]]:
-        if self._index is not None:
-            return self._index
-
-        index: list[tuple[int, list[TokenInfo]]] = []
-        for token in reversed(self._info):
-            # Since `self._info` is arranged in order of appearance,
-            # the reverse order is more efficient for searching.
-            datapos: DataPos | None = (
-                token.get_data_pos() if isinstance(token, TextString) else token
-            )
-            if datapos is None:
-                continue
-
-            line: int = datapos.start.ln - 1
-            token_info: TokenInfo = TokenInfo(
-                datapos.start.col - 1,
-                (
-                    datapos.stop.col - datapos.start.col
-                    if datapos.stop.col - datapos.start.col > 0
-                    else 0
-                ),
-                token,
-                self._info[token],
-            )
-
-            r: int = -1
-            lineinfo: tuple[int, list[TokenInfo]]
-            for r, lineinfo in enumerate(index):
-                if lineinfo[0] >= line:
-                    break
-            else:
-                r += 1
-
-            if r == len(index):
-                # The first time, always r == 0 and len(index) == 0
-                index.append((line, [token_info]))
-            elif index[r][0] > line:
-                index.insert(r, (line, [token_info]))
-            else:
-                # index[r].line == line
-                # insert token_info to existing list at index[i].tokens
-                line_tokens: list[TokenInfo] = index[r][1]
-                c: int = -1
-                col_token: TokenInfo
-                for c, col_token in enumerate(line_tokens):
-                    if col_token.col >= token_info.col:
-                        break
-                else:
-                    c += 1
-
-                if c == len(line_tokens):
-                    line_tokens.append(token_info)
-                else:
-                    line_tokens.insert(c, token_info)
-
-        self._index = index
-        return index
+    def set_type(self, token: TextString | DataPos, token_type: str):
+        self.set(token, "type", TOKEN_TYPE.get(token_type, ("", [])))
 
     def add_blocktag(self, blocktag: BlockTag, params: TagParameter):
-        self.set(blocktag[:2], "type", ("keyword", []))
+        self.set_type(blocktag[:2], "tag_symbol")
 
-        if (blocktag._class_info[0] is not None) and (len(blocktag._class_info[0]) > 0):
-            self.set(blocktag._class_info[0], "type", ("namespace", []))
+        # if (blocktag._class_info[0] is not None) and (len(blocktag._class_info[0]) > 0):
+        #     self.set_type(blocktag._class_info[0], "class_cat")
 
-        if (blocktag._class_info[1] is not None) and (len(blocktag._class_info[1]) > 0):
-            self.set(blocktag._class_info[1], "type", ("class", []))
+        # if (blocktag._class_info[1] is not None) and (len(blocktag._class_info[1]) > 0):
+        #     self.set_type(blocktag._class_info[1], "class_type")
 
         if (blocktag._class_info[2] is not None) and (len(blocktag._class_info[2]) > 0):
-            self.set(blocktag._class_info[2], "type", ("keyword", []))
+            self.set_type(blocktag._class_info[2], "class_isref")
 
         for arg in blocktag._class_args:
             if type(arg) is Quoted:
-                self.set(arg, "type", ("string", []))
+                self.set_type(arg, "quoted")
 
         for key, val in blocktag._class_kwargs:
-            self.set(key, "type", ("parameter", []))
+            self.set_type(key, "class_param")
             if len(val) == 1 and isinstance(val[0], Quoted):
-                self.set(val, "type", ("string", []))
+                self.set_type(val, "quoted")
 
-        self.set(blocktag[-1:], "type", ("keyword", []))
+        self.set_type(blocktag[-1:], "tag_symbol")
 
-        if "name" in params:
-            name = params["name"]
-            if isinstance(name, TextString) and len(name) > 0:
-                self.set(name, "type", ("variable", []))
+        # if "name" in params:
+        #     name = params["name"]
+        #     if isinstance(name, TextString) and len(name) > 0:
+        #         self.set_type(name, "class_alias")
 
-        if "brief" in params:
-            brief = params["brief"]
-            if isinstance(brief, TextString) and len(brief) > 0:
-                self.set(brief, "type", ("comment", []))
+        # if "brief" in params:
+        #     brief = params["brief"]
+        #     if isinstance(brief, TextString) and len(brief) > 0:
+        #         self.set_type(brief, "class_brief")
 
     def add_inlinetag(self, inlinetag: InlineTag, params: TagParameter):
-        self.set(inlinetag[:1], "type", ("keyword", []))
+        self.set_type(inlinetag[:1], "tag_symbol")
 
         proptype, _, kwargs = inlinetag.get_arguments()
 
         if proptype is not None:
-            self.set(proptype, "type", ("type", []))
+            self.set_type(proptype, "prop_type")
 
         if isinstance(inlinetag[-2], TextString):
             parenthesized = cast(TextString, inlinetag[-2])
-            self.set(parenthesized[:1], "type", ("keyword", []))
-            self.set(parenthesized[-1:], "type", ("keyword", []))
+            self.set_type(parenthesized[:1], "tag_symbol")
+            self.set_type(parenthesized[-1:], "tag_symbol")
 
         for key, val in kwargs:
-            self.set(key, "type", ("parameter", []))
+            self.set_type(key, "class_param")
             if len(val) == 1 and isinstance(val[0], Quoted):
-                self.set(val, "type", ("string", []))
+                self.set_type(val, "quoted")
 
-        self.set(inlinetag[-1:], "type", ("keyword", []))
+        self.set_type(inlinetag[-1:], "tag_symbol")
 
 
 def set_opts_token_info(opts: Settings | None, token: TextString, key: str, val: Any):

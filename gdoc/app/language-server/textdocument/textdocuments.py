@@ -42,7 +42,7 @@ class TextDocuments(Feature):
         Check client capabilities and return the capabilities for the client.
         """
         self.feat_synchronization = cast(
-            Synchronization, self.server.get_feature("Synchronization")
+            Synchronization, self.server.get_feature(Synchronization.__name__)
         )
         if self.feat_synchronization is not None:
             self.feat_synchronization.add_did_open_handler(self._did_open_handler)

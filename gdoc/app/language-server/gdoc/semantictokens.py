@@ -7,8 +7,7 @@ from ..basicjsonstructures import SemanticTokens, SemanticTokensParams
 from ..feature import Feature
 from ..jsonrpc import JsonRpc
 from ..languageserver import LanguageServer
-from .objectbuilder import DocumentInfo
-from .packagemanager import GdocPackageManager
+from .packagemanager import DocumentInfo, GdocPackageManager
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +39,7 @@ class GdocSemanticTokens(Feature):
             }
         )
         self.feat_packagemanager = cast(
-            GdocPackageManager, self.server.get_feature("GdocPackageManager")
+            GdocPackageManager, self.server.get_feature(GdocPackageManager.__name__)
         )
 
         return {
@@ -66,7 +65,7 @@ class GdocSemanticTokens(Feature):
 
     def get_tokens_data(self, uri: str) -> list[int]:
         if self.feat_packagemanager is None:
-            logger.debug("self.feat_packagemanager is None -> return []")
+            logger.debug("self.feat_workspacemanager is None -> return []")
             return []
 
         docinfo: DocumentInfo | None

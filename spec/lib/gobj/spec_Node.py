@@ -817,7 +817,7 @@ class Spec___get_linkto:
                 targets[-1].bidir_link_to(targets[-2])
 
         # WHEN
-        target = targets[-1]._Node__get_linkto_target()
+        target = targets[-1]._get_linkto_target()
 
         # THEN
         if expected["TargetId"] is None:

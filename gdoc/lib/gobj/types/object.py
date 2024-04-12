@@ -1,7 +1,7 @@
 """
 baseobject.py: BaseObject class
 """
-from typing import Any, Union, cast
+from typing import Any, Type, Union, cast
 
 from gdoc.lib.gdoc import TextString
 from gdoc.lib.gdocparser.objectfactorytools import ObjectFactoryTools
@@ -123,7 +123,7 @@ class Object(Element):
         class_cat: str | None,
         class_type: str | None,
         opts: Settings | None = None,
-    ) -> tuple[Union[str, None], Union["Object", None]]:
+    ) -> tuple[Union[str, None], Union[Type["Object"], None]]:
         """ """
         constructor = None
         class_name = None
@@ -133,7 +133,11 @@ class Object(Element):
     def _create_object_(
         cls,
         typename: str,
-        class_info: tuple[TextString | None, TextString | None, TextString | None],
+        class_info: tuple[
+            TextString | Type["Object"] | None,  # category | constructor
+            TextString | None,  # type
+            TextString | None,  # ifref("&")
+        ],
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
         tag_params: dict,

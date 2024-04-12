@@ -15,7 +15,7 @@ from unittest import mock
 
 import pytest
 
-from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
+from gdoc.lib.builder.compiler import Compiler
 from gdoc.lib.pandocastobject.pandoc import Pandoc
 from gdoc.lib.pandocastobject.pandocast import PandocAst
 
@@ -47,7 +47,7 @@ def test_GdocCompile_1(mocker: mock, filename, formattype, html):
     expect_data = json.loads(expect_json)
 
     # Execution
-    gobj, e = GdocCompiler().compile(filepath)
+    gobj, e = Compiler().compile(filepath)
 
     # Assertion
     assert e is None
