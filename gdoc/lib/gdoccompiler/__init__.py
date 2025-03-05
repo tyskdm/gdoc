@@ -1,5 +1,0 @@
-r"""!
-
-**gdocCompiler**\n
-
-"""

@@ -43,9 +43,9 @@ class Token(ABC):
     def get_tokenmodifiers(self) -> list[str]:
         pass
 
-    def _set_u16_position(self, start, end) -> None:
-        self._u16_start_character = start
-        self._u16_end_character = end
+    def _set_u16_position(self, start_char, end_char) -> None:
+        self._u16_start_character = start_char
+        self._u16_end_character = end_char
 
     def get_u16_position(self) -> TokenRange:
         start_line, _, end_line, _ = self.get_position()

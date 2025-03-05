@@ -1,7 +1,7 @@
 """
 objectfactory.py: ObjectFactory class
 """
-from typing import Any, Optional, cast
+from typing import Any, Optional, Type, cast
 
 from gdoc.lib.gdoc import DataPos, TextString
 from gdoc.lib.gdoccompiler.gdexception import (
@@ -15,7 +15,7 @@ from gdoc.lib.plugins import Category, CategoryManager
 from gdoc.util import Err, ErrorReport, Ok, Result, Settings
 
 from .objectfactorytools import ObjectFactoryTools
-from .tokeninfobuffer import set_opts_token_info
+from .tokeninfobuffer import TokenInfoBuffer, set_opts_token_info
 
 
 class ObjectContext:
@@ -28,16 +28,20 @@ class ObjectContext:
     current: Object
     tools: ObjectFactoryTools
     parent_context: Optional["ObjectContext"] = None
+    _tokeninfo: TokenInfoBuffer | None = None
 
     def __init__(
         self,
         categories: CategoryManager,
         root: Object,
+        tokeninfobuffer: TokenInfoBuffer | None = None,
         current: Object | None = None,
         tools: ObjectFactoryTools | None = None,
     ) -> None:
         self.categories = categories
         self.root_object = root
+        self._tokeninfo = tokeninfobuffer
+
         self.current = current if current else root
         self.tools = tools if tools else ObjectFactoryTools()
         self.parent_context = None
@@ -47,14 +51,18 @@ class ObjectContext:
 
     def get_sub_context(self, parent_obj: Object) -> "ObjectContext":
         sub_context = ObjectContext(
-            self.categories, self.root_object, parent_obj, self.tools
+            self.categories, self.root_object, self._tokeninfo, parent_obj, self.tools
         )
         sub_context.parent_context = self
         return sub_context
 
     def add_new_object(
         self,
-        class_info: tuple[TextString | None, TextString | None, TextString | None],
+        class_info: tuple[
+            TextString | Type["Object"] | None,  # category | constructor
+            TextString | None,  # type
+            TextString | None,  # ifref("&")
+        ],
         class_args: list[TextString],
         class_kwargs: list[tuple[TextString, TextString]],
         tag_params: dict[str, Any],
@@ -68,10 +76,10 @@ class ObjectContext:
         #
         # Get Constructor
         #
-        type_constructor: Object | None = None
+        type_constructor: Type[Object] | None = None
         type_name: str | None = ""
 
-        r = self._get_constructor_(class_info, tag_body, erpt, opts)
+        r = self.get_constructor(class_info, tag_body, erpt, opts)
         if r.is_err():
             return Err(erpt.submit(r.err()))
         type_name, type_constructor = r.unwrap()
@@ -168,16 +176,40 @@ class ObjectContext:
 
         return Ok(cast(Optional[Object], child))
 
-    def _get_constructor_(
+    def get_constructor(
         self,
-        class_info: tuple[TextString | None, TextString | None, TextString | None],
+        class_info: tuple[
+            TextString | Type[Object] | None,  # category | constructor
+            TextString | None,  # type
+            TextString | None,  # ifref("&")
+        ],
         tag_body: TextString,
         erpt: ErrorReport,
         opts: Settings | None = None,
-    ) -> Result[tuple[str, Object], ErrorReport]:
+    ) -> Result[tuple[str, Type[Object]], ErrorReport]:
         """
         Get Constructor
         """
+        type_constructor: Type[Object] | None = None
+        type_name: str | None = ""
+        cat: Category | None = None
+        pos: DataPos | None = None
+
+        if isinstance(class_info[0], type):
+            type_constructor = cast(Type[Object], class_info[0])
+            cat = self.categories.get_category(class_info[0])
+            if cat is not None:
+                type_name = cat.get_type_name(type_constructor)
+            return Ok((type_name, type_constructor))
+
+        class_info = cast(
+            tuple[
+                TextString | None,  # category
+                TextString | None,  # type
+                TextString | None,  # ifref("&")
+            ],
+            class_info,
+        )
 
         class_cat: str | None = None
         if class_info[0] is not None:
@@ -187,16 +219,11 @@ class ObjectContext:
         if class_info[1] is not None:
             class_type = class_info[1].get_str()
 
-        type_constructor: Object | None = None
-        type_name: str | None = ""
-        cat: Category | None = None
-        pos: DataPos | None = None
-
         #
         # Primary types - OBJECT, IMPORT, ACCESS
         #
         if class_cat == "":
-            cat: Category | None = (
+            cat = (
                 self.current._class_categories_.get_root_category()
                 if self.current._class_categories_
                 else None
@@ -230,7 +257,7 @@ class ObjectContext:
                 # Types managed by each category
                 #
                 if class_cat in (None, obj.class_category):
-                    cat: Category | None = obj._class_category_
+                    cat = obj._class_category_
                     if cat is not None:
                         type_name, type_constructor = cat.get_type(
                             class_type,
@@ -253,6 +280,7 @@ class ObjectContext:
                 #
                 # Types managed by each object
                 #
+                # todo: get cat to set to TokenInfoBuffer
                 type_name, type_constructor = obj._get_additional_constructor_(
                     class_cat,
                     class_type,
@@ -290,9 +318,6 @@ class ObjectContext:
 
                 else:
                     # The explicitly specified category does not have the specified type.
-                    set_opts_token_info(
-                        opts, cast(TextString, class_info[0]), "type", ("namespace", [])
-                    )
                     tstrs: list[TextString]
                     tstrs = tag_body.split(maxsplit=1)[0].split(":", retsep=True)[:2]
                     tstr: TextString = tstrs[0]
@@ -332,6 +357,17 @@ class ObjectContext:
                         )
                     )
                 )
+
+        #
+        # Add info to TokenInfoBuffer for Language Server
+        #
+        if self._tokeninfo:
+            if cat and class_info[0] and (len(class_info[0]) > 0):
+                self._tokeninfo.set_type(class_info[0], "class_cat")
+                # self._tokeninfo.set(class_info[0], "referent", cat)
+            if type_constructor and class_info[1] and (len(class_info[1]) > 0):
+                self._tokeninfo.set_type(class_info[1], "class_type")
+                # self._tokeninfo.set(class_info[1], "referent", type_constructor)
 
         type_name = cast(str, type_name)
         return Ok((type_name, type_constructor))

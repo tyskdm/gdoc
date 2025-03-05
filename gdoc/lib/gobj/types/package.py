@@ -1,119 +1,140 @@
 r"""
 Package class
 """
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, NamedTuple, cast
+from typing import Any
 
-from gdoc.lib.gdoc import ObjectUri, TextString
 from gdoc.util import ErrorReport, Settings
 
 from .document import Document
-from .object import Object
 
 
-class DocumentInfo(NamedTuple):
+@dataclass
+class DocumentInfo:
+    uri: str
     file_path: Path | None
-    document: Document | None
-    err_report: ErrorReport | None
-    link_info: dict[str, Any] = {}
+    document: Document | None = None
+    compile_erpt: ErrorReport | None = None
+    link_data: dict[str, Any] | None = None
+    link_erpt: ErrorReport | None = None
 
 
-class Package(Object):
+class Package:
     uri: str
     folder_path: Path
-    opts: Settings | None
-    documents: dict[str, DocumentInfo]
+    config: Settings
+    documents: dict[str, DocumentInfo]  # key = uri
     _docindex: dict[Document, str]
+    _base_opts: Settings | None
 
     def __init__(self, uri: str, folder_path: Path | str, opts: Settings | None = None):
         self.uri = uri
         self.folder_path = (
             folder_path if isinstance(folder_path, Path) else Path(folder_path)
         )
-        self.opts = opts
+        self._base_opts = opts
+        self.config = Settings() if opts is None else opts.derive([])
         self.documents = {}
         self._docindex = {}
 
-    def add_document(
-        self, docuri: str, document: Document, err_report: ErrorReport | None = None
-    ):
-        file_path: Path
-        if docuri.startswith(self.uri):
-            file_path = self.folder_path / docuri[len(self.uri) :]
-        else:
-            # todo: Add handling of "scheme:" uri
-            file_path = Path(docuri)
-        self.documents[docuri] = DocumentInfo(file_path, document, err_report, {})
-        self._docindex[document] = docuri
+    def get_config(self) -> Settings:
+        return self.config
 
-    def del_document(self, uri: str):
-        del self.documents[uri]
-
-    def get_document(
-        self, uri: ObjectUri | str, base_document: Document | None = None
-    ) -> Document | None:
-        document_uri: str | None = None
-        if isinstance(uri, ObjectUri):
-            document_uri = self.get_document_uristr(uri, base_document)
-        else:
-            document_uri = str(Path(uri))
-
-        docinfo: DocumentInfo | None = (
-            self.documents.get(document_uri) if document_uri else None
+    def derive_config(self, config: Settings) -> None:
+        self.config = (
+            self._base_opts.derive("", config.get([])) if self._base_opts else config
         )
 
+    def add_doc_file_path(self, file_path: str) -> DocumentInfo:
+        docuri: str = self.uri
+        if file_path.startswith(str(self.folder_path) + "/"):
+            docuri += file_path[len(str(self.folder_path) + "/") :]
+        else:
+            docuri = "file://" + file_path
+
+        return self._add_doc_info(docuri, file_path)
+
+    def add_doc_file_uri(self, docuri: str) -> DocumentInfo:
+        if docuri in self.documents:
+            return self.documents[docuri]
+        return self._add_doc_info(docuri)
+
+    def del_doc_file_uri(self, docuri: str) -> None:
+        if docuri in self.documents:
+            document: Document | None = self.documents[docuri].document
+            if (document is not None) and (document in self._docindex):
+                del self._docindex[document]
+
+            del self.documents[docuri]
+
+    def add_doc_object(
+        self,
+        docuri: str,
+        document: Document | None,
+        err_report: ErrorReport | None = None,
+    ) -> None:
+        if docuri in self.documents:
+            self.documents[docuri].document = document
+            self.documents[docuri].compile_erpt = err_report
+            self.documents[docuri].link_data = None
+            self.documents[docuri].link_erpt = None
+
+        else:
+            self._add_doc_info(docuri, None, document, err_report)
+
+        if document is not None:
+            self._docindex[document] = docuri
+
+    def del_doc_object(self, docuri: str) -> None:
+        if docuri in self.documents:
+            document: Document | None = self.documents[docuri].document
+            if document is not None:
+                self._docindex.pop(document)
+
+            self.documents[docuri].document = None
+            self.documents[docuri].compile_erpt = None
+            self.documents[docuri].link_data = None
+            self.documents[docuri].link_erpt = None
+
+    def get_doc_object(self, docuri: str) -> Document | None:
+        docinfo: DocumentInfo | None = self.documents.get(docuri)
         return docinfo.document if docinfo else None
 
-    def get_document_uristr(
-        self, objuri: ObjectUri | None, base_document: Document | None
-    ) -> str | None:
-        # Empty document uri
-        if (objuri is None) or (objuri.document_uri is None):
-            # return document uri of the base document
-            return self._docindex.get(base_document) if base_document else None
+    def get_doc_uri(self, document: Document) -> str | None:
+        return self._docindex.get(document)
 
-        # Non supported scheme
-        if objuri.components.scheme not in ("file", None):
-            # -> call external resolver in the future
-            return None
+    def add_link_info(self, docuri: str, data: dict[str, Any] | None, erpt: ErrorReport):
+        if docuri in self.documents:
+            self.documents[docuri].link_data = data
+            self.documents[docuri].link_erpt = erpt
 
-        # Fully qualified document uri
-        if objuri.components.authority is not None:
-            return cast(TextString, objuri.document_uri).get_str()
+    def get_link_erpt(self, docuri: str) -> ErrorReport | None:
+        docinfo: DocumentInfo | None = self.documents.get(docuri)
+        return docinfo.link_erpt if docinfo else None
 
-        # here, document_uri is "package" relative
+    def get_link_data(self, docuri: str) -> dict[str, Any] | None:
+        docinfo: DocumentInfo | None = self.documents.get(docuri)
+        return docinfo.link_data if docinfo else None
 
-        if objuri.components.path is None:
-            # document uri is only "file:"
-            return self._docindex.get(base_document) if base_document else None
+    def _get_doc_info(self, docuri: str) -> DocumentInfo | None:
+        return self.documents.get(docuri)
 
-        result: str | None = None
-        target_path: Path
-        if objuri.components.path.startswith("/"):
-            # path is "package" absolute
-            target_path = Path(objuri.components.path.get_str())
-
+    def _add_doc_info(
+        self,
+        docuri: str,
+        filepath: str | None = None,
+        document: Document | None = None,
+        erpt: ErrorReport | None = None,
+    ) -> DocumentInfo:
+        path: Path
+        if filepath is not None:
+            path = Path(filepath)
+        elif docuri.startswith(self.uri + "/"):
+            path = self.folder_path / docuri[len(self.uri + "/") :]
         else:
-            # path is "document" relative
-            if base_document is None:
-                return None
+            # todo: Add handling of "scheme:" uri
+            path = Path(docuri.removeprefix("file://"))
+        self.documents[docuri] = DocumentInfo(docuri, path, document, erpt)
 
-            base_uristr: str | None = self._docindex.get(base_document)
-            if base_uristr is None:
-                return None
-            # remove package uri that may contain scheme or authority
-            # to get pure path to handle by Path.
-            base_path: Path = Path(base_uristr[len(self.uri) :])
-
-            target_path = base_path.parent / objuri.components.path.get_str()
-
-        result = (
-            self.uri
-            + (
-                "/"
-                if (not self.uri.endswith("/")) and (not str(target_path).startswith("/"))
-                else ""
-            )
-            + str(target_path)
-        )
-        return result
+        return self.documents[docuri]

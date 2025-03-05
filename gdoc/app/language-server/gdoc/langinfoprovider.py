@@ -13,8 +13,7 @@ from ..textdocument.token import Token
 from .definition import GdocDefinition
 from .gdoctoken import GdocToken
 from .hover import GdocHover
-from .objectbuilder import DocumentInfo
-from .packagemanager import GdocPackageManager
+from .packagemanager import DocumentInfo, GdocPackageManager
 
 logger = logging.getLogger(__name__)
 
@@ -29,12 +28,12 @@ class GdocLanguageInfoProvider(Feature):
     def initialize(self, client_capabilities: Settings) -> dict:
         self.client_capability = client_capabilities
         self.feat_packagemanager = cast(
-            GdocPackageManager, self.server.get_feature("GdocPackageManager")
+            GdocPackageManager, self.server.get_feature(GdocPackageManager.__name__)
         )
         cast(
-            GdocDefinition, self.server.get_feature("GdocDefinition")
+            GdocDefinition, self.server.get_feature(GdocDefinition.__name__)
         ).add_definition_handler(self.get_definition_handler)
-        cast(GdocHover, self.server.get_feature("GdocHover")).add_hover_handler(
+        cast(GdocHover, self.server.get_feature(GdocHover.__name__)).add_hover_handler(
             self.get_hover_handler
         )
         return {}
@@ -48,7 +47,7 @@ class GdocLanguageInfoProvider(Feature):
         token = cast(GdocToken, token)
         response: Location | list[Location] | list[LocationLink] | None = None
 
-        referent: GdocObject | None = token.token_data.get("referent")
+        referent: GdocObject | None = token.data.get("referent")
         if referent is not None:
             document = cast(GdocObject, referent.get_root())
             if not (document and document.name):
@@ -117,27 +116,28 @@ class GdocLanguageInfoProvider(Feature):
 
             # originSelectionRange: Range
             original_selection_range: Range | None = None
-            selection_range: DataPos | None = token.datapos
-            original_selection_range = Range(
-                start={
-                    "line": selection_range.start.ln - 1,
-                    "character": text_pos.get_u16_column(
-                        selection_range.start.ln - 1,
-                        selection_range.start.col - 1,
-                    )
-                    if text_pos
-                    else selection_range.start.col - 1,
-                },
-                end={
-                    "line": selection_range.stop.ln - 1,
-                    "character": text_pos.get_u16_column(
-                        selection_range.stop.ln - 1,
-                        selection_range.stop.col - 1,
-                    )
-                    if text_pos
-                    else selection_range.stop.col - 1,
-                },
-            )
+            selection_range: DataPos | None = token._datapos
+            if selection_range is not None:
+                original_selection_range = Range(
+                    start={
+                        "line": selection_range.start.ln - 1,
+                        "character": text_pos.get_u16_column(
+                            selection_range.start.ln - 1,
+                            selection_range.start.col - 1,
+                        )
+                        if text_pos
+                        else selection_range.start.col - 1,
+                    },
+                    end={
+                        "line": selection_range.stop.ln - 1,
+                        "character": text_pos.get_u16_column(
+                            selection_range.stop.ln - 1,
+                            selection_range.stop.col - 1,
+                        )
+                        if text_pos
+                        else selection_range.stop.col - 1,
+                    },
+                )
 
             if (
                 (target_range is not None)
@@ -167,7 +167,10 @@ class GdocLanguageInfoProvider(Feature):
         token = cast(GdocToken, token)
         response: Hover | None = None
 
-        referent: GdocObject | None = token.token_data.get("referent")
+        referent: GdocObject | None = token.data.get("referent")
+        if referent is not None:
+            referent = cast(GdocObject | None, referent._get_linkto_target())
+
         if referent is not None:
             markdown: str = "({}:{}) {}".format(
                 referent.class_category,
@@ -180,12 +183,13 @@ class GdocLanguageInfoProvider(Feature):
                 markdown += " \n" + (
                     brief.get_str() if isinstance(brief, TextString) else str(brief)
                 )
+            text: TextString | list[TextString] | None
             if (text := referent.get_prop("text")) is not None:
-                if type(text) is not list:
+                if isinstance(text, TextString):
                     text = [text]
                 for t in text:
                     if t is not None:
-                        markdown += " \n- " + t.get_str()
+                        markdown += " \n- " + t.get_str().replace("\n", "\\\n")
 
             response = Hover(
                 contents=MarkupContent(kind="markdown", value=markdown),

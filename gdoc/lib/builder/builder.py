@@ -5,9 +5,13 @@ builder.py - Build a package from a package uri
 from logging import getLogger
 from pathlib import Path
 
+from gdoc.lib.builder.compiler import Compiler
 from gdoc.lib.gdoc.documenturi import DocumentUri
-from gdoc.lib.gdoccompiler.gdcompiler.gdcompiler import GdocCompiler
-from gdoc.lib.gdoccompiler.gdexception import GdocImportError, GdocTypeError
+from gdoc.lib.gdoccompiler.gdexception import (
+    GdocImportError,
+    GdocRuntimeError,
+    GdocTypeError,
+)
 from gdoc.lib.gdocparser.tokeninfobuffer import TokenInfoBuffer
 from gdoc.lib.gobj.types import Document
 from gdoc.lib.gobj.types.package import Package
@@ -18,25 +22,28 @@ from .linker import Linker
 
 logger = getLogger(__name__)
 
+CONFIGURATION_FILE_NAME = "gdpackage.json"
+
 
 class Builder:
-    compiler: GdocCompiler
+    compiler: Compiler
     linker: Linker
-    package_aliases: dict[str, str]
+    package_aliases: dict[str, dict[str, dict[str, str]]]
+    # keys = scheme > authority > path : value = folder_path
     _tokeninfocache: TokenInfoBuffer | None
 
     def __init__(self, opts: Settings | None = None):
         self.package_aliases = (
             opts.get(["builder", "package_aliases"], {}) if opts else {}
         )
-        self.compiler = GdocCompiler(plugins=[std.category])
+        self.compiler = Compiler(plugins=[std.category])
         self.linker = Linker(opts)
 
     def build(
         self, uristr: str, erpt: ErrorReport, opts: Settings | None = None
     ) -> Result[Package, ErrorReport]:
         #
-        # 1. Parse URI and get target path
+        # 1. Parse uristr and get DocumentUri
         #
         r = DocumentUri.create(uristr, erpt)
         if r.is_err():
@@ -44,42 +51,57 @@ class Builder:
         uri: DocumentUri = r.unwrap()
 
         #
-        # 2. Select a package class from the scheme
+        # 2. Get the folder path of the package
         #
         scheme: str | None = uri.scheme
-        scheme = scheme.lower() if scheme else None
-        if scheme in ("file", None):
-            #
-            # 3. Create a package object with the target path
-            #
-            return self.build_folder_package(uri, erpt)
+        scheme = scheme.lower() if scheme else "file"
+        authority: str = uri.authority or ""
+        path: str = uri.path or ""
+        alias: str | None = (
+            self.package_aliases.get(scheme, {}).get(authority, {}).get(path)
+        )
 
-        return Err(erpt.submit(GdocTypeError(f"Unsupported scheme: {uri.scheme}")))
+        if alias is not None:
+            path = alias
+
+        elif scheme != "file":
+            return Err(erpt.submit(GdocTypeError(f"Unsupported scheme: '{scheme}'")))
+
+        elif len(authority) > 0:
+            return Err(
+                erpt.submit(GdocImportError(f"Package '{authority}' is not found"))
+            )
+
+        elif len(path) == 0:
+            return Err(erpt.submit(GdocImportError("Empty path")))
+
+        #
+        # 3. Create a package object with the target path
+        #
+        return self.build_folder_package(Path(path), uri, erpt)
 
     def build_folder_package(
-        self, uri: DocumentUri, erpt: ErrorReport, opts: Settings | None = None
+        self,
+        folder_path: Path,
+        uri: DocumentUri,
+        erpt: ErrorReport,
+        opts: Settings | None = None,
     ) -> Result[Package, ErrorReport]:
         srpt: ErrorReport = erpt.new_subreport()
 
         #
         # Create empty package
         #
-        folder_path: Path = Path()
-        authority: str | None = uri.authority
-        if (authority is not None) and (len(authority) > 0):
-            if authority in self.package_aliases:
-                folder_path = folder_path / self.package_aliases[authority]
-            else:
-                return Err(
-                    erpt.submit(GdocImportError(f"Package '{authority}' is not found"))
-                )
-        folder_path = folder_path / (uri.path if uri.path else "")
-        package = Package(uri.uri_str, folder_path, opts)
+        package: Package
+        r = self.create_folder_package(folder_path, uri, erpt, opts)
+        if r.is_err():
+            return Err(erpt.submit(r.err()))
+        package = r.unwrap()
 
         #
         # Create file list
         #
-        r = self._create_document_list(str(folder_path), erpt)
+        r = self.generate_document_list(package, erpt)
         if r.is_err():
             return Err(erpt.submit(r.err()))
         files: list[str] = r.unwrap()
@@ -89,14 +111,12 @@ class Builder:
         #
         for file in files:
             document: Document | None
-            document, e = GdocCompiler(plugins=[std.category]).compile(
-                file, erpt=srpt, opts=opts
-            )
+            document, e = self.compile_document(file, package, erpt=srpt, opts=opts)
             if e and srpt.should_exit(e):
                 return Err(erpt.submit(srpt))
 
             if document is not None:
-                package.add_document(file, document)
+                package.add_doc_object(file, document)
 
         #
         # Link objects in the package documents
@@ -108,14 +128,52 @@ class Builder:
 
         return Ok(package)
 
-    def _create_document_list(
-        self, filepath: str, erpt: ErrorReport
+    def create_folder_package(
+        self,
+        folder_path: Path,
+        uri: str | DocumentUri,
+        erpt: ErrorReport,
+        opts: Settings | None = None,
+    ) -> Result[Package, ErrorReport]:
+        package: Package = Package(
+            (uri.uri_str if isinstance(uri, DocumentUri) else uri), folder_path, opts
+        )
+
+        config_path: Path = folder_path / CONFIGURATION_FILE_NAME
+        if config_path.is_file():
+            r = Settings.load_config(config_path)
+            if r.is_err():
+                return Err(erpt.submit(GdocRuntimeError(r.err())))
+            package.derive_config(r.unwrap())
+
+        return Ok(package)
+
+    def generate_document_list(
+        self, package: Package, erpt: ErrorReport
     ) -> Result[list[str], ErrorReport]:
         try:
-            files: list[Path] = list(Path(filepath).glob("**/*.md"))
+            files: list[Path] = list(package.folder_path.glob("**/*.md"))
         except Exception as e:
             return Err(erpt.submit(GdocImportError(f"Failed to get files: {e}")))
 
         result: list[str] = [str(file) for file in files]
 
         return Ok(result)
+
+    def compile_document(
+        self,
+        filepath: str,
+        package: Package,
+        fileformat: str | None = None,
+        via_html: bool = False,
+        filedata: str | None = None,
+        erpt: ErrorReport | None = None,
+        opts: Settings | None = None,
+    ) -> Result[Document, ErrorReport]:
+        """
+        Compile the document in the package.
+        """
+        config: Settings = package.get_config().derive("", (opts.get([]) if opts else {}))
+        return self.compiler.compile(
+            filepath, fileformat, via_html, filedata, erpt, opts=config
+        )

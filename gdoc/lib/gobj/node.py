@@ -118,7 +118,7 @@ class Node:
     def get_children(self) -> list["Node"]:
         children: list["Node"] = []
 
-        parents: list["Node"] = self.__get_linkto_target().__get_linkfrom_list()
+        parents: list["Node"] = self._get_linkto_target().__get_linkfrom_list()
 
         for parent in parents:
             children += parent.get_local_children()
@@ -128,7 +128,7 @@ class Node:
     def get_child(self, name) -> Optional["Node"]:
         child: Optional["Node"] = None
 
-        parents: list["Node"] = self.__get_linkto_target().__get_linkfrom_list()
+        parents: list["Node"] = self._get_linkto_target().__get_linkfrom_list()
 
         for parent in parents:
             if name in parent.__nametable:
@@ -188,7 +188,7 @@ class Node:
         else:
             raise TypeError("'IMPORT' cannot bidir_link to any others")
 
-    def __get_linkto_target(self) -> "Node":
+    def _get_linkto_target(self) -> "Node":
         target: "Node" = self
 
         while target.__type is not Node.Type.OBJECT:

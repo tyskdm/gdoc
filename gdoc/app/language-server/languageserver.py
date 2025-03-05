@@ -5,6 +5,7 @@ from typing import Any, Callable, Type, cast
 from gdoc.util import Settings
 
 from .baseprotocol import BaseProtocol, ErrorCodes
+from .basicjsonstructures import Registration
 from .feature import Feature
 from .jsonrpc import JsonRpc
 from .jsonstream import JsonStream
@@ -134,7 +135,7 @@ class LanguageServer(BaseProtocol):
 
     def register_capability(
         self,
-        registrations: list[dict[str, Any]],
+        registrations: list[Registration],
         callback: Callable[[int, Any | None], None] | None = None,
     ) -> int:
         id: int = self.send_request(
