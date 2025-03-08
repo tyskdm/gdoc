@@ -14,8 +14,9 @@ TOKEN_TYPE: dict[str, tuple[str, list[str]]] = {
     "class_isref": ("keyword", []),
     "class_param": ("parameter", []),
     "class_alias": ("parameter", []),
-    "class_brief": ("string", []),
+    "class_brief": ("number", []),
     "quoted": ("string", []),
+    "value": ("number", []),
     "prop_known_type": ("method", []),
     "prop_type": ("parameter", []),
 }
@@ -64,11 +65,15 @@ class TokenInfoBuffer:
         for arg in blocktag._class_args:
             if type(arg) is Quoted:
                 self.set_type(arg, "quoted")
+            else:
+                self.set_type(arg, "value")
 
         for key, val in blocktag._class_kwargs:
             self.set_type(key, "class_param")
             if len(val) == 1 and isinstance(val[0], Quoted):
                 self.set_type(val, "quoted")
+            else:
+                self.set_type(val, "value")
 
         self.set_type(blocktag[-1:], "tag_symbol")
 
@@ -85,7 +90,7 @@ class TokenInfoBuffer:
     def add_inlinetag(self, inlinetag: InlineTag, params: TagParameter):
         self.set_type(inlinetag[:1], "tag_symbol")
 
-        proptype, _, kwargs = inlinetag.get_arguments()
+        proptype, args, kwargs = inlinetag.get_arguments()
 
         if proptype is not None:
             self.set_type(proptype, "prop_type")
@@ -95,10 +100,18 @@ class TokenInfoBuffer:
             self.set_type(parenthesized[:1], "tag_symbol")
             self.set_type(parenthesized[-1:], "tag_symbol")
 
+        for arg in args:
+            if type(arg) is Quoted:
+                self.set_type(arg, "quoted")
+            else:
+                self.set_type(arg, "value")
+
         for key, val in kwargs:
             self.set_type(key, "class_param")
             if len(val) == 1 and isinstance(val[0], Quoted):
                 self.set_type(val, "quoted")
+            else:
+                self.set_type(val, "value")
 
         self.set_type(inlinetag[-1:], "tag_symbol")
 
