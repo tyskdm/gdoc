@@ -1,6 +1,7 @@
 """
 types: gobj primitive types
 """
+
 import sys
 
 from gdoc.lib.gobj.types import Object
@@ -76,7 +77,7 @@ category = Category(
                         "kwargs": {},
                         "params": {
                             "name": [None, None],  # name: Name = None
-                            "text": ["text", None, None],  # text: Any = None
+                            "text": [None, None],  # text: Any = None
                         },
                     },
                     "_class_property_info_": {
