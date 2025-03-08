@@ -14,7 +14,7 @@ TOKEN_TYPE: dict[str, tuple[str, list[str]]] = {
     "class_isref": ("keyword", []),
     "class_param": ("parameter", []),
     "class_alias": ("parameter", []),
-    "class_brief": ("comment", []),
+    "class_brief": ("string", []),
     "quoted": ("string", []),
     "prop_known_type": ("method", []),
     "prop_type": ("parameter", []),
@@ -23,7 +23,7 @@ TOKEN_TYPE: dict[str, tuple[str, list[str]]] = {
 
 class TokenInfo(NamedTuple):
     col: int  # 0-based start column
-    len: int  # length
+    len: int  # length -- TODO: Is this OK?
     token: TextString | DataPos
     datapos: DataPos
     info: dict[str, Any]
@@ -52,11 +52,11 @@ class TokenInfoBuffer:
     def add_blocktag(self, blocktag: BlockTag, params: TagParameter):
         self.set_type(blocktag[:2], "tag_symbol")
 
-        # if (blocktag._class_info[0] is not None) and (len(blocktag._class_info[0]) > 0):
-        #     self.set_type(blocktag._class_info[0], "class_cat")
+        if (blocktag._class_info[0] is not None) and (len(blocktag._class_info[0]) > 0):
+            self.set_type(blocktag._class_info[0], "class_cat")
 
-        # if (blocktag._class_info[1] is not None) and (len(blocktag._class_info[1]) > 0):
-        #     self.set_type(blocktag._class_info[1], "class_type")
+        if (blocktag._class_info[1] is not None) and (len(blocktag._class_info[1]) > 0):
+            self.set_type(blocktag._class_info[1], "class_type")
 
         if (blocktag._class_info[2] is not None) and (len(blocktag._class_info[2]) > 0):
             self.set_type(blocktag._class_info[2], "class_isref")
@@ -72,15 +72,15 @@ class TokenInfoBuffer:
 
         self.set_type(blocktag[-1:], "tag_symbol")
 
-        # if "name" in params:
-        #     name = params["name"]
-        #     if isinstance(name, TextString) and len(name) > 0:
-        #         self.set_type(name, "class_alias")
+        if "name" in params:
+            name = params["name"]
+            if isinstance(name, TextString) and len(name) > 0:
+                self.set_type(name, "class_alias")
 
-        # if "brief" in params:
-        #     brief = params["brief"]
-        #     if isinstance(brief, TextString) and len(brief) > 0:
-        #         self.set_type(brief, "class_brief")
+        if "text" in params:
+            brief = params["text"]
+            if isinstance(brief, TextString) and len(brief) > 0:
+                self.set_type(brief, "class_brief")
 
     def add_inlinetag(self, inlinetag: InlineTag, params: TagParameter):
         self.set_type(inlinetag[:1], "tag_symbol")
