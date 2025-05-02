@@ -1,5 +1,5 @@
 *<div align=right><small>
-@doctype: gdoc 0.3
+@doctype: gdml 0.3
 </small></div>*
 
 # [@ SWAD] Gdoc Architecture Design

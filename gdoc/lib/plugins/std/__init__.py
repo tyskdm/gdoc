@@ -347,6 +347,8 @@ category = Category(
             "Opr": "Operation",
             "Req": "Requirement",
             "Spec": "Requirement",
+            "Cls": "Class",
+            "Constructor": "Method",
         },
         "defaults": {},
     }

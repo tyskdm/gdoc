@@ -1,5 +1,5 @@
 *<div align=right><small>
-@doctype: "gdoc 0.3"
+@doctype: gdml 0.3
 </small></div>*
 
 # `gdObject` DETAILED DESIGN
@@ -150,7 +150,7 @@ This document refers to the following documents.
 
 ### 5.1. [@Block& THIS] gdObject : Class definitions
 
-| [![](./_puml_/gdObject/GdObject_hierarchy.png)](./gdObject.puml) |
+| [![GdObject_hierarchy](./_puml_/gdObject/GdObject_hierarchy.png)](./gdObject.puml) |
 | :-----: |
 | [@fig 4.1.1\] GdObject class hierarchy |
 
@@ -204,7 +204,7 @@ These are internal classes that provide the basic mechanisms.
 
 Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
-| [![](./_puml_/gdObject/gdocCompilerSequenceDiagram.png)](./gdObject.puml) |
+| [![gdocCompilerSequenceDiagram](./_puml_/gdObject/gdocCompilerSequenceDiagram.png)](./gdObject.puml) |
 | :-----: |
 | [@fig 4.2.2\] gdocCompiler Sequence Diagram |
 
@@ -216,7 +216,7 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
 <br>
 
-| [![](./_puml_/gdObject/GdocObject_dumps_Sequence.png)](./gdObject.puml) |
+| [![GdocObject_dumps_Sequence](./_puml_/gdObject/GdocObject_dumps_Sequence.png)](./gdObject.puml) |
 | :-----: |
 | [@fig 1.1] dumps() Sequence |
 
@@ -226,7 +226,7 @@ Ref to ../ArchitecturalDesign/gdocCompilerSequenceDiagram
 
 <br>
 
-| [![](./_puml_/gdObject/GdocObject_loads_Sequence.png)](./gdObject.puml) |
+| [![GdocObject_loads_Sequence](./_puml_/gdObject/GdocObject_loads_Sequence.png)](./gdObject.puml) |
 | :-----: |
 | [@fig 1.2] loads() Sequence |
 

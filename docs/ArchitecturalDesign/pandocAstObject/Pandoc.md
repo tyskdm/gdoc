@@ -1,12 +1,12 @@
 *<div align=right><small>
-[@^ doctype="gdoc 0.3" class="systemdesign:"]
+@doctype: gdml 0.3 @class: systemdesign
 </small></div>*
 
 # [@ swdd] Pandoc Detailed Design
 
 Execute external pandoc command as a subprocess to parse a source md file to generate PandocAST json object.
 
-## \[@#\] CONTENTS<!-- omit in toc -->
+## \[#\] CONTENTS<!-- omit in toc -->
 
 - [1. REFERENCES](#1-references)
 - [2. THE TARGET SOFTWARE ELEMENT](#2-the-target-software-element)
@@ -26,7 +26,7 @@ Execute external pandoc command as a subprocess to parse a source md file to gen
 This document refers to the following documents.
 
 1. Gdoc Architectural Design  \
-   [@access SWAD from="[../ArchitecturalDesign](../ArchitecturalDesign.md)"]
+   [@import - SWAD from="[../ArchitecturalDesign](../ArchitecturalDesign.md)"]
 
    Upper Layer Architectural Design of this document.
 
@@ -34,7 +34,7 @@ This document refers to the following documents.
 
 ## 2. THE TARGET SOFTWARE ELEMENT
 
-- [@Block& -THIS=SWAD.GDOC[gdocCoreLibrary][pandocAstObject][Pandoc]]
+- [@import - SWAD.GDOC.gdocCoreLibrary.pandocAstObject.Pandoc as=THIS]
 
   The block representing the target software in this document.
 
@@ -42,15 +42,15 @@ This document refers to the following documents.
 
 ## 3. [@ rq] REQUIREMENTS
 
-- [@access SWAD.SE.PAO.RA]
+- [@import - SWAD.SE.PAO.RA]
 
   Requirements_Allocated to this Software_Element, PandocAstObject from SoftWare_Architectural_Design.
 
-| @Reqt | Name | Text | Trace |
-| :---: | ---- | ---- | :---: |
-| FR    | Functional Requirement |
-| @     | FR.1  | pandoc外部コマンドをサブコマンドとして実行する。 | @copy: RA.3c.1
-| @     | FR.2  | 指定されたソースファイルを、PandocAST Jsonファイルへ変換する。 | @copy: RA.3c.2
+| @Req | Name | Text | Trace |
+| :--: | ---- | ---- | :---: |
+| FR   | Functional Requirement |
+| @    | FR.1  | pandoc外部コマンドをサブコマンドとして実行する。 | @copy: RA.3c.1
+| @    | FR.2  | 指定されたソースファイルを、PandocAST Jsonファイルへ変換する。 | @copy: RA.3c.2
 
 <br>
 
@@ -69,7 +69,7 @@ This document refers to the following documents.
 
 ## 5. [@ sc] STRUCTURE
 
-| @class | Name | Description |
+| @Class | Name | Description |
 | :----: | ---- | ----------- |
 |        | Association | @partof: THIS
 | c1     | Pandoc      | Execute external pandoc command as a subprocess to parse a source md file to generate PandocAST json object.
@@ -101,9 +101,9 @@ When the file extension is 'md', THIS convert the file in two steps.
 | ------- | ---- | ----------- |
 | sc.c1   | Pandoc      | Execute external pandoc command as a subprocess to parse a source md file to generate PandocAST json object.
 | @Method | get_json    | returns pandoc ast json object.
-|         | @param      | in filepath : string
-|         | @param      | in filetype : string
-|         | @param      | in html : bool
-|         | @param      | out PandocAst json object : dict
+|         | param       | (in) filepath : string
+|         | param       | (in) filetype : string
+|         | param       | (in) html : bool
+|         | param       | (out) PandocAst json object : dict
 | @Method | get_version | returns versions of pandoc and pandoc-types.
-|         | @param      | out versions : { 'pandc': [int or str], 'pandoc-types': [int or str] )
+|         | param       | (out) versions : ( 'pandc': [int or str], 'pandoc-types': [int or str] )

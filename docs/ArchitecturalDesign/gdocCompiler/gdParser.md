@@ -1,12 +1,10 @@
 *<div align=right><small>
-[@ doctype="gdml 0.3" class="gdoc 0.3"]
+@doctype: gdml 0.3
 </small></div>*
 
 # [@ swdd] gdParser Detailed Design
 
-
-
-## \[@#\] CONTENTS<!-- omit in toc -->
+## \[#\] CONTENTS<!-- omit in toc -->
 
 - [1. REFERENCES](#1-references)
 - [2. THE TARGET SOFTWARE ELEMENT](#2-the-target-software-element)
@@ -37,7 +35,7 @@
 This document refers to the following documents.
 
 1. Gdoc Architectural Design  \
-   [@access SWAD from="[../ArchitecturalDesign](../ArchitecturalDesign.md)"]
+   [@import - SWAD from="[../ArchitecturalDesign](../ArchitecturalDesign.md)"]
 
    - the upper layer architectural deesign of this document.
 
@@ -50,7 +48,7 @@ This document refers to the following documents.
 
 ## 2. THE TARGET SOFTWARE ELEMENT
 
-- [@Block& -THIS=SWAD.GDOC[gdocCoreLibrary][gdocCompiler][gdParser]]
+- [@import - SWAD.GDOC.gdocCoreLibrary.gdocCompiler.gdParser as=THIS]
 
   - `THIS` representing the target software block in this document.
 
@@ -58,7 +56,7 @@ This document refers to the following documents.
 
 ## 3. [@ rq] REQUIREMENTS
 
-- [@access SWAD.SE.GDC.RA]
+- [@import - SWAD.SE.GDC.RA]
 
   Requirements_Allocated to this Software_Element, gdocCompiler from SoftWare_Architectural_Design.
 
@@ -89,7 +87,7 @@ This document refers to the following documents.
 
 ### 5.1. Parser Base Class
 
-| @class | Name | Description |
+| @Class | Name | Description |
 | :----: | ---- | ----------- |
 |        | Association  | @partof: THIS
 | c1     | fsm          | Finite State Machine
@@ -104,7 +102,7 @@ This document refers to the following documents.
 
 ##### 5.2.1.1. Document structure
 
-| @class | Name | Description |
+| @Class | Name | Description |
 | :----: | ---- | ----------- |
 |        | Association | @partof: THIS
 |        | Document
@@ -114,7 +112,7 @@ This document refers to the following documents.
 
 ###### 5.2.1.2.1. TextBlock
 
-| @class | Name | Description |
+| @Class | Name | Description |
 | :----: | ---- | ----------- |
 |        | Association | @partof: THIS
 |        | TextBlock
@@ -123,13 +121,12 @@ This document refers to the following documents.
 
 ##### 5.2.1.3. Tags
 
-| @class | Name | Description |
+| @Class | Name | Description |
 | :----: | ---- | ----------- |
 |        | Association | @partof: THIS
 | t2     | Tag         |
 | t3     | BlockTag    |
 | t4     | InlineTag   |
-
 
 #### 5.2.2. Section Parser
 
@@ -272,4 +269,3 @@ The text block parser divides the components of a text block into lines.
 | @Method      | on_event       |
 | @Method      | on_exit        |
 | @Method      | stop           |
-
