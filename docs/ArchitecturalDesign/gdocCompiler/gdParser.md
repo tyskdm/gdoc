@@ -60,12 +60,12 @@ This document refers to the following documents.
 
   Requirements_Allocated to this Software_Element, gdocCompiler from SoftWare_Architectural_Design.
 
-| @Reqt | Name | Text | Trace |
-| :---: | ---- | ---- | :---: |
-| FR    | Functional Requirement |
-| @     | FR.1 | Parse a file | @copy: RA.1a.2
-| @     | FR.2 | Interpret tags specifying type and properties | @copy: RA.1a2.1
-| @     | FR.3 | Parse a PandocAst Object | @copy: RA.3b.2
+| @Req | Name | Text | Trace |
+| :--: | ---- | ---- | :---: |
+| FR   | Functional Requirement |
+| @    | FR.1 | Parse a file | @copy: RA.1a.2
+| @    | FR.2 | Interpret tags specifying type and properties | @copy: RA.1a2.1
+| @    | FR.3 | Parse a PandocAst Object | @copy: RA.3b.2
 
 > | @Reqt | Name | Text |
 > | :---: | ---- | ---- |
@@ -124,9 +124,9 @@ This document refers to the following documents.
 | @Class | Name | Description |
 | :----: | ---- | ----------- |
 |        | Association | @partof: THIS
-| t2     | Tag         |
-| t3     | BlockTag    |
-| t4     | InlineTag   |
+| t3     | Tag         |
+| t4     | BlockTag    |
+| t5     | InlineTag   |
 
 #### 5.2.2. Section Parser
 

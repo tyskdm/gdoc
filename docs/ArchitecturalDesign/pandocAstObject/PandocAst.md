@@ -71,11 +71,11 @@ This document refers to the following documents.
 
   Requirements_Allocated to this Software_Element, PandocAstObject from SoftWare_Architectural_Design.
 
-| @Reqt | Name | Text | Trace |
-| :---: | ---- | ---- | :---: |
-| FR    | Functional Requirement |
-| @     | FR.1 | panを使用して、指定されたソースファイルをPandocAST Jsonファイルへ変換する。 | @copy: RA.3a.1
-| @     | FR.2 | 変換したPandocAST Jsonファイルを使用してPandocAstObjectを生成する。 | @copy: RA.3a.2
+| @Req | Name | Text | Trace |
+| :--: | ---- | ---- | :---: |
+| FR   | Functional Requirement |
+| @    | FR.1 | panを使用して、指定されたソースファイルをPandocAST Jsonファイルへ変換する。 | @copy: RA.3a.1
+| @    | FR.2 | 変換したPandocAST Jsonファイルを使用してPandocAstObjectを生成する。 | @copy: RA.3a.2
 
 <br>
 
@@ -217,7 +217,7 @@ Intermediate data types for this purpose are as follows.
 
 ### 5.4. Data Types
 
-| @block | Name | Text |
+| @Block | Name | Text |
 | :----: | ---- | ---- |
 |        | Association   | @partof: THIS
 | d1     | ELEMENT_TYPES | data dict of each element types containing handler class and element format.
