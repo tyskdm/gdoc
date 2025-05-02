@@ -16,6 +16,10 @@ class Property(Trait):
     pass
 
 
+class Traceable(Trait):
+    pass
+
+
 category = Category(
     {
         "name": "std",
@@ -45,6 +49,51 @@ category = Category(
                             },
                         },
                         "note": {
+                            "type": Property,
+                            "args": [
+                                ["id", "ShortName", None],  # id: ShortName = None
+                            ],
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                        "*": {
+                            # All other than the above is treated as a Text property.
+                            "type": Property,
+                            "args": [
+                                ["id", "ShortName", None],  # id: ShortName = None
+                            ],
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                    },
+                },
+            ),
+            "Operation": type(
+                "std:Operation",
+                (Object, Property, Trait),
+                {
+                    "_class_type_info_": {
+                        "args": [
+                            # positional args placed after 'scope-name-tags'
+                        ],
+                        "kwargs": {},
+                        "params": {
+                            "name": [None, None],  # name: Name = None
+                            "text": [None, None],  # text: Any = None
+                        },
+                    },
+                    "_class_property_info_": {
+                        "doc": "text",
+                        "text": {
+                            "type": Property,
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                        "param": "parameter",
+                        "parameter": {
                             "type": Property,
                             "args": [
                                 ["id", "ShortName", None],  # id: ShortName = None
@@ -222,9 +271,80 @@ category = Category(
                     },
                 },
             ),
+            "UseCase": type(
+                "std:Strategy",
+                (Object,),
+                {
+                    "_class_type_info_": {
+                        "args": [
+                            # positional args placed after 'scope-name-tags'
+                        ],
+                        "kwargs": {},
+                        "params": {
+                            "name": [None, None],  # name: Name = None
+                            "text": [None, None],  # text: Any = None
+                        },
+                    },
+                    "_class_property_info_": {
+                        "doc": "text",
+                        "text": {
+                            "type": Property,
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                        "note": {
+                            # All other than the above is treated as a Text property.
+                            "type": Property,
+                            "args": [
+                                ["id", "ShortName", None],  # id: ShortName = None
+                            ],
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                    },
+                },
+            ),
+            "Strategy": type(
+                "std:Strategy",
+                (Object,),
+                {
+                    "_class_type_info_": {
+                        "args": [
+                            # positional args placed after 'scope-name-tags'
+                        ],
+                        "kwargs": {},
+                        "params": {
+                            "name": [None, None],  # name: Name = None
+                            "text": [None, None],  # text: Any = None
+                        },
+                    },
+                    "_class_property_info_": {
+                        "doc": "text",
+                        "text": {
+                            "type": Property,
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                        "note": {
+                            # All other than the above is treated as a Text property.
+                            "type": Property,
+                            "args": [
+                                ["id", "ShortName", None],  # id: ShortName = None
+                            ],
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                    },
+                },
+            ),
         },
         "aliases": {
             "Blk": "Block",
+            "Opr": "Operation",
             "Req": "Requirement",
             "Spec": "Requirement",
         },
