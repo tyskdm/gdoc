@@ -1,6 +1,7 @@
 r"""
 Node class
 """
+
 from enum import Enum, auto
 from typing import Callable, Optional, Union
 
@@ -141,7 +142,7 @@ class Node:
         return self.__children[:]
 
     def resolve(self, names: list[str]) -> Optional["Node"]:
-        target: "Node" | None
+        target: "Node | None"
 
         # target = self.get_child(names[0])
         # if target is None:
