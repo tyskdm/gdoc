@@ -272,7 +272,7 @@ category = Category(
                 },
             ),
             "UseCase": type(
-                "std:Strategy",
+                "std:UseCase",
                 (Object,),
                 {
                     "_class_type_info_": {
