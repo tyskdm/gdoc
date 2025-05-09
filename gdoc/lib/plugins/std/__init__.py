@@ -26,6 +26,9 @@ category = Category(
         "version": "0.1.0",
         "module": sys.modules[__name__],
         "types": {
+            #
+            # SysML types
+            #
             "Block": type(
                 "std:Block",
                 (Object, Property, Trait),
@@ -166,6 +169,9 @@ category = Category(
                     },
                 },
             ),
+            #
+            # UML types
+            #
             "Class": type(
                 "std:Class",
                 (Object,),
@@ -306,6 +312,44 @@ category = Category(
                     },
                 },
             ),
+            #
+            # GSN types
+            #
+            "Goal": type(
+                "std:Goal",
+                (Object,),
+                {
+                    "_class_type_info_": {
+                        "args": [
+                            # positional args placed after 'scope-name-tags'
+                        ],
+                        "kwargs": {},
+                        "params": {
+                            "name": [None, None],  # name: Name = None
+                            "text": [None, None],  # tex
+                        },
+                    },
+                    "_class_property_info_": {
+                        "doc": "text",
+                        "text": {
+                            "type": Property,
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                        "note": {
+                            # All other than the above is treated as a Text property.
+                            "type": Property,
+                            "args": [
+                                ["id", "ShortName", None],  # id: ShortName = None
+                            ],
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                    },
+                },
+            ),
             "Strategy": type(
                 "std:Strategy",
                 (Object,),
@@ -341,14 +385,169 @@ category = Category(
                     },
                 },
             ),
+            "Solution": type(
+                "std:Solution",
+                (Object,),
+                {
+                    "_class_type_info_": {
+                        "args": [
+                            # positional args placed after 'scope-name-tags'
+                        ],
+                        "kwargs": {},
+                        "params": {
+                            "name": [None, None],  # name: Name = None
+                            "text": [None, None],  # text: Any = None
+                        },
+                    },
+                    "_class_property_info_": {
+                        "doc": "text",
+                        "text": {
+                            "type": Property,
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                        "note": {
+                            # All other than the above is treated as a Text property.
+                            "type": Property,
+                            "args": [
+                                ["id", "ShortName", None],  # id: ShortName = None
+                            ],
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                    },
+                },
+            ),
+            "Context": type(
+                "std:Context",
+                (Object,),
+                {
+                    "_class_type_info_": {
+                        "args": [
+                            # positional args placed after 'scope-name-tags'
+                        ],
+                        "kwargs": {},
+                        "params": {
+                            "name": [None, None],  # name: Name = None
+                            "text": [None, None],  # text: Any = None
+                        },
+                    },
+                    "_class_property_info_": {
+                        "doc": "text",
+                        "text": {
+                            "type": Property,
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                        "note": {
+                            # All other than the above is treated as a Text property.
+                            "type": Property,
+                            "args": [
+                                ["id", "ShortName", None],  # id: ShortName = None
+                            ],
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                    },
+                },
+            ),
+            "Assumption": type(
+                "std:Assumption",
+                (Object,),
+                {
+                    "_class_type_info_": {
+                        "args": [
+                            # positional args placed after 'scope-name-tags'
+                        ],
+                        "kwargs": {},
+                        "params": {
+                            "name": [None, None],  # name: Name = None
+                            "text": [None, None],  # text: Any = None
+                        },
+                    },
+                    "_class_property_info_": {
+                        "doc": "text",
+                        "text": {
+                            "type": Property,
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                        "note": {
+                            # All other than the above is treated as a Text property.
+                            "type": Property,
+                            "args": [
+                                ["id", "ShortName", None],  # id: ShortName = None
+                            ],
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                    },
+                },
+            ),
+            "Justification": type(
+                "std:Justification",
+                (Object,),
+                {
+                    "_class_type_info_": {
+                        "args": [
+                            # positional args placed after 'scope-name-tags'
+                        ],
+                        "kwargs": {},
+                        "params": {
+                            "name": [None, None],  # name: Name = None
+                            "text": [None, None],  # text: Any = None
+                        },
+                    },
+                    "_class_property_info_": {
+                        "doc": "text",
+                        "text": {
+                            "type": Property,
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                        "note": {
+                            # All other than the above is treated as a Text property.
+                            "type": Property,
+                            "args": [
+                                ["id", "ShortName", None],  # id: ShortName = None
+                            ],
+                            "params": {
+                                "text": [None, None],  # text: Any = None
+                            },
+                        },
+                    },
+                },
+            ),
         },
         "aliases": {
+            #
+            # SysML types
+            #
             "Blk": "Block",
             "Opr": "Operation",
             "Req": "Requirement",
             "Spec": "Requirement",
+            #
+            # UML types
+            #
             "Cls": "Class",
             "Constructor": "Method",
+            #
+            # GSN types
+            #
+            "G": "Goal",
+            "St": "Strategy",
+            "Sn": "Solution",
+            "C": "Context",
+            "A": "Assumption",
+            "J": "Justification",
         },
         "defaults": {},
     }
