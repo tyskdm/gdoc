@@ -24,7 +24,7 @@ class Node:
 
     scope: str
     name: str | None
-    names: list[str]
+    aliases: list[str]
     tags: list[str]
     __type: Type
     __parent: Union["Node", None]
@@ -79,7 +79,7 @@ class Node:
         self.name = name or alias
         self.scope = scope
         self.tags = tags[:]
-        self.names = (
+        self.aliases = (
             []
             + ([name] if name is not None else [])
             + ([alias] if alias is not None else [])
@@ -101,7 +101,7 @@ class Node:
         if self.__type is Node.Type.IMPORT:
             raise TypeError("'Import' object cannot have children")
 
-        for name in child.names:
+        for name in child.aliases:
             if name in self.__nametable:
                 raise NameError(f"duplicated name '{name}'")
             self.__nametable[name] = child
@@ -153,7 +153,7 @@ class Node:
                 target = child
                 break
             # if (target.name == names[0]) or (target.names == names[0]):
-            if names[0] in target.names:
+            if names[0] in target.aliases:
                 break
             target = target.get_parent()
 
