@@ -33,7 +33,7 @@ class Node:
     __link_to: Union["Node", None]
     __link_from: list["Node"]
     __cache: dict[str, dict]
-    _root: Union["Node", None]
+    __root: Union["Node", None]
 
     def __init__(
         self,
@@ -92,7 +92,7 @@ class Node:
         self.__cache = {}
         self.__link_to = None
         self.__link_from = []
-        self._root = None
+        self.__root = None
 
     def _get_type_(self) -> Type:
         return self.__type
@@ -108,13 +108,13 @@ class Node:
 
         self.__children.append(child)
         child.__parent = self
-        child._root = self._root or self
+        child.__root = self.__root or self
 
     def get_parent(self) -> Optional["Node"]:
         return self.__parent
 
     def get_root(self) -> Optional["Node"]:
-        return self._root or self
+        return self.__root or self
 
     def get_children(self) -> list["Node"]:
         children: list["Node"] = []
