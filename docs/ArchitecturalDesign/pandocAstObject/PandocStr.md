@@ -1,12 +1,12 @@
 *<div align=right><small>
-[@^ doctype="gdoc 0.3" class="systemdesign:"]
+@doctype: gdml 0.3 @class: systemdesign
 </small></div>*
 
 # [@ swdd] PandocStr Detailed Design
 
 A class to store text strings with PandocAST 'Str' inline elements to keep source mapping data.
 
-## \[@#\] CONTENTS<!-- omit in toc -->
+## \[#\] CONTENTS<!-- omit in toc -->
 
 - [1. REFERENCES](#1-references)
 - [2. THE TARGET SOFTWARE ELEMENT](#2-the-target-software-element)
@@ -31,7 +31,7 @@ A class to store text strings with PandocAST 'Str' inline elements to keep sourc
 This document refers to the following documents.
 
 1. Gdoc Architectural Design  \
-   [@access SWAD from="[../ArchitecturalDesign](../ArchitecturalDesign.md)"]
+   [@import - SWAD from="[../ArchitecturalDesign](../ArchitecturalDesign.md)"]
 
    Upper Layer Architectural Design of this document.
 
@@ -39,7 +39,7 @@ This document refers to the following documents.
 
 ## 2. THE TARGET SOFTWARE ELEMENT
 
-- [@Block& -THIS=SWAD.GDOC[gdocCoreLibrary][pandocAstObject][PandocStr]]
+- [@import - SWAD.GDOC.gdocCoreLibrary.pandocAstObject.PandocStr as=THIS]
 
   The block representing the target software in this document.
 
@@ -47,15 +47,15 @@ This document refers to the following documents.
 
 ## 3. [@ rq] REQUIREMENTS
 
-- [@access SWAD.SE.PAO.RA]
+- [@import -  SWAD.SE.PAO.RA]
 
   Requirements_Allocated to this Software_Element, PandocAstObject from SoftWare_Architectural_Design.
 
-| @Reqt | Name | Text | Trace |
-| :---: | ---- | ---- | :---: |
-| FR    | Functional Requirement |
-| @     | FR.3  | PandocAst Objectの文字列操作手段を提供する。 | @copy: RA.3a.3
-|       | Rationale | PandocASTのテキスト情報は、装飾・リンクなどの情報が付加されたInline要素のツリーとして構成されており検索・分割・ソース行取得が容易でない。それら取扱のための手段をクラスとして提供する。
+| @Req | Name | Text | Trace |
+| :--: | ---- | ---- | :---: |
+| FR   | Functional Requirement |
+| @    | FR.3  | PandocAst Objectの文字列操作手段を提供する。 | @copy: RA.3a.3
+|      | Rationale | PandocASTのテキスト情報は、装飾・リンクなどの情報が付加されたInline要素のツリーとして構成されており検索・分割・ソース行取得が容易でない。それら取扱のための手段をクラスとして提供する。
 
 <br>
 
@@ -115,7 +115,7 @@ This document refers to the following documents.
 
 ## 5. [@ sc] STRUCTURE
 
-| @class | Name | Description |
+| @Class | Name | Description |
 | :----: | ---- | ----------- |
 |        | Association | @partof: THIS
 | c1     | PandocStr   | Handles text strings in 'Str' inline elements and keep source mapping data.
@@ -181,56 +181,56 @@ Python `str` is inherited from Abstract Base Class, `Sequence`.
 | ------- | ---- | ----------- |
 | sc.c1   | PandocStr      | Handles text strings in 'Str' inline elements and keep source mapping data.
 | @Constructor | `__init__`     | construct PandocStr object.
-|              | @param         | in items : PandocAst inline items list<br>An empty string can be generated with empty list.
-|              | @param         | in start : int = 0
-|              | @param         | in stop : int \| None = None
+|              | param          | (in) items : PandocAst inline items list<br># An empty string can be generated with empty list.
+|              | param          | (in) start : int = 0
+|              | param          | (in) stop : int \| None = None
 | @Method      | add_items      |
-|              | @param         | in item : PandocAst inline item \| List of items
-|              | @param         | in start : int = 0
-|              | @param         | in stop : int \| None = None
+|              | param          | (in) item : PandocAst inline item \| List of items
+|              | param          | (in) start : int = 0
+|              | param          | (in) stop : int \| None = None
 | @Method      | get_items      |
-|              | @param         | out List of items
+|              | param          | (out) List of items
 | @Method      | get_str        |
-|              | @param         | in start : int = 0
-|              | @param         | in stop : int \| None = None
-| @Method      | get_char_info       |
-|              | @param         | in index : int = 0
-|              | @param         | out char info : (sourcepos : {path:str, line:int, col:int}, decoration, item)
+|              | param          | (in) start : int = 0
+|              | param          | (in) stop : int \| None = None
+| @Method      | get_char_info  |
+|              | param          | (in) index : int = 0
+|              | param          | (out) char info : (sourcepos : {path:str, line:int, col:int}, decoration, item)
 | @Method      | `__len__`      | () -> int
-|              | @param         | out length : int
+|              | param          | (out) length : int
 | @Method      | `__getitem__`  | (__i: SupportsIndex \| slice) -> PandocStr.
-|              | @param         | in index : int \| slice
-|              | @param         | out : PandocStr
+|              | param          | (in) index : int \| slice
+|              | param          | (out) : PandocStr
 | @Method      | `__contains__` | (x: object) -> bool
-|              | @param         | in x : str \| PandocStr
-|              | @param         | out : bool
+|              | param          | (in) x : str \| PandocStr
+|              | param          | (out) : bool
 | @Method      | `index`        | (value: Any, start: int = 0, stop: int = -1) -> int
-|              | @param         | in value : str \| PandocStr
-|              | @param         | in start : int = 0
-|              | @param         | in stop : int \| None = None
-|              | @param         | out index : int
+|              | param          | (in) value : str \| PandocStr
+|              | param          | (in) start : int = 0
+|              | param          | (in) stop : int \| None = None
+|              | param          | (out) index : int
 | @Method      | `count`        | (value: Any) -> int
-|              | @param         | in value : str \| PandocStr
-|              | @param         | out count : int
+|              | param          | (in) value : str \| PandocStr
+|              | param          | (out) count : int
 | @Method      | `__eq__`       | (__o: object) -> bool
-|              | @param         | in string : str \| PandocStr
-|              | @param         | out : bool
+|              | param          | (in) string : str \| PandocStr
+|              | param          | (out) : bool
 | @Method      | `__str__`      | () -> str
-|              | @param         | out : str
+|              | param          | (out) : str
 | @Method      | `__add__`      | (__s: PandocStr) -> PandocStr
-|              | @param         | in pString : PandocStr
-|              | @param         | out : PandocStr \| str
+|              | param          | (in) pString : PandocStr
+|              | param          | (out) : PandocStr \| str
 | @Method      | `__radd__`     | (self, other) # right side value ( "str" + THIS )
-|              | @param         | in pString : PandocStr
-|              | @param         | out : PandocStr \| str
+|              | param          | (in) pString : PandocStr
+|              | param          | (out) : PandocStr \| str
 | @Method      | `__repr__`     | () -> str # What's the problem if it's missing?
-|              | @param         | out : str
+|              | param          | (out) : str
 | @Method      | `__iadd__`     | (self, other) : self += other
-|              | @param         | in pString : PandocStr
+|              | param          | (in) pString : PandocStr
 | @Method      | `startswith`   | (prefix[, start[, end]]) -> bool
-|              | @param         | in prefix : str \| PandocStr
+|              | param          | (in) prefix : str \| PandocStr
 | @Method      | `endswith`     | (suffix[, start[, end]]) -> bool
-|              | @param         | in suffix : str \| PandocStr
+|              | param          | (in) suffix : str \| PandocStr
 | @Method      | `strip`
 | @Method      | `find`
 | @Method      | `isspace`

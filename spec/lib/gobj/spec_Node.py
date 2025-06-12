@@ -9,6 +9,7 @@ r"""
 ## ADDITIONAL STRUCTOR
 
 """
+
 import pytest
 
 from gdoc.lib.gobj.node import Node
@@ -40,7 +41,7 @@ class Spec___init__:
 
         assert target.scope == "+"
         assert target.name is None
-        assert target.names == []
+        assert target.aliases == []
         assert target.tags == []
         assert target._Node__type == Node.Type.OBJECT
         assert target._Node__parent is None
@@ -250,7 +251,7 @@ class Spec___init__:
 
             assert target.name == expected["attrs"][0]
             assert target.scope == expected["attrs"][1]
-            assert target.names == expected["attrs"][2]
+            assert target.aliases == expected["attrs"][2]
             assert target._Node__type == expected["attrs"][3]
 
         else:
@@ -533,6 +534,7 @@ class Spec___get_children:
 
     returns children of the namespace managed by itself in it's nametable.
     """
+
     _spec_1 = {
         ##
         # ### [\@spec 1]
@@ -585,6 +587,7 @@ class Spec_unidir_link_to:
     def unidir_link_to(self, dist: Node) -> None:
     ```
     """
+
     _spec_1 = {
         ##
         # ### [\@spec 1]
@@ -672,6 +675,7 @@ class Spec_bidir_link_to:
     def bidir_link_to(self) -> Node | None:
     ```
     """
+
     _spec_1 = {
         ##
         # ### [\@spec 1]
@@ -759,6 +763,7 @@ class Spec___get_linkto:
     def __get_linkto(self) -> Node | None:
     ```
     """
+
     _spec_1 = {
         ##
         # ### [\@spec 1]
@@ -834,6 +839,7 @@ class Spec___get_linkfrom_list:
     def __get_linkfrom_list(self) -> list[Node]:
     ```
     """
+
     _spec_1 = {
         ##
         # ### [\@spec 1]
@@ -963,6 +969,7 @@ class Spec_get_children:
 
     returns children of the namespace and resolved reference objects.
     """
+
     _spec_1 = {
         ##
         # ### [\@spec 1]
@@ -1240,6 +1247,7 @@ class Spec_resolve:
 
     returns the object specified by the resolved name.
     """
+
     _spec_1 = {
         ##
         # ### [\@spec 1]

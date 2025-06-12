@@ -1,6 +1,7 @@
 r"""
 Node class
 """
+
 from enum import Enum, auto
 from typing import Callable, Optional, Union
 
@@ -23,7 +24,7 @@ class Node:
 
     scope: str
     name: str | None
-    names: list[str]
+    aliases: list[str]
     tags: list[str]
     __type: Type
     __parent: Union["Node", None]
@@ -32,7 +33,7 @@ class Node:
     __link_to: Union["Node", None]
     __link_from: list["Node"]
     __cache: dict[str, dict]
-    _root: Union["Node", None]
+    __root: Union["Node", None]
 
     def __init__(
         self,
@@ -78,7 +79,7 @@ class Node:
         self.name = name or alias
         self.scope = scope
         self.tags = tags[:]
-        self.names = (
+        self.aliases = (
             []
             + ([name] if name is not None else [])
             + ([alias] if alias is not None else [])
@@ -91,7 +92,7 @@ class Node:
         self.__cache = {}
         self.__link_to = None
         self.__link_from = []
-        self._root = None
+        self.__root = None
 
     def _get_type_(self) -> Type:
         return self.__type
@@ -100,20 +101,20 @@ class Node:
         if self.__type is Node.Type.IMPORT:
             raise TypeError("'Import' object cannot have children")
 
-        for name in child.names:
+        for name in child.aliases:
             if name in self.__nametable:
                 raise NameError(f"duplicated name '{name}'")
             self.__nametable[name] = child
 
         self.__children.append(child)
         child.__parent = self
-        child._root = self._root or self
+        child.__root = self.__root or self
 
     def get_parent(self) -> Optional["Node"]:
         return self.__parent
 
     def get_root(self) -> Optional["Node"]:
-        return self._root or self
+        return self.__root or self
 
     def get_children(self) -> list["Node"]:
         children: list["Node"] = []
@@ -141,7 +142,7 @@ class Node:
         return self.__children[:]
 
     def resolve(self, names: list[str]) -> Optional["Node"]:
-        target: "Node" | None
+        target: "Node | None"
 
         # target = self.get_child(names[0])
         # if target is None:
@@ -152,7 +153,7 @@ class Node:
                 target = child
                 break
             # if (target.name == names[0]) or (target.names == names[0]):
-            if names[0] in target.names:
+            if names[0] in target.aliases:
                 break
             target = target.get_parent()
 

@@ -3,16 +3,16 @@
 ## [#] TABLE OF CONTENTS <!-- omit in toc -->
 
 - [1. \[@ shr\] STAKEHOLDER REQUIREMENTS](#1--shr-stakeholder-requirements)
-  - [1.1. \[@ c\] Context](#11--c-context)
-  - [1.2. \[@ p\] Purpose](#12--p-purpose)
-  - [1.3. \[@ f\] Required Feature And Functional Characteristics](#13--f-required-feature-and-functional-characteristics)
+  - [1.1. \[@C c\] Context](#11-c-c-context)
+  - [1.2. \[@G p\] Purpose](#12-g-p-purpose)
+  - [1.3. \[@St f\] Required Feature And Functional Characteristics](#13-st-f-required-feature-and-functional-characteristics)
     - [1.3.1. What's the tool?](#131-whats-the-tool)
     - [1.3.2. \[@ a\] What can gdoc application do?](#132--a-what-can-gdoc-application-do)
       - [1.3.2.1. \[@ gd\] gdoc Category](#1321--gd-gdoc-category)
       - [1.3.2.2. System Category](#1322-system-category)
       - [1.3.2.3. GSN Category](#1323-gsn-category)
       - [1.3.2.4. XDDP Category](#1324-xddp-category)
-  - [1.4. \[@ s\] Required System Characteristics/Constraints](#14--s-required-system-characteristicsconstraints)
+  - [1.4. \[@St s\] Required System Characteristics/Constraints](#14-st-s-required-system-characteristicsconstraints)
 - [2. \[@ SYRS\] SYSTEM REQUIREMENTS SPECIFICATION](#2--syrs-system-requirements-specification)
 - [3. \[@ SWRS\] SOFTWARE REQUIREMENTS SPECIFICATION](#3--swrs-software-requirements-specification)
   - [3.1. Requirements](#31-requirements)
@@ -61,7 +61,7 @@
 > >   - [ ] 安全性/信頼性への配慮/制約条件
 > >   - [ ] 品質要求/期待
 
-### 1.1. [@ c] Context
+### 1.1. [@C c] Context
 
 Software development for automobiles, robots, etc. requires high-level quality assurance, such as compliance with functional safety standards.
 In this case, establishing traceability and ensuring consistency are essential throughout the entire development process.
@@ -77,13 +77,13 @@ In contrast, there is a need for development teams and organizations with small 
 
 > これに対し、特に開発規模の小さい開発チームや組織において、簡易にシンプルなテキストベースの設計文書を作成しgitによる版歴管理を維持したいというニーズが存在する。
 
-### 1.2. [@ p] Purpose
+### 1.2. [@G p] Purpose
 
 Therefore, we will create a means to support establishing traceability and ensuring consistency by creating simple text-based design documents and collecting and manipulating the necessary information from those design documents themselves.
 
 > そこで、テキストベースのシンプルな設計文書を作成しその設計文書自身から必要な情報を収集・操作することで、トレーサビリティ確立・一貫性確保を支援する手段を実現する。
 
-### 1.3. [@ f] Required Feature And Functional Characteristics
+### 1.3. [@St f] Required Feature And Functional Characteristics
 
 #### 1.3.1. What's the tool?
 
@@ -194,7 +194,7 @@ It also executes various user applications while using this information.
 - 変更する仕様IDから、関連するモジュールをリストアップする、関数をリストアップする
 - 変更する仕様IDから、上位要求をたどって兄弟仕様をリストする、従兄弟仕様をリストする
 
-### 1.4. [@ s] Required System Characteristics/Constraints
+### 1.4. [@St s] Required System Characteristics/Constraints
 
 - [@Req 1] Python 3.x で動作する。
 

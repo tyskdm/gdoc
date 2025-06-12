@@ -1,12 +1,12 @@
 *<div align=right><small>
-[@^ doctype="gdoc 0.3" class="systemdesign:"]
+@doctype: gdml 0.3 @class: systemdesign
 </small></div>*
 
 # [@ swdd] PandocAST Detailed Design
 
 Provide access methods to a pandoc AST object loaded from json file.
 
-## \[@#\] CONTENTS<!-- omit in toc -->
+## \[#\] CONTENTS<!-- omit in toc -->
 
 - [1. REFERENCES](#1-references)
 - [2. THE TARGET SOFTWARE ELEMENT](#2-the-target-software-element)
@@ -45,13 +45,13 @@ Provide access methods to a pandoc AST object loaded from json file.
 This document refers to the following documents.
 
 1. Gdoc Architectural Design  \
-   [@access SWAD from="[../ArchitecturalDesign](../ArchitecturalDesign.md)"]
+   [@import - SWAD from="[../ArchitecturalDesign](../ArchitecturalDesign.md)"]
 
    Upper Layer Architectural Design of this document.
 
 2. Text.Pandoc.Definition  \
    pandoc-types-1.22: Types for representing a structured document  \
-   https://hackage.haskell.org/package/pandoc-types-1.22/docs/Text-Pandoc-Definition.html
+   [https://hackage.haskell.org/package/pandoc-types-1.22/docs/Text-Pandoc-Definition.html](https://hackage.haskell.org/package/pandoc-types-1.22/docs/Text-Pandoc-Definition.html)
 
    Definition of Pandoc data structure for format-neutral representation of documents.
 
@@ -59,7 +59,7 @@ This document refers to the following documents.
 
 ## 2. THE TARGET SOFTWARE ELEMENT
 
-- [@Block& -THIS=SWAD.GDOC[gdocCoreLibrary][pandocAstObject][PandocAst]]
+- [@import - SWAD.GDOC.gdocCoreLibrary.pandocAstObject.PandocAst as=THIS]
 
   The block representing the target software in this document.
 
@@ -67,15 +67,15 @@ This document refers to the following documents.
 
 ## 3. [@ rq] REQUIREMENTS
 
-- [@access SWAD.SE.PAO.RA]
+- [@import - SWAD.SE.PAO.RA]
 
   Requirements_Allocated to this Software_Element, PandocAstObject from SoftWare_Architectural_Design.
 
-| @Reqt | Name | Text | Trace |
-| :---: | ---- | ---- | :---: |
-| FR    | Functional Requirement |
-| @     | FR.1 | panを使用して、指定されたソースファイルをPandocAST Jsonファイルへ変換する。 | @copy: RA.3a.1
-| @     | FR.2 | 変換したPandocAST Jsonファイルを使用してPandocAstObjectを生成する。 | @copy: RA.3a.2
+| @Req | Name | Text | Trace |
+| :--: | ---- | ---- | :---: |
+| FR   | Functional Requirement |
+| @    | FR.1 | panを使用して、指定されたソースファイルをPandocAST Jsonファイルへ変換する。 | @copy: RA.3a.1
+| @    | FR.2 | 変換したPandocAST Jsonファイルを使用してPandocAstObjectを生成する。 | @copy: RA.3a.2
 
 <br>
 
@@ -94,7 +94,7 @@ The basic element types are as follows.
 
 | [![@source: ./PandocAst.pml#PandocAstInternalBlocks @type: puml](./_puml_/PandocAst/PandocAstInternalBlocks.png)](./PandocAst.puml) |
 | :-----: |
-| [@fig 4.1\] PandocAst ElementHandlers |
+| Fig 4.1 PandocAst ElementHandlers |
 
 ### 4.2. Element Types
 
@@ -116,10 +116,9 @@ Two means to cover them are as follows.
 
 ### 5.1. Class Hierarchy
 
-| [![@source: ./PandocAst.puml#PandocAstObjectClassHierarchy  \
-@type: puml](./_puml_/PandocAst/PandocAstObjectClassHierarchy.png)](./PandocAst.puml) |
+| [![@source: ./PandocAst.puml#PandocAstObjectClassHierarchy @type: puml](./_puml_/PandocAst/PandocAstObjectClassHierarchy.png)](./PandocAst.puml) |
 | :-----: |
-| [@fig 5.1\] PandocAst ElementHandler class hierarchy |
+| Fig 5.1 PandocAst ElementHandler class hierarchy |
 
 ### 5.2. Element-Handler Mapping
 
@@ -201,7 +200,7 @@ Intermediate data types for this purpose are as follows.
 
 ### 5.3. Class Definitions
 
-| @class | Name | Description |
+| @Class | Name | Description |
 | :----: | ---- | ----------- |
 |        | Association | @partof: THIS
 | c1     | Element     | primitive element of pandoc AST with fundamental properties and methods.
@@ -218,7 +217,7 @@ Intermediate data types for this purpose are as follows.
 
 ### 5.4. Data Types
 
-| @block | Name | Text |
+| @Block | Name | Text |
 | :----: | ---- | ---- |
 |        | Association   | @partof: THIS
 | d1     | ELEMENT_TYPES | data dict of each element types containing handler class and element format.
@@ -263,15 +262,15 @@ Nothing worth mentioning.
 
 | @Class& | Name | Description |
 | ------- | ---- | ----------- |
-| sc.c2   | Block | | Block element contains structured data without text string data.
+| sc.c2   | Block       | Block element contains structured data without text string data.
 |         | Association | @Inherit: su[Element]
-| @Method |  | No additional method
+| @Method |             | # No additional method
 
 ### 7.3. Inline
 
 | @Class& | Name | Description |
 | ------- | ---- | ----------- |
-| sc.c3   | Inline | | Inline element contains text string, text-decoration data or Inlines.
+| sc.c3   | Inline      | Inline element contains text string, text-decoration data or Inlines.
 |         | Association | @Inherit: su[Element]
 | @Method |  |
 
@@ -279,7 +278,7 @@ Nothing worth mentioning.
 
 | @Class& | Name | Description |
 | ------- | ---- | ----------- |
-| sc.c4   | BlockList | | BlockList is a Block containing Blocks as a list.
+| sc.c4   | BlockList   | BlockList is a Block containing Blocks as a list.
 |         | Association | @Inherit: su[Element]
 | @Method |  |
 
@@ -287,7 +286,7 @@ Nothing worth mentioning.
 
 | @Class& | Name | Description |
 | ------- | ---- | ----------- |
-| sc.c5   | InlineList | | InlineList is a Block containing Inlines as a list.
+| sc.c5   | InlineList  | InlineList is a Block containing Inlines as a list.
 |         | Association | @Inherit: su[Element]
 | @Method |  |
 
@@ -335,6 +334,6 @@ Nothing worth mentioning.
 
 | @Class& | Name | Description |
 | ------- | ---- | ----------- |
-| sc.c11  | Pandoc | Root element representing whole pandocAst object.
+| sc.c11  | Pandoc      | Root element representing whole pandocAst object.
 |         | Association | @Inherit: su[Element]
 | @Method |

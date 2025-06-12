@@ -1,6 +1,7 @@
 """
 objectfactory.py: ObjectFactory class
 """
+
 from typing import Any, Optional, Type, cast
 
 from gdoc.lib.gdoc import DataPos, TextString
@@ -385,14 +386,16 @@ class ObjectContext:
             parent = self.current
             for pname in reversed(names[:-1]):
                 pname_str = str(pname)
-                if pname_str not in parent.names:
+                if pname_str not in parent.aliases:
                     return Err(
                         erpt.submit(
                             GdocSyntaxError(
                                 f"The explicit parent name '{pname_str}' is incorrect.",
-                                pname.get_data_pos()
-                                if type(pname) is TextString
-                                else None,
+                                (
+                                    pname.get_data_pos()
+                                    if type(pname) is TextString
+                                    else None
+                                ),
                             )
                         )
                     )
