@@ -1,3 +1,0 @@
-#!/bin/sh
-export PYTHONPATH=$(dirname $(dirname $(readlink -f $0))):$PYTHONPATH
-python3 -m gdoc "$@"
