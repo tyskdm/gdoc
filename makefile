@@ -2,7 +2,7 @@
 TARGET      := gdoc
 
 # directories
-SRCDIR 		:= gdoc
+SRCDIR 		:= src/gdoc
 SPECDIR     := spec
 TESTDIR     := tests
 DISTDIR     := dist

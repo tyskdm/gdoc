@@ -1,10 +1,11 @@
 r"""
 GdObject class
 """
+
 from typing import Any, cast
 
 from gdoc.lib.gdoc import Text, TextString
-from gdoc.lib.gdoccompiler.gdexception import *
+from gdoc.lib.gdoccompiler.gdexception import GdocKeyError, GdocTypeError
 
 from .node import Node
 
@@ -184,7 +185,7 @@ class Element(Node):
                 prop[key] = __class__._cast_to_str(prop[key])
 
             elif isinstance(prop[key], Text):
-                prop[key] = prop[key].dumpd()
+                prop[key] = cast(Text, prop[key]).dumpd()
 
             # elif type(prop[key]) is str:
             #     prop[key] = String(prop[key]).dumpd()

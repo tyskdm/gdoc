@@ -16,6 +16,7 @@ The base class for all gdoc objects except Import and Access.
 | @Method | \_\_init\_\_  | creates a new instance.
 
 """
+
 import inspect
 
 import pytest
@@ -64,7 +65,7 @@ def spec___init___2():
 
     assert target.scope == "+"
     assert target.name == "ID"
-    assert target.names == ["ID"]
+    assert target.aliases == ["ID"]
     assert target.tags == []
 
     assert target.class_category == ""

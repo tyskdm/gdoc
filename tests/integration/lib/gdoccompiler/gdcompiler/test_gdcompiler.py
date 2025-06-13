@@ -10,6 +10,7 @@ Integration Tests of gdParser software items.
 [@import SWDD.SU[Inline] as=THIS]
 
 """
+
 import json
 from unittest import mock
 
@@ -63,8 +64,8 @@ def _assert_children(expected, actual):
         exp = expected[i]
         act = children[i]
         assert act.name == exp[0]
-        assert act.names[0] == exp[0]
-        assert act.names[1] == exp[1]
+        assert act.aliases[0] == exp[0]
+        assert act.aliases[1] == exp[1]
         assert _assert_children(exp[2], act)
 
     return True
