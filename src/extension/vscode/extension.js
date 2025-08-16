@@ -7,18 +7,35 @@ let client;
 function activate(context) {
     try {
         const serverOptions = {
-            command: context.extensionPath + "/bin/gdoc",
+            command: ".venv/bin/gdoc",
             args: [
                 "language-server",
                 "--logging-filename",
-                context.extensionPath + "/.gdoc-language-server.log",
+                ".gdoc-language-server.log",
                 "--logging-filemode",
                 "a",
                 "--logging-level",
                 "DEBUG",
                 "--logging-timestamp",
-            ]
+            ],
+            options: {
+                cwd: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined
+            }
         };
+        // const serverOptions = function () {
+        //     return new Promise((resolve, reject) => {
+        //         const socket = net.connect({ port: 6009, host: "localhost" });
+        //         socket.on("connect", () => {
+        //             resolve({
+        //                 reader: socket,
+        //                 writer: socket,
+        //             });
+        //         });
+        //         socket.on("error", (err) => {
+        //             reject(err);
+        //         });
+        //     });
+        // };
         const clientOptions = {
             documentSelector: [
                 {
