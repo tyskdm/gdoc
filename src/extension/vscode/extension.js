@@ -1,6 +1,7 @@
 "use strict";
 const vscode = require("vscode");
 const languageclient = require("vscode-languageclient");
+const net = require("net");
 
 let client;
 
