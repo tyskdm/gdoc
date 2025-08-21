@@ -24,21 +24,21 @@ class JsonStream:
             self._wfile.close()
 
     def write(self, message: JSONType):
+        content: bytes = json.dumps(message, **self._json_dumps_args).encode("utf-8")
+        content_length: int = len(content)
+        data_frame: bytes = (
+            b"Content-Length: "
+            + str(content_length).encode("utf-8")
+            + b"\r\n"
+            + b"Content-Type: application/vscode-jsonrpc; charset=utf8\r\n\r\n"
+            + content
+        )
         with self._wfile_lock:
             if self._wfile.closed:
                 return
 
-            content: bytes = json.dumps(message, **self._json_dumps_args).encode("utf-8")
-            content_length: int = len(content)
-            response: bytes = (
-                b"Content-Length: "
-                + str(content_length).encode("utf-8")
-                + b"\r\n"
-                + b"Content-Type: application/vscode-jsonrpc; charset=utf8\r\n\r\n"
-                + content
-            )
             try:
-                self._wfile.write(response)
+                self._wfile.write(data_frame)
                 self._wfile.flush()
             except Exception:  # pylint: disable=broad-except
                 logger.exception("Failed to write message to output file %s", message)
@@ -55,19 +55,19 @@ class JsonStream:
         """
         line: bytes = self._rfile.readline()
 
-        if not line:
-            return None
+        if line == b"":
+            return None  # EOF
 
         content_length = self._content_length(line)
         if content_length is None:
-            return None
+            return None  # the line is not Content-Length header
 
         # Blindly consume all header lines
-        while line and line.strip():
+        while line.strip():
             line = self._rfile.readline()
 
-        if not line:
-            return None
+        if line == b"":
+            return None  # EOF
 
         # Grab the body
         return self._rfile.read(content_length)
