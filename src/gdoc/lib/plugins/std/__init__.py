@@ -29,7 +29,7 @@ category = Category(
             #
             # SysML types
             #
-            "Bloooock": type(
+            "Block": type(
                 "std:Block",
                 (Object, Property, Trait),
                 {
