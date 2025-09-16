@@ -2,41 +2,44 @@
 
 ## [#] Table of Contents  <!-- omit in toc -->
 
-- [1. \[@Req no\] Needs Overview](#1-req-no-needs-overview)
-- [2. \[@St uc\] Use Cases](#2-st-uc-use-cases)
-  - [2.1 \[@ cu\] CLI side use cases](#21--cu-cli-side-use-cases)
-    - [\[@ b\] Build](#-b-build)
-      - [What is that?](#what-is-that)
-      - [Features / Concerns](#features--concerns)
-      - [\[@Goal sr\] Sub Requirements](#goal-sr-sub-requirements)
-      - [\[@Req pr\] Prerequisites: Requests to other components](#req-pr-prerequisites-requests-to-other-components)
-    - [\[@ t\] Trace / Tree](#-t-trace--tree)
-  - [2.2. \[@ lu\] Language Server side use cases](#22--lu-language-server-side-use-cases)
-    - [\[@ s\] Syntacs Highlight](#-s-syntacs-highlight)
-    - [\[@ h\] Hover / Go to definition](#-h-hover--go-to-definition)
-    - [\[@ a\] Auto completion](#-a-auto-completion)
-    - [\[@ r\] References tree](#-r-references-tree)
-- [3. \[@ s\] Solution](#3--s-solution)
-  - [Overview](#overview)
-  - [Error Handling](#error-handling)
-- [4. \[@ pc\] Package related classes](#4--pc-package-related-classes)
-  - [4.1. \[@ l\] Layers](#41--l-layers)
-  - [4.2. \[@ o\] Object](#42--o-object)
-  - [4.3. \[@ d\] Document](#43--d-document)
-  - [4.4. \[@ p\] Package](#44--p-package)
-  - [4.5. \[@ m\] Package Manager](#45--m-package-manager)
+- [Package Requirements Analysis](#package-requirements-analysis)
+  - [1. \[@Req no\] Needs Overview](#1-req-no-needs-overview)
+  - [2. \[@St uc\] Use Cases](#2-st-uc-use-cases)
+    - [2.1 \[@ cu\] CLI side use cases](#21--cu-cli-side-use-cases)
+      - [\[@ b\] Build](#-b-build)
+        - [What is that?](#what-is-that)
+        - [Features / Concerns](#features--concerns)
+        - [\[@Goal sr\] Sub Requirements](#goal-sr-sub-requirements)
+        - [\[@Req pr\] Prerequisites: Requests to other components](#req-pr-prerequisites-requests-to-other-components)
+      - [\[@ t\] Trace / Tree](#-t-trace--tree)
+    - [2.2. \[@ lu\] Language Server side use cases](#22--lu-language-server-side-use-cases)
+      - [\[@ s\] Syntacs Highlight](#-s-syntacs-highlight)
+      - [\[@ h\] Hover / Go to definition](#-h-hover--go-to-definition)
+      - [\[@ a\] Auto completion](#-a-auto-completion)
+      - [\[@ r\] References tree](#-r-references-tree)
+  - [3. \[@ s\] Solution](#3--s-solution)
+    - [Overview](#overview)
+    - [Error Handling](#error-handling)
+  - [4. \[@ pc\] Package related classes](#4--pc-package-related-classes)
+    - [4.1. \[@ l\] Layers](#41--l-layers)
+    - [4.2. \[@ o\] Object](#42--o-object)
+    - [4.3. \[@ d\] Document](#43--d-document)
+    - [4.4. \[@ p\] Package](#44--p-package)
+    - [4.5. \[@ m\] Package Manager](#45--m-package-manager)
 
 ## 1. [@Req no] Needs Overview
 
-- Package は複数の Document を含む、ひとまとまりの情報群である。
+- Package は複数の Document または Package を含む、ひとまとまりの情報群である。
 
-- Package はワークスペースフォルダをベースに Document を収集する。
-  - ワークスペースフォルダは、VSCodeのワークスペースフォルダと同じものを想定している。
-  - Package に、ワークスペースに含まれる文書を登録してゆく。
-  - ワークスペース内の文書は全て登録する。
+- Package はプロジェクトディレクトリに含まれる Document または Package を含む。
+  - プロジェクトディレクトリは、VSCodeのワークスペースフォルダに相当する。
+  - Package は、プロジェクトディレクトリに含まれる Markdown 文書をコンパイルして生成された Document Object を含む。
+    - プロジェクトディレクトリ内の markdown 文書は、デフォルトで全て Package に登録される。
     - ただし、設定ファイルに基づいて、登録する文書を絞り込むことができる。
-  - ワークスペースに登録した文書は相互のリンクを解決される
-  - ワークスペースに登録した文書は、部分的に変更することができる
+  - Package は、プロジェクトディレクトリに含まれ、Panckageとして認識されるフォルダをビルドして生成された Package Object を含む。
+
+  - パッケージに登録した文書は相互のリンクを解決される
+  - パッケージに登録した文書は、部分的に変更することができる
     - 変更された文書は、再度コンパイルされる
     - 変更された文書と相互にリンクしている文書は、再度リンクされる
     - つまり、VS Codeのワークスペース内で編集している文書を、リアルタイムにコンパイルし、リンクし直すことができる
