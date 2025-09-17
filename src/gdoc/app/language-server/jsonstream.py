@@ -1,9 +1,9 @@
 # This code is a modified version of:
 # https://github.com/palantir/python-jsonrpc-server/blob/develop/pyls_jsonrpc/streams.py
-from typing import Union, Dict, List, BinaryIO
 import json
 import logging
 import threading
+from typing import BinaryIO, Dict, List, Union
 
 logger = logging.getLogger(__name__)
 
