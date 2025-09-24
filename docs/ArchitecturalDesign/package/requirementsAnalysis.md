@@ -2,44 +2,50 @@
 
 ## [#] Table of Contents  <!-- omit in toc -->
 
-- [Package Requirements Analysis](#package-requirements-analysis)
-  - [1. \[@Req no\] Needs Overview](#1-req-no-needs-overview)
-  - [2. \[@St uc\] Use Cases](#2-st-uc-use-cases)
-    - [2.1 \[@ cu\] CLI side use cases](#21--cu-cli-side-use-cases)
-      - [\[@ b\] Build](#-b-build)
-        - [What is that?](#what-is-that)
-        - [Features / Concerns](#features--concerns)
-        - [\[@Goal sr\] Sub Requirements](#goal-sr-sub-requirements)
-        - [\[@Req pr\] Prerequisites: Requests to other components](#req-pr-prerequisites-requests-to-other-components)
-      - [\[@ t\] Trace / Tree](#-t-trace--tree)
-    - [2.2. \[@ lu\] Language Server side use cases](#22--lu-language-server-side-use-cases)
-      - [\[@ s\] Syntacs Highlight](#-s-syntacs-highlight)
-      - [\[@ h\] Hover / Go to definition](#-h-hover--go-to-definition)
-      - [\[@ a\] Auto completion](#-a-auto-completion)
-      - [\[@ r\] References tree](#-r-references-tree)
-  - [3. \[@ s\] Solution](#3--s-solution)
-    - [Overview](#overview)
-    - [Error Handling](#error-handling)
-  - [4. \[@ pc\] Package related classes](#4--pc-package-related-classes)
-    - [4.1. \[@ l\] Layers](#41--l-layers)
-    - [4.2. \[@ o\] Object](#42--o-object)
-    - [4.3. \[@ d\] Document](#43--d-document)
-    - [4.4. \[@ p\] Package](#44--p-package)
-    - [4.5. \[@ m\] Package Manager](#45--m-package-manager)
+- [1. Definition of Package](#1-definition-of-package)
+- [2. \[@Req no\] Needs Overview](#2-req-no-needs-overview)
+- [3. \[@St uc\] Use Cases](#3-st-uc-use-cases)
+  - [3.1 \[@ cu\] CLI side use cases](#31--cu-cli-side-use-cases)
+    - [\[@ b\] Build](#-b-build)
+      - [What is that?](#what-is-that)
+      - [Features / Concerns](#features--concerns)
+      - [\[@Goal sr\] Sub Requirements](#goal-sr-sub-requirements)
+      - [\[@Req pr\] Prerequisites: Requests to other components](#req-pr-prerequisites-requests-to-other-components)
+    - [\[@ t\] Trace / Tree](#-t-trace--tree)
+  - [3.2. \[@ lu\] Language Server side use cases](#32--lu-language-server-side-use-cases)
+    - [\[@ s\] Syntacs Highlight](#-s-syntacs-highlight)
+    - [\[@ h\] Hover / Go to definition](#-h-hover--go-to-definition)
+    - [\[@ a\] Auto completion](#-a-auto-completion)
+    - [\[@ r\] References tree](#-r-references-tree)
+- [4. \[@ s\] Solution](#4--s-solution)
+  - [Overview](#overview)
+  - [Error Handling](#error-handling)
+- [5. \[@ pc\] Package related classes](#5--pc-package-related-classes)
+  - [5.1. \[@ l\] Layers](#51--l-layers)
+  - [5.2. \[@ o\] Object](#52--o-object)
+  - [5.3. \[@ d\] Document](#53--d-document)
+  - [5.4. \[@ p\] Package](#54--p-package)
+  - [5.5. \[@ m\] Package Manager](#55--m-package-manager)
 
-## 1. [@Req no] Needs Overview
+## 1. [@Req] Definition : Definition of Package
 
-- Package は複数の Document または Package を含む、ひとまとまりの情報群である。
+- [@ 1] Package は複数の Document または Package を含む、ひとまとまりの情報群である。
 
-- Package はプロジェクトディレクトリに含まれる Document または Package を含む。
-  - プロジェクトディレクトリは、VSCodeのワークスペースフォルダに相当する。
-  - Package は、プロジェクトディレクトリに含まれる Markdown 文書をコンパイルして生成された Document Object を含む。
-    - プロジェクトディレクトリ内の markdown 文書は、デフォルトで全て Package に登録される。
-    - ただし、設定ファイルに基づいて、登録する文書を絞り込むことができる。
-  - Package は、プロジェクトディレクトリに含まれ、Panckageとして認識されるフォルダをビルドして生成された Package Object を含む。
+- [@ 2] Package はプロジェクトディレクトリに含まれる Document または Package を含む。
+  - [@ d] Document
+    - Package は、プロジェクトディレクトリに含まれる Markdown 文書をコンパイルして生成された Document Object を含む。
+      - プロジェクトディレクトリ内の markdown 文書は、デフォルトで全て Package に含まれる。
+      - ただし、パッケージごとの設定ファイルに基づいて、登録する文書を絞り込むことができる。
+  - [@ p] Package
+    - Package は、プロジェクトディレクトリに含まれ且つ Panckage として認識されるフォルダをビルドして生成された Package Object を含む。
+      - つまり、Package は階層化されることがある。
+  - @note: プロジェクトディレクトリは、VSCodeのワークスペースフォルダに相当する。
 
+## 2. [@Req no] Needs Overview
+
+- Package は、Document または Package を登録し、相互にリンクすることができる。
   - パッケージに登録した文書は相互のリンクを解決される
-  - パッケージに登録した文書は、部分的に変更することができる
+  - パッケージに登録した文書郡は、その全てではなく個別に変更することができる
     - 変更された文書は、再度コンパイルされる
     - 変更された文書と相互にリンクしている文書は、再度リンクされる
     - つまり、VS Codeのワークスペース内で編集している文書を、リアルタイムにコンパイルし、リンクし直すことができる
@@ -59,13 +65,13 @@
     - 変更された文書とリンクしている文書とさらにリンクしている文書（必要に応じて）
   - いずれの場合も、設定ファイルに基づいて対象ドキュメントを選択する
 
-## 2. \[@St uc\] Use Cases
+## 3. \[@St uc\] Use Cases
 
 - This strategy @support: "Needs Overview"
 
 - Package class is used in the following use cases.
 
-### 2.1 \[@ cu\] CLI side use cases
+### 3.1 \[@ cu\] CLI side use cases
 
 #### [@ b] Build
 
@@ -141,7 +147,7 @@
    - 辿れないものが現れた場合の対処はアプリケーションによる。
    - 外部参照が設定外であった場合は、警告する
 
-### 2.2. \[@ lu\] Language Server side use cases
+### 3.2. \[@ lu\] Language Server side use cases
 
 #### [@ s] Syntacs Highlight
 
@@ -192,7 +198,7 @@
    - この場合はなにもしないのが適切だろう。
    - 外部参照が設定外であった場合は、警告する
 
-## 3. [@ s] Solution
+## 4. [@ s] Solution
 
 ### Overview
 
@@ -213,9 +219,9 @@
 5. その External link は、階層的に辿られる可能性がある。再帰的に External Link をクリアする
 6. 参照リンクの他に、TraitごとのRelation Linkもエラー情報を保持し、部分再リンク可能にする
 
-## 4. \[@ pc\] Package related classes
+## 5. \[@ pc\] Package related classes
 
-### 4.1. \[@ l\] Layers
+### 5.1. \[@ l\] Layers
 
 1. Package Manager
 
@@ -237,11 +243,11 @@
    - FileをDocument Objectとしてアクセス可能にする
    - Package / Document に指定された設定に基づいてコンパイルされる
 
-### 4.2. \[@ o\] Object
+### 5.2. \[@ o\] Object
 
 - resolve()
 
-### 4.3. \[@ d\] Document
+### 5.3. \[@ d\] Document
 
 - Internal Link までは実施する。
 - file.md.gobj.json を読み込んだ場合も、インターナルリンクまでは実施する
@@ -255,7 +261,7 @@
   - 上記により参照された外部文書や、Traceなどでターゲットとなった文書の場合、必用になるまで外部参照の解決を遅らせる。
     - resolve_ext_link() などの専用メソッドを用いて、リンクを辿る手段を提供する
 
-### 4.4. \[@ p\] Package
+### 5.4. \[@ p\] Package
 
 - フォルダを指定してパッケージを生成する。ただし、初期生成時は空の状態。
 - 指定されたパターンで、Documentを追加してゆく。
@@ -265,6 +271,6 @@
     - Cacheより設定ファイルのタイムスタンプが新しければ、常に無視される
     - 設定ファイルが On Memory の場合はどうなる？
 
-### 4.5. \[@ m\] Package Manager
+### 5.5. \[@ m\] Package Manager
 
 - 初期値で、`file:` Scheme に対応する
