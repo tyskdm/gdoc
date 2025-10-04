@@ -37,11 +37,11 @@
       - プロジェクトディレクトリ内の markdown 文書は、デフォルトで全て Package に含まれる。
       - ただし、パッケージごとの設定ファイルに基づいて、登録する文書を絞り込むことができる。
   - [@ p] Package
-    - Package は、プロジェクトディレクトリに含まれ且つ Panckage として認識されるフォルダをビルドして生成された Package Object を含む。
+    - Package は、プロジェクトディレクトリに含まれ且つ Panckage として認識されるディレクトリをビルドして生成された Package Object を含む。
       - つまり、Package は階層化されることがある。
-  - @note: プロジェクトディレクトリは、VSCodeのワークスペースフォルダに相当する。
+  - @note: プロジェクトディレクトリは、VSCodeのワークスペースディレクトリに相当する。
 
-## 2. [@Req no] Needs Overview
+## 2. [@Req un] User Needs
 
 - Package は、Document または Package を登録し、相互にリンクすることができる。
   - パッケージに登録した文書は相互のリンクを解決される
@@ -67,7 +67,7 @@
 
 ## 3. \[@St uc\] Use Cases
 
-- This strategy @support: "Needs Overview"
+- This strategy @support: "User Needs"
 
 - Package class is used in the following use cases.
 
@@ -104,10 +104,13 @@
 
 ##### [@Goal sr] Sub Requirements
 
-- [ ] Package class は、フォルダのパスを受け取って生成されること
+- [ ] Package class は、ディレクトリのパスを受け取って生成されること
   - `__init__`(folder_path: str) -> Package
 
-- [ ] Package class は、フォルダ内のドキュメントを取得するメソッドを持つこと
+- [ ] Package ディレクトリには、各種設定を行うための設定ファイルを含むことができること
+  - たとえば、`.gdpackage.json` のようなファイル
+
+- [ ] Package class は、ディレクトリ内のドキュメントを取得するメソッドを持つこと
   - get_all_documents() -> list[Document]
   - is_target(file_path: str) -> bool
 
@@ -165,7 +168,7 @@
 
    - ターゲットが設定範囲外であった場合も、指定されたなら対象とする。
      - 警告も表示しない
-   - パッケージ（Workspaceフォルダ）全体を対象とする
+   - パッケージ（Workspaceディレクトリ）全体を対象とする
 
 2. 外部参照は、必要に応じて辿れるところまでたどる。
 
@@ -225,7 +228,7 @@
 
 1. Package Manager
 
-   - URIを受取って、フォルダを返す
+   - URIを受取って、ディレクトリを返す
    - Schemeによっては、バージョン番号も管理する
    - Scheme を Plug-in で追加できる構造
      - file
@@ -235,8 +238,8 @@
 
 2. Package
 
-   - フォルダをPackage Objectとしてアクセス可能にする
-   - フォルダ全体を設定ファイルに基づいてPackage Object化するが、どのような順序でオブジェクト構築を進めるかは複数のパターンがある
+   - ディレクトリをPackage Objectとしてアクセス可能にする
+   - ディレクトリ全体を設定ファイルに基づいてPackage Object化するが、どのような順序でオブジェクト構築を進めるかは複数のパターンがある
 
 3. Document
 
@@ -263,7 +266,7 @@
 
 ### 5.4. \[@ p\] Package
 
-- フォルダを指定してパッケージを生成する。ただし、初期生成時は空の状態。
+- ディレクトリを指定してパッケージを生成する。ただし、初期生成時は空の状態。
 - 指定されたパターンで、Documentを追加してゆく。
   - アクセスされた順にDocumentを追加してゆく
   - すべてのファイルを追加する
