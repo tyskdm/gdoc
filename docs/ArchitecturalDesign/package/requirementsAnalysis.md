@@ -132,6 +132,9 @@
 
 - 被参照ツリーは、探索範囲を指定する必要がある。
   - デフォルトではパッケージ、階層化パッケージならルートパッケージ
+    - ルートパッケージとは？
+      - 案１： 指定されたパッケージの親パッケージをたどってゆき、最上位のパッケージ
+      - 案２： VS Code のワークスペースディレクトリ
   - 被参照関係を探索するソース自身が Import Link であった場合、参照関係を探索する方法はあるか？
     - node.py もしくは gobj.py あたりが実装箇所か？
 
@@ -224,9 +227,13 @@
 
 ## 5. \[@ pc\] Package related classes
 
-### 5.1. \[@ l\] Layers
+### 5.1. \[@ l\] Layer design
 
-1. Package Manager
+![Package related classes](./package.drawio.png)
+
+1. Package Manager (Package resolver?)
+
+   Package manegement の対象空間は、Package directory がデフォルトで、ユーザー Global 空間（`~/.gdoc`）もある
 
    - URIを受取って、ディレクトリを返す
    - Schemeによっては、バージョン番号も管理する
@@ -240,11 +247,23 @@
 
    - ディレクトリをPackage Objectとしてアクセス可能にする
    - ディレクトリ全体を設定ファイルに基づいてPackage Object化するが、どのような順序でオブジェクト構築を進めるかは複数のパターンがある
+   - gdproject.json などの設定ファイルを読み込む --> pyproject.toml の位置づけ
+     - Package内のDocumentについての設定を指定する
+     - 対象となるファイルを選択・絞り込む
+     - コンパイルスイッチなどの設定
+   - index.md が存在するディレクトリをPackageとして認識する --> `__index__.py` の位置づけ
+   - Error 情報のコンテナとなる
+     - External Link Error (outside the package)
+       - Package が操作された場合に、すべての外部パッケージ参照を再度解決する
 
 3. Document
 
    - FileをDocument Objectとしてアクセス可能にする
    - Package / Document に指定された設定に基づいてコンパイルされる
+   - Error 情報のコンテナとなる
+     - Compile Error
+     - Internal Link Error
+     - External Link Error (inside the package)
 
 ### 5.2. \[@ o\] Object
 
