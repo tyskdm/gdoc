@@ -22,6 +22,9 @@ sudo ln -s $(pwd)/.devcontainer/doxybook /usr/local/bin/
 
 # poetry
 poetry install
+echo -e '\n# poetry\n' \
+'$(poetry env activate)\n' \
+>> ~/.bashrc
 
 # nvm
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
