@@ -1,4 +1,4 @@
-# gdoc Server
+# gdoc Server Requirements Elicitation
 
 1. gdoc Language Server
 2. gdoc Object Server
@@ -41,7 +41,7 @@
    - gdoc Language Server
    - gdoc Object Server
 
-2. gdoc Language Server and gdoc Object Server are implemented as separate threads within the same process.
+2. gdoc Language Server and gdoc Object Server are implemented as separate *async tasks* within the same process.
    - gdoc Objects are shared between gdoc Language Server and gdoc Object Server.
 
 3. gdoc Server will be implemented in pure Python with minimal dependencies to `pandoc`.
@@ -138,7 +138,7 @@
 
 - To share gdoc Objects among Language Server and Object Server, we will implement them in the same process.
 
-- To separate their responsibilities, improve maintainability and performance isues, we will implement them as separate threads.
+- To separate their responsibilities, improve maintainability and performance isues, we will implement them as separate async tasks.
 
 - We will use asynchronous processing to handle multiple requests concurrently in each of the Language Server and Object Server.
 
