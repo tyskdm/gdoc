@@ -59,14 +59,51 @@
 
 4. gdoc Object Server will be implemented with JSON-RPC over Unix Domain Socket (UDS).
 
-### Technical contexts
+### gdoc Object Class
 
-#### Python GIL
+#### Summary
+
+- Database-like class to manage gdoc Objects and their relationships.
+- Provides APIs to access and manipulate gdoc Objects.
+
+#### Classes
+
+1. AsyncDatabase
+   - AsyncDatabase provides async APIs for multiple asyncio tasks.
+     - Provides async APIs to access and manipulate gdoc Objects like a graph database.
+     - Provides async APIs to publish and subscribe to changes in gdoc Objects.
+
+   - AsyncDatabase is a thin wrapper around Workspace to provide async APIs.
+     - AsyncDatabase stores `loop` (asyncio event loop) to manage async tasks and Pub/Sub mechanism.
+     - AsyncDatabase uses Workspace APIs and its callback mechanism.
+
+2. Workspace
+   - A container for gdoc Object Packages.
+   - Each workspace has its default Package, which is used when no package is specified for a gdoc Document.
+   - Provides APIs to manage gdoc Object Packages.
+     - Add or remove gdoc Object Packages with their aliases (local file paths).
+     - Setup workspace with its configurations (e.g., which documents to load, etc.).
+     - Provide callback mechanism to notify changes.
+
+3. Package
+   - A container for gdoc Objects.
+   - Package has configurations such as gdoc settings, etc.
+   - Provides APIs to manage gdoc Objects.
+     - Add or remove gdoc Objects
+     - Notify changes in gdoc Objects
+
+4. ObjectContainer
+   - Document object that contains gdoc Objects.
+   - Source code object that contains doxygen commented source code.
+
+## Technical Contexts
+
+### Python GIL
 
 - GIL (Global Interpreter Lock) free theads will be usable in Pyhon 3.13 and later.
 - Until then, we need to consider the GIL limitation when designing the architecture.
 
-#### Graph Database
+### Graph Database
 
 - gdoc Object Server will wrap gdoc Objects and provide APIs like a graph database.
   - gdoc Object Server API example:
@@ -82,9 +119,9 @@
 
 - APIs will provide Pub/Sub mechanism to notify changes in gdoc Objects.
 
-##### Graph構造アクセス・操作のAPI群（分類別）
+#### Graph構造アクセス・操作のAPI群（分類別）
 
-###### 🟦 1. ノード（Node）操作系
+##### 🟦 1. ノード（Node）操作系
 
 | API名 | 説明 |
 | --- | --- |
@@ -95,7 +132,7 @@
 | `DELETE /nodes/{id}` | ノードを削除 |
 | `PATCH /nodes/{id}/position` | UI上の位置情報などを更新（Graphビュー用） |
 
-###### 🟩 2. エッジ（Edge）操作系
+##### 🟩 2. エッジ（Edge）操作系
 
 | API名 | 説明 |
 | --- | --- |
@@ -105,7 +142,7 @@
 | `DELETE /edges/{id}` | エッジを削除 |
 | `GET /nodes/{id}/edges` | 特定ノードに関連するエッジ一覧 |
 
-###### 🟨 3. Graph構造探索・分析系
+##### 🟨 3. Graph構造探索・分析系
 
 | API名 | 説明 |
 | --- | --- |
@@ -115,7 +152,7 @@
 | `GET /graph/search?q=...` | ノード属性や関係性に基づく検索 |
 | `GET /graph/paths?from=A&to=B` | A→B間のパス探索（最短経路など） |
 
-###### 🟥 4. Graph更新・イベント通知系（Pub/Sub）
+##### 🟥 4. Graph更新・イベント通知系（Pub/Sub）
 
 | API名 / チャンネル | 説明 |
 | --- | --- |
@@ -125,7 +162,7 @@
 | `Event: add_node`, `add_edge`, `select_node` | イベントタイプ（type）によるルーティング |
 | `GET /events/history` | 過去のイベントログ（履歴管理がある場合） |
 
-###### 🟪 5. メタ・ユーティリティ系
+##### 🟪 5. メタ・ユーティリティ系
 
 | API名 | 説明 |
 | --- | --- |
@@ -134,7 +171,7 @@
 | `GET /graph/export` | Graph構造のエクスポート（JSON, DOTなど） |
 | `POST /graph/import` | Graph構造のインポート |
 
-#### Asynchronous Processing and Concurrent Threads
+### Asynchronous Processing and Concurrent Threads
 
 - To share gdoc Objects among Language Server and Object Server, we will implement them in the same process.
 
@@ -142,44 +179,44 @@
 
 - We will use asynchronous processing to handle multiple requests concurrently in each of the Language Server and Object Server.
 
-#### Read-Write Lock
+### Read-Write Lock
 
 - To avoid data corruption when multiple threads access gdoc Objects, we will implement a read-write lock mechanism.
   - Multiple threads can read gdoc Objects simultaneously.
   - Only one thread can write to gdoc Objects at a time, and no other threads can read or write during that time.
 
-#### Graph探索・理解のための代表的なUIパターン
+### Graph探索・理解のための代表的なUIパターン
 
-##### 🔹 1. **ノードリンク図（Force-directed Graph）**
+#### 🔹 1. **ノードリンク図（Force-directed Graph）**
 
 - ノード（点）とエッジ（線）を物理的にレイアウト
 - 力学モデルで自動配置（D3.js, Cytoscape.js  など）
 - **用途**：構造全体の俯瞰、関係性の把握
 
-##### 🔹 2. **ツリー構造ビュー（Tree View）**
+#### 🔹 2. **ツリー構造ビュー（Tree View）**
 
 - 階層的な依存関係や包含関係を表現
 - 折りたたみ可能なノードで探索性向上
 - **用途**：Block → Method → Signal のような階層モデル
 
-##### 🔹 3. **マトリクスビュー（Adjacency Matrix）**
+#### 🔹 3. **マトリクスビュー（Adjacency Matrix）**
 
 - ノード間の関係を行列形式で表示
 - 大規模Graphでも密度や関係性が把握しやすい
 - **用途**：トレースマトリクス、要件とテストの対応表
 
-##### 🔹 4. **フィルタ付きリストビュー + 詳細パネル**
+#### 🔹 4. **フィルタ付きリストビュー + 詳細パネル**
 
 - ノード一覧 + 検索・フィルタ → 選択 → 詳細表示
 - 属性ベースの探索に強い
 - **用途**：Requirement一覧 → 関連Block表示 → 編集
 
-##### 🔹 5. **ミニマップ + メインビュー**
+#### 🔹 5. **ミニマップ + メインビュー**
 
 - 全体構造をミニマップで表示し、メインビューで詳細操作
 - **用途**：大規模Graphのナビゲーション補助
 
-##### 🧰 UIに組み込まれる機能群（Graph操作支援）
+#### 🧰 UIに組み込まれる機能群（Graph操作支援）
 
 | 機能 | 説明 |
 | --- | --- |
@@ -191,13 +228,13 @@
 | 🎨 属性による色分け | ノードタイプやステータスで視覚的区別 |
 | 🧩 プラグイン式ビュー切替 | Graph / Tree / Matrix を切り替え可能に |
 
-#### Cursor position Tracking and Context Awareness
+### Cursor position Tracking and Context Awareness
 
 - To provide accurate Language Server features, we will track the cursor position and context in the document being edited.
 
 - And we will track the context objects related to the cursor position, such as the current block, method, signal, and their relationships.
 
-#### UDS: Unix Domain Socket
+### UDS: Unix Domain Socket
 
 - To enable efficient inter-process communication between gdoc Language Server and gdoc Object Server, we will use Unix Domain Sockets (UDS).
 
@@ -205,7 +242,7 @@
 > - LSPやVS Code拡張ではUDSがよく使われる
 > - 衝突の心配がなく、セキュリティ的にも安全
 
-##### UDSのOS対応状況
+#### UDSのOS対応状況
 
 | OS | 利用可否 | 備考 |
 | --- | --- | --- |
@@ -213,7 +250,7 @@
 | **macOS** | ✅ 利用可能 | Linuxとほぼ同様のAPIで動作。開発環境に適している |
 | **Windows** | ✅ 利用可能（制限あり） | Windows 10以降で `AF_UNIX` がサポートされている（Python 3.9+ など） |
 
-##### UDSのパス指定に関する基本ルール
+#### UDSのパス指定に関する基本ルール
 
 | 項目 | 説明 |
 | --- | --- |
@@ -223,7 +260,7 @@
 | ✅ ファイル拡張子 | `.sock`, `.ipc`, `.socket` などは慣習的に使われるが、**拡張子は任意**（なくてもOK） |
 | ❌ パス長制限 | Linuxでは**最大108バイト**（`sun_path` の制限） → 長すぎると `OSError: AF_UNIX path too long` になる可能性あり |
 
-##### UDSの一時ファイルの破棄タイミング
+#### UDSの一時ファイルの破棄タイミング
 
 | 状況 | ファイル削除されるか | 説明 |
 | --- | --- | --- |
