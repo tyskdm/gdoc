@@ -19,7 +19,7 @@ It has three main components:
 3. gdoc Async Database
    - A database-like class to manage gdoc Objects and their relationships.
 
-## Usage Patterns
+## Use Cases
 
 ### File editing
 
@@ -46,3 +46,43 @@ It has three main components:
 2. Language Server requests the Background Worker to update the workspace configuration
 3. Background Worker updates the workspace configuration and re-parses the documents if necessary
 
+## Role and Responsibilities
+
+### Language Server
+
+- Role:
+  - Provides LSP APIs
+  - Maintains workspace information
+  - Submits requirements to the Background Worker
+  - Gets information about gdoc Objects from the gdoc Async Database and sends appropriate responses to the client
+  - Receives notifications from the gdoc Async Database and sends appropriate responses to the client
+
+- Charactoristics:
+  - Receives notification of file changes, workspace configuration changes.
+    - It means that files list containd in the workspace will be maintained by the Language Server.
+
+- Responsibilities:
+  - Manage the workspace information, such as file list, workspace configuration, etc.
+  - Organize the requirements, notifications, and responses between the client, Background Worker, and gdoc Async Database.
+    - It's like a event and data dispatcher.
+
+### Background Worker
+
+- Role:
+  - Background Worker should perform tasks such as compiling and linking gdoc objects.
+  - Manages the server requirements in a queue and processes them simply one by one.
+  - Override the previous requirements if there are multiple requirements of the same type
+    - e.g., if there are multiple file editing events for the same file, only the latest one should be processed.
+
+- Charactoristics:
+  - Performs various tasks related to gdoc documents.
+  - Requirements from the Language Server are sent asynchronous depending on user actions.
+
+- Responsibilities:
+  - Manage the server requirements queue and async tasks corresponding to the requirements.
+  - Mutual exclusion / synchronization of the tasks so that they don't violates database consistency.
+    - Locking mechanism for the database is responsibility of Async Database, but task scheduling and synchronization is responsibility of the Background Worker.
+
+### gdoc Async Database
+
+- Role:
