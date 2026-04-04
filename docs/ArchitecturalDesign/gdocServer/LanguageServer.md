@@ -86,3 +86,29 @@ It has three main components:
 ### gdoc Async Database
 
 - Role:
+  - Concurrency control for accessing gdoc Objects to prevent race conditions.
+  - Provide APIs to manage gdoc Objects and their relationships.
+  - Provide APIs to notify about changes in gdoc Objects to the client.
+
+- Charactoristics:
+  - Concurrency control is for asyncio tasks in other components, not for multi-threading.
+  - Realized as a thin wrapper around in-memory data structures.
+
+- Responsibilities:
+  - Manage gdoc Objects and their relationships.
+  - Provide APIs to notify about changes using callback functions or event emitters.
+
+- Note:
+
+  ```mermaid
+  graph TD
+      subgraph Language Server
+          LS[Language Server]
+      end
+      subgraph Background Worker
+          BW[Background Worker]
+      end
+      subgraph gdoc Async Database  
+          DB[gdoc Async Database]
+      end
+  ```
