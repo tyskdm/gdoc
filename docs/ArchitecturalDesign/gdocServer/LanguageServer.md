@@ -98,17 +98,31 @@ It has three main components:
   - Manage gdoc Objects and their relationships.
   - Provide APIs to notify about changes using callback functions or event emitters.
 
-- Note:
+## Detailed Sequences
 
-  ```mermaid
-  graph TD
-      subgraph Language Server
-          LS[Language Server]
-      end
-      subgraph Background Worker
-          BW[Background Worker]
-      end
-      subgraph gdoc Async Database  
-          DB[gdoc Async Database]
-      end
-  ```
+1. Open workspace
+2. Open a file
+3. Edit a file
+4. Hover a symbol
+5. Go to definition
+6. Find references
+7. Edit workspace configuration file
+
+### Open workspace
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant IDE as Client IDE
+  participant LSP as Language Server
+  participant DB as gdoc Async Database
+  participant Worker as Background Worker
+
+  User->>IDE: Open workspace
+  IDE->>LSP: Notify workspace opened
+  Loop
+    LSP->>DB: ユーザー情報を照会
+    DB-->>LSP: 照会結果（一致）
+  end
+  LSP-->>User: ログイン成功メッセージを表示
+```
