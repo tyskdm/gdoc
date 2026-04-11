@@ -108,21 +108,34 @@ It has three main components:
 6. Find references
 7. Edit workspace configuration file
 
-### Open workspace
+### 1. Open workspace
 
 ```mermaid
 sequenceDiagram
-  participant User
   participant IDE as Client IDE
-  participant LSP as Language Server
+  participant LS as Language Server
   participant DB as gdoc Async Database
   participant Worker as Background Worker
 
-  User->>IDE: Open workspace
-  IDE->>LSP: Notify workspace opened
+  IDE->>LS: Notify workspace opened
   Loop
-    LSP->>DB: ユーザー情報を照会
-    DB-->>LSP: 照会結果（一致）
+    LS->>DB: ユーザー情報を照会
+    DB-->>LS: 照会結果（一致）
   end
-  LSP-->>User: ログイン成功メッセージを表示
+```
+
+### 2. Open a file
+
+```mermaid
+sequenceDiagram
+  participant IDE as Client IDE
+  participant LS as Language Server
+  participant DB as gdoc Async Database
+  participant Worker as Background Worker
+
+  IDE->>LS: Notify workspace opened
+  Loop
+    LS->>DB: ユーザー情報を照会
+    DB-->>LS: 照会結果（一致）
+  end
 ```
