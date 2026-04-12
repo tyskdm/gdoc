@@ -110,17 +110,37 @@ It has three main components:
 
 ### 1. Open workspace
 
+1. `interface InitializeParams`, the parameter of `initialize` request:
+   - Includes `workspaceFolders` and `rootUri` to notify the Language Server `rootUri` and `workspaceFolders` when the workspace is opened.
+   - `workspaceFolders` is a list of workspace folders (List of `WorkspaceFolder`), where each `WorkspaceFolder` has a `uri` and a `name`.
+   - and `rootUri` is the URI of the root workspace folder without the folder name.
+
+2. `workspace/didChangeWorkspaceFolders` notification:
+   - Sent when the workspace folders are changed (e.g., added, removed, or changed).
+
 ```mermaid
 sequenceDiagram
   participant IDE as Client IDE
   participant LS as Language Server
-  participant DB as gdoc Async Database
   participant Worker as Background Worker
+  participant DB as gdoc Async Database
 
-  IDE->>LS: Notify workspace opened
-  Loop
-    LS->>DB: ユーザー情報を照会
-    DB-->>LS: 照会結果（一致）
+  IDE->>LS: Workspace opened
+  Loop in workspaceFolders
+    LS->>Worker: Message Queue:<br>Add new workspace
+    Activate Worker
+    Note over Worker: Read Workspace<br>configuration file and<br>locate Package folders
+    Loop in Package folders
+      Worker->>DB: Add gdoc Package object<br>for the Package folder
+      Note over DB: Notify about changes<br>in gdoc Async Database
+      Note over Worker: Read and parse documents<br>in the Package folder
+      Loop in documents (TODO:should be done asynchronously)
+        Worker->>DB: Add gdoc Object for the document
+        Note over DB: Notify about changes<br>in gdoc Async Database
+      end
+    end
+    Worker->>LS: Notify about changes in gdoc Objects
+    deactivate Worker
   end
 ```
 
