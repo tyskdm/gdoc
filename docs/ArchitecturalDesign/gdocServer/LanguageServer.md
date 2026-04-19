@@ -110,6 +110,8 @@ It has three main components:
 
 ### 1. Open workspace
 
+#### Triggering events
+
 1. `interface InitializeParams`, the parameter of `initialize` request:
    - Includes `workspaceFolders` and `rootUri` to notify the Language Server `rootUri` and `workspaceFolders` when the workspace is opened.
    - `workspaceFolders` is a list of workspace folders (List of `WorkspaceFolder`), where each `WorkspaceFolder` has a `uri` and a `name`.
@@ -118,6 +120,8 @@ It has three main components:
 2. `workspace/didChangeWorkspaceFolders` notification:
    - Sent when the workspace folders are changed (e.g., added, removed, or changed).
 
+#### Sequence
+
 ```mermaid
 sequenceDiagram
   participant IDE as Client IDE
@@ -125,24 +129,36 @@ sequenceDiagram
   participant Worker as Background Worker
   participant DB as gdoc Async Database
 
-  IDE->>LS: Workspace opened
-  Loop in workspaceFolders
-    LS->>Worker: Message Queue:<br>Add new workspace
-    Activate Worker
-    Note over Worker: Read Workspace<br>configuration file and<br>locate Package folders
-    Loop in Package folders
-      Worker->>DB: Add gdoc Package object<br>for the Package folder
-      Note over DB: Notify about changes<br>in gdoc Async Database
-      Note over Worker: Read and parse documents<br>in the Package folder
-      Loop in documents (TODO:should be done asynchronously)
-        Worker->>DB: Add gdoc Object for the document
-        Note over DB: Notify about changes<br>in gdoc Async Database
+  IDE -) LS: Workspace added
+  Loop for workspaceFolder in workspaceFolders
+    Note over LS: Read Workspace<br>configuration file and<br>locate Package folders
+    Loop for packageFolder in workspaceFolder
+      LS ->> +DB: Add a new Package
+      DB -->> -LS: Package added
+      LS -) IDE: Register<br>DidChangeWatchedFiles
+      LS -) Worker: Request to build Package
+      Note over Worker: Read Package<br>configuration file
+      alt gdoc Package
+        activate Worker
+        Note over Worker: Start to setup<br>gdoc package
+        Loop for document in packageFolder
+          Worker ->> +DB: Add document<br>(not yet parsed)
+          DB -->> -Worker: Document added
+        end
+        Worker -) Worker: Request to<br>parse documents
+        deactivate Worker
+      else Doxygen Package
+        activate Worker
+        Note over Worker: Start to setup<br>Doxygen package
+        deactivate Worker
       end
     end
-    Worker->>LS: Notify about changes in gdoc Objects
-    deactivate Worker
   end
 ```
+
+#### Notes
+
+- Registering `DidChangeWatchedFiles` is necessary to receive notifications about file changes in the workspace, which is essential for keeping the gdoc Objects up-to-date. And it should be send before requesting to build the Package, because file changes can happen during the setup process.
 
 ### 2. Open a file
 
