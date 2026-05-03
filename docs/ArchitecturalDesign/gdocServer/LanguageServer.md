@@ -28,7 +28,7 @@ It has three main components:
 3. Background Worker parses the file and generates gdoc Objects
 4. Background Worker updates gdoc Objects in the gdoc Async Database
 5. Language Server receives notifications from the gdoc Async Database about changes in gdoc Objects
-6. Language Server sends semantic tokens, diagnostics, and error messeges
+6. Language Server sends semantic tokens, diagnostics, and error messages to the client
 
 ### Parsing all documents in the workspace
 
@@ -36,9 +36,9 @@ It has three main components:
 2. Language Server requests the Background Worker to open the workspace
 3. Background Worker opens the workspace and reads configurations (e.g., which documents to load, etc.)
 4. Background Worker parses all documents in the workspace
-5. Background Worker generates gdoc Objects and add them to the gdoc Async Database
+5. Background Worker generates gdoc Objects and adds them to the gdoc Async Database
 6. Language Server receives notifications from the gdoc Async Database about changes in gdoc Objects
-7. If there are any errors during parsing, Language Server sends diagnostics and error messeges to the client
+7. If there are any errors during parsing, Language Server sends diagnostics and error messages to the client
 
 ### Edit workspace configuration file
 
@@ -57,7 +57,7 @@ It has three main components:
   - Gets information about gdoc Objects from the gdoc Async Database and sends appropriate responses to the client
   - Receives notifications from the gdoc Async Database and sends appropriate responses to the client
 
-- Charactoristics:
+- Characteristics:
   - Receives notification of file changes, workspace configuration changes.
     - It means that files list containd in the workspace will be maintained by the Language Server.
 
@@ -69,28 +69,28 @@ It has three main components:
 ### Background Worker
 
 - Role:
-  - Background Worker should perform tasks such as compiling and linking gdoc objects.
-  - Manages the server requirements in a queue and processes them simply one by one.
-  - Override the previous requirements if there are multiple requirements of the same type
+  - Performs tasks such as compiling and linking gdoc objects.
+  - Manages the server requirements in a queue and processes them one by one.
+  - Overrides previous requirements if there are multiple requirements of the same type.
     - e.g., if there are multiple file editing events for the same file, only the latest one should be processed.
 
-- Charactoristics:
+- Characteristics:
   - Performs various tasks related to gdoc documents.
-  - Requirements from the Language Server are sent asynchronous depending on user actions.
+  - Requirements from the Language Server are sent asynchronously depending on user actions.
 
 - Responsibilities:
   - Manage the server requirements queue and async tasks corresponding to the requirements.
-  - Mutual exclusion / synchronization of the tasks so that they don't violates database consistency.
-    - Locking mechanism for the database is responsibility of Async Database, but task scheduling and synchronization is responsibility of the Background Worker.
+  - Mutual exclusion / synchronization of the tasks so that they don't violate database consistency.
+    - Locking mechanism for the database is the responsibility of the Async Database, but task scheduling and synchronization is the responsibility of the Background Worker.
 
 ### gdoc Async Database
 
 - Role:
   - Concurrency control for accessing gdoc Objects to prevent race conditions.
   - Provide APIs to manage gdoc Objects and their relationships.
-  - Provide APIs to notify about changes in gdoc Objects to the client.
+  - Provide APIs to subscribe to and notify about changes in gdoc Objects.
 
-- Charactoristics:
+- Characteristics:
   - Concurrency control is for asyncio tasks in other components, not for multi-threading.
   - Realized as a thin wrapper around in-memory data structures.
 
@@ -101,23 +101,24 @@ It has three main components:
 ## Detailed Sequences
 
 1. Open workspace
-2. Open a file
-3. Edit a file
-4. Hover a symbol
-5. Go to definition
-6. Find references
-7. Edit workspace configuration file
+2. Update Document
+3. Open Text
+4. Change Text
+5. Hover a symbol
+6. Go to definition
+7. Find references
+8. Edit workspace configuration file
 
 ### 1. Open workspace
 
 #### Triggering events
 
-1. `interface InitializeParams`, the parameter of `initialize` request:
+1. [`interface InitializeParams`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#initializeParams), the parameter of [`initialize`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#initialize) request:
    - Includes `workspaceFolders` and `rootUri` to notify the Language Server `rootUri` and `workspaceFolders` when the workspace is opened.
    - `workspaceFolders` is a list of workspace folders (List of `WorkspaceFolder`), where each `WorkspaceFolder` has a `uri` and a `name`.
    - and `rootUri` is the URI of the root workspace folder without the folder name.
 
-2. `workspace/didChangeWorkspaceFolders` notification:
+2. [`workspace/didChangeWorkspaceFolders`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_didChangeWorkspaceFolders) notification:
    - Sent when the workspace folders are changed (e.g., added, removed, or changed).
 
 #### Sequence
@@ -126,41 +127,100 @@ It has three main components:
 sequenceDiagram
   participant IDE as Client IDE
   participant LS as Language Server
-  participant Worker as Background Worker
+  participant Worker as Background Worker<br>(for gdoc)
   participant DB as gdoc Async Database
 
-  IDE -) LS: Workspace added
-  Loop for workspaceFolder in workspaceFolders
-    Note over LS: Read Workspace<br>configuration file and<br>locate Package folders
-    Loop for packageFolder in workspaceFolder
-      LS ->> +DB: Add a new Package
-      DB -->> -LS: Package added
-      LS -) IDE: Register<br>DidChangeWatchedFiles
-      LS -) Worker: Request to build Package
-      Note over Worker: Read Package<br>configuration file
-      alt gdoc Package
-        activate Worker
-        Note over Worker: Start to setup<br>gdoc package
-        Loop for document in packageFolder
-          Worker ->> +DB: Add document<br>(not yet parsed)
-          DB -->> -Worker: Document added
-        end
-        Worker -) Worker: Request to<br>parse documents
-        deactivate Worker
-      else Doxygen Package
-        activate Worker
-        Note over Worker: Start to setup<br>Doxygen package
-        deactivate Worker
+  IDE -) +LS: Workspace added
+    Loop for workspaceFolder in workspaceFolders
+      Note over LS: Read PROJECT<br>configuration file and<br>locate Package folders
+      Loop for packageFolder in workspaceFolder
+        LS ->> +Worker: Request to<br>Open Package
+          Note over Worker: Read PACKAGE<br>configuration file
+            Worker ->> +DB: Add a new Package<br>and Update the Package<br>information
+            DB -->> -Worker: Package information updated
+        Worker -->> -LS: Package information
+        LS -) +IDE: Register<br>DidChangeWatchedFiles
       end
     end
-  end
+  deactivate LS
+  %%
+  IDE -) +LS: Responce to register<br>DidChangeWatchedFiles
+    deactivate IDE
+    LS ->> +Worker: Request to<br>Build Package
+      Note over Worker: Start to build<br>gdoc package
+      Loop for document in packageFolder
+        Worker ->> Worker: Update Document (Created)
+      end
+    Worker -->> -LS: Package built
+  deactivate LS
 ```
 
 #### Notes
 
 - Registering `DidChangeWatchedFiles` is necessary to receive notifications about file changes in the workspace, which is essential for keeping the gdoc Objects up-to-date. And it should be send before requesting to build the Package, because file changes can happen during the setup process.
+  - However, as of LSP 3.17, there is no way for the client to notify the server that it has finished configuring `DidChangeWatchedFiles`. Therefore, the Worker starts building the package only after receiving a response to the registration request.
 
-### 2. Open a file
+### 2. Update Document
+
+<!-- markdownlint-disable-next-line MD024 -->
+#### Triggering events
+
+1. `Update Document` request from Background Worker itself:
+   - This case, it's an internal request from the Background Worker descrived above.
+2. [`workspace/didChangeWatchedFiles`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_didChangeWatchedFiles) notification:
+   - Sent when a file in the workspace is changed, created, or deleted.
+   - The notification includes a list of [`FileEvent`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileEvent), where each [`FileEvent`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileEvent) has a [`uri`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentUri) and a [`type`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileChangeType) (Created, Changed, or Deleted).
+
+<!-- markdownlint-disable-next-line MD024 -->
+#### Sequence
+
+```mermaid
+sequenceDiagram
+  participant IDE as Client IDE
+  participant LS as Language Server
+  participant Worker as Background Worker<br>(for gdoc)
+  participant DB as gdoc Async Database
+
+  %% Trigger
+  Note over IDE, DB: Trigger
+  alt from Background Worker
+    Worker ->> Worker: Update Document (Created)
+  else by DidChangeWatchedFiles
+    IDE ->> +LS: Notify file change<br>with DidChangeWatchedFiles
+      LS ->> +Worker: Update a File
+      alt Created
+        Worker ->> Worker: Update Document (Created)
+      else Changed
+        Worker ->> Worker: Update Document (Changed)
+      else Deleted
+        Worker ->> Worker: Update Document (Deleted)
+      end
+    Worker -->> -LS: Response
+    deactivate LS
+  end
+  %% Update Document
+  Note over IDE, DB: Update Document (Document URI, type)
+  activate Worker
+  alt Created
+    Worker ->> +DB: Add document<br>(not yet parsed)
+    DB -->> -Worker: Document added
+    Note over Worker: Create Task Queue<br>for the document and append<br>the task to parse the document
+  else Changed
+    Note over Worker: Append the task<br>to parse the document
+  else Deleted
+    Note over Worker: Cancel tasks<br>and delete the Queue
+    Worker ->> +DB: Delete document
+    DB -->> -Worker: Document deleted
+  end
+  deactivate Worker
+```
+<!-- markdownlint-disable-next-line MD024 -->
+#### Notes
+
+- `Task Queue`
+  - It's a queue of tasks for each document. It is used to manage the tasks for each document and to ensure that the tasks are executed in order. For example, if there are multiple file editing events for the same file, only the latest one should be processed. Therefore, when a new task is added to the queue, the previous tasks in the queue should be canceled.
+
+### 3. Open a file
 
 ```mermaid
 sequenceDiagram
