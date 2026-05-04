@@ -104,7 +104,7 @@ It has three main components:
 2. Update Document
 3. Open Text
 4. Change Text
-5. Hover a symbol
+5. Hover Request
 6. Go to definition
 7. Find references
 8. Edit workspace configuration file
@@ -220,20 +220,79 @@ sequenceDiagram
 - `Task Queue`
   - It's a queue of tasks for each document. It is used to manage the tasks for each document and to ensure that the tasks are executed in order. For example, if there are multiple file editing events for the same file, only the latest one should be processed. Therefore, when a new task is added to the queue, the previous tasks in the queue should be canceled.
 
-### 3. Open a file
+### 5. Hover Request
+
+<!-- markdownlint-disable-next-line MD024 -->
+#### Triggering events
+
+> The [`Hover Request`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_hover) is sent from the client to the server to request hover information at a given text document position.
+
+<!-- markdownlint-disable-next-line MD024 -->
+#### Sequence #1 : Data already exists
 
 ```mermaid
 sequenceDiagram
   participant IDE as Client IDE
   participant LS as Language Server
+  participant Worker as Background Worker<br>(for gdoc)
   participant DB as gdoc Async Database
-  participant Worker as Background Worker
 
-  IDE->>LS: Notify workspace opened
-  Loop
-    LS->>DB: ユーザー情報を照会
-    DB-->>LS: 照会結果（一致）
+  IDE -) +LS: Hover Request with<br>textDocument/hover
+    LS ->> +DB: Get data
+    DB -->> -LS: Hover Data
+  LS --) -IDE: Hover | null
+```
+
+<!-- markdownlint-disable-next-line MD024 -->
+#### Sequence #2 : Data does not exist yet
+
+```mermaid
+sequenceDiagram
+  participant IDE as Client IDE
+  participant LS as Language Server
+  participant Worker as Background Worker<br>(for gdoc)
+  participant DB as gdoc Async Database
+
+  IDE -) +LS: Hover Request with<br>textDocument/hover
+    LS ->> +DB: Get data
+    DB -->> -LS: Need to compile<br>Object URI (document path + Object id)
+    Note over LS: Create Task
+    Note over LS: Create a Request Form<br>to Compile Object (Object URI)<br>(includes LSP reqt id)
+    LS -) +Worker: Request Form
+  deactivate LS
+  %%
+  Note over Worker: Compile the Document<br>with the Sub-process<br>Blocking here
+  Worker ->> +DB: Add document
+  DB -->> -Worker: Document added
+  Worker --) -LS: Request Form (Done)
+  activate LS
+  LS ->> +DB: Get data
+  DB -->> -LS: Hover Data
+  Loop if Need to compile next Object
+    Note over LS: Create a Request Form<br>to Compile next Object
+    LS -) +Worker: Request Form
+    deactivate LS
+    Note over Worker: Compile the Document<br>with the Sub-process<br>Blocking here
+    Worker ->> +DB: Add document
+    DB -->> -Worker: Document added
+    Worker --) -LS: Request Form (Done)
+    activate LS
+    LS ->> +DB: Get data
+    DB -->> -LS: Hover Data
   end
+  Note over LS: Delete Task
+  LS --) IDE: Hover | null
+  deactivate LS
+```
+<!-- markdownlint-disable-next-line MD024 -->
+#### Sequence #3 : Unified
+
+```mermaid
+sequenceDiagram
+  participant IDE as Client IDE
+  participant LS as Language Server
+  participant Worker as Background Worker<br>(for gdoc)
+  participant DB as gdoc Async Database
 ```
 
 ## Task Prioritization
@@ -288,15 +347,18 @@ sequenceDiagram
   - If multiple requests require a single document, the document remains in state 1 until all requests are cancelled.
 
 - Memo:
-  - ひとつのリクエストは、複数のドキュメントを必要とすることがあるが、多くのリクエストでは参照先ドキュメントをコンパイル・リンクし終えないと次の参照先があるかどうか判断できない。リクエストが要求するドキュメントは、リクエスト処理中に順次明らかになることが多い。
-  - 例外として、あるオブジェクトへのすべての参照元をリクエストされた場合、２のすべてのコンパイル・リンクを終える必要がある。
-  - タスクスケジューリングは、クライアントごとに管理される。LSPクライアントは１つだが、オブジェクトデータベースクライアントが0個以上存在する可能性があるがめ、タスクスケジューリングは個別に管理される。
+  - A single request may require multiple referenced documents:
+    - In many cases, it is not possible to determine if there are subsequent referenced documents without compiling and linking the first referenced document.
+    - In other words, the referenced documents required by the request become sequentially apparent during request processing.
+  - As an exception, when all references to a certain object are requested, it is necessary to complete all compilations and links of 2.
+  - Task scheduling is managed per client.
+    - There is one LSP client, but there may be multiple object database clients.
 
 ## Task and Subtask
 
-- １つのリクエストには、必ず１つのタスクが対応する。タスクの中で必要となるコンパイル・リンクなどの処理は、サブタスクとして管理される。
-  - ひとつのタスクは、複数のサブタスクを持つことができる。
+- A single request always corresponds to a single task. Processing tasks such as compilation and linking required within a task are managed as subtasks.
+  - A single task can contain multiple subtasks.
 
-- タスクは、クライアントからの要求に対応するもので、LSPクライアントからの要求に対応するものと、オブジェクトデータベースクライアントからの要求に対応するものがある。
-  - このため、タスクはクライアント種別ごとに異なる管理が行われる部分と、すべてのクライアントに共通の管理が行われる部分がある。
-  - 共通部分は、優先度管理である。gdocサーバーは、この共通部分だけを実装した抽象クラスと、クライアント種別ごとに異なる管理が行われる部分を実装した具象クラスを提供する。
+- Tasks correspond to requests from clients, including both requests from the LSP client and requests from the Object Database client.
+  - Therefore, task management is divided into parts that differ by client type and parts that are common to all clients.
+  - The common part is priority management. The gdoc server provides an abstract class implementing only this common part and concrete classes implementing the parts that differ by client type.
