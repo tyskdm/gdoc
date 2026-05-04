@@ -235,3 +235,68 @@ sequenceDiagram
     DB-->>LS: 照会結果（一致）
   end
 ```
+
+## Task Prioritization
+
+### Priority
+
+1. LSP messages from the client IDE
+   - Messages from the client must be handled with the highest priority
+   - However, avoid implementing complex processing to keep execution time to a minimum
+2. Tasks to resolve LSP requests from the client IDE
+   - If responding to an LSP request requires more complex processing, these tasks should be executed after the initial handling of the LSP messages to ensure that the server remains responsive to the client.
+3. Tasks to update gdoc Objects in the Object Database
+   - These tasks can be executed with lower priority as they are not directly related to responding to the client IDE's requests.
+   - However, they should still be executed in a timely manner to ensure that the gdoc Objects are up-to-date for any subsequent LSP requests that may require information from the Object Database.
+   - The priority is as follows:
+     1. Compile and link documents referenced by open text files
+     2. Compile and link documents referenced by the unopened referenced documents mentioned above
+     3. Following the above, compile and link the referenced documents in the order of their reference levels from the open text
+     4. Documents that are neither open nor referenced are compiled and linked last.
+
+### Task Scheduling
+
+#### Overview
+
+- Tasks managed by the Background Worker are those of priority 2 and later in the list above.
+- The priority changes every time an LSP message is received (i.e., every time the user interacts with the client IDE). Priority adjustment is performed while processing item 1 above.
+- For example, a definition lookup task requested for hover display decreases in priority when the user performs actions such as editing a different file.
+
+#### Scheduling Method
+
+##### Dependency States
+
+1. Active client requests (not cancelled)
+   - Documents required by the requests increase in priority, regardless of whether they are open or not.
+
+2. Open text documents
+   - If a text document is closed, requests that assume the text document is open are cancelled (e.g., hover information for a closed file is no longer used).
+   - Documents referenced by an open text document increase in priority, regardless of whether they are open or not.
+
+3. Part of a package
+   - Documents included in a package have higher priority than those that are in the workspace but not part of any package.
+   - Changes to the package settings in the workspace (project) root configuration file can alter this state.
+     - Changes to configuration files are not affected by changes to open text documents and are only reflected upon saving.
+
+##### State-based Scheduling
+
+- Every document in the workspace has state variables corresponding to the conditions above.
+  - When a request is received from the client, the involved document enters state 1.
+  - When state 1 is cleared, the task is rescheduled based on the priority determined by state 2 or 3.
+
+- Note(1):
+  - If multiple requests require a single document, the document remains in state 1 until all requests are cancelled.
+
+- Memo:
+  - ひとつのリクエストは、複数のドキュメントを必要とすることがあるが、多くのリクエストでは参照先ドキュメントをコンパイル・リンクし終えないと次の参照先があるかどうか判断できない。リクエストが要求するドキュメントは、リクエスト処理中に順次明らかになることが多い。
+  - 例外として、あるオブジェクトへのすべての参照元をリクエストされた場合、２のすべてのコンパイル・リンクを終える必要がある。
+  - タスクスケジューリングは、クライアントごとに管理される。LSPクライアントは１つだが、オブジェクトデータベースクライアントが0個以上存在する可能性があるがめ、タスクスケジューリングは個別に管理される。
+
+## Task and Subtask
+
+- １つのリクエストには、必ず１つのタスクが対応する。タスクの中で必要となるコンパイル・リンクなどの処理は、サブタスクとして管理される。
+  - ひとつのタスクは、複数のサブタスクを持つことができる。
+
+- タスクは、クライアントからの要求に対応するもので、LSPクライアントからの要求に対応するものと、オブジェクトデータベースクライアントからの要求に対応するものがある。
+  - このため、タスクはクライアント種別ごとに異なる管理が行われる部分と、すべてのクライアントに共通の管理が行われる部分がある。
+  - 共通部分は、優先度管理である。gdocサーバーは、この共通部分だけを実装した抽象クラスと、クライアント種別ごとに異なる管理が行われる部分を実装した具象クラスを提供する。
