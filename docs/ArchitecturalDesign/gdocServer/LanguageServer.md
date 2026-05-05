@@ -276,7 +276,7 @@ sequenceDiagram
     DB -->> -LS: Hover Data or Need to compile
     alt if Need to compile Object
       Note over LS: Create Task
-      Loop if Need to compile next Object
+      Loop while Need to compile next Object
         Note over LS: Create a Request Form<br>to Compile next Object
         LS -) +Worker: Request Form
         deactivate LS
