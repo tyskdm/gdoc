@@ -103,7 +103,7 @@ It has three main components:
 1. Open workspace
 2. Update Document
 3. Open Text
-4. Change Text
+4. Edit Text
 5. Hover Request
 6. Go to definition
 7. Find references
@@ -220,6 +220,40 @@ sequenceDiagram
 - `Task Queue`
   - It's a queue of tasks for each document. It is used to manage the tasks for each document and to ensure that the tasks are executed in order. For example, if there are multiple file editing events for the same file, only the latest one should be processed. Therefore, when a new task is added to the queue, the previous tasks in the queue should be canceled.
 
+### 3. Open Text
+
+<!-- markdownlint-disable-next-line MD024 -->
+#### Triggering events
+
+
+
+<!-- markdownlint-disable-next-line MD024 -->
+#### Sequence
+
+```mermaid
+sequenceDiagram
+  participant IDE as Client IDE
+  participant LS as Language Server
+  participant Worker as Background Worker<br>(for gdoc)
+  participant DB as gdoc Async Database
+```
+
+### 4. Edit Text
+
+<!-- markdownlint-disable-next-line MD024 -->
+#### Triggering events
+
+<!-- markdownlint-disable-next-line MD024 -->
+#### Sequence
+
+```mermaid
+sequenceDiagram
+  participant IDE as Client IDE
+  participant LS as Language Server
+  participant Worker as Background Worker<br>(for gdoc)
+  participant DB as gdoc Async Database
+```
+
 ### 5. Hover Request
 
 <!-- markdownlint-disable-next-line MD024 -->
@@ -228,7 +262,7 @@ sequenceDiagram
 > The [`Hover Request`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_hover) is sent from the client to the server to request hover information at a given text document position.
 
 <!-- markdownlint-disable-next-line MD024 -->
-#### Sequence #1 : Data already exists
+#### Sequence
 
 ```mermaid
 sequenceDiagram
@@ -239,60 +273,25 @@ sequenceDiagram
 
   IDE -) +LS: Hover Request with<br>textDocument/hover
     LS ->> +DB: Get data
-    DB -->> -LS: Hover Data
-  LS --) -IDE: Hover | null
-```
-
-<!-- markdownlint-disable-next-line MD024 -->
-#### Sequence #2 : Data does not exist yet
-
-```mermaid
-sequenceDiagram
-  participant IDE as Client IDE
-  participant LS as Language Server
-  participant Worker as Background Worker<br>(for gdoc)
-  participant DB as gdoc Async Database
-
-  IDE -) +LS: Hover Request with<br>textDocument/hover
-    LS ->> +DB: Get data
-    DB -->> -LS: Need to compile<br>Object URI (document path + Object id)
-    Note over LS: Create Task
-    Note over LS: Create a Request Form<br>to Compile Object (Object URI)<br>(includes LSP reqt id)
-    LS -) +Worker: Request Form
-  deactivate LS
-  %%
-  Note over Worker: Compile the Document<br>with the Sub-process<br>Blocking here
-  Worker ->> +DB: Add document
-  DB -->> -Worker: Document added
-  Worker --) -LS: Request Form (Done)
-  activate LS
-  LS ->> +DB: Get data
-  DB -->> -LS: Hover Data
-  Loop if Need to compile next Object
-    Note over LS: Create a Request Form<br>to Compile next Object
-    LS -) +Worker: Request Form
-    deactivate LS
-    Note over Worker: Compile the Document<br>with the Sub-process<br>Blocking here
-    Worker ->> +DB: Add document
-    DB -->> -Worker: Document added
-    Worker --) -LS: Request Form (Done)
-    activate LS
-    LS ->> +DB: Get data
-    DB -->> -LS: Hover Data
-  end
-  Note over LS: Delete Task
+    DB -->> -LS: Hover Data or Need to compile
+    alt if Need to compile Object
+      Note over LS: Create Task
+      Loop if Need to compile next Object
+        Note over LS: Create a Request Form<br>to Compile next Object
+        LS -) +Worker: Request Form
+        deactivate LS
+        Note over Worker: Compile the Document<br>with the Sub-process<br>Blocking here
+        Worker ->> +DB: Add document
+        DB -->> -Worker: Document added
+        Worker --) -LS: Request Form (Done)
+        activate LS
+        LS ->> +DB: Get data
+        DB -->> -LS: Hover Data
+      end
+      Note over LS: Delete Task
+    end
   LS --) IDE: Hover | null
   deactivate LS
-```
-<!-- markdownlint-disable-next-line MD024 -->
-#### Sequence #3 : Unified
-
-```mermaid
-sequenceDiagram
-  participant IDE as Client IDE
-  participant LS as Language Server
-  participant Worker as Background Worker<br>(for gdoc)
-  participant DB as gdoc Async Database
 ```
 
 ## Task Prioritization
