@@ -134,7 +134,7 @@ sequenceDiagram
     Loop for workspaceFolder in workspaceFolders
       Note over LS: Read PROJECT<br>configuration file and<br>locate Package folders
       Loop for packageFolder in workspaceFolder
-        LS ->> +Worker: Request to<br>Open Package
+        LS ->> +Worker: Open Package
           Note over Worker: Read PACKAGE<br>configuration file
             Worker ->> +DB: Add a new Package<br>and Update the Package<br>information
             DB -->> -Worker: Package information updated
@@ -146,12 +146,13 @@ sequenceDiagram
   %%
   IDE -) +LS: Responce to register<br>DidChangeWatchedFiles
     deactivate IDE
-    LS ->> +Worker: Request to<br>Build Package
-      Note over Worker: Start to build<br>gdoc package
+    LS ->> +Worker: Build Package
+      Note over Worker: Create a Task<br>for Build Package
+      Note over Worker: Prepair to<br>Build Package
       Loop for document in packageFolder
         Worker ->> Worker: Update Document (Created)
       end
-    Worker -->> -LS: Package built
+     Worker -->> -LS: Task (Package)
   deactivate LS
 ```
 
@@ -222,10 +223,12 @@ sequenceDiagram
 
 ### 3. Open Text
 
+When a text document is opened, the language server parses it, reports problems such as diagnostics, and provides semantic token information.
+
 <!-- markdownlint-disable-next-line MD024 -->
 #### Triggering events
 
-
+- Client IDE sends [`textDocument/didOpen`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didOpen) notification to the Language Server.
 
 <!-- markdownlint-disable-next-line MD024 -->
 #### Sequence
@@ -236,6 +239,30 @@ sequenceDiagram
   participant LS as Language Server
   participant Worker as Background Worker<br>(for gdoc)
   participant DB as gdoc Async Database
+
+  IDE -) +LS: textDocument/didOpen
+    LS ->> +Worker: Update text
+      Note over Worker: Create a Task for<br>Open Text
+      Worker -) Worker: Start task
+    Worker -->> -LS: Task (Open Text)
+    Note over LS: Store Task
+    deactivate LS
+    %
+    Worker -) +Worker: task
+    Note over Worker: Compile the Document<br>with the Sub-process<br>Blocking here
+    Worker --) LS: Problems<br>(Diagnostic)
+      activate LS
+      LS --) IDE: Problems<br>(Diagnostic)
+      deactivate LS
+    alt Ok
+      Worker ->> +DB: Add document<br>(text and object)
+      Note right of DB: Store the text<br>with version
+      DB -->> -Worker: Document added
+    end
+    Worker --) -LS: Semantic Tokens
+      activate LS
+      LS --) IDE: Semantic Tokens
+      deactivate LS
 ```
 
 ### 4. Edit Text
@@ -243,6 +270,8 @@ sequenceDiagram
 <!-- markdownlint-disable-next-line MD024 -->
 #### Triggering events
 
+- Client IDE sends [`textDocument/didChange`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didChange) notification to the Language Server.
+
 <!-- markdownlint-disable-next-line MD024 -->
 #### Sequence
 
@@ -252,6 +281,29 @@ sequenceDiagram
   participant LS as Language Server
   participant Worker as Background Worker<br>(for gdoc)
   participant DB as gdoc Async Database
+
+  IDE -) +LS: textDocument/didChange
+    LS ->> +Worker: Update text
+      Worker -) Worker: task
+    Worker -->> -LS: Ok
+    Note over LS: Store Task
+    deactivate LS
+    %
+    Worker -) +Worker: task
+    Note over Worker: Compile the Document<br>with the Sub-process<br>Blocking here
+    Worker --) LS: Problems<br>(Diagnostic)
+      activate LS
+      LS --) IDE: Problems<br>(Diagnostic)
+      deactivate LS
+    alt Ok
+      Worker ->> +DB: Add document<br>(text and object)
+      Note right of DB: Store the text<br>with version
+      DB -->> -Worker: Document added
+    end
+    Worker --) -LS: Semantic Tokens
+      activate LS
+      LS --) IDE: Semantic Tokens
+      deactivate LS
 ```
 
 ### 5. Hover Request
@@ -280,14 +332,14 @@ sequenceDiagram
         Note over LS: Create a Request Form<br>to Compile next Object
         LS -) +Worker: Request Form
         deactivate LS
-        Note over Worker: Compile the Document<br>with the Sub-process<br>Blocking here
-        Worker ->> +DB: Add document
-        DB -->> -Worker: Document added
+          Note over Worker: Compile the Document<br>with the Sub-process<br>Blocking here
+          Worker ->> +DB: Add document
+          DB -->> -Worker: Document added
         Worker --) -LS: Request Form (Done)
         activate LS
-        LS ->> +DB: Get data
-        DB -->> -LS: Hover Data
-      end
+          LS ->> +DB: Get data
+          DB -->> -LS: Hover Data
+        end
       Note over LS: Delete Task
     end
   LS --) IDE: Hover | null
