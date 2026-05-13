@@ -4,7 +4,7 @@
 
 ### gdoc Server Overview
 
-![gdoc Server Architecture](./gobjDatabaseArchitecture.drawio.png)
+![gdoc Server Architecture](./gdocServerArchitecture.drawio.png)
 
 ### gdoc Language Server
 
