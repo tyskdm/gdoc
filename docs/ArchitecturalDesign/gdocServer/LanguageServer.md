@@ -127,18 +127,19 @@ It has three main components:
 sequenceDiagram
   participant IDE as Client IDE
   participant LS as Language Server
-  participant Worker as Background Worker<br>(for gdoc)
-  participant DB as gdoc Async Database
+  participant ODB as Object Database
+  participant OBJ as Object Store
+  participant BLD as Object Builder
 
   IDE -) +LS: Workspace added
     Loop for workspaceFolder in workspaceFolders
       Note over LS: Read PROJECT<br>configuration file and<br>locate Package folders
       Loop for packageFolder in workspaceFolder
-        LS ->> +Worker: Open Package
-          Note over Worker: Read PACKAGE<br>configuration file
-            Worker ->> +DB: Add a new Package<br>and Update the Package<br>information
-            DB -->> -Worker: Package information updated
-        Worker -->> -LS: Package information
+        LS ->> +ODB: Open Package
+          Note over ODB: Read PACKAGE<br>configuration file
+            ODB ->> +OBJ: Add a new Package<br>and Update the Package<br>information
+            OBJ -->> -ODB: Package information updated
+        ODB -->> -LS: Package information
         LS -) +IDE: Register<br>DidChangeWatchedFiles
       end
     end
@@ -146,13 +147,13 @@ sequenceDiagram
   %%
   IDE -) +LS: Responce to register<br>DidChangeWatchedFiles
     deactivate IDE
-    LS ->> +Worker: Build Package
-      Note over Worker: Create a Task<br>for Build Package
-      Note over Worker: Prepair to<br>Build Package
+    LS ->> +ODB: Build Package
+      Note over ODB: Create a Task<br>for Build Package
+      Note over ODB: Prepair to<br>Build Package
       Loop for document in packageFolder
-        Worker ->> Worker: Update Document (Created)
+        ODB ->> ODB: Update Document (Created)
       end
-     Worker -->> -LS: Task (Package)
+     ODB -->> -LS: Task (Package)
   deactivate LS
 ```
 
@@ -179,39 +180,40 @@ sequenceDiagram
 sequenceDiagram
   participant IDE as Client IDE
   participant LS as Language Server
-  participant Worker as Background Worker<br>(for gdoc)
-  participant DB as gdoc Async Database
+  participant ODB as Object Database
+  participant OBJ as Object Store
+  participant BLD as Object Builder
 
   %% Trigger
   Note over IDE, DB: Trigger
   alt from Background Worker
-    Worker ->> Worker: Update Document (Created)
+    ODB ->> ODB: Update Document (Created)
   else by DidChangeWatchedFiles
     IDE ->> +LS: Notify file change<br>with DidChangeWatchedFiles
-      LS ->> +Worker: Update a File
+      LS ->> +ODB: Update a File
       alt Created
-        Worker ->> Worker: Update Document (Created)
+        ODB ->> ODB: Update Document (Created)
       else Changed
-        Worker ->> Worker: Update Document (Changed)
+        ODB ->> ODB: Update Document (Changed)
       else Deleted
-        Worker ->> Worker: Update Document (Deleted)
+        ODB ->> ODB: Update Document (Deleted)
       end
-    Worker -->> -LS: Response
+    ODB -->> -LS: Response
     deactivate LS
   end
   %% Update Document
   Note over IDE, DB: Update Document (Document URI, type)
   activate Worker
   alt Created
-    Worker ->> +DB: Add document<br>(not yet parsed)
-    DB -->> -Worker: Document added
-    Note over Worker: Create Task Queue<br>for the document and append<br>the task to parse the document
+    ODB ->> +OBJ: Add document<br>(not yet parsed)
+    OBJ -->> -ODB: Document added
+    Note over ODB: Create Task Queue<br>for the document and append<br>the task to parse the document
   else Changed
-    Note over Worker: Append the task<br>to parse the document
+    Note over ODB: Append the task<br>to parse the document
   else Deleted
-    Note over Worker: Cancel tasks<br>and delete the Queue
-    Worker ->> +DB: Delete document
-    DB -->> -Worker: Document deleted
+    Note over ODB: Cancel tasks<br>and delete the Queue
+    ODB ->> +OBJ: Delete document
+    OBJ -->> -ODB: Document deleted
   end
   deactivate Worker
 ```
@@ -237,29 +239,30 @@ When a text document is opened, the language server parses it, reports problems 
 sequenceDiagram
   participant IDE as Client IDE
   participant LS as Language Server
-  participant Worker as Background Worker<br>(for gdoc)
-  participant DB as gdoc Async Database
+  participant ODB as Object Database
+  participant OBJ as Object Store
+  participant BLD as Object Builder
 
   IDE -) +LS: textDocument/didOpen
-    LS ->> +Worker: Update text
-      Note over Worker: Create a Task for<br>Open Text
-      Worker -) Worker: Start task
-    Worker -->> -LS: Task (Open Text)
+    LS ->> +ODB: Update text
+      Note over ODB: Create a Task for<br>Open Text
+      ODB -) ODB: Start task
+    ODB -->> -LS: Task (Open Text)
     Note over LS: Store Task
     deactivate LS
     %
-    Worker -) +Worker: task
-    Note over Worker: Compile the Document<br>with the Sub-process<br>Blocking here
-    Worker --) LS: Problems<br>(Diagnostic)
+    ODB -) +ODB: task
+    Note over ODB: Compile the Document<br>with the Sub-process<br>Blocking here
+    ODB --) LS: Problems<br>(Diagnostic)
       activate LS
       LS --) IDE: Problems<br>(Diagnostic)
       deactivate LS
     alt Ok
-      Worker ->> +DB: Add document<br>(text and object)
-      Note right of DB: Store the text<br>with version
-      DB -->> -Worker: Document added
+      ODB ->> +OBJ: Add document<br>(text and object)
+      Note right of OBJ: Store the text<br>with version
+      OBJ -->> -ODB: Document added
     end
-    Worker --) -LS: Semantic Tokens
+    ODB --) -LS: Semantic Tokens
       activate LS
       LS --) IDE: Semantic Tokens
       deactivate LS
@@ -279,28 +282,29 @@ sequenceDiagram
 sequenceDiagram
   participant IDE as Client IDE
   participant LS as Language Server
-  participant Worker as Background Worker<br>(for gdoc)
-  participant DB as gdoc Async Database
+  participant ODB as Object Database
+  participant OBJ as Object Store
+  participant BLD as Object Builder
 
   IDE -) +LS: textDocument/didChange
-    LS ->> +Worker: Update text
-      Worker -) Worker: task
-    Worker -->> -LS: Ok
+    LS ->> +ODB: Update text
+      ODB -) ODB: task
+    ODB -->> -LS: Ok
     Note over LS: Store Task
     deactivate LS
     %
-    Worker -) +Worker: task
-    Note over Worker: Compile the Document<br>with the Sub-process<br>Blocking here
-    Worker --) LS: Problems<br>(Diagnostic)
+    ODB -) +ODB: task
+    Note over ODB: Compile the Document<br>with the Sub-process<br>Blocking here
+    ODB --) LS: Problems<br>(Diagnostic)
       activate LS
       LS --) IDE: Problems<br>(Diagnostic)
       deactivate LS
     alt Ok
-      Worker ->> +DB: Add document<br>(text and object)
-      Note right of DB: Store the text<br>with version
-      DB -->> -Worker: Document added
+      ODB ->> +OBJ: Add document<br>(text and object)
+      Note right of OBJ: Store the text<br>with version
+      OBJ -->> -ODB: Document added
     end
-    Worker --) -LS: Semantic Tokens
+    ODB --) -LS: Semantic Tokens
       activate LS
       LS --) IDE: Semantic Tokens
       deactivate LS
@@ -320,25 +324,26 @@ sequenceDiagram
 sequenceDiagram
   participant IDE as Client IDE
   participant LS as Language Server
-  participant Worker as Background Worker<br>(for gdoc)
-  participant DB as gdoc Async Database
+  participant ODB as Object Database
+  participant OBJ as Object Store
+  participant BLD as Object Builder
 
   IDE -) +LS: Hover Request with<br>textDocument/hover
-    LS ->> +DB: Get data
-    DB -->> -LS: Hover Data or Need to compile
+    LS ->> +OBJ: Get data
+    OBJ -->> -LS: Hover Data or Need to compile
     alt if Need to compile Object
       Note over LS: Create Task
       Loop while Need to compile next Object
         Note over LS: Create a Request Form<br>to Compile next Object
-        LS -) +Worker: Request Form
+        LS -) +ODB: Request Form
         deactivate LS
-          Note over Worker: Compile the Document<br>with the Sub-process<br>Blocking here
-          Worker ->> +DB: Add document
-          DB -->> -Worker: Document added
-        Worker --) -LS: Request Form (Done)
+          Note over ODB: Compile the Document<br>with the Sub-process<br>Blocking here
+          ODB ->> +OBJ: Add document
+          OBJ -->> -ODB: Document added
+        ODB --) -LS: Request Form (Done)
         activate LS
-          LS ->> +DB: Get data
-          DB -->> -LS: Hover Data
+          LS ->> +OBJ: Get data
+          OBJ -->> -LS: Hover Data
         end
       Note over LS: Delete Task
     end
