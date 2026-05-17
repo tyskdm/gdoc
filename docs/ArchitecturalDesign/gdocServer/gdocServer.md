@@ -1,4 +1,13 @@
-# gdoc Language Server Architecture
+# gdoc Server Architecture
+
+gdoc Server provides two types of servers: a language server and an object server.
+
+1. Language Server
+   - Provides server features compatible with LSP 3.17.0
+2. Object Server
+   - Provides APIs for accessing and manipulating gdoc objects.
+
+In the current version of gdoc Server, changes to objects can only be made from the language server.
 
 ## Upstream Requirements
 
