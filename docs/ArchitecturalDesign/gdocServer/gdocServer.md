@@ -9,28 +9,39 @@ gdoc Server provides two types of servers: a language server and an object serve
 
 In the current version of gdoc Server, changes to objects can only be made from the language server.
 
-## Upstream Requirements
+## Overview
 
-### gdoc Server Overview
+### Structure
 
 ![gdoc Server Architecture](./gdocServerArchitecture.drawio.png)
 
-### gdoc Language Server
+#### Language Server
 
-It has three main components:
+It has four main components:
 
 1. gdoc Language Server
-   - Provides Language Server Protocol (LSP) APIs to support various language features for gdoc documents.
+   - Provides Language Server Protocol (LSP) APIs as a frontend component.
+   - This component will be implemented using Python's async.
 
-2. Background Worker
-   - A background worker that performs various tasks related to gdoc documents, such as parsing, analyzing, and generating gdoc Objects.
+2. gdoc Object Database
+   - Provides Object Database APIs that performs various task management related to gdoc documents, such as parsing, analyzing, and generating gdoc Objects.
 
-3. gdoc Async Database
+3. gdoc Object Datastore
    - A database-like class to manage gdoc Objects and their relationships.
 
-## Use Cases
+4. gdoc Object Builder(s)
+   - Provide APIs that parses target files, resolve links and building packages.
+   - Different Builders are provided as plugins for each type of target file.
 
-### File editing
+#### Object server
+
+It replaces the gdoc Language Server, which is the frontend of the language server, with a gdoc Object Server frontend component.
+
+The rest of the configuration is the same as the Language Server.
+
+### Behaivior
+
+#### File editing
 
 1. Language Server receives file editing events from the client
 2. Language Server requests the Background Worker to parse the edited file
@@ -39,7 +50,7 @@ It has three main components:
 5. Language Server receives notifications from the gdoc Async Database about changes in gdoc Objects
 6. Language Server sends semantic tokens, diagnostics, and error messages to the client
 
-### Parsing all documents in the workspace
+#### Parsing all documents in the workspace
 
 1. Language Server receives a request from the client to open a workspace
 2. Language Server requests the Background Worker to open the workspace
@@ -49,15 +60,15 @@ It has three main components:
 6. Language Server receives notifications from the gdoc Async Database about changes in gdoc Objects
 7. If there are any errors during parsing, Language Server sends diagnostics and error messages to the client
 
-### Edit workspace configuration file
+#### Edit workspace configuration file
 
 1. Language Server receives file editing events for the workspace configuration file from the client
 2. Language Server requests the Background Worker to update the workspace configuration
 3. Background Worker updates the workspace configuration and re-parses the documents if necessary
 
-## Role and Responsibilities
+## Structure: Role and Responsibilities
 
-### Language Server
+### 1. gdoc Language Server
 
 - Role:
   - Provides LSP APIs
@@ -75,7 +86,24 @@ It has three main components:
   - Organize the requirements, notifications, and responses between the client, Background Worker, and gdoc Async Database.
     - It's like a event and data dispatcher.
 
-### Background Worker
+### 2. gdoc Object Database
+
+### 3. gdoc Object Datastore
+
+- Role:
+  - Concurrency control for accessing gdoc Objects to prevent race conditions.
+  - Provide APIs to manage gdoc Objects and their relationships.
+  - Provide APIs to subscribe to and notify about changes in gdoc Objects.
+
+- Characteristics:
+  - Concurrency control is for asyncio tasks in other components, not for multi-threading.
+  - Realized as a thin wrapper around in-memory data structures.
+
+- Responsibilities:
+  - Manage gdoc Objects and their relationships.
+  - Provide APIs to notify about changes using callback functions or event emitters.
+
+### 4. gdoc Object Builder
 
 - Role:
   - Performs tasks such as compiling and linking gdoc objects.
@@ -92,22 +120,7 @@ It has three main components:
   - Mutual exclusion / synchronization of the tasks so that they don't violate database consistency.
     - Locking mechanism for the database is the responsibility of the Async Database, but task scheduling and synchronization is the responsibility of the Background Worker.
 
-### gdoc Async Database
-
-- Role:
-  - Concurrency control for accessing gdoc Objects to prevent race conditions.
-  - Provide APIs to manage gdoc Objects and their relationships.
-  - Provide APIs to subscribe to and notify about changes in gdoc Objects.
-
-- Characteristics:
-  - Concurrency control is for asyncio tasks in other components, not for multi-threading.
-  - Realized as a thin wrapper around in-memory data structures.
-
-- Responsibilities:
-  - Manage gdoc Objects and their relationships.
-  - Provide APIs to notify about changes using callback functions or event emitters.
-
-## Detailed Sequences
+## Behaviour: LSP Detailed Sequences
 
 1. Open workspace
 2. Update Document
@@ -360,7 +373,7 @@ sequenceDiagram
   deactivate LS
 ```
 
-## Task Prioritization
+## Task Management
 
 ### Priority
 
@@ -419,7 +432,7 @@ sequenceDiagram
   - Task scheduling is managed per client.
     - There is one LSP client, but there may be multiple object database clients.
 
-## Task and Subtask
+### Task and Subtask
 
 - A single request always corresponds to a single task. Processing tasks such as compilation and linking required within a task are managed as subtasks.
   - A single task can contain multiple subtasks.
