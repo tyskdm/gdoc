@@ -107,6 +107,7 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
   - Acts as the central orchestrator for document analysis workflows (Parse -> Link -> Analyze).
   - Provides a stable interface for **Frontends** to submit **Requests** and monitor their progress.
   - Manages the decomposition of **Requests** into protocol-agnostic **Tasks** and atomic **Jobs**.
+  - Saved and managed the generated object data in the Object Datastore.
 
 - Characteristics:
   - **Threaded Execution**: Operates in a dedicated background worker thread to ensure that computationally intensive analysis does not block the Frontend's high-responsiveness I/O loop.
@@ -122,34 +123,38 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
 ### 3. gdoc Object Datastore
 
 - Role:
-  - Concurrency control for accessing gdoc Objects to prevent race conditions.
-  - Provide APIs to manage gdoc Objects and their relationships.
-  - Provide APIs to subscribe to and notify about changes in gdoc Objects.
+  - Acts as the internal storage engine for the **Object Database**, managing the state of **Packages** and **Documents**.
+  - Serves as the primary repository for generated object data and their cross-document relationships within a **Project**.
 
 - Characteristics:
-  - Concurrency control is for asyncio tasks in other components, not for multi-threading.
-  - Realized as a thin wrapper around in-memory data structures.
+  - **Synchronous Implementation**: Composed entirely of synchronous functions to ensure predictable, low-latency data operations.
+  - **Encapsulated Component**: Completely hidden from **Frontends** and external components; it is accessible only via the **Object Database**.
+  - **No Internal Concurrency Control**: Does not implement its own locking or thread-safety mechanisms. Exclusive access and synchronization are managed externally by the **Object Database**.
+  - **In-Memory Storage**: Realized as a collection of optimized in-memory data structures.
 
 - Responsibilities:
-  - Manage gdoc Objects and their relationships.
-  - Provide APIs to notify about changes using callback functions or event emitters.
+  - **Data Persistence**: Stores and manages the lifecycle of gdoc objects and metadata produced by **Jobs**.
+  - **Relationship Mapping**: Maintains the physical integrity of links and dependencies between objects.
+  - **State Retrieval**: Provides fast lookup capabilities for the **Object Database** to resolve symbols and project structures.
 
 ### 4. gdoc Object Builder
 
 - Role:
-  - Performs tasks such as compiling and linking gdoc objects.
-  - Manages the server requirements in a queue and processes them one by one.
-  - Overrides previous requirements if there are multiple requirements of the same type.
-    - e.g., if there are multiple file editing events for the same file, only the latest one should be processed.
+  - Acts as the execution engine for atomic **Jobs** (Parse, Link, Compile), managing their lifecycle and execution state.
+  - Coordinates Job execution when requested by multiple **Tasks** (e.g., from both the Language Server and Object Server).
+  - Provides domain-specific logic for different package types and document formats as a plugin.
 
 - Characteristics:
-  - Performs various tasks related to gdoc documents.
-  - Requirements from the Language Server are sent asynchronously depending on user actions.
+  - **Job Deduplication & Multi-tasking**: If multiple Tasks request the same Job (e.g., parsing the same file), the Builder manages it as a single unit of work shared by those Tasks.
+  - **Priority Inheritance**: A Job dynamically inherits the highest priority among all the Tasks currently requesting it.
+  - **Reference-based Cancellation**: A Job remains active as long as at least one requesting Task is still alive. It is only canceled when all associated Tasks have been canceled or removed.
+  - **Plugin-Based Architecture**: Different builders are implemented for specific content types (e.g., `gdoc`, `doxml`).
 
 - Responsibilities:
-  - Manage the server requirements queue and async tasks corresponding to the requirements.
-  - Mutual exclusion / synchronization of the tasks so that they don't violate database consistency.
-    - Locking mechanism for the database is the responsibility of the Async Database, but task scheduling and synchronization is the responsibility of gdoc Object Database.
+  - **Execution Management**: Maintains a registry of active Jobs, tracking which Tasks are waiting for which results.
+  - **Content Parsing & Transformation**: Converts raw source content into structured **gdoc Objects** and generates metadata (Semantic Tokens, Symbols).
+  - **Diagnostic Generation**: Identifies syntax and semantic errors during the build process to be reported as LSP diagnostics.
+  - **Resource Optimization**: Prevents redundant processing by identifying overlapping Job requirements across different Frontends.
 
 ## Behaviour: LSP Detailed Sequences
 
