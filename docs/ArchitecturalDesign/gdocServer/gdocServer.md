@@ -31,7 +31,7 @@ It has four main components:
 
 4. gdoc Object Builder(s)
    - Provide APIs that parses target files, resolve links and building packages.
-   - Different Builders are provided as plugins for each type of target file.
+   - Different Builders are provided as plugins for each type of target package.
 
 #### Object server
 
@@ -41,52 +41,83 @@ The rest of the configuration is the same as the Language Server.
 
 ### Behaivior
 
-#### File editing
+When the language‑server client sends a text‑edit notification, the gdoc server behaves as follows.
 
-1. Language Server receives file editing events from the client
-2. Language Server requests the Background Worker to parse the edited file
-3. Background Worker parses the file and generates gdoc Objects
-4. Background Worker updates gdoc Objects in the gdoc Async Database
-5. Language Server receives notifications from the gdoc Async Database about changes in gdoc Objects
-6. Language Server sends semantic tokens, diagnostics, and error messages to the client
+1. gdoc Language Server receives text editing events from the client.
+2. gdoc Language Server requests gdoc Object Database to parse the edited text.
+3. gdoc Object Database create a plan and return the task ticket to Language Server.
+4. gdoc Object Database isuse a job ticket to parses the text for gdoc Object Builder.
+5. gdoc Object Builder parses the text and return to gdoc Object Database.
+6. gdoc Object Database updates gdoc Objects in gdoc Object Datastore.
+7. gdoc Language Server receives notifications from the gdoc Object Database about changes in gdoc Objects
+8. gdoc Language Server gets semantic tokens, diagnostics, and error messages from gdoc Object Database and sends them to the client.
 
-#### Parsing all documents in the workspace
+## Key Abstractions
 
-1. Language Server receives a request from the client to open a workspace
-2. Language Server requests the Background Worker to open the workspace
-3. Background Worker opens the workspace and reads configurations (e.g., which documents to load, etc.)
-4. Background Worker parses all documents in the workspace
-5. Background Worker generates gdoc Objects and adds them to the gdoc Async Database
-6. Language Server receives notifications from the gdoc Async Database about changes in gdoc Objects
-7. If there are any errors during parsing, Language Server sends diagnostics and error messages to the client
+### Logical Hierarchy: Workspace, Project, and Package
 
-#### Edit workspace configuration file
+The gdoc server organizes resources into a hierarchical structure to manage scopes and dependencies effectively:
 
-1. Language Server receives file editing events for the workspace configuration file from the client
-2. Language Server requests the Background Worker to update the workspace configuration
-3. Background Worker updates the workspace configuration and re-parses the documents if necessary
+- **Project**: Represents the root organizational unit, mapping 1:1 to a VSCode **Workspace**. It serves as the top-level container for configuration and resource management.
+- **Package**: The fundamental unit of content and distribution. A Project can contain multiple internal packages (e.g., a `gdoc` documentation package and a `doxml` source code package).
+- **External References**: Projects can import and reference external packages, allowing for cross-project linking and resource sharing.
+
+### Execution Model: Request, Task, and Job
+
+To ensure high responsiveness and efficient resource utilization, gdoc utilizes a tiered execution abstraction:
+
+- **Request**: An external interaction initiated by a client (e.g., an LSP command or an Object API call). Frontends are responsible for translating these protocol-specific messages into internal representations.
+- **Task**: The primary unit of internal orchestration. Tasks are protocol-agnostic and represent a logical operation (e.g., "Analyze Document"). The Object Database manages the lifecycle, priority, and cancellation of Tasks.
+- **Job**: The atomic unit of execution. A Task is decomposed into one or more Jobs (e.g., *Parse*, *Link*, *Compile*). Jobs are dispatched to Object Builders and executed based on available system resources and dependency constraints.
 
 ## Structure: Role and Responsibilities
+
+<!-- markdownlint-disable-next-line MD024 -->
+### Overview
+
+![gdoc Server Architecture](./gdocServerInternalBlocks.drawio.png)
 
 ### 1. gdoc Language Server
 
 - Role:
-  - Provides LSP APIs
-  - Maintains workspace information
-  - Submits requirements to the Background Worker
-  - Gets information about gdoc Objects from the gdoc Async Database and sends appropriate responses to the client
-  - Receives notifications from the gdoc Async Database and sends appropriate responses to the client
+  - Acts as the LSP-compliant **Frontend**, providing the primary interface for IDE clients.
+  - Translates protocol-specific messages (LSP) into internal **Requests** for orchestration by the gdoc Object Database.
+  - Manages the lifecycle of the LSP session (Initialize, Shutdown, etc.).
 
 - Characteristics:
-  - Receives notification of file changes, workspace configuration changes.
-    - It means that files list containd in the workspace will be maintained by the Language Server.
+  - **High Responsiveness**: Leverages Python's `asyncio` to handle concurrent client I/O without blocking internal processing.
+  - **Stateful Protocol Handler**: Maintains the mapping between client-side URIs and internal document/package identifiers.
+  - **Event-Driven**: Reacts to file system changes and workspace configuration updates to maintain **Project** integrity.
 
 - Responsibilities:
-  - Manage the workspace information, such as file list, workspace configuration, etc.
-  - Organize the requirements, notifications, and responses between the client, Background Worker, and gdoc Async Database.
-    - It's like a event and data dispatcher.
+  - **Project & Package Scoping**:
+    - Monitors the workspace root to define the **Project** scope using configuration files (e.g., `gdoc.project.json`).
+    - Identifies and tracks internal **Packages** and their dependencies within the Project.
+  - **Request Translation**:
+    - Converts LSP-specific calls (e.g., `textDocument/hover`) into unified internal **Requests**.
+    - Initiates corresponding **Tasks** in the Object Database to trigger necessary analysis or data retrieval.
+  - **Asynchronous Feedback**:
+    - Dispatches diagnostics, semantic tokens, and error messages generated during **Job** execution back to the client as LSP notifications.
+  - **Document Synchronization**:
+    - Synchronizes IDE editor buffers via `didOpen`, `didChange`, and `didClose`, triggering background **Tasks** to ensure the Project state remains consistent with user edits.
 
 ### 2. gdoc Object Database
+
+- Role:
+  - Acts as the central orchestrator for document analysis workflows (Parse -> Link -> Analyze).
+  - Provides a stable interface for **Frontends** to submit **Requests** and monitor their progress.
+  - Manages the decomposition of **Requests** into protocol-agnostic **Tasks** and atomic **Jobs**.
+
+- Characteristics:
+  - **Threaded Execution**: Operates in a dedicated background worker thread to ensure that computationally intensive analysis does not block the Frontend's high-responsiveness I/O loop.
+  - **Internal Async Orchestration**: Uses an internal `asyncio` event loop within its worker thread to manage concurrent **Tasks** and **Jobs** efficiently.
+  - **Plugin Host**: Provides the execution environment and lifecycle management for **gdoc Object Builders**, which are integrated as plugins.
+  - **Synchronous API for Frontends**: Exposes thread-safe synchronous methods to Frontends, abstracting the internal asynchronous and multi-threaded complexity.
+
+- Responsibilities:
+  - **Task Scheduling & Prioritization**: Dynamically manages the execution order of **Tasks** based on user focus (e.g., open documents) and dependency requirements.
+  - **Cancellation**: Aborts obsolete **Tasks** and their associated **Jobs** when newer document versions or conflicting **Requests** arrive.
+  - **Dependency Graph Management**: Tracks relationships between documents within **Packages** to identify affected scopes when a dependency changes, ensuring the **Project** state remains consistent.
 
 ### 3. gdoc Object Datastore
 
@@ -118,7 +149,7 @@ The rest of the configuration is the same as the Language Server.
 - Responsibilities:
   - Manage the server requirements queue and async tasks corresponding to the requirements.
   - Mutual exclusion / synchronization of the tasks so that they don't violate database consistency.
-    - Locking mechanism for the database is the responsibility of the Async Database, but task scheduling and synchronization is the responsibility of the Background Worker.
+    - Locking mechanism for the database is the responsibility of the Async Database, but task scheduling and synchronization is the responsibility of gdoc Object Database.
 
 ## Behaviour: LSP Detailed Sequences
 
@@ -190,7 +221,7 @@ sequenceDiagram
 #### Triggering events
 
 1. `Update Document` request from Background Worker itself:
-   - This case, it's an internal request from the Background Worker descrived above.
+   - This case, it's an internal request from gdoc Object Database descrived above.
 2. [`workspace/didChangeWatchedFiles`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_didChangeWatchedFiles) notification:
    - Sent when a file in the workspace is changed, created, or deleted.
    - The notification includes a list of [`FileEvent`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileEvent), where each [`FileEvent`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileEvent) has a [`uri`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentUri) and a [`type`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileChangeType) (Created, Changed, or Deleted).
@@ -373,9 +404,13 @@ sequenceDiagram
   deactivate LS
 ```
 
-## Task Management
+## Detailed Design Guidelines
 
-### Priority
+### Workspace, Project And Package
+
+### Task Management
+
+#### Priority
 
 1. LSP messages from the client IDE
    - Messages from the client must be handled with the highest priority
@@ -391,17 +426,17 @@ sequenceDiagram
      3. Following the above, compile and link the referenced documents in the order of their reference levels from the open text
      4. Documents that are neither open nor referenced are compiled and linked last.
 
-### Task Scheduling
+#### Task Scheduling
 
-#### Overview
+##### Overview
 
-- Tasks managed by the Background Worker are those of priority 2 and later in the list above.
+- Tasks managed by gdoc Object Database are those of priority 2 and later in the list above.
 - The priority changes every time an LSP message is received (i.e., every time the user interacts with the client IDE). Priority adjustment is performed while processing item 1 above.
 - For example, a definition lookup task requested for hover display decreases in priority when the user performs actions such as editing a different file.
 
-#### Scheduling Method
+##### Scheduling Method
 
-##### Dependency States
+###### Dependency States
 
 1. Active client requests (not cancelled)
    - Documents required by the requests increase in priority, regardless of whether they are open or not.
@@ -415,7 +450,7 @@ sequenceDiagram
    - Changes to the package settings in the workspace (project) root configuration file can alter this state.
      - Changes to configuration files are not affected by changes to open text documents and are only reflected upon saving.
 
-##### State-based Scheduling
+###### State-based Scheduling
 
 - Every document in the workspace has state variables corresponding to the conditions above.
   - When a request is received from the client, the involved document enters state 1.
@@ -432,7 +467,7 @@ sequenceDiagram
   - Task scheduling is managed per client.
     - There is one LSP client, but there may be multiple object database clients.
 
-### Task and Subtask
+#### Task and Subtask
 
 - A single request always corresponds to a single task. Processing tasks such as compilation and linking required within a task are managed as subtasks.
   - A single task can contain multiple subtasks.
