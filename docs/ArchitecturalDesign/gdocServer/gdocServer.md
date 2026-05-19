@@ -72,7 +72,6 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
 
 ## Structure: Role and Responsibilities
 
-<!-- markdownlint-disable-next-line MD024 -->
 ### Overview
 
 ![gdoc Server Architecture](./gdocServerInternalBlocks.drawio.png)
@@ -255,7 +254,6 @@ sequenceDiagram
 
 Modifying the workspace configuration file (e.g., `gdoc.project.json`) allows for dynamic updates to the project scope, package definitions, and build settings without requiring a server restart.
 
-<!-- markdownlint-disable-next-line MD024 -->
 #### Triggering events
 
 1. [`textDocument/didSave`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didSave) notification:
@@ -263,7 +261,6 @@ Modifying the workspace configuration file (e.g., `gdoc.project.json`) allows fo
 2. [`workspace/didChangeWatchedFiles`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_didChangeWatchedFiles) notification:
    - Triggered when the configuration file is modified externally (e.g., via a version control system or manual file move).
 
-<!-- markdownlint-disable-next-line MD024 -->
 #### Sequence
 
 - [ ] ToDo: check this sequence
@@ -295,7 +292,6 @@ sequenceDiagram
   Note over ODB: Background: Trigger Build Tasks<br/>for affected scopes
 ```
 
-<!-- markdownlint-disable-next-line MD024 -->
 #### Notes
 
 - **Incremental Updates**: The Object Database compares the new configuration with the current state to determine if a full re-scan is necessary or if only specific packages need to be updated.
@@ -353,12 +349,10 @@ sequenceDiagram
 
 When a text document is opened, the language server parses it, reports problems such as diagnostics, and provides semantic token information.
 
-<!-- markdownlint-disable-next-line MD024 -->
 #### Triggering events
 
 - Client IDE sends [`textDocument/didOpen`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didOpen) notification to the Language Server.
 
-<!-- markdownlint-disable-next-line MD024 -->
 #### Sequence
 
 ```mermaid
@@ -396,12 +390,10 @@ sequenceDiagram
 
 ### 4. Edit Text
 
-<!-- markdownlint-disable-next-line MD024 -->
 #### Triggering events
 
 - Client IDE sends [`textDocument/didChange`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didChange) notification to the Language Server.
 
-<!-- markdownlint-disable-next-line MD024 -->
 #### Sequence
 
 ```mermaid
@@ -438,7 +430,6 @@ sequenceDiagram
 
 ### 6. Update Document
 
-<!-- markdownlint-disable-next-line MD024 -->
 #### Triggering events
 
 1. `Update Document` request from Background Worker itself:
@@ -447,7 +438,6 @@ sequenceDiagram
    - Sent when a file in the workspace is changed, created, or deleted.
    - The notification includes a list of [`FileEvent`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileEvent), where each [`FileEvent`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileEvent) has a [`uri`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentUri) and a [`type`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileChangeType) (Created, Changed, or Deleted).
 
-<!-- markdownlint-disable-next-line MD024 -->
 #### Sequence
 
 ```mermaid
@@ -491,7 +481,7 @@ sequenceDiagram
   end
   deactivate Worker
 ```
-<!-- markdownlint-disable-next-line MD024 -->
+
 #### Notes
 
 - `Task Queue`
@@ -499,12 +489,10 @@ sequenceDiagram
 
 ### 8. Hover Request
 
-<!-- markdownlint-disable-next-line MD024 -->
 #### Triggering events
 
 > The [`Hover Request`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_hover) is sent from the client to the server to request hover information at a given text document position.
 
-<!-- markdownlint-disable-next-line MD024 -->
 #### Sequence
 
 ```mermaid
