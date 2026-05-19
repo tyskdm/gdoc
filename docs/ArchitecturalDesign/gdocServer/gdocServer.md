@@ -158,26 +158,54 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
 
 ## Behaviour: LSP Detailed Sequences
 
-1. Open workspace
-2. Update Document
-3. Open Text
-4. Edit Text
-5. Hover Request
-6. Go to definition
-7. Find references
-8. Edit workspace configuration file
+### Scenario Categories
+
+#### Lifecycle Management
+
+- Open Workspace
+- Edit Workspace Configuration File
+
+#### Document Synchronization & Updates
+
+- Open Text
+- Edit Text
+- Close Text
+- Update Document
+- Bulk File Changes (e.g., Git branch switch)
+
+#### Information Retrieval (Read-only)
+
+- Hover Request
+- Go to Definition
+- Find References
+- Document / Workspace Symbols
+
+#### Dynamic Assistance
+
+- Code Completion
+
+#### Refactoring
+
+- Rename (textDocument/rename)
 
 ### 1. Open workspace
 
 #### Triggering events
 
-1. [`interface InitializeParams`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#initializeParams), the parameter of [`initialize`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#initialize) request:
-   - Includes `workspaceFolders` and `rootUri` to notify the Language Server `rootUri` and `workspaceFolders` when the workspace is opened.
-   - `workspaceFolders` is a list of workspace folders (List of `WorkspaceFolder`), where each `WorkspaceFolder` has a `uri` and a `name`.
-   - and `rootUri` is the URI of the root workspace folder without the folder name.
+1. [`initialize`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#initialize) request:
+   - This is the first request sent from the client to the server.
+   - The [`InitializeParams`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#initializeParams) contains:
+     - `workspaceFolders`: A list of workspace folders currently open in the IDE. This is the primary source for defining gdoc **Projects**.
+     - `rootUri` (Deprecated): The URI of the root workspace folder. Used as a fallback if `workspaceFolders` is not provided.
+   - The server uses these URIs to locate `gdoc.project.json` and identify the **Project** scope.
 
-2. [`workspace/didChangeWorkspaceFolders`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_didChangeWorkspaceFolders) notification:
-   - Sent when the workspace folders are changed (e.g., added, removed, or changed).
+2. [`initialized`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#initialized) notification:
+   - Sent by the client after receiving the `initialize` response.
+   - This signal indicates that the client is ready to receive requests and notifications (e.g., capability registration or diagnostics) from the server.
+
+3. [`workspace/didChangeWorkspaceFolders`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_didChangeWorkspaceFolders) notification:
+   - Sent when the user adds or removes folders from the workspace dynamically.
+   - The server must update its internal **Project** structure and add/remove **Packages** accordingly.
 
 #### Sequence
 
@@ -186,32 +214,35 @@ sequenceDiagram
   participant IDE as Client IDE
   participant LS as Language Server
   participant ODB as Object Database
-  participant OBJ as Object Store
+  participant OBJ as Object Datastore
   participant BLD as Object Builder
 
-  IDE -) +LS: Workspace added
-    Loop for workspaceFolder in workspaceFolders
-      Note over LS: Read PROJECT<br>configuration file and<br>locate Package folders
-      Loop for packageFolder in workspaceFolder
-        LS ->> +ODB: Open Package
-          Note over ODB: Read PACKAGE<br>configuration file
-            ODB ->> +OBJ: Add a new Package<br>and Update the Package<br>information
-            OBJ -->> -ODB: Package information updated
-        ODB -->> -LS: Package information
-        LS -) +IDE: Register<br>DidChangeWatchedFiles
+  IDE -) +LS: initialize /<br>didChangeWorkspaceFolders
+    Loop for each workspaceFolder
+      Note over LS: Frontend: Read PROJECT config<br/>and locate Package folders
+      Loop for each packageFolder
+        LS ->> +ODB: Open Package (Request)
+          Note over ODB: Create Task: Initialize Package
+          ODB ->> +OBJ: Register Package info
+          OBJ -->> -ODB: OK
+          ODB -->> -LS: Package Metadata
+        LS -) +IDE: client/registerCapability<br>(didChangeWatchedFiles)
       end
     end
   deactivate LS
-  %%
-  IDE -) +LS: Responce to register<br>DidChangeWatchedFiles
-    deactivate IDE
-    LS ->> +ODB: Build Package
-      Note over ODB: Create a Task<br>for Build Package
-      Note over ODB: Prepair to<br>Build Package
-      Loop for document in packageFolder
-        ODB ->> ODB: Update Document (Created)
+
+  IDE -) +LS: Registration Response
+    LS ->> +ODB: Build Package (Request)
+      Note over ODB: Create Task: Build Package
+      ODB ->> +OBJ: Initialize Document entries<br>(State: Created)
+      OBJ -->> -ODB: OK
+      Loop for each Document
+        ODB ->> +BLD: Dispatch Job: Parse/Link
+        BLD -->> -ODB: gdoc Objects & Diagnostics
+        ODB ->> +OBJ: Store Data & Relationships
+        OBJ -->> -ODB: OK
       end
-     ODB -->> -LS: Task (Package)
+      ODB -->> -LS: Task Handle
   deactivate LS
 ```
 
@@ -220,18 +251,67 @@ sequenceDiagram
 - Registering `DidChangeWatchedFiles` is necessary to receive notifications about file changes in the workspace, which is essential for keeping the gdoc Objects up-to-date. And it should be send before requesting to build the Package, because file changes can happen during the setup process.
   - However, as of LSP 3.17, there is no way for the client to notify the server that it has finished configuring `DidChangeWatchedFiles`. Therefore, the Worker starts building the package only after receiving a response to the registration request.
 
-### 2. Update Document
+### 2. Edit Workspace Configuration File
+
+Modifying the workspace configuration file (e.g., `gdoc.project.json`) allows for dynamic updates to the project scope, package definitions, and build settings without requiring a server restart.
 
 <!-- markdownlint-disable-next-line MD024 -->
 #### Triggering events
 
-1. `Update Document` request from Background Worker itself:
-   - This case, it's an internal request from gdoc Object Database descrived above.
+1. [`textDocument/didSave`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didSave) notification:
+   - Triggered when the user saves changes to the configuration file within the IDE.
 2. [`workspace/didChangeWatchedFiles`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_didChangeWatchedFiles) notification:
-   - Sent when a file in the workspace is changed, created, or deleted.
-   - The notification includes a list of [`FileEvent`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileEvent), where each [`FileEvent`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileEvent) has a [`uri`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentUri) and a [`type`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileChangeType) (Created, Changed, or Deleted).
+   - Triggered when the configuration file is modified externally (e.g., via a version control system or manual file move).
 
 <!-- markdownlint-disable-next-line MD024 -->
+#### Sequence
+
+- [ ] ToDo: check this sequence
+
+```mermaid
+sequenceDiagram
+  participant IDE as Client IDE
+  participant LS as Language Server
+  participant ODB as Object Database
+  participant OBJ as Object Datastore
+  participant BLD as Object Builder
+
+  IDE -) +LS: textDocument/didSave /<br/>didChangeWatchedFiles (config)
+    LS ->> +ODB: Update Project Config (Request)
+      Note over ODB: Parse new configuration<br/>Compare with existing state
+      ODB ->> +OBJ: Update Project/Package Metadata
+      OBJ -->> -ODB: OK
+      
+      alt Package definitions changed
+        Note over ODB: Identify added/removed packages
+        ODB ->> OBJ: Purge obsolete package data
+        ODB ->> OBJ: Initialize new package entries
+      end
+      
+      ODB -->> -LS: Configuration Updated
+    LS -) IDE: Update Capabilities (if necessary)
+  deactivate LS
+
+  Note over ODB: Background: Trigger Build Tasks<br/>for affected scopes
+```
+
+<!-- markdownlint-disable-next-line MD024 -->
+#### Notes
+
+- **Incremental Updates**: The Object Database compares the new configuration with the current state to determine if a full re-scan is necessary or if only specific packages need to be updated.
+- **Resource Cleanup**: When a package or folder is removed from the configuration, the Object Database orchestrates the cancellation of pending tasks and the removal of associated objects from the Object Datastore to free system resources.
+- **Build Trigger**: Significant changes to build options (e.g., changing search paths or plugin versions) will invalidate existing objects, prompting the Object Database to issue new Jobs to the Object Builder.
+
+### 3. Open Text
+
+- [ ] ToDo: Review this section
+
+When a text document is opened, the Language Server initializes the document's internal state and triggers an analysis workflow. This process ensures that the IDE is immediately populated with diagnostics and semantic information.
+
+#### Triggering events
+
+- The Client IDE sends a [`textDocument/didOpen`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didOpen) notification to the Language Server.
+
 #### Sequence
 
 ```mermaid
@@ -239,49 +319,37 @@ sequenceDiagram
   participant IDE as Client IDE
   participant LS as Language Server
   participant ODB as Object Database
-  participant OBJ as Object Store
+  participant OBJ as Object Datastore
   participant BLD as Object Builder
 
-  %% Trigger
-  Note over IDE, DB: Trigger
-  alt from Background Worker
-    ODB ->> ODB: Update Document (Created)
-  else by DidChangeWatchedFiles
-    IDE ->> +LS: Notify file change<br>with DidChangeWatchedFiles
-      LS ->> +ODB: Update a File
-      alt Created
-        ODB ->> ODB: Update Document (Created)
-      else Changed
-        ODB ->> ODB: Update Document (Changed)
-      else Deleted
-        ODB ->> ODB: Update Document (Deleted)
-      end
-    ODB -->> -LS: Response
+  IDE -) +LS: textDocument/didOpen
+    LS ->> +ODB: Analyze Document (Request)
+      Note over ODB: Create Task: Document Analysis
+      ODB -->> -LS: Task Handle
+    
+    Note over ODB: Background Execution
+    ODB ->> +BLD: Dispatch Job: Parse & Analyze
+    BLD -->> -ODB: gdoc Objects, Diagnostics, & Tokens
+    
+    ODB ->> +OBJ: Update Document State
+    OBJ -->> -ODB: OK
+    
+    ODB -) LS: Notify: Analysis Complete
     deactivate LS
-  end
-  %% Update Document
-  Note over IDE, DB: Update Document (Document URI, type)
-  activate Worker
-  alt Created
-    ODB ->> +OBJ: Add document<br>(not yet parsed)
-    OBJ -->> -ODB: Document added
-    Note over ODB: Create Task Queue<br>for the document and append<br>the task to parse the document
-  else Changed
-    Note over ODB: Append the task<br>to parse the document
-  else Deleted
-    Note over ODB: Cancel tasks<br>and delete the Queue
-    ODB ->> +OBJ: Delete document
-    OBJ -->> -ODB: Document deleted
-  end
-  deactivate Worker
+
+    activate LS
+    LS -) IDE: publishDiagnostics
+    LS -) IDE: semanticTokens/full (if requested)
+    deactivate LS
 ```
-<!-- markdownlint-disable-next-line MD024 -->
+
 #### Notes
 
-- `Task Queue`
-  - It's a queue of tasks for each document. It is used to manage the tasks for each document and to ensure that the tasks are executed in order. For example, if there are multiple file editing events for the same file, only the latest one should be processed. Therefore, when a new task is added to the queue, the previous tasks in the queue should be canceled.
+- **Buffer Synchronization**: The Language Server passes the initial content of the document to the Object Database to ensure the Object Builder works with the latest editor buffer rather than the version on disk.
+- **Priority**: Documents opened by the user are assigned high-priority Tasks to ensure low-latency feedback for diagnostics and syntax highlighting.
+- **Incremental State**: The Object Datastore tracks the document version to ensure that late-arriving results from background Jobs do not overwrite newer edits.
 
-### 3. Open Text
+### 3. Open Text (Original)
 
 When a text document is opened, the language server parses it, reports problems such as diagnostics, and provides semantic token information.
 
@@ -368,7 +436,68 @@ sequenceDiagram
       deactivate LS
 ```
 
-### 5. Hover Request
+### 6. Update Document
+
+<!-- markdownlint-disable-next-line MD024 -->
+#### Triggering events
+
+1. `Update Document` request from Background Worker itself:
+   - This case, it's an internal request from gdoc Object Database descrived above.
+2. [`workspace/didChangeWatchedFiles`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_didChangeWatchedFiles) notification:
+   - Sent when a file in the workspace is changed, created, or deleted.
+   - The notification includes a list of [`FileEvent`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileEvent), where each [`FileEvent`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileEvent) has a [`uri`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentUri) and a [`type`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#fileChangeType) (Created, Changed, or Deleted).
+
+<!-- markdownlint-disable-next-line MD024 -->
+#### Sequence
+
+```mermaid
+sequenceDiagram
+  participant IDE as Client IDE
+  participant LS as Language Server
+  participant ODB as Object Database
+  participant OBJ as Object Store
+  participant BLD as Object Builder
+
+  %% Trigger
+  Note over IDE, DB: Trigger
+  alt from Background Worker
+    ODB ->> ODB: Update Document (Created)
+  else by DidChangeWatchedFiles
+    IDE ->> +LS: Notify file change<br>with DidChangeWatchedFiles
+      LS ->> +ODB: Update a File
+      alt Created
+        ODB ->> ODB: Update Document (Created)
+      else Changed
+        ODB ->> ODB: Update Document (Changed)
+      else Deleted
+        ODB ->> ODB: Update Document (Deleted)
+      end
+    ODB -->> -LS: Response
+    deactivate LS
+  end
+  %% Update Document
+  Note over IDE, DB: Update Document (Document URI, type)
+  activate Worker
+  alt Created
+    ODB ->> +OBJ: Add document<br>(not yet parsed)
+    OBJ -->> -ODB: Document added
+    Note over ODB: Create Task Queue<br>for the document and append<br>the task to parse the document
+  else Changed
+    Note over ODB: Append the task<br>to parse the document
+  else Deleted
+    Note over ODB: Cancel tasks<br>and delete the Queue
+    ODB ->> +OBJ: Delete document
+    OBJ -->> -ODB: Document deleted
+  end
+  deactivate Worker
+```
+<!-- markdownlint-disable-next-line MD024 -->
+#### Notes
+
+- `Task Queue`
+  - It's a queue of tasks for each document. It is used to manage the tasks for each document and to ensure that the tasks are executed in order. For example, if there are multiple file editing events for the same file, only the latest one should be processed. Therefore, when a new task is added to the queue, the previous tasks in the queue should be canceled.
+
+### 8. Hover Request
 
 <!-- markdownlint-disable-next-line MD024 -->
 #### Triggering events
