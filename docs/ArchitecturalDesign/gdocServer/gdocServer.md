@@ -264,6 +264,10 @@ Modifying the workspace configuration file (e.g., `gdoc.project.json`) allows fo
 #### Sequence
 
 - [ ] ToDo: check this sequence
+  - [ ] ファイル変更通知設定の更新
+  - [ ] ビルドオプション変更のチェック
+    - [ ] プロジェクト設定ファイルと、パッケージ設定ファイルは分離するか？
+    - [ ] オブジェクトdiff？（gitのコミット間で変更点を探りたい場合）
 
 ```mermaid
 sequenceDiagram
@@ -339,21 +343,7 @@ sequenceDiagram
     deactivate LS
 ```
 
-#### Notes
-
-- **Buffer Synchronization**: The Language Server passes the initial content of the document to the Object Database to ensure the Object Builder works with the latest editor buffer rather than the version on disk.
-- **Priority**: Documents opened by the user are assigned high-priority Tasks to ensure low-latency feedback for diagnostics and syntax highlighting.
-- **Incremental State**: The Object Datastore tracks the document version to ensure that late-arriving results from background Jobs do not overwrite newer edits.
-
-### 3. Open Text (Original)
-
-When a text document is opened, the language server parses it, reports problems such as diagnostics, and provides semantic token information.
-
-#### Triggering events
-
-- Client IDE sends [`textDocument/didOpen`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didOpen) notification to the Language Server.
-
-#### Sequence
+#### Sequence (Original)
 
 ```mermaid
 sequenceDiagram
@@ -388,7 +378,59 @@ sequenceDiagram
       deactivate LS
 ```
 
+#### Notes
+
+- **Buffer Synchronization**: The Language Server passes the initial content of the document to the Object Database to ensure the Object Builder works with the latest editor buffer rather than the version on disk.
+- **Priority**: Documents opened by the user are assigned high-priority Tasks to ensure low-latency feedback for diagnostics and syntax highlighting.
+- **Incremental State**: The Object Datastore tracks the document version to ensure that late-arriving results from background Jobs do not overwrite newer edits.
+  - [ ] Version number は、フォーマットの規定がないのでは？ どちらがより新しいか、サーバーは比較方法を知らないのでは。
+
 ### 4. Edit Text
+
+When a user modifies a document in the IDE, the Language Server processes the changes to ensure that the internal object model, diagnostics, and semantic information are synchronized with the latest buffer state.
+
+#### Triggering events
+
+- The Client IDE sends a [`textDocument/didChange`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didChange) notification to the Language Server.
+
+#### Sequence
+
+```mermaid
+sequenceDiagram
+  participant IDE as Client IDE
+  participant LS as Language Server
+  participant ODB as Object Database
+  participant OBJ as Object Datastore
+  participant BLD as Object Builder
+
+  IDE -) +LS: textDocument/didChange
+    LS ->> +ODB: Update Document (Request)
+      Note over ODB: Create Task: Document Update
+      ODB -->> -LS: Task Handle
+    
+    Note over ODB: Background Execution
+    ODB ->> +BLD: Dispatch Job: Parse & Analyze
+    BLD -->> -ODB: Updated Objects, Diagnostics, & Tokens
+    
+    ODB ->> +OBJ: Update Document State
+    OBJ -->> -ODB: OK
+    
+    ODB -) LS: Notify: Update Complete
+    deactivate LS
+
+    activate LS
+    LS -) IDE: publishDiagnostics
+    LS -) IDE: semanticTokens/full (if requested)
+    deactivate LS
+```
+
+#### Notes
+
+- **Incremental Updates**: The Language Server handles both full text synchronization and incremental changes provided by the IDE, passing the updated content to the Object Database.
+- **Task Preemption**: When multiple `didChange` notifications arrive in rapid succession, the Object Database may cancel stale Tasks and Jobs to prioritize the most recent version of the document.
+- **Priority**: Similar to the "Open Text" scenario, edits on active documents are assigned high priority to provide near real-time feedback for diagnostics and syntax highlighting.
+
+### 4. Edit Text (Original)
 
 #### Triggering events
 
