@@ -15,7 +15,7 @@ This document describes the architecture of gdoc Server, specifically its struct
 
 ### Structure
 
-![gdoc Server Architecture](./gdocServerArchitecture.drawio.png)
+![gdoc Server Architecture](./images/gdocServerArchitecture.drawio.png)
 
 #### Language Server
 
@@ -77,7 +77,7 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
 
 ### Overview
 
-![gdoc Server Architecture](./gdocServerInternalBlocks.drawio.png)
+![gdoc Server Architecture](./images/gdocServerInternalBlocks.drawio.png)
 
 ### 1. gdoc Language Server
 
