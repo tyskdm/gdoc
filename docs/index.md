@@ -1,17 +1,38 @@
-# Welcome to MkDocs
+# Project documentation
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+## Specification
 
-## Commands
+### Gdoc Markup Language
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+- docs/GdocMarkupLanguage/
+  - Gdoc Markup Language Spacification
+  - Gdoc Object Spcification
 
-## Project layout
+## Software Design
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+### Requirements
+
+- docs/requirements/
+
+### Architecture
+
+- docs/architecture/
+
+Architecture documentats are organized by feature (CLI subcommand).
+
+Each feature directory may contain:
+
+- requirements.md or requirements/
+- architecture.md or architecture/
+- adr.md or adr/
+- usecases.md or usecases/
+- detailed-design.md or detailed-design/
+
+#### Common
+
+- docs/architecture/pandocAstObject/
+- docs/architecture/gdocCompiler/
+
+#### Sub commands
+
+- docs/architecture/gdocServer/
