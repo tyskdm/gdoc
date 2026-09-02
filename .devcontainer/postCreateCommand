@@ -40,4 +40,13 @@ echo -e '\n# nvm\n' \
 >> ~/.bashrc
 # npm install
 # npm install -g @vscode/vsce
+
+# Pi coding agent
 npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+ln -s /workspaces/gdoc.tmp/.pi ~/
+
+# Cline
+if [ -d .cline ]; then
+    rm -rf ~/.cline
+    ln -s /workspaces/gdoc/.cline ~/
+fi
