@@ -67,6 +67,7 @@ reference-depth ordering from the open files.
 - "All references of an object" requests require completing state-2 builds — a
   large, hard-to-bound amount of work — so the server must decide when to defer
   or cancel these.
-- The interaction of per-client scheduling (ADR-008) with global document
-  states means priority must be computed as a combination of client-local and
-  document-global state, which is easy to get subtly wrong.
+- Priority is decided in **two places** (ADR-008): the frontend orders *its*
+  requests, and the ODB orders the shared work (these document states). The
+  boundary between them — "frontend picks which requests matter, in what order;
+  ODB picks which shared work runs first" — is easy to cross by mistake.
