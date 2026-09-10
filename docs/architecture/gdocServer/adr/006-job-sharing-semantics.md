@@ -58,3 +58,52 @@ only "when all associated Tasks have been canceled or removed."
 - Deduplication is only correct if the job key (file + version + relevant
   inputs) precisely captures all inputs; an under-specified key yields stale
   shared results.
+
+### Risks
+
+> A **risk** (in contrast to the trade-offs above) is a constraint that, if
+> violated in detailed design or implementation, breaks *correctness* (silent
+> corruption, stale results, lost work) or *availability* (deadlock,
+> starvation, unbounded resource use). Each entry states its failure mode, the
+> mitigation the Decision already provides, and the verification it requires.
+> All risks are collected in the [risk register](./README.md#risk-register).
+
+- **R-006-1 (correctness — partial state on cancellation).** A shared Job is
+  reference-counted and may be canceled mid-run when its last requesting task
+  disappears.
+  - *Failure mode:* A Builder that has already written partial results leaves
+    an inconsistent snapshot in the Datastore.
+  - *Mitigation:* Builders are "safe to abandon": results are committed
+    atomically on success only — the commit semantics (single swap vs.
+    transactional batch) must be fixed in detailed design.
+  - *Verify:* test that a mid-run canceled Job leaves the Datastore in its
+    pre-Job state; test that a successful Job's results become visible
+    atomically.
+- **R-006-2 (correctness — dedup-key under-specification).** Deduplication is
+  only as correct as the Job key.
+  - *Failure mode:* A key that omits an input (file + version + relevant
+    inputs) returns *stale* shared results to a different task — a subtle
+    correctness bug that is hard to reproduce.
+  - *Mitigation:* One key-derivation helper per content type, provided by the
+    builder SDK (R-005-2).
+  - *Verify:* exhaustive test that differing relevant inputs on the same file
+    (content type, dependency state, options) are *not* deduplicated into one
+    shared Job.
+- **R-006-3 (correctness — reference-count errors).** Job lifetime is
+  reference-counted over the requesting tasks.
+  - *Failure mode:* Miscounts cancel a Job while waiters remain (lost work) or
+    never cancel it (leak); interacts with R-002-1 and ADR-008's cancellation
+    translation (R-008-1).
+  - *Mitigation:* Reference counting is centralized in the ODB; frontends only
+    cancel *their own* tasks.
+  - *Verify:* concurrent add/remove of waiters; assert the Job lifecycle
+    invariant (active while ≥1 waiter, canceled on the last departure).
+- **R-006-4 (availability — priority inversion / starvation).** A low-priority
+  task may hold a Job that a high-priority task later needs.
+  - *Failure mode:* A client-visible (high-priority) request starves
+    indefinitely behind a long low-priority Job.
+  - *Mitigation:* ADR-007 re-scheduling mitigates but does not eliminate;
+    detailed design must bound it (e.g., cancel-and-re-run at the inherited
+    priority, or a timeout).
+  - *Verify:* scenario test: a high-priority request for a Job already held by
+    a low-priority one completes within a bounded time.

@@ -72,3 +72,37 @@ repeated requests.
 - "Subtasks vs. independent Tasks" for internal processing is a design boundary
   that must be kept consistent, or else cancellation and priority tracking will
   double-count work.
+
+### Risks
+
+> A **risk** (in contrast to the trade-offs above) is a constraint that, if
+> violated in detailed design or implementation, breaks *correctness* (silent
+> corruption, stale results, lost work) or *availability* (deadlock,
+> starvation, unbounded resource use). Each entry states its failure mode, the
+> mitigation the Decision already provides, and the verification it requires.
+> All risks are collected in the [risk register](./README.md#risk-register).
+
+- **R-002-1 (correctness — cancellation/priority accounting).** The subtask
+  (task-local) vs. shared-Job boundary must stay consistent in every code
+  path.
+  - *Failure mode:* The same unit of work is tracked twice; reference-counted
+    cancellation (ADR-006) misfires — a Job is canceled while waiters remain,
+    or never canceled (leak) — and priority inheritance double-counts.
+  - *Mitigation:* Ownership is fixed: subtasks are task-local management
+    units, Jobs are the shared execution units; deduplication happens at the
+    Job level only (ADR-006).
+  - *Verify:* two tasks awaiting one shared Job: canceling one keeps the Job
+    running; canceling the last cancels the Job; no double-counting of
+    priority.
+- **R-002-2 (correctness — dynamic Job graph).** Task → Job decomposition is
+  incremental because references become apparent during execution.
+  - *Failure mode:* Mid-Task Job creation/re-scheduling duplicates already
+    in-flight work (breaking the ADR-006 single-in-flight invariant), loses a
+    dependency, or admits cycles.
+  - *Mitigation:* Dynamically created Jobs are registered through the same
+    deduplication key (ADR-006) and reconciled with in-flight work.
+  - *Verify:* test that incremental reference discovery yields exactly one
+    in-flight Job per (file, version, inputs) and preserves dependency order.
+
+The conceptual/implementation overhead of the three abstractions is an
+accepted trade-off, not a risk.

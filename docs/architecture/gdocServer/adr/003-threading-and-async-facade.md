@@ -76,3 +76,46 @@ client I/O would stall responsiveness.
 - Cross-thread hand-off must use asyncio's **thread-safe** APIs
   (`loop.call_soon_threadsafe` / `asyncio.run_coroutine_threadsafe`); a plain
   `loop.call_soon` from the ODB worker thread is **not** safe.
+
+### Risks
+
+> A **risk** (in contrast to the trade-offs above) is a constraint that, if
+> violated in detailed design or implementation, breaks *correctness* (silent
+> corruption, stale results, lost work) or *availability* (deadlock,
+> starvation, unbounded resource use). Each entry states its failure mode, the
+> mitigation the Decision already provides, and the verification it requires.
+> All risks are collected in the [risk register](./README.md#risk-register).
+
+- **R-003-1 (availability — deadlock-class).** Completion callbacks are
+  invoked on the ODB's own worker thread.
+  - *Failure mode:* A heavy callback stalls the single worker and — a single
+    point of failure — the whole ODB stops; a callback that synchronously
+    waits for the frontend's loop to process escalates into a cross-thread
+    deadlock.
+  - *Mitigation:* Callbacks are lightweight and only hand the event to their
+    loop via `loop.call_soon_threadsafe` /
+    `asyncio.run_coroutine_threadsafe`; no work is done on the worker thread.
+  - *Verify:* test that a slow/misbehaving callback does not stall scheduling
+    of other tasks; review rule: no blocking or synchronous waits inside a
+    registered callback.
+- **R-003-2 (correctness — thread-safe API misuse).** Cross-thread hand-off
+  must use asyncio's thread-safe APIs.
+  - *Failure mode:* A plain `loop.call_soon` from the ODB worker thread races
+    the loop's internal state → sporadic, hard-to-reproduce corruption or
+    crashes.
+  - *Mitigation:* All cross-thread scheduling is restricted to
+    `loop.call_soon_threadsafe` / `asyncio.run_coroutine_threadsafe`.
+  - *Verify:* static check/lint (or runtime assertion) against non-threadsafe
+    scheduling from a foreign thread; unit test of scheduling from a
+    non-loop thread.
+- **R-003-3 (availability — single point of failure).** A single worker
+  thread caps parallelism and is a global stall point.
+  - *Failure mode:* Any misbehaving Job (hung, non-cooperative Builder —
+    R-005-1) stops every request of every frontend.
+  - *Mitigation:* CPU-bound/long-running Jobs run via `run_in_executor`
+    inside the ODB (or as subprocesses, ADR-008); detailed design should set
+    a bound/timeout on Job execution.
+  - *Verify:* stress test with concurrent Jobs; test the timeout path for a
+    non-cooperative Job.
+
+The CPU-parallelism cap is an accepted trade-off (mitigable via executors).

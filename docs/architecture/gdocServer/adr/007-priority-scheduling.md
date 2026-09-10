@@ -71,3 +71,44 @@ reference-depth ordering from the open files.
   requests, and the ODB orders the shared work (these document states). The
   boundary between them — "frontend picks which requests matter, in what order;
   ODB picks which shared work runs first" — is easy to cross by mistake.
+
+### Risks
+
+> A **risk** (in contrast to the trade-offs above) is a constraint that, if
+> violated in detailed design or implementation, breaks *correctness* (silent
+> corruption, stale results, lost work) or *availability* (deadlock,
+> starvation, unbounded resource use). Each entry states its failure mode, the
+> mitigation the Decision already provides, and the verification it requires.
+> All risks are collected in the [risk register](./README.md#risk-register).
+
+- **R-007-1 (availability — starvation).** A document stays in state 1 while
+  any non-canceled request references it.
+  - *Failure mode:* A long-lived or forgotten request pins a document (and its
+    transitive references) at top priority, starving lower-priority work of
+    other clients.
+  - *Mitigation:* Priority is recomputed on every client interaction; detailed
+    design should define a pin bound (age-based demotion or a maximum state-1
+    duration).
+  - *Verify:* test that a long-lived state-1 request does not block
+    lower-priority work beyond the defined bound.
+- **R-007-2 (availability — unbounded work).** "All references of an object"
+  requests require completing state-2/3 builds — hard-to-bound work.
+  - *Failure mode:* CPU/memory exhaustion if the server does not defer or
+    cancel such work.
+  - *Mitigation:* The server must define a defer/cancel policy for unbounded
+    requests (detailed-design input).
+  - *Verify:* test that an unbounded request over a large workspace can be
+    deferred/canceled and that state remains consistent afterwards.
+- **R-007-3 (correctness — two priority domains).** Priority is decided in two
+  places: frontends order *their* requests; the ODB orders shared work.
+  - *Failure mode:* A crossed boundary (frontend assumes the ODB will
+    re-prioritize, or vice versa) silently breaks the responsiveness
+    guarantee. See ADR-008.
+  - *Mitigation:* The boundary is an explicit contract: the frontend picks
+    which requests matter and in what order; the ODB picks which shared work
+    runs first.
+  - *Verify:* contract tests for representative interactions (open file,
+    request, cancel, background build) on both sides of the boundary.
+
+The incremental reference discovery (re-ordering as builds proceed) is an
+accepted property, handled under R-002-2.

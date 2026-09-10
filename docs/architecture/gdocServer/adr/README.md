@@ -17,6 +17,51 @@ context, the decision, the alternatives considered, and the consequences.
 - **Status** values follow the project ADR convention:
   `Proposed` (under discussion) · `Accepted` (the current design) ·
   `Superseded` (replaced by a newer ADR) · `Deprecated` (no longer in use).
+- Every `Consequences` section ends with a `### Risks` subsection (which must
+  explicitly say so if a decision carries no significant risks). A **risk** is
+  a cons/trade-off item whose violation in detailed design or implementation
+  would break *correctness* (silent corruption, stale results, lost work) or
+  *availability* (deadlock, starvation, unbounded resource use); accepted
+  costs without such a failure mode remain trade-offs only. Each risk is
+  identified as `R-NNN-M`, states its failure mode, the mitigation the
+  Decision already provides, and the verification it requires — so that it
+  serves as an identified input to detailed design, implementation, and test
+  planning. All risks are collected in the [risk register](#risk-register).
+
+## Risk register
+
+The risks identified in the ADRs' `### Risks` sections — i.e., the cons that
+are failure-prone and therefore must be addressed in detailed design,
+implementation, and testing (as opposed to accepted trade-offs). Severity
+classes, in descending order: **correctness** (silent data corruption, stale
+results, lost work) · **availability** (deadlock, starvation, unbounded
+resource use) · **performance**. All risks are **open**: they must be handled
+in detailed design and covered by the test plan.
+
+| ID | ADR | Severity | Failure mode | Coupled risks |
+|----|-----|----------|--------------|---------------|
+| R-001-1 | [ADR-001](./001-protocol-agnostic-core.md#risks) | correctness | Second write path silently breaks the single-writer guarantee → data races | R-004-1 |
+| R-002-1 | [ADR-002](./002-request-task-job-model.md#risks) | correctness | Double-tracked work breaks reference-counted cancellation / priority | R-006-3 |
+| R-002-2 | [ADR-002](./002-request-task-job-model.md#risks) | correctness | Dynamic mid-Task Job creation breaks the single-in-flight dedup invariant | R-006-2 |
+| R-003-1 | [ADR-003](./003-threading-and-async-facade.md#risks) | availability | Heavy / synchronously-waiting completion callback stalls or deadlocks the ODB worker | R-004-2 |
+| R-003-2 | [ADR-003](./003-threading-and-async-facade.md#risks) | correctness | Non-threadsafe loop scheduling from a foreign thread → sporadic corruption | — |
+| R-003-3 | [ADR-003](./003-threading-and-async-facade.md#risks) | availability | Single worker thread is a global stall point for any misbehaving Job | R-005-1 |
+| R-004-1 | [ADR-004](./004-datastore-synchronization.md#risks) | correctness | Datastore access outside the ODB → silent data corruption | R-001-1 |
+| R-004-2 | [ADR-004](./004-datastore-synchronization.md#risks) | availability | Blocking public ODB method stalls the single coordinator | R-003-1 |
+| R-004-3 | [ADR-004](./004-datastore-synchronization.md#risks) | performance | Serialized reads starve under read-heavy clients | R-007-1 |
+| R-005-1 | [ADR-005](./005-plugin-object-builders.md#risks) | availability | Hung / non-cooperative Builder stalls the entire ODB | R-003-3 |
+| R-005-2 | [ADR-005](./005-plugin-object-builders.md#risks) | correctness | Contract gap → inconsistent cancellation / error handling | R-006-1, R-006-2 |
+| R-006-1 | [ADR-006](./006-job-sharing-semantics.md#risks) | correctness | Partial writes on mid-run cancellation corrupt the snapshot | R-005-2 |
+| R-006-2 | [ADR-006](./006-job-sharing-semantics.md#risks) | correctness | Under-specified dedup key → stale shared results | R-002-2, R-005-2 |
+| R-006-3 | [ADR-006](./006-job-sharing-semantics.md#risks) | correctness | Reference-count error → lost work or Job leak | R-002-1, R-008-1 |
+| R-006-4 | [ADR-006](./006-job-sharing-semantics.md#risks) | availability | Priority inversion starves a high-priority request | ADR-007 |
+| R-007-1 | [ADR-007](./007-priority-scheduling.md#risks) | availability | Long-lived state-1 request starves lower-priority work | R-004-3 |
+| R-007-2 | [ADR-007](./007-priority-scheduling.md#risks) | availability | Unbounded "all references" work → resource exhaustion | — |
+| R-007-3 | [ADR-007](./007-priority-scheduling.md#risks) | correctness | Crossed priority boundary silently breaks the responsiveness guarantee | ADR-008 |
+| R-008-1 | [ADR-008](./008-frontend-odb-scheduling-boundary.md#risks) | correctness | Mistranslated cancellation → reference-count errors / task leaks | R-006-3 |
+| R-008-2 | [ADR-008](./008-frontend-odb-scheduling-boundary.md#risks) | correctness | Client-type special-casing in the ODB breaks the ADR-001 split | — |
+| R-009-1 | [ADR-009](./009-configuration-lifecycle.md#risks) | correctness | Re-scope race leaves stale package states / objects | ADR-004 |
+| R-009-2 | [ADR-009](./009-configuration-lifecycle.md#risks) | correctness | Buffer/config override violation → wrong document states | ADR-007 |
 
 ## Index
 

@@ -78,3 +78,29 @@ be made from the language server."
     multi-client editing may be added, accepting the loss of the concurrency
     simplicity above. Until then the Object Server will initially be read-only,
     or its writes must be routed through a common mutation API.
+
+### Risks
+
+> A **risk** (in contrast to the trade-offs above) is a constraint that, if
+> violated in detailed design or implementation, breaks *correctness* (silent
+> corruption, stale results, lost work) or *availability* (deadlock,
+> starvation, unbounded resource use). Each entry states its failure mode, the
+> mitigation the Decision already provides, and the verification it requires.
+> All risks are collected in the [risk register](./README.md#risk-register).
+
+- **R-001-1 (correctness — invariant by convention).** Until the Object Server
+  is delivered, "changes to gdoc objects can only be made from the LSP
+  frontend" is upheld by *discipline*, not by construction.
+  - *Failure mode:* A second write path appears (or a frontend bypasses the
+    ODB mutation API); the ADR-004 single-writer guarantee is silently broken
+    and — since the Datastore has no internal locking — silently becomes data
+    races / corruption (R-004-1).
+  - *Mitigation:* All mutations go through the ODB's public mutation API on
+    the single coordinator (ADR-004); the frontends are the only components
+    with write capability.
+  - *Verify:* architectural/static check that only the ODB touches the
+    Datastore; test that a hypothetical second frontend's writes are routed
+    through the shared mutation API.
+
+The remaining cons (protocol-agnostic design constraint, Request-model
+superset requirement) are accepted trade-offs, not risks.

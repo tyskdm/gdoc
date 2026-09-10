@@ -67,3 +67,46 @@ via the Object Database."
   frontend is the only writer, ADR-001); if that origin constraint is ever
   lifted in favor of multi-client editing, all frontends funnel through this
   one coordinator — which is what this guarantee exists to preserve.
+
+### Risks
+
+> A **risk** (in contrast to the trade-offs above) is a constraint that, if
+> violated in detailed design or implementation, breaks *correctness* (silent
+> corruption, stale results, lost work) or *availability* (deadlock,
+> starvation, unbounded resource use). Each entry states its failure mode, the
+> mitigation the Decision already provides, and the verification it requires.
+> All risks are collected in the [risk register](./README.md#risk-register).
+
+- **R-004-1 (correctness — silent data corruption).** The Datastore has no
+  internal locking; all correctness depends on strict single-coordinator
+  access.
+  - *Failure mode:* Any access path outside the ODB (direct reference, a
+    mutation from another thread via a callback) causes data races and silent
+    corruption — the hardest failure class to detect. Related: R-001-1
+    (invariant by convention).
+  - *Mitigation:* Encapsulation: only the ODB touches the Datastore; all
+    mutations go through the single coordinator on the worker thread
+    (ADR-003).
+  - *Verify:* architectural test forbidding Datastore references outside the
+    ODB; concurrency regression test that fails if a second thread mutates
+    concurrently.
+- **R-004-2 (availability — head-of-line blocking).** Public synchronous
+  methods must be lightweight and non-blocking.
+  - *Failure mode:* A public method that waits for analysis to complete blocks
+    the worker thread and stalls every other task; combined with R-003-1 this
+    can become a cross-thread deadlock.
+  - *Mitigation:* The non-blocking submit/ticket contract in the Decision
+    (heavy work is deferred to the worker thread).
+  - *Verify:* test that a heavy request returns its ticket without blocking a
+    subsequent light request on the same facade.
+- **R-004-3 (performance — throughput bottleneck).** All reads are serialized
+  through the single coordinator.
+  - *Failure mode:* Read-heavy Object Server clients compete with background
+    analysis for the coordinator and starve interactive work (R-007-1).
+  - *Mitigation:* Reads stay fast in-memory operations; revisit (read cache /
+    batching) when the Object Server ships — out of scope today.
+  - *Verify:* load test with several concurrent frontends reading during a
+    background build.
+
+The in-memory-only (no persistence) limitation is an accepted, deliberate
+trade-off.

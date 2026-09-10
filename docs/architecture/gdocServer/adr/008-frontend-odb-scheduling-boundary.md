@@ -115,3 +115,36 @@ Task/Subtask/Job (ODB).**
   cancels its hover tasks; an object-server client has its own rules). Each
   frontend translates *its* cancellation into the ODB's Task/Job cancellation
   API, so the ODB's cancellation stays protocol-agnostic.
+
+### Risks
+
+> A **risk** (in contrast to the trade-offs above) is a constraint that, if
+> violated in detailed design or implementation, breaks *correctness* (silent
+> corruption, stale results, lost work) or *availability* (deadlock,
+> starvation, unbounded resource use). Each entry states its failure mode, the
+> mitigation the Decision already provides, and the verification it requires.
+> All risks are collected in the [risk register](./README.md#risk-register).
+
+- **R-008-1 (correctness — cancellation translation).** Each frontend must
+  translate its protocol's cancellation (LSP cancel, document close, client
+  disconnect; the Object Server has its own rules) into the ODB's Task/Job
+  cancellation API.
+  - *Failure mode:* A mistranslation over- or under-decrements Job
+    references (R-006-3), leaks tasks, or cancels work other tasks still need.
+  - *Mitigation:* The ODB cancellation API stays protocol-agnostic; per-
+    frontend translation is a small, unit-testable mapping.
+  - *Verify:* per-protocol tests that each cancellation event maps to exactly
+    the right Task/Job cancellations and no more.
+- **R-008-2 (correctness — boundary discipline).** The ODB must never branch
+  on client type.
+  - *Failure mode:* Special-casing leaks client semantics into the
+    protocol-agnostic core, breaking the ADR-001 split and making
+    deduplication/scheduling (ADR-006/007) frontend-dependent.
+  - *Mitigation:* The Request model (ADR-002) must express all context the ODB
+    needs; the escape valve is extending the model, not branching on the
+    client.
+  - *Verify:* architectural test that the ODB's scheduling/cancellation
+    decision paths never inspect a client-type field.
+
+Extending the Request model when a client type needs something new is an
+accepted trade-off (it is additive).
