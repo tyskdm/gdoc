@@ -63,4 +63,7 @@ via the Object Database."
   limitation).
 - All correctness depends on the ODB being a strict single writer; any future
   path that mutates outside the ODB silently breaks the "no internal locking"
-  guarantee.
+  guarantee. This is reinforced today by a single write-*origin* as well (the LSP
+  frontend is the only writer, ADR-001); if that origin constraint is ever
+  lifted in favor of multi-client editing, all frontends funnel through this
+  one coordinator — which is what this guarantee exists to preserve.

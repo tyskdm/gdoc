@@ -63,7 +63,18 @@ be made from the language server."
 - The core interface (the Request model) must be a **superset** of the needs of
   all frontends; if it is designed incompletely, rework is likely when the
   Object Server's needs differ.
-- "Changes can only be made from the language server" is a **temporary
-  asymmetry**: making the mutation path protocol-agnostic is deferred, so the
-  Object Server will initially be read-only, or its writes must be routed
-  through a common mutation API.
+- **"Changes can only be made from the language server" is a *temporary*
+  asymmetry, and it is deliberate** — the LSP is the only writer for now, for
+  two reasons:
+  - **No write-back channel to the IDE.** LSP is a request/response protocol in
+    which the *client owns its buffer*; there is no standard way to push a model
+    mutation made by another frontend back into the IDE, and for newly created
+    elements the IDE cannot even decide *which file, at what offset*, to insert
+    them.
+  - **Simpler concurrency control.** A single write-origin keeps exclusive access
+    over the model easy to reason about (one origin of mutations to serialize),
+    reinforcing the single-coordinator guarantee of ADR-004.
+  - **Revisitable.** If the write-back/placement problem above is solved,
+    multi-client editing may be added, accepting the loss of the concurrency
+    simplicity above. Until then the Object Server will initially be read-only,
+    or its writes must be routed through a common mutation API.
