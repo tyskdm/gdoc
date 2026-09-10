@@ -7,7 +7,7 @@ gdoc Server provides two types of servers: a language server and an object serve
 2. Object Server
    - Provides APIs for accessing and manipulating gdoc objects.
 
-In the current version of gdoc Server, changes to objects can only be made from the language server.
+In the current version of gdoc Server, changes to objects can only be made from the language server. When the Object Server is delivered, it will be read-only or route any writes through the same common mutation API, so that the Object Database remains the single writer of object state. The Object Server is a second frontend on the shared core, not a separate writer (see ADR-001).
 
 This document describes the architecture of gdoc Server, specifically its structure as a language server, the roles of each component, and how they work together. While an Object Server is planned for the future, it is intended to be implemented in a way that replaces the front-end of the language server.
 
@@ -67,7 +67,7 @@ The gdoc server organizes resources into a hierarchical structure to manage scop
 
 ### Execution Model: Request, Task, and Job
 
-To ensure high responsiveness and efficient resource utilization, gdoc utilizes a tiered execution abstraction:
+To ensure high responsiveness and efficient resource utilization, gdoc utilizes a tiered execution abstraction (see ADR-002, ADR-008):
 
 - **Request**: An external interaction initiated by a client (e.g., an LSP command or an Object API call). Frontends are responsible for translating these protocol-specific messages into internal representations.
 - **Task**: The primary unit of internal orchestration. Tasks are protocol-agnostic and represent a logical operation (e.g., "Analyze Document"). The Object Database manages the lifecycle, priority, and cancellation of Tasks.
@@ -115,7 +115,8 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
   - **Threaded Execution**: Operates in a dedicated background worker thread to ensure that computationally intensive analysis does not block the Frontend's high-responsiveness I/O loop.
   - **Internal Async Orchestration**: Uses an internal `asyncio` event loop within its worker thread to manage concurrent **Tasks** and **Jobs** efficiently.
   - **Plugin Host**: Provides the execution environment and lifecycle management for **gdoc Object Builders**, which are integrated as plugins.
-  - **Synchronous API for Frontends**: Exposes thread-safe synchronous methods to Frontends, abstracting the internal asynchronous and multi-threaded complexity.
+  - **Synchronous API for Frontends**: Exposes thread-safe, **lightweight and non-blocking** synchronous methods to Frontends, abstracting the internal asynchronous and multi-threaded complexity. These methods submit work (returning a task ticket) or return current state and promptly return to the caller; they never block waiting for analysis to finish, because heavy work is deferred to the worker thread (see ADR-003 / ADR-004).
+  - **Completion is pushed, not polled**: Task/Job completion is **pushed** to the frontend via a callback it registered in advance (invoked on the Object Database's own worker thread). The frontend does not poll ticket status; it only hands the event onto its own event loop (see ADR-003).
 
 - Responsibilities:
   - **Task Scheduling & Prioritization**: Dynamically manages the execution order of **Tasks** based on user focus (e.g., open documents) and dependency requirements.
@@ -131,7 +132,7 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
 - Characteristics:
   - **Synchronous Implementation**: Composed entirely of synchronous functions to ensure predictable, low-latency data operations.
   - **Encapsulated Component**: Completely hidden from **Frontends** and external components; it is accessible only via the **Object Database**.
-  - **No Internal Concurrency Control**: Does not implement its own locking or thread-safety mechanisms. Exclusive access and synchronization are managed externally by the **Object Database**.
+  - **No Internal Concurrency Control**: Does not implement its own locking or thread-safety mechanisms. Exclusive access and synchronization are managed externally by the **Object Database** (see ADR-004).
   - **In-Memory Storage**: Realized as a collection of optimized in-memory data structures.
 
 - Responsibilities:
@@ -147,10 +148,10 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
   - Provides domain-specific logic for different package types and document formats as a plugin.
 
 - Characteristics:
-  - **Job Deduplication & Multi-tasking**: If multiple Tasks request the same Job (e.g., parsing the same file), the Builder manages it as a single unit of work shared by those Tasks.
+  - **Job Deduplication & Multi-tasking**: If multiple Tasks request the same Job (e.g., parsing the same file), the Builder manages it as a single unit of work shared by those Tasks (see ADR-006).
   - **Priority Inheritance**: A Job dynamically inherits the highest priority among all the Tasks currently requesting it.
   - **Reference-based Cancellation**: A Job remains active as long as at least one requesting Task is still alive. It is only canceled when all associated Tasks have been canceled or removed.
-  - **Plugin-Based Architecture**: Different builders are implemented for specific content types (e.g., `gdoc`, `doxml`).
+  - **Plugin-Based Architecture**: Different builders are implemented for specific content types (e.g., `gdoc`, `doxml`) (see ADR-005).
 
 - Responsibilities:
   - **Execution Management**: Maintains a registry of active Jobs, tracking which Tasks are waiting for which results.
@@ -206,7 +207,7 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
 3. Tasks to update gdoc Objects in the Object Database
    - These tasks can be executed with lower priority as they are not directly related to responding to the client IDE's requests.
    - However, they should still be executed in a timely manner to ensure that the gdoc Objects are up-to-date for any subsequent LSP requests that may require information from the Object Database.
-   - The priority is as follows:
+   - The priority is as follows (see ADR-007):
      1. Compile and link documents referenced by open text files
      2. Compile and link documents referenced by the unopened referenced documents mentioned above
      3. Following the above, compile and link the referenced documents in the order of their reference levels from the open text
@@ -219,6 +220,7 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
 - Tasks managed by gdoc Object Database are those of priority 2 and later in the list above.
 - The priority changes every time an LSP message is received (i.e., every time the user interacts with the client IDE). Priority adjustment is performed while processing item 1 above.
 - For example, a definition lookup task requested for hover display decreases in priority when the user performs actions such as editing a different file.
+- Priority is decided in two places: each **frontend** orders its own **Requests** using client-type-specific rules, while the **Object Database** orders the shared **Tasks/Jobs** using the protocol-agnostic document states below. The frontend decides *which requests matter and in what order*; the Object Database decides *which shared work runs first* and does not branch on client type (see ADR-007 / ADR-008).
 
 ##### Scheduling Method
 
@@ -234,7 +236,7 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
 3. Part of a package
    - Documents included in a package have higher priority than those that are in the workspace but not part of any package.
    - Changes to the package settings in the workspace (project) root configuration file can alter this state.
-     - Changes to configuration files are not affected by changes to open text documents and are only reflected upon saving.
+     - Changes to configuration files are not affected by changes to open text documents and are only reflected upon saving (see ADR-009).
 
 ###### State-based Scheduling
 
@@ -250,14 +252,16 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
     - In many cases, it is not possible to determine if there are subsequent referenced documents without compiling and linking the first referenced document.
     - In other words, the referenced documents required by the request become sequentially apparent during request processing.
   - As an exception, when all references to a certain object are requested, it is necessary to complete all compilations and links of 2.
-  - Task scheduling is managed per client.
-    - There is one LSP client, but there may be multiple object database clients.
+  - Scheduling of the shared work (Tasks, Subtasks, and Jobs) is protocol-agnostic and centralized in the Object Database: the same rules apply regardless of which frontend submitted the request.
+    - Each protocol frontend (there is one LSP client, but there may be multiple Object Server clients) is responsible only for its own clients' requests, their ordering, and their cancellation (see ADR-008).
 
 #### Task and Subtask
 
 - A single request always corresponds to a single task. Processing tasks such as compilation and linking required within a task are managed as subtasks.
   - A single task can contain multiple subtasks.
 
-- Tasks correspond to requests from clients, including both requests from the LSP client and requests from the Object Database client.
-  - Therefore, task management is divided into parts that differ by client type and parts that are common to all clients.
-  - The common part is priority management. The gdoc server provides an abstract class implementing only this common part and concrete classes implementing the parts that differ by client type.
+- Tasks correspond to requests from clients, including both requests from the LSP client and requests from the Object Server client.
+  - Responsibility is split along the **Request / Task boundary by component**, not by a class hierarchy inside the core:
+    - **Requests are the frontend's responsibility.** Each protocol frontend translates its own protocol messages into **Requests** and applies the client-type-specific rules for request priority, ordering, and cancellation.
+    - **Tasks — and the Subtasks / Jobs they decompose into — are the Object Database's responsibility.** A Task is protocol-agnostic: the Object Database assigns and manages its priority, lifecycle, and cancellation with the **same rules regardless of which frontend submitted it**, and it does **not** branch its Task/Subtask/Job logic on the client type.
+  - This keeps the protocol-agnostic core clean (ADR-001, ADR-002) while leaving client-type-specific semantics at the Request level (ADR-008).
