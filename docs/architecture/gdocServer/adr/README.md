@@ -6,9 +6,8 @@ that is not directly derived from an upstream requirement — but whose rational
 alternatives, and trade-offs are worth preserving — is captured here, **one ADR
 per decision**.
 
-These records are **drafts reconstructed from the current architecture document**:
-the decisions are already reflected in the design, and the ADRs formalize the
-context, the decision, the alternatives considered, and the consequences.
+Each record formalizes the **context**, the **decision**, the **alternatives
+considered**, and the **consequences**.
 
 ## Conventions
 
@@ -67,15 +66,15 @@ in detailed design and covered by the test plan.
 
 | ID | Title | Theme | Status |
 |----|-------|-------|--------|
-| [ADR-001](./001-protocol-agnostic-core.md) | Swappable protocol frontend over a shared, protocol-agnostic core | Foundation | Proposed |
-| [ADR-002](./002-request-task-job-model.md) | Three-tier Request / Task / Job execution model | Execution model | Proposed |
-| [ADR-003](./003-threading-and-async-facade.md) | Frontend asyncio + background worker thread + synchronous facade | Runtime | Proposed |
-| [ADR-004](./004-datastore-synchronization.md) | Centralized synchronization over a dumb, synchronous in-memory datastore | Data store | Proposed |
-| [ADR-005](./005-plugin-object-builders.md) | Plugin-based Object Builders per content type | Building | Proposed |
-| [ADR-006](./006-job-sharing-semantics.md) | Job deduplication, priority inheritance, reference-based cancellation | Scheduling (sharing) | Proposed |
-| [ADR-007](./007-priority-scheduling.md) | State-based document priority scheduling | Scheduling (order) | Proposed |
-| [ADR-008](./008-frontend-odb-scheduling-boundary.md) | Responsibility boundary between frontend Requests and ODB Task/Subtask/Job scheduling | Responsibility boundary | Proposed |
-| [ADR-009](./009-configuration-lifecycle.md) | Save-triggered, isolated configuration handling | Configuration | Proposed |
+| [ADR-001](./001-protocol-agnostic-core.md) | Swappable protocol frontend over a shared, protocol-agnostic core | Foundation | Accepted |
+| [ADR-002](./002-request-task-job-model.md) | Three-tier Request / Task / Job execution model | Execution model | Accepted |
+| [ADR-003](./003-threading-and-async-facade.md) | Frontend asyncio + background worker thread + synchronous facade | Runtime | Accepted |
+| [ADR-004](./004-datastore-synchronization.md) | Centralized synchronization over a dumb, synchronous in-memory datastore | Data store | Accepted |
+| [ADR-005](./005-plugin-object-builders.md) | Plugin-based Object Builders per content type | Building | Accepted |
+| [ADR-006](./006-job-sharing-semantics.md) | Job deduplication, priority inheritance, reference-based cancellation | Scheduling (sharing) | Accepted |
+| [ADR-007](./007-priority-scheduling.md) | State-based document priority scheduling | Scheduling (order) | Accepted |
+| [ADR-008](./008-frontend-odb-scheduling-boundary.md) | Responsibility boundary between frontend Requests and ODB Task/Subtask/Job scheduling | Responsibility boundary | Accepted |
+| [ADR-009](./009-configuration-lifecycle.md) | Save-triggered, isolated configuration handling | Configuration | Accepted |
 
 ## How the ADRs fit together
 

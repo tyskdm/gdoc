@@ -1,7 +1,7 @@
 # ADR-003: Frontend asyncio + background worker thread + synchronous facade
 
 - **ID:** ADR-003
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-08
 
 ## Context / Background

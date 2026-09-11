@@ -1,7 +1,7 @@
 # ADR-008: Responsibility boundary between frontend Requests and ODB Task/Subtask/Job scheduling
 
 - **ID:** ADR-008
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-08
 
 ## Context / Background

@@ -1,7 +1,7 @@
 # ADR-005: Plugin-based Object Builders per content type
 
 - **ID:** ADR-005
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-08
 
 ## Context / Background

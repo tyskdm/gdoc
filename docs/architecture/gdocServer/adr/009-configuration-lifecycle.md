@@ -1,7 +1,7 @@
 # ADR-009: Save-triggered, isolated configuration handling
 
 - **ID:** ADR-009
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-08
 
 ## Context / Background

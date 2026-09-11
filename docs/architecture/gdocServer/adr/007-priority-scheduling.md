@@ -1,7 +1,7 @@
 # ADR-007: State-based document priority scheduling
 
 - **ID:** ADR-007
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-08
 
 ## Context / Background

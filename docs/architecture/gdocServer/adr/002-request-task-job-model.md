@@ -1,7 +1,7 @@
 # ADR-002: Three-tier Request / Task / Job execution model
 
 - **ID:** ADR-002
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-08
 
 ## Context / Background

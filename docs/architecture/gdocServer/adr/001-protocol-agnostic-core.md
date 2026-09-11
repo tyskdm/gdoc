@@ -1,7 +1,7 @@
 # ADR-001: Swappable protocol frontend over a shared, protocol-agnostic core
 
 - **ID:** ADR-001
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-08
 
 ## Context / Background

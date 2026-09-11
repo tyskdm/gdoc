@@ -1,7 +1,7 @@
 # ADR-006: Job deduplication, priority inheritance, reference-based cancellation
 
 - **ID:** ADR-006
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-08
 
 ## Context / Background

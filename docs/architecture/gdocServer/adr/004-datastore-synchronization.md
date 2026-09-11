@@ -1,7 +1,7 @@
 # ADR-004: Centralized synchronization over a dumb, synchronous in-memory datastore
 
 - **ID:** ADR-004
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-08
 
 ## Context / Background
