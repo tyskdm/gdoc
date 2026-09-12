@@ -120,6 +120,7 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
 
 - Responsibilities:
   - **Task Scheduling & Prioritization**: Dynamically manages the execution order of **Tasks** based on user focus (e.g., open documents) and dependency requirements.
+  - **Shared-Job Management**: Registers shared **Jobs** under a single **dedup key**, applies **priority inheritance** (a Job takes the highest priority of the Tasks awaiting it), and enforces **reference-counted cancellation** (a Job stays active while at least one Task awaits it, and is canceled on the last departure). Builders *perform* the work; the ODB *decides* the sharing (ADR-006, ADR-008; R-006-3).
   - **Cancellation**: Aborts obsolete **Tasks** and their associated **Jobs** when newer document versions or conflicting **Requests** arrive.
   - **Dependency Graph Management**: Tracks relationships between documents within **Packages** to identify affected scopes when a dependency changes, ensuring the **Project** state remains consistent.
 
@@ -143,21 +144,22 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
 ### 4. gdoc Object Builder
 
 - Role:
-  - Acts as the execution engine for atomic **Jobs** (Parse, Link, Compile), managing their lifecycle and execution state.
-  - Coordinates Job execution when requested by multiple **Tasks** (e.g., from both the Language Server and Object Server).
-  - Provides domain-specific logic for different package types and document formats as a plugin.
+  - Acts as the **execution engine for a Job** (Parse, Link, Compile) — the only component that turns raw source content into gdoc Objects.
+  - Executes Jobs **dispatched by the Object Database**. When several **Tasks** share one Job, **the sharing is decided and managed by the Object Database**, not by the Builder (see ADR-008).
+  - Provides domain-specific logic for different package types and document formats as a plugin (ADR-005).
 
 - Characteristics:
-  - **Job Deduplication & Multi-tasking**: If multiple Tasks request the same Job (e.g., parsing the same file), the Builder manages it as a single unit of work shared by those Tasks (see ADR-006).
-  - **Priority Inheritance**: A Job dynamically inherits the highest priority among all the Tasks currently requesting it.
-  - **Reference-based Cancellation**: A Job remains active as long as at least one requesting Task is still alive. It is only canceled when all associated Tasks have been canceled or removed.
-  - **Plugin-Based Architecture**: Different builders are implemented for specific content types (e.g., `gdoc`, `doxml`) (see ADR-005).
+  - **Shared-execution contract**: A Builder takes part in a Job shared by several Tasks by exposing (a) **cooperative cancellation**, (b) **derivation of the Job's dedup key** for its content type, and (c) **atomic commit** of results on success. The ODB uses these to deduplicate, inherit priority, and reference-count-cancel shared Jobs (ADR-006; R-006-1/2/3).
+  - **Cooperative Cancellation**: a running Job observes a cancel request promptly, so the ODB can abort it when its last referencing Task is removed (R-005-1).
+  - **Dedup Key Derivation**: one key-derivation helper per content type, so identical work maps to one shared Job and differing inputs do not (R-006-2).
+  - **Atomic Commit**: a Job's results become visible only on success; partial results are never exposed (R-006-1).
+  - **Plugin-Based Architecture**: different builders are implemented for specific content types (e.g., `gdoc`, `doxml`) (see ADR-005).
 
 - Responsibilities:
-  - **Execution Management**: Maintains a registry of active Jobs, tracking which Tasks are waiting for which results.
-  - **Content Parsing & Transformation**: Converts raw source content into structured **gdoc Objects** and generates metadata (Semantic Tokens, Symbols).
-  - **Diagnostic Generation**: Identifies syntax and semantic errors during the build process to be reported as LSP diagnostics.
-  - **Resource Optimization**: Prevents redundant processing by identifying overlapping Job requirements across different Frontends.
+  - **Job Execution**: runs the assigned Job; a long-running Job may run in an executor or as a subprocess (ADR-003, ADR-008).
+  - **Content Parsing & Transformation**: converts raw source content into structured **gdoc Objects** and generates metadata (Semantic Tokens, Symbols).
+  - **Diagnostic Generation**: identifies syntax and semantic errors during the build, to be reported as diagnostics by the frontend.
+  - **Does NOT own** (owned by the ODB): which Jobs are shared (dedup registration), priority inheritance, reference-counted cancellation, scheduling, and direct Datastore access.
 
 ## Behaviour: LSP Detailed Sequences
 
