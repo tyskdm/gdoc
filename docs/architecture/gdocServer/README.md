@@ -162,12 +162,12 @@ Every lower-level requirement states its upstream chain on **one line**. Example
   | --- | --- | --- | --- |
 ## 5. Status
 
-**Current phase:** **Phase 1a (ready to start).** Phase 0 is **CLOSED** (2026-09-11).
+**Current phase:** **Phase 1a ✅ CLOSED (2026-09-11)**; Phase 1b ready to start. Phase 0 CLOSED (2026-09-11).
 
 | Phase | Purpose | Deliverable | Status |
 | --- | --- | --- | --- |
 | 0 | Grounding: component/responsibility inventory + glossary | `subcomponents/README.md` | ✅ done (2026-09-11) |
-| 1a | Task/Job management rules (goal #3) | `contracts/task-job-management.md` | ⬜ not started |
+| 1a | Task/Job management rules (goal #3) | `contracts/task-job-management.md` | ✅ approved / closed (2026-09-11) |
 | 1b | Frontend↔ODB API (goal #2) | `contracts/frontend-odb-api.md` | ⬜ not started |
 | 2 | Unify use-case analysis (behavioral evidence) | `usecases/UC_*.md` | ⬜ not started |
 | 3 | Component requirement allocation (goal #1) | `subcomponents/*.md` | ⬜ not started |

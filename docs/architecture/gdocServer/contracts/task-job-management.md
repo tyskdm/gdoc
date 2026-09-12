@@ -2,7 +2,7 @@
 
 > **Deliverable of:** Phase 1a (Task/Job management rules, goal #3) of the gdoc Server design-documentation effort.
 > **Position:** `docs/architecture/gdocServer/contracts/task-job-management.md`
-> **Status:** Draft for user review (Phase 1a — **not yet approved**).
+> **Status:** ✅ **Approved — Phase 1a closed (2026-09-11).**
 > **Companion files:** `./frontend-odb-api.md` (Phase 1b) · `../usecases/UC_*.md` (Phase 2) · `../subcomponents/*.md` (Phase 3) · `../traceability.md` (Phase 4).
 > **Role in the set:** a **Rank-5 contract** (an executable specification **derived** from ranks 1–4, per `../README.md` §2/§3). It is the **rails**: every Phase 3 component requirement that touches Task/Job decomposition, deduplication, cancellation, priority, or configuration-rebuild must cite the applicable `TJ-` rule here, so Phase 3 can *verify against* it.
 
@@ -362,4 +362,4 @@ Per `../README.md` §8 (Phase 1a *User review*), please confirm before Phase 1b:
 - State-transition table present (Task + Job) — **met** (§3.1).
 - Dedup key + priority rules explicit — **met** (TJ-005…TJ-009, TJ-010…TJ-015).
 - Q-002 resolved — **met** (TJ-018, via D-004).
-- **Verdict: DoD met**, pending the §7 confirmations above (esp. the D-007 deferral acceptance).
+- **Verdict: ✅ APPROVED — Phase 1a closed (2026-09-11).** All §7 confirmations accepted (incl. D-004 `version_id`, D-007 starvation thresholds deferred, D-010 priority-inversion deferred).
