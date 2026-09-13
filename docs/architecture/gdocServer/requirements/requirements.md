@@ -46,6 +46,7 @@
 - **[NFR-1.1] Asynchronous Frontend**: The Language Server component must leverage Python's `asyncio` to ensure high responsiveness for client I/O, preventing UI blocking in the IDE.
 - **[NFR-1.2] Background Processing**: Computationally intensive analysis (performed by the Object Database) must run in a dedicated background worker thread to avoid blocking the frontend loop.
 - **[NFR-1.3] Low Latency Data Access**: The Object Datastore should utilize optimized in-memory data structures to ensure fast state retrieval and relationship mapping.
+- **[NFR-1.4] Progress Feedback (WDP)**: For long-running (ticketed) operations, the Object Database must report progress to the Frontend — a `begin`, zero or more `report` progress events, and exactly one `end` immediately before completion — so a slow request is not left silently waiting. Progress must be **honest**: unbounded work must not fabricate a completion percentage (it may report discrete milestones or counts and a "running" state). Progress rides the same thread-safe push-back channel as results/completion (NFR-2.2). *Applies per D-005 (v1 scope): required for ticketed operations (e.g. Find References, config-save rebuild); other operations may also be ticketed and progressed.*
 
 ### 2. Reliability and Integrity
 
