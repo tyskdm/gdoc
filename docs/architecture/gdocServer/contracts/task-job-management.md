@@ -110,9 +110,9 @@ Owners: **ODB** = C2 · **Frontend** = C1 · **Builder** = C4 · **Datastore** =
 - Derived From: FR-3.2 → ADR-006 → R-006-3 → ADR-008 (R-008-1).
 - **Test:** with two Tasks awaiting one shared Job, canceling one **keeps** the Job running; canceling the last **cancels** it; concurrent add/remove of waiters never leaves the Job canceled-with-waiters or running-without-waiters.
 
-**[TJ-008] Atomic commit on success only.** A Builder commits its result to the Datastore **atomically, and only on success**. A Job **canceled mid-run commits nothing** — the Datastore is left in its **pre-Job** state; partial results are **never** exposed. (The exact commit mechanism — single swap vs. transactional batch — is a detailed-design detail, not a threshold.)
+**[TJ-008] Atomic commit on success only.** The ODB commits the Builder's candidate result to the Datastore **atomically, and only on success**. A Job **canceled mid-run commits nothing** — the Datastore is left in its **pre-Job** state; partial results are **never** exposed. (The exact commit mechanism — single swap vs. transactional batch — is a detailed-design detail, not a threshold.)
 
-- **Owner:** Builder (commit); ODB (no-expose guarantee). **Risk(s):** R-006-1.
+- **Owner:** ODB (commit + no-expose guarantee); Builder (candidate production). **Risk(s):** R-006-1.
 - Derived From: FR-3.2 → ADR-006 → R-006-1 → ADR-005 (R-005-2).
 - **Test:** a mid-run-canceled Job leaves the Datastore in its pre-Job state; a successful Job's result becomes visible atomically (all-or-nothing).
 
@@ -186,6 +186,8 @@ Within/below these, references are built in **reference-depth order from open te
 
 **[TJ-018] Document identity / freshness key = `version_id`.** A document's identity/freshness key is the **`version_id` = tuple `(last_save_timestamp, open_revision)`** (D-004): `last_save_timestamp` = the file's **last on-disk save time (mtime)**; `open_revision` = the LSP `didChange` `version` for **open** files, **0** for **non-open** files; compare `last_save_timestamp` first, then `open_revision`. This key is used **consistently** as (a) the **version component of the dedup key** (TJ-005) and (b) the **Datastore freshness invariant**: a stored result for a document is **fresh iff its `version_id` equals the document's current `version_id`**. This resolves the "cannot compare new/old" problem (Q-002 → D-004) **for both open and non-open files**. A document's result is **stale** (and must be rebuilt) when its current `version_id` ≠ the stored result's `version_id`.
 
+> **Note (dependency freshness):** This rule covers a document's **own** content freshness. Staleness caused by **dependency** changes (a referenced document was rebuilt) is handled by the **dedup key inputs** (TJ-005: `dependency state`) — a changed dependency alters the key, so the stored result is not reused.
+
 - **Scope & computation (D-004 · ADR-001 · FR-1.3):** the `version_id` covers **both open and non-open** files. **Content source:** **open** files → the **client buffer** (C1 supplies it; reflects unsaved edits); **non-open** files → the **builder reads the file from disk by path**. **Change detection:** open → `didChange` (LSP `version`); non-open → **`didChangeWatchedFiles`** (the IDE's watcher — the server does **not** poll the disk). **The `version_id` is computed by C1** (open: `didChange` version + last-save mtime; non-open: mtime via `stat`, `open_revision` = 0); C1 is further obligated to **register `workspace/didChangeWatchedFiles`** for non-open project files. *(This C1 obligation is the boundary's other side (ADR-008), allocated to `LSP-*` in Phase 3.)*
 - **Owner:** C1 (computes `version_id`) + ODB (key) + Datastore (freshness invariant). **Risk(s):** R-006-2, (NFR-2.1 consistency).
 - Derived From: NFR-2.1 → ADR-006 → R-006-2 → D-004 (Q-002).
@@ -219,10 +221,10 @@ One row per rule. This table is the grep/aggregation target for the Phase 1a and
 | TJ-002 | Subtask vs Job boundary (Job-only sharing) | ODB | FR-3.1 → ADR-002 note → R-002-1 | R-002-1 | no double-count across tiers |
 | TJ-003 | Task lifecycle states | ODB | FR-3.1 → ADR-002 | — | terminal state exactly once |
 | TJ-004 | Job lifecycle states + waiter set | ODB | FR-3.1/3.2 → ADR-002/005/006 | R-006-1/3 | cancel→no commit; success→all waiters done |
-| TJ-005 | Dedup key = (file, version, inputs) | ODB+Builder | FR-3.2 → ADR-006 → R-006-2 → D-004 | R-006-2 | differing inputs ⇒ not collapsed |
-| TJ-006 | Single in-flight invariant per key | ODB | FR-3.2 → ADR-006 → R-002-2 | R-002-2, R-006-2 | exactly one in-flight Job per key |
+| TJ-005 | Dedup key = (file, version, inputs) | ODB+Builder | FR-3.2 / NFR-3.1 → ADR-006 → R-006-2 → D-004 | R-006-2 | differing inputs ⇒ not collapsed |
+| TJ-006 | Single in-flight invariant per key | ODB | FR-3.2 / NFR-3.1 → ADR-006 → R-002-2 | R-002-2, R-006-2 | exactly one in-flight Job per key |
 | TJ-007 | Reference-counted cancellation | ODB (Frontend cancels own Task) | FR-3.2 → ADR-006 → R-006-3 → R-008-1 | R-006-3, R-008-1, R-002-1 | last-departure cancels; no leak/lost work |
-| TJ-008 | Atomic commit on success only | Builder+ODB | FR-3.2 → ADR-006 → R-006-1 → R-005-2 | R-006-1 | mid-run cancel ⇒ pre-Job state |
+| TJ-008 | Atomic commit on success only | ODB (Builder produces) | FR-3.2 → ADR-006 → R-006-1 → R-005-2 | R-006-1 | mid-run cancel ⇒ pre-Job state |
 | TJ-009 | Priority inheritance (max of waiters) | ODB | FR-3.2 → ADR-006 → R-006-4 | R-006-4, R-002-1 | inherit/relax with no double-count |
 | TJ-010 | Two-domain priority boundary (no client-type branch) | ODB (Frontend orders own) | NFR-2.3 → ADR-008 → R-007-3 → R-008-2 | R-007-3, R-008-2 | ODB paths never read client-type |
 | TJ-011 | Document states 1/2/3 + reference-depth | ODB | NFR-2.3 → ADR-007 | (basis R-007-1/2) | state + depth ordering holds |

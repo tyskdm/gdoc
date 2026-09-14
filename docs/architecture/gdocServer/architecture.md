@@ -49,7 +49,7 @@ When the language‑server client sends a text‑edit notification, the gdoc ser
 1. gdoc Language Server receives text editing events from the client.
 2. gdoc Language Server requests gdoc Object Database to parse the edited text.
 3. gdoc Object Database create a plan and return the task ticket to Language Server.
-4. gdoc Object Database isuse a job ticket to parses the text for gdoc Object Builder.
+4. gdoc Object Database uses a job ticket to parse the text for gdoc Object Builder.
 5. gdoc Object Builder parses the text and return to gdoc Object Database.
 6. gdoc Object Database updates gdoc Objects in gdoc Object Datastore.
 7. gdoc Language Server receives notifications from the gdoc Object Database about changes in gdoc Objects

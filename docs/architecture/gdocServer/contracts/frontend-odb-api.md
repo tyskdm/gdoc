@@ -185,9 +185,9 @@ DocumentRef { uri : Uri, version_id : (last_save_mtime, open_revision) }
 - `open_revision > 0` ⇒ **open** (buffer is the source of truth); `open_revision == 0` ⇒ **non-open** (disk is the source of truth).
 - **Frontend (C1) obligation:** include the **current** `version_id` for every involved document, and — when the document is **open** — the **buffer content** in `payload` (or via the sync operation), since the Builder must build from the *latest open buffer* (TJ-018).
 - **ODB (C2) obligation:** use `version_id` as the **dedup key version component** (TJ-005) and the freshness trigger (open edit ⇒ `open_revision↑`; non-open disk change ⇒ `last_save_mtime↑`); invalidate/rebuild accordingly.
-- **Builder (C3) obligation:** build from the content the ODB supplies (buffer when open, disk when non-open) — never from a stale copy.
+- **Builder (C4) obligation:** build from the content the ODB supplies (buffer when open, disk when non-open) — never from a stale copy.
 
-- **Owner:** shared (C1 supplies, C2 uses, C3 consumes). **Risk(s):** R-006-2 (dedup key), R-006-4 (stale buffer → wrong result).
+- **Owner:** shared (C1 supplies, C2 uses, C4 consumes). **Risk(s):** R-006-2 (dedup key), R-006-4 (stale buffer → wrong result).
 - **Derived From:** NFR-2.1 (always latest) → ADR-006 (dedup) → TJ-018 / D-004 → R-006-2.
 - **Test:** an open-buffer edit (revision↑) and a non-open disk change (mtime↑) each invalidate/rebuild the affected (file, version, inputs); a Builder never builds from a buffer older than the Request's `version_id`.
 
@@ -232,7 +232,7 @@ Pending   // returned by get_result for a non-terminal Task (§3 API-002) — no
 | Payload | For | Contents (logical) | v1 (D-005) |
 | ------- | --- | ------------------ | ---------- |
 | `HoverPayload` | `HOVER` | the declaration's signature + doc for the symbol under the cursor (data, not UI markup) | **v1** |
-| `DefinitionPayload` | `DEFINITION` | target `DocumentRef` + position of the direct definition | **v1** |
+| `DefinitionPayload` | `DEFINITION` | list of (target `DocumentRef` + position) for the definition(s) | **v1** |
 | `ReferencesPayload` | `REFERENCES` | list of `DocumentRef` + positions of all (transitive) references | **v1** |
 | `DiagnosticsPayload` | `DIAGNOSTICS` | diagnostics list for the document (server→client) | **v1** |
 | `SyncPayload` | `DOCUMENT_SYNC`/`WATCHED_FILES`/`CONFIG_SAVE` | ack: new `version_id`, affected documents; for `CONFIG_SAVE` also the post-save rebuild/invalidation notice (TJ-016/017; ADR-009) | **v1** |

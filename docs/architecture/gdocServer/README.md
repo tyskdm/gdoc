@@ -141,6 +141,7 @@ FR/NFR. The Phase 4 matrix (§8) is the machine check for this.
 | Component requirement | `LSP-nnn` / `ODB-nnn` / `DS-nnn` / `BLD-nnn` | `ODB-001` | `subcomponents/` |
 | API operation | `API-nnn` | `API-001` | `contracts/frontend-odb-api.md` |
 | Task/Job rule | `TJ-nnn` | `TJ-001` | `contracts/task-job-management.md` |
+| Facade obligation | `F<n>.<m>` | `F6.1` | `contracts/frontend-odb-api.md` §6 |
 
 ### 4.2 "Derived From" format
 
@@ -350,7 +351,7 @@ Each phase produces a deliverable; a phase with no deliverable is not done.
      as a public API.
   4. **Allocate the NFRs** (NFR-1.1..3.1): LSP = asyncio / lightweight message handling / minimal
      runtime (NFR-1.1); ODB = separate thread / internal event loop / dynamic scheduling / share &
-     cancel (NFR-2.1/2.2/2.3); Datastore = in-memory / thread-safe / single writer (NFR-3.1).
+     cancel (NFR-2.1/2.2/2.3); Datastore = in-memory / thread-safe / single writer (NFR-1.3/2.2).
   5. Confirm **every FR/NFR is covered by ≥1 component requirement** (zero misses).
 - **Self-check:** apply the **5** checks from `.agents/checklists/Traceability Check Strategy.md`
   (adequacy, semantic containment, consistency, granularity, verifiability) per component, in a table;
