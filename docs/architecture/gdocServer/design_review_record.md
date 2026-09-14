@@ -2,7 +2,7 @@
 
 > **Scope:** Cross-document consistency and completeness review of Phase 0 - Phase 1b documents.
 > **Date:** 2026-09-14
-> **Status legend:** [F] = Fixed, [Q] = Awaiting decision, [D] = Deferred to later phase
+> **Status legend:** [F] = Fixed, [C] = Confirmed, [D] = Deferred to later phase
 
 ---
 
@@ -14,7 +14,7 @@
 | NC-02 | TJ-008: Builder commits to Datastore contradicts ADR-004 (ODB is sole writer). | task-job-management.md | [F] Fixed | Reworded to ODB commits Builder candidate. |
 | NC-03 | frontend-odb-api.md s4.3: Builder as C3; correct is C4. | frontend-odb-api.md L188/190 | [F] Fixed | C3 to C4. |
 | NC-04 | TJ-018 fresh-iff ignores dependency changes; TJ-005 covers via dedup key. | task-job-management.md | [F] Fixed | Added dependency note. |
-| NC-05 | Background builds (State 2/3): no Request, no Task, empty waiter, immediate cancel. | TJ-001/004/007 | [Q] Awaiting | **See D-014.** |
+| NC-05 | Background builds (State 2/3): no Request, no Task, empty waiter, immediate cancel. | TJ-001/004/007 | [C] Confirmed | **D-014 = A (System Task).** |
 
 ---
 
@@ -22,12 +22,12 @@
 
 | ID | Finding | Status | Notes |
 | --- | --- | --- | --- |
-| OM-01 | Diagnostics delivery path undefined (LSP publishDiagnostics push). | [Q] Awaiting | **See D-015.** |
-| OM-02 | didClose (State 2 release) has no explicit API payload action. | [Q] Awaiting | **See D-016.** |
-| OM-03 | File deletion: no payload in WATCHED_FILES; Datastore cleanup undefined. | [Q] Awaiting | Covered by D-016. |
+| OM-01 | Diagnostics delivery path undefined (LSP publishDiagnostics push). | [C] Confirmed | **D-015 = B (event push).** |
+| OM-02 | didClose (State 2 release) has no explicit API payload action. | [C] Confirmed | **D-016 = action/type in payload.** |
+| OM-03 | File deletion: no payload in WATCHED_FILES; Datastore cleanup undefined. | [C] Confirmed | Covered by D-016 (type:deleted). |
 | OM-04 | No CONFIG_LOAD / INITIALIZE for workspace startup. | [D] Deferred | Phase 2 UC. |
-| OM-05 | OperationPayload schema per operation undefined. | [Q] Awaiting | **See D-017.** |
-| OM-06 | ErrorCode lacks policy-based cancel distinction (TJ-014). | [Q] Awaiting | **See D-018.** |
+| OM-05 | OperationPayload schema per operation undefined. | [C] Confirmed | **D-017 = alongside Phase 2.** |
+| OM-06 | ErrorCode lacks policy-based cancel distinction (TJ-014). | [C] Confirmed | **D-018 = TerminalEvent.reason.** |
 | OM-07 | E_NOT_BUILT trigger and recovery unexplained. | [D] Deferred | Phase 3. |
 
 ---
@@ -159,17 +159,15 @@ WATCHED_FILES: { events: [{uri, type: "created"|"changed"|"deleted"}] }
 
 ## 7. Summary
 
-| Category | Total | Fixed | Awaiting | Deferred |
-| ---------- | ------- | ------- | ---------- | ---------- |
+| Category | Total | Fixed | Confirmed | Deferred |
+| ---------- | ------- | ------- | --------- | -------- |
 | Inconsistencies | 5 | 4 | 1 | 0 |
 | Omissions | 7 | 0 | 5 | 2 |
 | Edge Cases | 3 | 1 | 0 | 2 |
 | Minor Issues | 3 | 3 | 0 | 0 |
 | **Total** | **18** | **8** | **6** | **4** |
 
-**Blockers for Phase 2:** D-014, D-015.
-**Resolve during Phase 2:** D-016, D-017.
-**Phase 3:** D-018, deferred items.
+**All 6 awaiting items now confirmed (D-014 through D-018).**
 
 ---
 

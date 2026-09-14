@@ -258,7 +258,7 @@ Completion is **one** event in a per-request stream; an optional **expiry** even
 ```
 RequestEvent {
   request_id : RequestId
-  event      : ProgressEvent | TerminalEvent | ExpiryEvent
+  event      : ProgressEvent | TerminalEvent | ExpiryEvent | DiagnosticsEvent
 }
 ProgressEvent {
   stage      : Begin | Report | End
@@ -267,11 +267,16 @@ ProgressEvent {
 }
 TerminalEvent {
   status     : Success | Error | Cancelled   // Result fetched via get_result (API-002)
+  reason?    : "user_canceled" | "policy_deferred" | "system_cancelled"  // (D-018) set when status=Cancelled
 }
 ExpiryEvent {
   operation  : Operation        // which result was discarded (lets the Frontend build a meaningful message)
   document   : DocumentRef      // which document (ditto)
   code       : E_EXPIRED        // always E_EXPIRED — the window closed by TTL
+}
+DiagnosticsEvent {                                    // (D-015) ODB pushes after build
+  document   : DocumentRef      // which document
+  diagnostics: Diagnostic[]     // updated diagnostics (LSP-compatible shape)
 }
 ```
 
@@ -283,10 +288,12 @@ ExpiryEvent {
 - **Request-level only:** progress exposes **no** Job/Task/Subtask identity (ADR-008); the ODB derives %/message from its own Job state.
 - **No payload in progress or expiry:** the payload is fetched via `get_result` on the terminal (API-002); progress and expiry events carry **no** result payload.
 - **Frontend mapping (protocol-agnostic):** progress is per ODB `request_id`. A Frontend **may** map one or more ODB requests' progress into its own protocol's notion of progress (e.g. an LSP frontend maps each to **Work Done Progress**, `window/workDoneProgress/create` + `$/progress`) and **may** map `ExpiryEvent` to a diagnostic or a server log (its choice, ADR-008). The ODB does **not** assume 1:1 and is protocol-agnostic (R-008-2).
+- **DiagnosticsEvent (D-015).** The ODB **shall** push a `DiagnosticsEvent` via the registered handler after processing `DOCUMENT_SYNC`, `WATCHED_FILES`, or `CONFIG_SAVE` **when** the document's diagnostics have changed as a result. The Frontend maps it to `textDocument/publishDiagnostics` (LSP) or the equivalent in its protocol. The `DIAGNOSTICS` operation (pull, §4.1) coexists for explicit re-request; the push is the **primary** delivery path (matching LSP's server→client model). `DiagnosticsEvent` is **document-scoped** (carries `document`, not `request_id`); it may arrive **outside** any specific request's progress stream.
+- **TerminalEvent.reason (D-018).** When `status = Cancelled`, the ODB **shall** set `reason` to indicate the cancellation origin: `"user_canceled"` (Frontend called `cancel()`), `"policy_deferred"` (TJ-014 unbounded-work defer), or `"system_cancelled"` (System Task lifecycle, TJ-021 / D-014). The Frontend uses `reason` to build meaningful logs/diagnostics. `Cancelled` remains a **normal outcome** (not an `ErrorCode`).
 
 - **Owner:** shared (ODB emits, Frontend consumes/maps). **Risk(s):** R-003-1/2/3 (same push-back channel), R-008-2 (no protocol leak), unbounded-resource (availability) — bounded by eviction.
-- **Derived From:** NFR-1.4 (WDP progress) + **D-011** (expiry notification; *provisional — to be logged at approval*; TTL threshold deferred under D-007 / R-007-2) → ADR-003 (push-back / thread-safe) → ADR-008 (protocol-agnostic) → TJ-006 (incremental progress source).
-- **Test:** the event ordering holds (begin…end, terminal, then an optional single expiry); a fetched result emits **no** expiry; a TTL-expired result emits exactly one expiry carrying `operation`+`document` and **no** payload; unbounded progress carries a message but no fabricated %; the Frontend may map the stream to its protocol's progress (e.g. LSP WDP); a detached handler still allows eviction to proceed.
+- **Derived From:** NFR-1.4 (WDP progress) + **D-011** (expiry notification) + **D-015** (diagnostics push) + **D-018** (cancel reason) → ADR-003 (push-back / thread-safe) → ADR-008 (protocol-agnostic) → TJ-006 (incremental progress source).
+- **Test:** the event ordering holds (begin…end, terminal, then an optional single expiry); a fetched result emits **no** expiry; a TTL-expired result emits exactly one expiry carrying `operation`+`document` and **no** payload; unbounded progress carries a message but no fabricated %; the Frontend may map the stream to its protocol's progress (e.g. LSP WDP); a detached handler still allows eviction to proceed; a `DiagnosticsEvent` arrives after `DOCUMENT_SYNC` processing and carries the updated diagnostics; a policy-cancelled task's `TerminalEvent` has `reason: "policy_deferred"`.
 
 ## 6. Synchronous facade & threading semantics (ADR-003/004)
 
@@ -313,7 +320,8 @@ The ODB's API is **protocol-agnostic**; each Frontend translates its own protoco
 | Frontend protocol event | Frontend decides (it owns the mapping) | API call |
 | ----------------------- | --------------- | -------- |
 | LSP `$/cancelRequest` for request N | which ODB id(s) N mapped to (1 or N) | `cancel(request_id)` or `cancel(request_ids)` |
-| `textDocument/didClose` for document D | which of its ids are now moot | `cancel(request_id)` / `cancel(request_ids)` for those ids |
+| `textDocument/didClose` for document D | which of its ids are now moot; **plus** the state transition | `submit(DOCUMENT_SYNC{action:close, document:D})` **and** `cancel(request_ids)` for those ids |
+| `workspace/didChangeWatchedFiles` (type=deleted) | file removed; ODB must clean up Datastore + dependency graph | `submit(WATCHED_FILES{events:[{uri, type:"deleted"}]})` **and** `cancel(request_ids)` for affected docs |
 | Client disconnect / shutdown | tear down everything | `cancel(all)` |
 | Timeout / "give up" on request N | which ODB id(s) N mapped to | `cancel(request_id)` or `cancel(request_ids)` |
 
