@@ -41,9 +41,8 @@ or double-owned.
 Fixed by the Decisions Log in `../README.md` §7:
 
 - **D-005 — v1 functional scope:** `didOpen/didChange/didClose` (sync), `didChangeWatchedFiles` +
-  save (config), **Hover** (depth 0), **Go-to-Definition** (depth 1), **Find References**
-  (unbounded), **Diagnostics** (server→client). Completion / Rename / Document Symbols / Semantic
-  Tokens are **v2 (provisional)**.
+  save (config), **Hover**, **Go-to-Definition**, **Find References**, **Diagnostics** (server→client).
+  Completion / Rename / Document Symbols / Semantic Tokens are **v2 (provisional)**.
 - **D-006 — Object Server is excluded from v1** (future second frontend; see §5.4).
 
 The component *set* below is therefore stable across v1/v2; only the *feature scope* differs.

@@ -48,7 +48,7 @@ Each operation is a **shall** (a testable obligation) and carries:
 | --- | --------- | --------- | ----- | ----------------- |
 | API-001 | `submit(request)` | F→O | ODB | Accept a Request, map it 1:1 to a Task, answer inline **or** return a request id. |
 | API-002 | `get_result(request_id)` | F→O | ODB | Synchronously read a Task's terminal Result (or report *pending*); never blocks. |
-| API-003 | `cancel(request_id \| scope)` | F→O | ODB | Cancel the calling Frontend's own Task(s) only; the ODB decrements shared-Job refs. |
+| API-003 | `cancel(request_id \| request_ids \| all)` | F→O | ODB | Cancel own live Task(s): **one** id, a **set** of ids, or **all** of this Frontend's; the ODB decrements shared-Job refs. |
 | API-004 | `register_completion(handler)` | F→O | ODB (host) / Frontend (handler) | Pre-register the push-back channel; the handler receives the request event stream (progress `begin`/`report`/`end` + terminal). |
 
 ## 3. Operations
@@ -84,19 +84,19 @@ Each operation is a **shall** (a testable obligation) and carries:
 - **Derived From:** FR-3.1 → ADR-003 (push-back / fetch; not polling) → ADR-004 (in-memory ⇒ bounded retention; non-blocking read) → **D-011** (retention window; *provisional — to be logged in `../README.md` §7 at approval*; TTL threshold deferred under D-007 / R-007-2) → TJ-003 (Task terminal states).
 - **Test:** `get_result` on a non-terminal Task returns `Pending` (repeatable, non-consuming) without blocking; after the completion push the **first** successful fetch returns the payload and a **second** returns `E_EXPIRED`; a never-submitted id returns `E_NOT_FOUND`; a TTL-expired id returns `E_EXPIRED`; the terminal push is never preceded by eviction; a detached handler still allows eviction to proceed.
 
-### API-003 — `cancel(request_id: RequestId | scope: CancelScope) → CancelResult`
+### API-003 — `cancel(request_id: RequestId | request_ids: RequestId[] | all: true) → CancelResult`
 
 `F→O`. The Frontend cancels work **it owns**.
 
 - **Own Task(s) only.** The Frontend **shall** cancel only Task(s) it submitted. It **shall not** address a Job directly, nor another Frontend's Task (TJ-007; ADR-008). Cancellation of a shared Job is **derived**: the ODB decrements the Job's waiter set, and the Job is canceled **only when the last waiter departs** (TJ-007).
-- **`request_id` form** cancels one specific Task. **`scope` form** (`CancelScope`, §4.4) cancels a set the Frontend owns — e.g. *all of this Frontend's Tasks touching `document D`*, or *all of this Frontend's Tasks* (disconnect). The ODB resolves the scope against the calling Frontend's ownership and cancels only those. The scope's `owner` is **implicit** = the calling Frontend (its API object); a Frontend can only target **itself** (R-008-1).
-- **Protocol-agnostic.** The ODB's cancellation API takes a `request_id`/`scope`, **not** a protocol event. Each Frontend **translates** its protocol's cancellation into this call (R-008-1); see the translation table in §7.
+- **Three forms (all own-only, R-008-1):** (1) `cancel(request_id)` — one specific Task; (2) `cancel(request_ids)` — a **set** of Tasks (e.g. the ODB ids a Frontend associated with one of its protocol messages — 1 or N, §7); (3) `cancel(all)` — **all** of this Frontend's live Tasks (disconnect / teardown). `owner` is **implicit** = the calling Frontend (its API object); a Frontend can only target **itself** (R-008-1). *The ODB never infers which ids are "moot" (e.g. for a document that closed) — the Frontend supplies the exact ids, owning the protocol→id mapping and the intent.*
+- **Protocol-agnostic.** The ODB's cancellation API takes a `request_id` / `request_ids` / `all`, **not** a protocol event. Each Frontend **translates** its protocol's cancellation into one of these (R-008-1); see the example table in §7.
 - **Result.** `CancelResult` reports which ids were actually canceled vs. already-terminal (no-op). Canceling an already-terminal Task is a safe no-op.
 - **Effect on shared work.** Canceling one waiter **does not** cancel a shared Job that other live Tasks still await (TJ-007). A canceled Task's Result is `status: Cancelled` (§5), **not** `Error`.
 
 - **Owner:** ODB (count + cancel decision); Frontend (cancels own only). **Risk(s):** R-008-1 (cancellation translation), R-006-3 (reference-count errors), R-002-1 (accounting).
 - **Derived From:** FR-3.2 (reference-based cancellation) → ADR-008 (own-Task only) → ADR-006 (reference-counted) → TJ-007.
-- **Test:** two Tasks await one shared Job — canceling one keeps the Job running; canceling the last cancels it; `cancel(scope)` never touches another Frontend's Task; canceling a terminal Task is a no-op.
+- **Test:** two Tasks await one shared Job — canceling one keeps the Job running; canceling the last cancels it; `cancel(request_ids)` cancels exactly the supplied own ids (others untouched); `cancel(all)` cancels all of this Frontend's live Tasks and **never** another Frontend's; canceling a terminal Task is a no-op.
 
 ### API-004 — `register_completion(handler: RequestEventHandler) → handle`
 
@@ -129,17 +129,18 @@ Request {
   operation       : Operation        // what the Frontend wants (enum, §4.1)
   documents       : [DocumentRef]    // documents involved (§4.3)
   payload         : OperationPayload // operation-specific context (positions, new name, scope, open-buffer content…)
-  reference_depth : Depth            // 0 | 1 | unbounded   (drives TJ-011/012 ordering, TJ-014)
   priority_hint   : PriorityHint     // Frontend-domain only; ODB SHALL NOT branch on it (TJ-010, R-008-2)
   source          : FrontendIdentity // identity only; **ODB-populated** from the calling API object (implicit, not frontend-set); ownership/cancellation attribution (R-008-2)
 }
 ```
 
 - **Frontend (C1) obligation:** construct a `Request` that fully expresses the intent, including `documents`/`version_id` and any open-buffer content the ODB/Builder must read.
-- **ODB (C2) obligation:** interpret the `Request` without inspecting which protocol produced it; use `reference_depth`, `documents`, `payload` to scope, build and order Tasks (TJ-011/012); use `source` **only** for ownership/cancellation attribution; treat `priority_hint` as Frontend-domain (TJ-010). (`source` is **set by the ODB from the calling API object** — implicit, the Frontend does not fill it; §4.2.)
+- **ODB (C2) obligation:** interpret the `Request` without inspecting which protocol produced it; use `operation`, `documents`, `payload` to scope, build and order Tasks (TJ-011/012; reference-depth ordering is ODB-derived from the operation — §4.1); use `source` **only** for ownership/cancellation attribution; treat `priority_hint` as Frontend-domain (TJ-010). (`source` is **set by the ODB from the calling API object** — implicit, the Frontend does not fill it; §4.2.)
 - **Superset.** The model is a superset of every frontend's needs (ADR-001); fields a given frontend does not use are optional/empty, never a client-type branch.
 
-> **`priority_hint` vs. ODB priority.** Do not conflate. The Frontend orders *its own* requests (`priority_hint`) in its own domain. The ODB orders *shared work* by **document state and reference depth** (TJ-011/012) — a protocol-agnostic fact. The ODB **shall not** derive scheduling from `priority_hint`'s client-type semantics (TJ-010, R-008-2).
+> **`priority_hint` vs. ODB priority.** Do not conflate. The Frontend orders *its own* requests (`priority_hint`) in its own domain. The ODB orders *shared work* by **document state and the operation's reference depth** (TJ-011/012) — a protocol-agnostic fact. The ODB **shall not** derive scheduling from `priority_hint`'s client-type semantics (TJ-010, R-008-2).
+
+> **On knowing Operations (boundary discipline, R-008-2).** The ODB is *expected* to understand the operations it can receive (`HOVER`, `DEFINITION`, …): they are the **shared FE↔ODB API vocabulary**, and understanding an issued Operation is **normal contract knowledge — not an intrusion** into the Frontend's internal responsibilities. What the ODB must **not** do is interpret the Frontend's *client-type-specific intent* — **why** it issued the operation, IDE focus, per-client scheduling rules — which the ODB neither sees nor acts on (R-008-2). In one line: **the Operation is shared vocabulary the ODB knows by contract; the Frontend's rationale and client-type semantics are private.** A payload such as `HoverPayload` is *data* (the declaration's signature + doc), not a UI action — the "popup" is the IDE's job.
 
 ### 4.1 `Operation` codes
 
@@ -147,9 +148,9 @@ Each maps to a FR-1.2 feature (or a synchronization/config action). v1 vs v2 is 
 
 | Operation | Feature | v1 (D-005) | Result payload (§5) |
 | --------- | ------- | ---------- | ------------------- |
-| `HOVER` | FR-1.2 Hover (depth 0) | **v1** | `HoverPayload` |
-| `DEFINITION` | FR-1.2 Go to Definition (depth 1) | **v1** | `DefinitionPayload` |
-| `REFERENCES` | FR-1.2 Find References (unbounded) | **v1** | `ReferencesPayload` |
+| `HOVER` | FR-1.2 Hover | **v1** | `HoverPayload` |
+| `DEFINITION` | FR-1.2 Go to Definition | **v1** | `DefinitionPayload` |
+| `REFERENCES` | FR-1.2 Find References | **v1** | `ReferencesPayload` |
 | `DIAGNOSTICS` | FR-1.2 Diagnostics (server→client) | **v1** | `DiagnosticsPayload` |
 | `DOCUMENT_SYNC` | FR-1.1 didOpen/didChange/didClose | **v1** | `SyncPayload` (ack) |
 | `WATCHED_FILES` | FR-1.1 didChangeWatchedFiles | **v1** | `SyncPayload` (ack) |
@@ -164,15 +165,15 @@ Each maps to a FR-1.2 feature (or a synchronization/config action). v1 vs v2 is 
 
 - **Owner:** ODB (canonical interpretation); Frontend (populates). **Risk(s):** R-008-2 (missing context), R-008-1 (per-operation cancellation).
 - **Derived From:** FR-1.2 (feature set) + FR-1.1 (sync/config) → ADR-001 (superset) → ADR-008 (protocol-agnostic context) → R-008-2 → D-005 (v1/v2 split).
-- **Test:** a `Request` for each v1 operation carries exactly the context its Task needs (depth, documents, positions); adding a new operation extends the enum, it does not special-case a client.
+- **Test:** a `Request` for each v1 operation carries exactly the context its Task needs (documents, positions); adding a new operation extends the enum, it does not special-case a client.
 
-### 4.2 `Depth`, `PriorityHint`, `FrontendIdentity`
+### 4.2 `PriorityHint`, `FrontendIdentity`
 
-- **`Depth`** = `0` (self only; `HOVER`) · `1` (direct definition; `DEFINITION`) · `unbounded` (transitive refs; `REFERENCES`). The ODB maps this to the reference-depth ordering of TJ-011 and the unbounded-work defer/cancel of TJ-014.
+- **Reference-depth ordering (ODB-internal, derived from the `operation`).** The ODB orders shared work by reference depth (TJ-011) and applies the unbounded-work defer/cancel policy (TJ-014). This depth is **derived by the ODB from the `operation`** (a shared-vocabulary fact, §4.1) — e.g. `HOVER`/`DEFINITION` are immediate navigation targets; `REFERENCES` is the unbounded "long tail" (ADR-007). It is **not** a `Request` field the Frontend sets (removed as redundant with `operation`; it was not a Frontend choice).
 - **`PriorityHint`** = the Frontend's own ordering signal (client-type specific). Carried for completeness; **never** a scheduling input to the ODB (TJ-010). *Deferred:* if a frontend needs ordering context the ODB cannot infer, this field is the extension point — not a client-type branch.
-- **`FrontendIdentity`** = a stable, **ODB-minted** opaque handle identifying *which* Frontend (API object) submitted the Request. It is **derived by the ODB from the calling API object** — the Frontend **never supplies it** (§3, API-004). Used **only** to attribute ownership, resolve `cancel(scope)` (API-003), and enforce cross-Frontend isolation (§5 `E_NOT_FOUND`); **not** a scheduling input and **not** a protocol/client-type concept (ADR-008, R-008-2).
+- **`FrontendIdentity`** = a stable, **ODB-minted** opaque handle identifying *which* Frontend (API object) submitted the Request. It is **derived by the ODB from the calling API object** — the Frontend **never supplies it** (§3, API-004). Used **only** to attribute ownership, resolve the cancel forms (API-003: one / set / all), and enforce cross-Frontend isolation (§5 `E_NOT_FOUND`); **not** a scheduling input and **not** a protocol/client-type concept (ADR-008, R-008-2).
 
-- **Owner:** shared. **Risk(s):** R-008-2. **Derived From:** FR-3.2 → ADR-007 (depth states) → ADR-008 (identity, no semantics) → R-008-2.
+- **Owner:** shared. **Risk(s):** R-008-2. **Derived From:** FR-3.2 → ADR-007 (reference-depth ordering, ODB-derived) → ADR-008 (identity, no semantics) → R-008-2.
 
 ### 4.3 `DocumentRef` & `version_id`
 
@@ -190,22 +191,22 @@ DocumentRef { uri : Uri, version_id : (last_save_mtime, open_revision) }
 - **Derived From:** NFR-2.1 (always latest) → ADR-006 (dedup) → TJ-018 / D-004 → R-006-2.
 - **Test:** an open-buffer edit (revision↑) and a non-open disk change (mtime↑) each invalidate/rebuild the affected (file, version, inputs); a Builder never builds from a buffer older than the Request's `version_id`.
 
-### 4.4 `CancelScope`
+### 4.4 The three cancel forms (API-003)
 
 ```
-CancelScope {
-  owner : FrontendIdentity        // implicit — always the calling Frontend (its API object); the Frontend does not set it
-  where : DocumentRef | "*"       // a document, or ALL of this Frontend's Tasks
-}
+cancel(request_id  : RequestId)       // (1) one own Task
+cancel(request_ids : RequestId[])     // (2) a set of own Tasks
+cancel(all         : true)            // (3) ALL of this Frontend's live Tasks
 ```
 
-- The scope is **always** bounded by `owner` — it can never reach another Frontend's Tasks (TJ-007; ADR-008).
-- `where = DocumentRef` ⇒ cancel all of *this* Frontend's live Tasks touching that document. `where = "*"` ⇒ cancel all of *this* Frontend's live Tasks (disconnect/shutdown).
-- The ODB maps a scope to the concrete Task set, then applies reference-counted cancellation (TJ-007) to the shared Jobs those Tasks await.
+- **Own-only (R-008-1).** All three forms are **always** bounded by `owner` — the calling Frontend (its API object, implicit). A Frontend can only cancel **its own** Tasks; it never reaches another Frontend's (TJ-007; ADR-008; a cross-Frontend id → `E_NOT_FOUND`, §5).
+- **Explicit targeting.** The Frontend supplies the **exact** `request_id`(s) it owns. The ODB does **not** infer "which ids are moot" (e.g. for a document that closed) — that is the Frontend's decision, from its protocol→id mapping and intent. The ODB's only role is to cancel exactly the ids it is given (own-only) and apply reference-counted cancellation (TJ-007) to the shared Jobs those Tasks await.
+- **`all` form.** `cancel(all)` = every live Task of this Frontend (disconnect / teardown). It is the Frontend's explicit teardown, not an ODB-side heuristic.
+- **1:N is the Frontend's business (ADR-001 superset).** One Frontend protocol message (e.g. an LSP request) may map to **0, 1, or N** ODB `Request`s; the **set** form exists for the N case. One `submit` = exactly one `request_id` (ADR-002, P-5) is unchanged; the 1:N is at the *protocol-message* level, owned by the Frontend. The ODB is protocol-agnostic about it.
 
-- **Owner:** ODB (resolution) + Frontend (proposes). **Risk(s):** R-008-1, R-006-3.
+- **Owner:** ODB (resolve + ref-counted cancel); Frontend (supplies ids). **Risk(s):** R-008-1, R-006-3.
 - **Derived From:** FR-3.2 → ADR-008 (own-Task only) → ADR-006 (ref-count) → TJ-007.
-- **Test:** `cancel(scope)` for Frontend A never cancels a Task owned by Frontend B; a document-scoped cancel leaves other documents' work untouched.
+- **Test:** `cancel(request_ids)` for Frontend A never cancels a Task owned by Frontend B; `cancel(all)` cancels all of A's live Tasks and only those; a document's close does **not** itself cancel anything — the Frontend cancels the ids it deems moot; canceling a terminal Task is a no-op.
 
 ## 5. The `Result` model & payload types
 
@@ -230,8 +231,8 @@ Pending   // returned by get_result for a non-terminal Task (§3 API-002) — no
 
 | Payload | For | Contents (logical) | v1 (D-005) |
 | ------- | --- | ------------------ | ---------- |
-| `HoverPayload` | `HOVER` | hover text/markup for the symbol under the cursor (depth 0) | **v1** |
-| `DefinitionPayload` | `DEFINITION` | target `DocumentRef` + position of the direct definition (depth 1) | **v1** |
+| `HoverPayload` | `HOVER` | the declaration's signature + doc for the symbol under the cursor (data, not UI markup) | **v1** |
+| `DefinitionPayload` | `DEFINITION` | target `DocumentRef` + position of the direct definition | **v1** |
 | `ReferencesPayload` | `REFERENCES` | list of `DocumentRef` + positions of all (transitive) references | **v1** |
 | `DiagnosticsPayload` | `DIAGNOSTICS` | diagnostics list for the document (server→client) | **v1** |
 | `SyncPayload` | `DOCUMENT_SYNC`/`WATCHED_FILES`/`CONFIG_SAVE` | ack: new `version_id`, affected documents; for `CONFIG_SAVE` also the post-save rebuild/invalidation notice (TJ-016/017; ADR-009) | **v1** |
@@ -281,11 +282,11 @@ ExpiryEvent {
 - **Honesty (ODB):** `percentage` only when the denominator of work is known; **unbounded** work (TJ-006) is message-only, never a fabricated %.
 - **Request-level only:** progress exposes **no** Job/Task/Subtask identity (ADR-008); the ODB derives %/message from its own Job state.
 - **No payload in progress or expiry:** the payload is fetched via `get_result` on the terminal (API-002); progress and expiry events carry **no** result payload.
-- **Frontend mapping (LSP):** the LSP frontend maps progress 1:1 to LSP **Work Done Progress** (`window/workDoneProgress/create` + `$/progress`) and **may** map `ExpiryEvent` to a diagnostic or a server log (its choice, ADR-008); the ODB is protocol-agnostic about it (R-008-2).
+- **Frontend mapping (protocol-agnostic):** progress is per ODB `request_id`. A Frontend **may** map one or more ODB requests' progress into its own protocol's notion of progress (e.g. an LSP frontend maps each to **Work Done Progress**, `window/workDoneProgress/create` + `$/progress`) and **may** map `ExpiryEvent` to a diagnostic or a server log (its choice, ADR-008). The ODB does **not** assume 1:1 and is protocol-agnostic (R-008-2).
 
 - **Owner:** shared (ODB emits, Frontend consumes/maps). **Risk(s):** R-003-1/2/3 (same push-back channel), R-008-2 (no protocol leak), unbounded-resource (availability) — bounded by eviction.
 - **Derived From:** NFR-1.4 (WDP progress) + **D-011** (expiry notification; *provisional — to be logged at approval*; TTL threshold deferred under D-007 / R-007-2) → ADR-003 (push-back / thread-safe) → ADR-008 (protocol-agnostic) → TJ-006 (incremental progress source).
-- **Test:** the event ordering holds (begin…end, terminal, then an optional single expiry); a fetched result emits **no** expiry; a TTL-expired result emits exactly one expiry carrying `operation`+`document` and **no** payload; unbounded progress carries a message but no fabricated %; the Frontend can map the stream 1:1 to LSP WDP; a detached handler still allows eviction to proceed.
+- **Test:** the event ordering holds (begin…end, terminal, then an optional single expiry); a fetched result emits **no** expiry; a TTL-expired result emits exactly one expiry carrying `operation`+`document` and **no** payload; unbounded progress carries a message but no fabricated %; the Frontend may map the stream to its protocol's progress (e.g. LSP WDP); a detached handler still allows eviction to proceed.
 
 ## 6. Synchronous facade & threading semantics (ADR-003/004)
 
@@ -307,14 +308,14 @@ This is the **facade** obligation set — how the two sides may safely call each
 
 The ODB's API is **protocol-agnostic**; each Frontend translates its own protocol's lifecycle into the API calls. The translation is a small, **unit-testable** mapping (R-008-1 mitigation) and lives in the Frontend (C1), not the ODB.
 
-**Cancellation translation (Frontend → API)** — for the v1 LSP frontend (the Object Server will supply its own equivalent):
+**Cancellation translation (Frontend → API)** — *example*: how the v1 **LSP** frontend maps its events (any frontend supplies its own equivalent; the ODB is protocol-agnostic and never sees these):
 
-| Frontend protocol event | Frontend action | API call |
+| Frontend protocol event | Frontend decides (it owns the mapping) | API call |
 | ----------------------- | --------------- | -------- |
-| LSP `$/cancelRequest` for request N | cancel the matching Task | `cancel(request_id = N)` |
-| `textDocument/didClose` for document D | cancel this frontend's live Tasks on D | `cancel(scope = {where = D})` (owner implicit = self) |
-| Client disconnect / shutdown | cancel all of this frontend's live Tasks | `cancel(scope = {where = "*"})` (owner implicit = self) |
-| Timeout / "give up" on request N | cancel the matching Task | `cancel(request_id = N)` |
+| LSP `$/cancelRequest` for request N | which ODB id(s) N mapped to (1 or N) | `cancel(request_id)` or `cancel(request_ids)` |
+| `textDocument/didClose` for document D | which of its ids are now moot | `cancel(request_id)` / `cancel(request_ids)` for those ids |
+| Client disconnect / shutdown | tear down everything | `cancel(all)` |
+| Timeout / "give up" on request N | which ODB id(s) N mapped to | `cancel(request_id)` or `cancel(request_ids)` |
 
 - **The ODB's role (TJ-007):** on any cancel, decrement the shared-Job waiter set; cancel the Job **only when its last waiter departs**; return a `CancelResult` (canceled vs. no-op). The ODB never sees a protocol event.
 - **Cancelled vs. Error** is fixed by §5: a cancellation is `status: Cancelled`; a failure is `status: Error` with an `ErrorCode` (§5).
@@ -337,7 +338,7 @@ sequenceDiagram
     autonumber
     participant FE as Frontend
     participant ODB as ODB
-    FE->>ODB: submit(HOVER, doc, pos, depth 0)
+    FE->>ODB: submit(HOVER, doc, pos)
     Note over ODB: inline — all required Jobs already completed
     ODB-->>FE: Submission{inline, Result{Success, HoverPayload}}
     Note over FE: → map to LSP hover, reply to client
@@ -351,19 +352,19 @@ sequenceDiagram
     participant FE as Frontend
     participant F as ODB-facade
     participant W as ODB-worker
-    FE->>F: submit(DEFINITION, doc, pos, depth 1)
-    F->>W: create Task 1:1 (TJ-001); schedule request Job (dedup, TJ-005/006)
+    FE->>F: submit(DEFINITION, doc, pos)
+    F->>W: create Task 1:1 (TJ-001)<br>schedule request Job (dedup, TJ-005/006)
     F-->>FE: Submission{ticket, request_id}
     W->>W: build … (TJ-*)
     W-->>FE: handler(request_id, begin, message)
     Note over FE: → LSP workDoneProgress/create + $/progress begin
     W-->>FE: handler(request_id, report, message) — optional
     Note over FE: → $/progress report
-    W->>W: commit atomically (TJ-008); Task terminal Completed (TJ-003)
+    W->>W: commit atomically (TJ-008)<br>Task terminal Completed (TJ-003)
     W-->>FE: handler(request_id, end)
     Note over FE: → $/progress end
     W-->>FE: handler(request_id, terminal, Success)
-    Note over FE: F6.3/4 — post to own loop via *_threadsafe; do nothing heavy
+    Note over FE: F6.3/4 — post to own loop via *_threadsafe<br>do nothing heavy
     FE->>F: get_result(request_id)
     F-->>FE: Result{Success, DefinitionPayload}
     Note over FE: → map to LSP definition, reply to client
@@ -381,7 +382,7 @@ sequenceDiagram
     FE->>F: cancel(request_id = N)
     F->>W: decrement Job waiter set (TJ-007)
     F-->>FE: CancelResult{canceled: [N]}
-    W->>W: if last waiter → cooperative Job cancel; commits nothing (TJ-008)
+    W->>W: if last waiter → cooperative Job cancel<br>commits nothing (TJ-008)
     W->>W: Task terminal Cancelled (TJ-003)
     W-->>FE: handler(N, terminal, Cancelled)
     FE->>F: get_result(N)
@@ -405,7 +406,7 @@ Every `API-` operation, model, facade clause, and error/cancel rule traces to a 
 | §3/§4.2/§4.4/§5 | Frontend identity (implicit via API object) · one live handler (replace) · cross-Frontend isolation | FR-3.1, FR-3.2 | ADR-001 (isolation), ADR-003 (library facade), ADR-008 (neutral token) | — (P-8) | R-008-2, R-006-2 (no orphan handler) |
 | §4 | `Request` model + `Operation` | FR-1.2, FR-1.1 | ADR-001, ADR-008 | — | R-008-2 |
 | §4.3 | `DocumentRef` / `version_id` | NFR-2.1 | ADR-006 | TJ-018 (D-004) | R-006-2, R-006-4 |
-| §4.4 | `CancelScope` | FR-3.2 | ADR-008, ADR-006 | TJ-007 | R-008-1, R-006-3 |
+| §4.4 | The three cancel forms (one / set / all) | FR-3.2 | ADR-008, ADR-006 | TJ-007 | R-008-1, R-006-3 |
 | §5 | `Result` envelope + payloads | FR-1.2, FR-1.1 | ADR-002, ADR-006, ADR-009 | TJ-008, TJ-016/017 | R-006-1, R-006-4 |
 | §5 | `ErrorCode` | FR-4.1 | ADR-008 | TJ-019 | R-008-1, R-005-1 |
 | §5.2 | Request event stream (progress) | NFR-1.4 | ADR-003, ADR-008 | TJ-006 | R-003-1/2/3, R-008-2 |
@@ -463,11 +464,11 @@ Per `../README.md` §8 (Phase 1b) and the §6 reporting format, the following ne
 - [x] **P-1 — `priority_hint` & the extension policy (R-008-2).** **Resolved (user-confirmed):** "carry but ignore at the ODB" is the v1 treatment. `priority_hint` stays as a *Frontend-domain-only* field the ODB **never** branches on (TJ-010); the `Request` model's extension rule is explicit (extend the model, never special-case a client). No new ADR/decision required (grounded in ADR-008 / R-008-2). Reflected in §4.2.
 - [x] **P-2 — v1 result-type scope (D-005/Q-001).** I marked Hover/Definition/References/Diagnostics + sync/config as **v1**, and Completion/Rename/Symbols/Semantic-Tokens as **v2-provisional** (present in the model for the superset DoD, not activated). **Question:** confirm this split is the intended v1 boundary. *(Strategic: scope.)*
 - [x] **P-3 — Inline-vs-ticket boundary.** **Resolved (user-confirmed):** the ODB decides inline vs. ticket (it owns the Task/Job state); the Frontend **must** handle both outcomes. **No** frontend-facing `expect: inline|async` hint — a hint would be advisory at best and adds surface without clarity. Reflected in API-001 / §4.1.
-- [ ] **P-4 — `cancel(scope)` granularity.** I bounded scope to `{where: DocumentRef | "*"}`; `owner` is **implicit-self** (the calling Frontend's API object; a Frontend targets only itself, R-008-1). **Question:** is per-document + per-frontend sufficient for v1, or do you want a per-`request_id`-set form too? *(API granularity — an explicit Phase 1b user-review point.)*
+- [x] **P-4 — cancel granularity (3 forms).** **Direction agreed (interim; awaiting your final question before closing):** cancel has **3 forms** — (1) `cancel(request_id)` one; (2) `cancel(request_ids)` a **set** (the N case); (3) `cancel(all)` all of this Frontend's. **`where = DocumentRef` dropped** — the ODB never infers "which ids are moot"; the Frontend supplies exact ids (it owns the protocol→id mapping + intent). **Assumes 1 protocol message → 0/1/N ODB Requests (N kept, safe side); the Frontend is not only LSP, so the possibility stays.** §7 is an *example* (LSP); §5.2 progress is per-`request_id` (no 1:1 assumption). **Detailed per-message analysis deferred to a later phase (per phase design).**
 - [x] **P-5 — `request_id` is 1:1 with a Request.** Confirmed by API-001 (TJ-001). **Question:** no open issue — flagged to match the Phase 1b user-review checklist. *(Expect approval.)*
 - [x] **P-6 — WDP / progress channel (NFR-1.4).** **Resolved (user-approved C).** Per your decision I have **added** the request progress / event-stream channel (**A**, done): API-004's callback is generalized to a `RequestEvent` stream (§5.2); progress is **required** for ticketed requests, **honest** (unbounded ⇒ no fabricated %), and rides the **same** thread-safe push-back channel (F6.7); S2 now shows the events. **Formalized as NFR-1.4** in `requirements.md` (under "Performance and Responsiveness," with rationale, the honesty constraint, the NFR-2.2 channel, and a D-005 v1-scope note); all contract references now cite **NFR-1.4**. *(Note: WDP is **NFR-1.4**, not NFR-1.2 — the latter is already "Background Processing.")*
 - [x] **P-7 — Result retention window (fetch-once + TTL + expiry).** **Resolved (user-confirmed).** Every terminal Result is retained only for a **window** that opens at terminal-push delivery and closes at the earlier of a successful `get_result` or a TTL expiry (recorded as **D-011**). (1) A **single** code `E_EXPIRED` covers **both** window-closing triggers (fetched, or TTL-expired); `E_NOT_FOUND` stays reserved for ids never recognized. (2) On a TTL expiry the ODB **notifies the owning Frontend** via an `ExpiryEvent` on the registered handler (§5.2) carrying `operation` + `DocumentRef` (metadata only, **no** payload) so it can build a meaningful diagnostic/log; eviction is **unconditional** (memory safety), the notification **best-effort**. (3) The **TTL threshold** is deferred to detailed design (D-007 / R-007-2 umbrella: mechanism fixed, threshold later). Reflected in API-002, §5 (`E_EXPIRED`), §5.2 (`ExpiryEvent`), §7. **Action:** log **D-011** in `README.md` §7 at Phase 1b approval (a new decision, per the change guidelines).
-- [x] **P-8 — Frontend identity & handler multiplicity (implicit, via the API object).** **Resolved (user-confirmed).** The ODB is a **library**; a Frontend obtains its **API object** once (e.g. `odb = odb_lib.api_obj()`) and that object **is** its identity — a stable ODB-minted token (not a protocol/client-type concept; ADR-008). The Frontend **never passes an id**; `Request.source` (§4.1) and `CancelScope.owner` (§4.4) are therefore **implicit-self**. **One API object per Frontend**; **one live handler per Frontend** (a second `register_completion` **replaces** the first and invalidates the old `handle`, last-write-wins); **cross-Frontend access → `E_NOT_FOUND`** (isolation, ADR-001). Reflected in API-003, API-004, §4.1/§4.2/§4.4, §5 (`E_NOT_FOUND`). **Grounding:** ADR-001 / ADR-003 / ADR-008 — **no new ADR needed** (a design choice, not a mechanism). **Action:** record alongside the other decisions at Phase 1b approval; no separate `README.md` entry required.
+- [x] **P-8 — Frontend identity & handler multiplicity (implicit, via the API object).** **Resolved (user-confirmed).** The ODB is a **library**; a Frontend obtains its **API object** once (e.g. `odb = odb_lib.api_obj()`) and that object **is** its identity — a stable ODB-minted token (not a protocol/client-type concept; ADR-008). The Frontend **never passes an id**; `Request.source` (§4.1) and the cancel forms' owner (§4.4) are therefore **implicit-self**. **One API object per Frontend**; **one live handler per Frontend** (a second `register_completion` **replaces** the first and invalidates the old `handle`, last-write-wins); **cross-Frontend access → `E_NOT_FOUND`** (isolation, ADR-001). Reflected in API-003, API-004, §4.1/§4.2/§4.4, §5 (`E_NOT_FOUND`). **Grounding:** ADR-001 / ADR-003 / ADR-008 — **no new ADR needed** (a design choice, not a mechanism). **Action:** record alongside the other decisions at Phase 1b approval; no separate `README.md` entry required.
 
 > **DoD (Phase 1b):** "Operations, types, facade, and errors are complete, all traceable to ADR/TJ-, and every FR-1.2 feature is expressible." — addressed in §3 (operations), §4/§5 (types), §6 (facade), §5/§7 (errors), §9 (traceability), §10.1/10.2 (self-check). See the §6 three-point report in the reply.
 
