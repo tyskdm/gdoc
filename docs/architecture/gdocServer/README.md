@@ -22,7 +22,7 @@ The set is organized by **role in the derivation chain** (see §3). Current stat
 | Strategic decisions | `adr/001…009-*.md` | ADR-* — how the requirements are satisfied | existing |
 | Risk register | `adr/README.md` | R-NNN-* — risks to turn into rules + tests | existing |
 | Architecture | `architecture.md` | Structure, behavior, abstractions (Workspace/Project/Package) | existing |
-| Contract: Task/Job rules | `contracts/task-job-management.md` | TJ-* — the shared-execution model | **planned** (Phase 1a) |
+| Contract: Task/Job rules | `contracts/task-job-management.md` | TJ-* — the shared-execution model | ✅ approved (Phase 1a, 2026-09-11) |
 | Contract: public API | `contracts/frontend-odb-api.md` | API-* operations + Request/Result model | ✅ approved (Phase 1b, 2026-09-13) |
 | Use-case analysis | `usecases/UC_*.md` | Behavioral evidence; IF/ST/DR/EH/SCR derived per component | existing (partial) |
 | Use-case drafts | `usecase_analysis/*.md` | Raw analysis; **to be merged into `usecases/`** (D-003) | in-flight |
@@ -245,7 +245,7 @@ Each phase produces a deliverable; a phase with no deliverable is not done.
 - **Outcome:** G1/G2 resolved → **D-008**; G3 confirmed (dedup key defined per D-004; priority-policy
   thresholds deferred per D-007).
 
-### Phase 1a — Task/Job management rules (goal #3)
+### Phase 1a — Task/Job management rules (goal #3)  (✅ approved, 2026-09-11)
 
 - **Purpose:** crystallize ADR-002/006/007/009 into an **executable specification (rules)**. These
   are the rails for all component requirements, so this goes **first**.
