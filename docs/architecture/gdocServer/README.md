@@ -23,7 +23,7 @@ The set is organized by **role in the derivation chain** (see §3). Current stat
 | Risk register | `adr/README.md` | R-NNN-* — risks to turn into rules + tests | existing |
 | Architecture | `architecture.md` | Structure, behavior, abstractions (Workspace/Project/Package) | existing |
 | Contract: Task/Job rules | `contracts/task-job-management.md` | TJ-* — the shared-execution model | **planned** (Phase 1a) |
-| Contract: public API | `contracts/frontend-odb-api.md` | API-* operations + Request/Result model | **planned** (Phase 1b) |
+| Contract: public API | `contracts/frontend-odb-api.md` | API-* operations + Request/Result model | ✅ approved (Phase 1b, 2026-09-13) |
 | Use-case analysis | `usecases/UC_*.md` | Behavioral evidence; IF/ST/DR/EH/SCR derived per component | existing (partial) |
 | Use-case drafts | `usecase_analysis/*.md` | Raw analysis; **to be merged into `usecases/`** (D-003) | in-flight |
 | Responsibility inventory + glossary | `subcomponents/README.md` | Component/responsibility inventory, single-owner matrix, glossary | **done** (Phase 0) |
@@ -162,13 +162,13 @@ Every lower-level requirement states its upstream chain on **one line**. Example
   | --- | --- | --- | --- |
 ## 5. Status
 
-**Current phase:** **Phase 1a ✅ CLOSED (2026-09-11)**; Phase 1b ready to start. Phase 0 CLOSED (2026-09-11).
+**Current phase:** **Phase 1b ✅ CLOSED (2026-09-13)**; Phase 2 ready to start. Phase 0 / 1a CLOSED (2026-09-11).
 
 | Phase | Purpose | Deliverable | Status |
 | --- | --- | --- | --- |
 | 0 | Grounding: component/responsibility inventory + glossary | `subcomponents/README.md` | ✅ done (2026-09-11) |
 | 1a | Task/Job management rules (goal #3) | `contracts/task-job-management.md` | ✅ approved / closed (2026-09-11) |
-| 1b | Frontend↔ODB API (goal #2) | `contracts/frontend-odb-api.md` | ⬜ not started |
+| 1b | Frontend↔ODB API (goal #2) | `contracts/frontend-odb-api.md` | ✅ approved / closed (2026-09-13) |
 | 2 | Unify use-case analysis (behavioral evidence) | `usecases/UC_*.md` | ⬜ not started |
 | 3 | Component requirement allocation (goal #1) | `subcomponents/*.md` | ⬜ not started |
 | 4 | Final verification: traceability + risk closure | `traceability.md` | ⬜ not started |
@@ -221,6 +221,10 @@ Use this **both during** the remaining phases and **after** the design is comple
 | D-008 | 2026-09-11 | **Shared-Job (dedup / priority inheritance / reference-counted cancellation): *management* = ODB; *mechanism* = Builder.** `architecture.md` §2 (ODB) gains the shared-Job management responsibility; §4 (Builder) is redefined as mechanism-only | Aligns to ADR-002 (ODB owns job dedup/priority/cancellation), ADR-008 (single owner; ODB tracks cancellation centrally), R-006-3. ADR outranks the older `architecture.md` wording (Builder-managed). Resolves G1/G2. User-confirmed (2026-09-11). | ✅ |
 | D-009 | 2026-09-11 | Consolidate `execution-plan.md` into this `README.md` as the single index/governance doc for the set; `execution-plan.md` to be removed on approval | The set needs a durable index (document map + derivation model + conventions + status + change guideline + change history) that survives project completion; a pure "plan" expires. Keeps single-source-of-truth (status + decisions have one home). | ✅ |
 | D-010 | 2026-09-12 | v1 is **single-executor, non-preemptive**: Job priority affects **dispatch order only** (TJ-011/012), **not runtime resource allocation**; the **R-006-4 cancel-and-re-run mechanism is deferred to detailed design** (not only its threshold). v1 liveness for R-006-4 is closed by priority inheritance (TJ-009) + dispatch order (TJ-012) + bounded execution (TJ-019) + state-1 pin (TJ-013) + unbounded-work defer/cancel (TJ-014). Revisit if use-case analysis / implementation introduces concurrent Job execution or runtime resource priority. (Refines the R-006-4 portion of D-007.) | User: no per-Job runtime priority in v1; cancel-and-re-run incurs wasted-work cost with no liveness benefit in a single-executor model. | ✅ (deferred-by-design) |
+| D-011 | 2026-09-13 | **Result retention window** = per-request, in-memory, **fetch-once + TTL**: every terminal `Result` is retained only for a window that **opens at terminal-push delivery** and **closes at the earlier of** a successful `get_result` or a **TTL expiry**. A single code `E_EXPIRED` covers both closing triggers (fetched or TTL-expired); `E_NOT_FOUND` stays reserved for ids never recognized. On TTL expiry the ODB **notifies the owning Frontend** via `ExpiryEvent` (§5.2) carrying `operation` + `DocumentRef` (metadata only, no payload); eviction is unconditional (memory safety), notification best-effort. **TTL threshold deferred** to detailed design (D-007 / R-007-2). | In-memory results (ADR-004, single writer) must be bounded (availability); fetch-once matches the one-shot `get_result` model; the expiry event lets the Frontend build a meaningful diagnostic/log. Reflected in API-002, §5 (`E_EXPIRED`), §5.2 (`ExpiryEvent`), §7. | ✅ |
+| D-012 | 2026-09-13 | **Cancel model = 3 forms, all own-only (R-008-1)**: (1) `cancel(request_id)` one Task; (2) `cancel(request_ids)` a **set** (the 1:N case — one Frontend protocol message → 0/1/N ODB Requests); (3) `cancel(all)` all of this Frontend's live Tasks (disconnect / teardown). `owner` is **implicit** = the calling Frontend (its API object); a Frontend can only target **itself**. **`where = DocumentRef` dropped** — the ODB never infers "which ids are moot"; the Frontend supplies exact ids (it owns the protocol→id mapping + intent). | The ODB is protocol-agnostic (R-008-2) and cannot decide which ids are moot; the set form covers the 1:N mapping the Frontend owns (ADR-001 superset); own-only preserves cross-Frontend isolation (ADR-001). Reflected in API-003, §4.4, §7. | ✅ |
+| D-013 | 2026-09-13 | **`reference_depth` removed from the Request wire model** — in v1 it was a monotonic function of `operation` (HOVER/DEFINITION immediate, REFERENCES unbounded), so redundant on the wire. The ODB now **derives reference-depth ordering** (TJ-011) and the unbounded defer/cancel (TJ-014) **from the `operation`** (a shared-vocabulary fact). **Boundary discipline (R-008-2):** the ODB is *expected* to understand the operations it receives (shared FE↔ODB API vocabulary) — **normal contract knowledge, not an intrusion** into the Frontend's internal responsibilities; what it must **not** do is interpret the Frontend's *client-type-specific intent* (why it issued the op, IDE focus, per-client rules), which it neither sees nor acts on. A payload (e.g. `HoverPayload`) is **data** (signature + doc), not a UI action — the "popup" is the IDE's job. | Removing a redundant wire field eliminates the "depth = file count / depth = inline-vs-ticket" misreadings and keeps the protocol-agnostic boundary clean while preserving the ODB-internal scheduling (ADR-007); the boundary note fixes the confusion that the ODB knowing an operation ≠ intruding on the FE (the forbidden act is interpreting client-type intent). Reflected in §4, §4.1, §4.2, §5.1. | ✅ |
+
 ## 8. Derivation Procedure (Roadmap)
 
 Each phase produces a deliverable; a phase with no deliverable is not done.
@@ -271,7 +275,7 @@ Each phase produces a deliverable; a phase with no deliverable is not done.
   Q-002 resolved; Job run bound/timeout accepted (R-005-1 / R-003-3).
 - **DoD:** all Verify/risks turned into rules; state-transition table present; dedup key + priority
   rules explicit; Q-002 resolved.
-### Phase 1b — Frontend↔ODB API (goal #2)
+### Phase 1b — Frontend↔ODB API (goal #2)  (✅ approved, 2026-09-13)
 
 - **Purpose:** define the **surface (API)** of the Phase 1a Task/Job rules — the only public API the
   ODB exposes to run its internals.

@@ -2,7 +2,7 @@
 
 > **Deliverable of:** Phase 0 (grounding) of the gdoc Server design-documentation effort.
 > **Position:** `docs/architecture/gdocServer/subcomponents/README.md`
-> **Status:** Draft for user review (Phase 0 — not yet approved).
+> **Status:** ✅ **Approved (Phase 0 CLOSED, 2026-09-11).** All §9 review items approved by user (DoD gate met).
 > **Companion files (created in later phases):**
 > `language-server.md` · `object-database.md` · `object-datastore.md` · `object-builders.md` (Phase 3);
 > `../contracts/frontend-odb-api.md` (Phase 1b); `../contracts/task-job-management.md` (Phase 1a).
