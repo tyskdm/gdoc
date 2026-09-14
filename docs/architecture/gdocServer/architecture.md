@@ -48,8 +48,8 @@ When the language‑server client sends a text‑edit notification, the gdoc ser
 
 1. gdoc Language Server receives text editing events from the client.
 2. gdoc Language Server requests gdoc Object Database to parse the edited text.
-3. gdoc Object Database create a plan and return the task ticket to Language Server.
-4. gdoc Object Database uses a job ticket to parse the text for gdoc Object Builder.
+3. gdoc Object Database creates a plan and, if the work is asynchronous, returns a **ticket** (a request/Task handle, `Submission{kind:ticket}`) to the Language Server.
+4. gdoc Object Database dispatches the work as a **Job** to the gdoc Object Builder, which parses the text.
 5. gdoc Object Builder parses the text and return to gdoc Object Database.
 6. gdoc Object Database updates gdoc Objects in gdoc Object Datastore.
 7. gdoc Language Server receives notifications from the gdoc Object Database about changes in gdoc Objects
@@ -70,7 +70,7 @@ The gdoc server organizes resources into a hierarchical structure to manage scop
 To ensure high responsiveness and efficient resource utilization, gdoc utilizes a tiered execution abstraction (see ADR-002, ADR-008):
 
 - **Request**: An external interaction initiated by a client (e.g., an LSP command or an Object API call). Frontends are responsible for translating these protocol-specific messages into internal representations.
-- **Task**: The primary unit of internal orchestration. Tasks are protocol-agnostic and represent a logical operation (e.g., "Analyze Document"). The Object Database manages the lifecycle, priority, and cancellation of Tasks.
+- **Task**: The primary unit of internal orchestration. Tasks are protocol-agnostic and represent a logical operation (e.g., "Analyze Document"). The Object Database manages the lifecycle, priority, and cancellation of Tasks. A Task is created either by a client **Request** or, when a document enters **State 2 or State 3**, by an ODB-generated **System Task** (D-014, TJ-021) — the latter cannot be cancelled by a Frontend.
 - **Job**: The atomic unit of execution. A Task is decomposed into one or more Jobs (e.g., *Parse*, *Link*, *Compile*). Jobs are dispatched to Object Builders and executed based on available system resources and dependency constraints.
 
 ## Structure: Role and Responsibilities
@@ -99,7 +99,7 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
     - Converts LSP-specific calls (e.g., `textDocument/hover`) into unified internal **Requests**.
     - Initiates corresponding **Tasks** in the Object Database to trigger necessary analysis or data retrieval.
   - **Asynchronous Feedback**:
-    - Dispatches diagnostics, semantic tokens, and error messages generated during **Job** execution back to the client as LSP notifications.
+    - Dispatches diagnostics (pushed to the client as a server-to-client event, `DiagnosticsEvent`, per D-015), semantic tokens, and error messages generated during **Job** execution back to the client as LSP notifications.
   - **Document Synchronization**:
     - Synchronizes IDE editor buffers via `didOpen`, `didChange`, and `didClose`, triggering background **Tasks** to ensure the Project state remains consistent with user edits.
 
@@ -115,7 +115,7 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
   - **Threaded Execution**: Operates in a dedicated background worker thread to ensure that computationally intensive analysis does not block the Frontend's high-responsiveness I/O loop.
   - **Internal Async Orchestration**: Uses an internal `asyncio` event loop within its worker thread to manage concurrent **Tasks** and **Jobs** efficiently.
   - **Plugin Host**: Provides the execution environment and lifecycle management for **gdoc Object Builders**, which are integrated as plugins.
-  - **Synchronous API for Frontends**: Exposes thread-safe, **lightweight and non-blocking** synchronous methods to Frontends, abstracting the internal asynchronous and multi-threaded complexity. These methods submit work (returning a task ticket) or return current state and promptly return to the caller; they never block waiting for analysis to finish, because heavy work is deferred to the worker thread (see ADR-003 / ADR-004).
+  - **Synchronous API for Frontends**: Exposes thread-safe, **lightweight and non-blocking** synchronous methods to Frontends, abstracting the internal asynchronous and multi-threaded complexity. These methods submit work (returning a **ticket** — a request/Task handle, `Submission{kind:ticket}`) or return current state and promptly return to the caller; they never block waiting for analysis to finish, because heavy work is deferred to the worker thread (see ADR-003 / ADR-004).
   - **Completion is pushed, not polled**: Task/Job completion is **pushed** to the frontend via a callback it registered in advance (invoked on the Object Database's own worker thread). The frontend does not poll ticket status; it only hands the event onto its own event loop (see ADR-003).
 
 - Responsibilities:
@@ -176,6 +176,7 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
 - Edit Text
 - Close Text
 - Update Document
+- File Deletion (D-016: Datastore cleanup + related Job/System-Task cancellation)
 - Bulk File Changes (e.g., Git branch switch)
 
 #### Information Retrieval (Read-only)
@@ -220,7 +221,7 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
 ##### Overview
 
 - Tasks managed by gdoc Object Database are those of priority 2 and later in the list above.
-- The priority changes every time an LSP message is received (i.e., every time the user interacts with the client IDE). Priority adjustment is performed while processing item 1 above.
+- The shared-work priority is recomputed each time an LSP message is received (i.e., each user interaction). While that item-1 message is handled, the two domains each act: the **frontend** orders its own Requests, and the **Object Database** re-derives the shared Task/Job priority from the document states below — the frontend does not set internal Task/Job priority (see ADR-007 / ADR-008 below).
 - For example, a definition lookup task requested for hover display decreases in priority when the user performs actions such as editing a different file.
 - Priority is decided in two places: each **frontend** orders its own **Requests** using client-type-specific rules, while the **Object Database** orders the shared **Tasks/Jobs** using the protocol-agnostic document states below. The frontend decides *which requests matter and in what order*; the Object Database decides *which shared work runs first* and does not branch on client type (see ADR-007 / ADR-008).
 
@@ -262,7 +263,7 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
 - A single request always corresponds to a single task. Processing tasks such as compilation and linking required within a task are managed as subtasks.
   - A single task can contain multiple subtasks.
 
-- Tasks correspond to requests from clients, including both requests from the LSP client and requests from the Object Server client.
+- Most Tasks correspond to requests from clients (the LSP client, and later the Object Server client). In addition, the Object Database generates a **System Task** when a document enters **State 2** (open in the editor and its references) or **State 3** (package member) — a background build with **no client Request** (D-014, TJ-021). A System Task joins the Job waiter set like any Task but **cannot** be cancelled by a Frontend.
   - Responsibility is split along the **Request / Task boundary by component**, not by a class hierarchy inside the core:
     - **Requests are the frontend's responsibility.** Each protocol frontend translates its own protocol messages into **Requests** and applies the client-type-specific rules for request priority, ordering, and cancellation.
     - **Tasks — and the Subtasks / Jobs they decompose into — are the Object Database's responsibility.** A Task is protocol-agnostic: the Object Database assigns and manages its priority, lifecycle, and cancellation with the **same rules regardless of which frontend submitted it**, and it does **not** branch its Task/Subtask/Job logic on the client type.
