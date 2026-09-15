@@ -15,6 +15,7 @@
 | NC-03 | frontend-odb-api.md s4.3: Builder as C3; correct is C4. | frontend-odb-api.md L188/190 | [F] Fixed | C3 to C4. |
 | NC-04 | TJ-018 fresh-iff ignores dependency changes; TJ-005 covers via dedup key. | task-job-management.md | [F] Fixed | Added dependency note. |
 | NC-05 | Background builds (State 2/3): no Request, no Task, empty waiter, immediate cancel. | TJ-001/004/007 | [C] Confirmed | **D-014 = A (System Task).** |
+| NC-06 | `frontend-odb-api.md` §5.2: the `RequestEvent` envelope makes `request_id` **required**, conflicting with the **document-scoped** `DiagnosticsEvent` (D-015) and `ExpiryEvent` (D-011) — a request-less push cannot carry a `request_id`. | frontend-odb-api.md §5.2 | [D] Deferred | Phase 2 UC — confirm **A vs B**. **A** = `request_id` optional / document-scoped sub-union (handler invoked with no `request_id`); **B** = keep required, each push rides its triggering request. Deciding fact: does a request-less push exist? (**OM-04** workspace-init; **NC-05 / TJ-021** System-Task reference build). Flagged inline in §5.2. |
 
 ---
 

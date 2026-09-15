@@ -280,6 +280,12 @@ DiagnosticsEvent {                                    // (D-015) ODB pushes afte
 }
 ```
 
+> **OPEN ITEM (Phase 2 — resolve before drawing the Diagnostics/Expiry push sequences).** The envelope above makes `request_id : RequestId` **required** for *every* `RequestEvent`, yet `DiagnosticsEvent` (D-015) and `ExpiryEvent` (D-011) are both **document-/operation-scoped** — they are *not* attached to a live client request and may carry **no** in-flight `request_id`. These two statements conflict; the resolution depends on a fact the **Phase 2 UC** will establish — **can a diagnostics/expiry push occur with *no* triggering client request?**
+> - **If YES** (e.g. a **workspace-init background build** — **OM-04**, deferred to Phase 2 — or a **System Task** reference-doc build — **NC-05 / TJ-021**): make the envelope's `request_id` **optional** *or* carve `DiagnosticsEvent`/`ExpiryEvent` into a **document-scoped sub-union** with their own routing, and allow the API-004 handler to be invoked with **no** `request_id`.
+> - **If NO** (every such push follows a client `DOCUMENT_SYNC` / `WATCHED_FILES` / `CONFIG_SAVE`): keep `request_id` **required**; each push rides its **triggering request's** stream (best-effort if that request is already terminal), and the "document-scoped" wording below is narrowed to that exception.
+>
+> **Deliberately not fixed here** — committing now would pre-empt the OM-04 / System-Task conclusion. Phase 2 confirms **A vs B** and replaces this note with the concrete rule. *(Applies to `ExpiryEvent` as well as `DiagnosticsEvent`.)*
+
 - **Ordering (ODB):** for a ticketed request — exactly one `Begin`, then zero or more `Report`, then exactly one `End`, then the `TerminalEvent`, then **at most one** `ExpiryEvent`. No event follows a successful fetch or an `ExpiryEvent`.
 - **Expiry (D-011).** The `ExpiryEvent` is emitted **only** when the retention window (API-002) closes by **TTL** without a successful fetch; a successful fetch **suppresses** it (nothing to report). It carries **metadata only** (`operation`, `document`) — **no** result payload (already discarded).
 - **Notification is best-effort; eviction is unconditional.** The ODB **shall** evict the retained Result (free memory) whether or not the handler is reachable; the `ExpiryEvent` is delivered **if** the owning Frontend's handler is still registered (per-Frontend, API-004). A detached handler is never invoked (existing rule) — eviction proceeds regardless.
