@@ -30,6 +30,7 @@ The set is organized by **role in the derivation chain** (see §3). Current stat
 | Component requirements | `subcomponents/{language-server,object-database,object-datastore,object-builders}.md` | LSP-*/ODB-*/DS-*/BLD-* — per-component requirement sets | **planned** (Phase 3) |
 | Traceability + closure | `traceability.md` | Full bidirectional trace matrix + risk closure | **planned** (Phase 4) |
 | **Phase process** | `process/phase2/{plan,skill,template}.md` | Phase 2 work tracker + tailored skill + template | **active** (Phase 2) |
+| **Design review record** | `process/design_review_record.md` | Cross-document consistency/completeness review of Phase 0–1b (NC-*/OM-* findings) | **active** (findings ongoing) |
 
 **Two related folders, one rule.** `usecases/` (formal, `UC_*`) and `usecase_analysis/` (raw drafts)
 currently coexist. Per **D-003** the plan is **option A**: `usecases/` is canonical and
@@ -56,7 +57,8 @@ docs/architecture/gdocServer/
 │  ├─ object-database.md             # Phase 3 — ODB-*
 │  ├─ object-datastore.md            # Phase 3 — DS-*
 │  └─ object-builders.md             # Phase 3 — BLD-*
-├─ process/                          # per-phase work tools (plan + skill + template)
+├─ process/                          # per-phase work tools + review records
+│  ├─ design_review_record.md        # cross-document review of Phase 0–1b (NC-*/OM-*)
 │  └─ phase2/
 │     ├─ plan.md                     # Phase 2 work tracker (status + decision log)
 │     ├─ skill.md                    # Phase 2 analysis method (tailored)
