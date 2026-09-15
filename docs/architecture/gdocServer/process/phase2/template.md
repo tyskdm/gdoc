@@ -2,7 +2,7 @@
 
 > **Tailored template for:** gdocServer Phase 2
 > **Usage:** Copy this into `../../usecases/UC-NNN_<Name>.md`
-> **ID rule:** IF/ST/DR/EH/SCR IDs are **globally unique** across all UC files (no reuse)
+> **ID rule:** Derived-requirement IDs are **namespaced per UC**: `IF/ST/DR/EH-<UC>-<NNN>` and `SCR-<COMP>-<UC>-<NNN>` (e.g. `IF-001-001`, `SCR-C1-001-001`) — numbering is **append-only within a UC**; no cross-file coordination needed
 > **Terminology:** Use glossary terms from `../../subcomponents/README.md` §6 exclusively
 
 ## Use Case

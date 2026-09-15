@@ -149,7 +149,7 @@ FR/NFR. The Phase 4 matrix (§8) is the machine check for this.
 | Decision | `ADR-NNN` | `ADR-008` | `adr/` |
 | Risk | `R-NNN-M` | `R-006-3` | `adr/README.md` |
 | Use case | `UC-nnn` | `UC-002` | `usecases/` |
-| Derived requirement | `IF-` / `ST-` / `DR-` / `EH-` / `SCR-<COMP>-` | `SCR-DB-001` | `usecases/` |
+| Derived requirement | `IF-<UC>-<NNN>` / `ST-<UC>-<NNN>` / `DR-<UC>-<NNN>` / `EH-<UC>-<NNN>` / `SCR-<COMP>-<UC>-<NNN>` (per-UC namespace, e.g. `IF-002-001`, `SCR-C1-002-001`) | `usecases/` |
 | Component requirement | `LSP-nnn` / `ODB-nnn` / `DS-nnn` / `BLD-nnn` | `ODB-001` | `subcomponents/` |
 | API operation | `API-nnn` | `API-001` | `contracts/frontend-odb-api.md` |
 | Task/Job rule | `TJ-nnn` | `TJ-001` | `contracts/task-job-management.md` |

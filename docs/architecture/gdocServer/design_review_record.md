@@ -15,7 +15,7 @@
 | NC-03 | frontend-odb-api.md s4.3: Builder as C3; correct is C4. | frontend-odb-api.md L188/190 | [F] Fixed | C3 to C4. |
 | NC-04 | TJ-018 fresh-iff ignores dependency changes; TJ-005 covers via dedup key. | task-job-management.md | [F] Fixed | Added dependency note. |
 | NC-05 | Background builds (State 2/3): no Request, no Task, empty waiter, immediate cancel. | TJ-001/004/007 | [C] Confirmed | **D-014 = A (System Task).** |
-| NC-06 | `frontend-odb-api.md` §5.2: the `RequestEvent` envelope makes `request_id` **required**, conflicting with the **document-scoped** `DiagnosticsEvent` (D-015) and `ExpiryEvent` (D-011) — a request-less push cannot carry a `request_id`. | frontend-odb-api.md §5.2 | [D] Deferred | Phase 2 UC — confirm **A vs B**. **A** = `request_id` optional / document-scoped sub-union (handler invoked with no `request_id`); **B** = keep required, each push rides its triggering request. Deciding fact: does a request-less push exist? (**OM-04** workspace-init; **NC-05 / TJ-021** System-Task reference build). Flagged inline in §5.2. |
+| NC-06 | `frontend-odb-api.md` §5.2: the `RequestEvent` envelope makes `request_id` **required**, conflicting with the **document-scoped** `DiagnosticsEvent` (D-015) and `ExpiryEvent` (D-011) — a request-less push cannot carry a `request_id`. | frontend-odb-api.md §5.2 | [D]→[R] Resolved | **Resolved 2026-09-15 (P2-003, user-approved):** UC-002 established the "YES" branch (System-Task reference-closure builds, D-014/TJ-021, produce request-less diagnostics). **Option A applied** to `frontend-odb-api.md` §5.2 + API-004: `request_id` **optional** for `DiagnosticsEvent`/`ExpiryEvent` (handler may be invoked without one; Frontend routes by `document`); required for `ProgressEvent`/`TerminalEvent`. |
 
 ---
 
@@ -225,6 +225,19 @@ WATCHED_FILES: { events: [{uri, type: "created"|"changed"|"deleted"}] }
 **Recommended order before Phase 2:** (1) confirm FU-07 → align Glossary + TJ-021 + architecture.md State 2; (2) FU-01 + FU-06 (System Task in architecture.md + Glossary); (3) FU-05 (File Deletion scenario + UC); (4) FU-03 / FU-04 (terminology / diagnostics); (5) FU-02 / FU-08 (wording caveat).
 
 **Resolution (2026-09-14):** all 8 items **fixed** ([F]). FU-07 resolved to **A** (State 2 = the open file **and** the documents it references, per ADR-007) and unified across the glossary (L191), TJ-021, D-014 (README §7), and NC-05. **Gate cleared — Phase 2 (use-case analysis) may begin.**
+
+---
+
+---
+
+## 9. Post-Phase-2 Decisions (recorded 2026-09-15)
+
+> Authoritative log: `process/phase2/plan.md` §6. Entries below are summarized for traceability.
+
+| ID | Decision | Scope |
+| -- | -------- | ----- |
+| P2-004 | UC derived-requirement ID scheme changed to **per-UC namespace** (`IF/ST/DR/EH-<UC>-<NNN>`, `SCR-<COMP>-<UC>-<NNN>`, e.g. `IF-002-001`, `SCR-C1-002-001`); append-only numbering within a UC | README §4.1, `process/phase2/template.md`, `usecases/UC-001_OpenWorkspace.md`, `usecases/UC-002_OpenText.md` (36 IDs renamed) |
+| P2-003 | NC-06 open item resolved to the "YES" branch (request-less `DiagnosticsEvent` push exists); contract relaxation of `RequestEvent.request_id` (optional for `DiagnosticsEvent`/`ExpiryEvent`) **applied 2026-09-15** | `contracts/frontend-odb-api.md` §5.2 + API-004 (done); NC-06 closed (§2) |
 
 ---
 
