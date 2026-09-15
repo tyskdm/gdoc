@@ -104,6 +104,7 @@ traceability.md — full bidirectional matrix + risk closure ("nothing is orphan
 ```
 
 Key properties:
+
 - **Contracts are the "rails."** Phase 1a (TJ-*) and Phase 1b (API-*) formalize the ADRs into
   checkable rules *before* any component is specced, so Phase 3 can *verify against* them.
 - **A component requirement is a union.** Every `LSP-*/ODB-*/DS-*/BLD-*` requirement is
@@ -177,7 +178,7 @@ Every lower-level requirement states its upstream chain on **one line**. Example
 
 - Use **Mermaid** for all diagrams (sequence, flow, state).
 - **Do not include `;` (semicolon) inside Mermaid `note` text** — it causes a parse error.
-  Use `·` or line breaks as separators within notes.
+  Use `·` or line breaks (`<br>`) as separators within notes.
 
 ### 4.5 Gate rule
 
@@ -185,6 +186,7 @@ Every lower-level requirement states its upstream chain on **one line**. Example
 - After each deliverable, report per §6 (3-point set: DoD / Gaps / Pending).
 - Strategic decisions (ADR-level, scope-level) **must** be confirmed with the user before being
   recorded as decided.
+
 ## 5. Status
 
 **Current phase:** **Phase 1b ✅ CLOSED (2026-09-13)**; Phase 2 ready to start. Phase 0 / 1a CLOSED (2026-09-11).
@@ -228,6 +230,7 @@ Use this **both during** the remaining phases and **after** the design is comple
    1. **DoD met?** (met / unmet + reason).
    2. **Gaps found** (missing / conflicting / at-risk).
    3. **Pending decisions** (questions for the user).
+
 ## 7. Change History (Decisions Log)
 
 > **Append-only.** Records user decisions and plan-level commitments — only new entries are added.
@@ -305,6 +308,7 @@ Each phase produces a deliverable; a phase with no deliverable is not done.
   Q-002 resolved; Job run bound/timeout accepted (R-005-1 / R-003-3).
 - **DoD:** all Verify/risks turned into rules; state-transition table present; dedup key + priority
   rules explicit; Q-002 resolved.
+
 ### Phase 1b — Frontend↔ODB API (goal #2)  (✅ approved, 2026-09-13)
 
 - **Purpose:** define the **surface (API)** of the Phase 1a Task/Job rules — the only public API the
@@ -367,6 +371,7 @@ Each phase produces a deliverable; a phase with no deliverable is not done.
   scenarios match real client behavior; identify the UCs to implement first.
 - **DoD:** all FR-1.2 functions in UCs; requirement decomposition across the 4 components complete;
   consistency with the Phase 1 contracts confirmed.
+
 ### Phase 3 — Component requirement allocation (goal #1) — the main verification phase
 
 - **Purpose:** unify the contract obligations (Phase 1) and the behavior obligations (Phase 2) into a
