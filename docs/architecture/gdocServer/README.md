@@ -29,6 +29,7 @@ The set is organized by **role in the derivation chain** (see §3). Current stat
 | Responsibility inventory + glossary | `subcomponents/README.md` | Component/responsibility inventory, single-owner matrix, glossary | **done** (Phase 0) |
 | Component requirements | `subcomponents/{language-server,object-database,object-datastore,object-builders}.md` | LSP-*/ODB-*/DS-*/BLD-* — per-component requirement sets | **planned** (Phase 3) |
 | Traceability + closure | `traceability.md` | Full bidirectional trace matrix + risk closure | **planned** (Phase 4) |
+| **Phase process** | `process/phase2/{plan,skill,template}.md` | Phase 2 work tracker + tailored skill + template | **active** (Phase 2) |
 
 **Two related folders, one rule.** `usecases/` (formal, `UC_*`) and `usecase_analysis/` (raw drafts)
 currently coexist. Per **D-003** the plan is **option A**: `usecases/` is canonical and
@@ -55,6 +56,11 @@ docs/architecture/gdocServer/
 │  ├─ object-database.md             # Phase 3 — ODB-*
 │  ├─ object-datastore.md            # Phase 3 — DS-*
 │  └─ object-builders.md             # Phase 3 — BLD-*
+├─ process/                          # per-phase work tools (plan + skill + template)
+│  └─ phase2/
+│     ├─ plan.md                     # Phase 2 work tracker (status + decision log)
+│     ├─ skill.md                    # Phase 2 analysis method (tailored)
+│     └─ template.md                 # Phase 2 output format (tailored)
 └─ traceability.md                   # Phase 4 — bidirectional matrix + risk closure
 ```
 
@@ -122,10 +128,15 @@ FR/NFR. The Phase 4 matrix (§8) is the machine check for this.
 
 ### 3.3 Reusable agent assets
 
-- **Skill:** `.agents/skills/usecase-analysis/SKILL.md` (Phase 2 analysis method).
-- **Template:** `.agents/templates/use-case-analysis-template.md` (Phase 2 format).
+- **Phase 2 skill (tailored):** `process/phase2/skill.md` — analysis method for UCs.
+- **Phase 2 template (tailored):** `process/phase2/template.md` — UC output structure.
+- **Generic skill (base):** `.agents/skills/usecase-analysis/SKILL.md` — the upstream of the tailored skill.
+- **Generic template (base):** `.agents/templates/use-case-analysis-template.md` — the upstream of the tailored template.
 - **Checklists:** `.agents/checklists/Traceability Check Strategy.md` (Phase 3/4 semantic checks),
   `.agents/checklists/Architecture Design Checklist.md`.
+
+> **Rule:** When a phase has a tailored skill/template under `process/`, **use the tailored version**,
+> not the `.agents/` originals. The `.agents/` files are the generic base for tailoring.
 
 ## 4. Conventions (apply to every document in this set)
 
@@ -161,6 +172,19 @@ Every lower-level requirement states its upstream chain on **one line**. Example
 
   | Requirement ID | Status (OK / Partial / NG) | Missing element / reason | Suggested action |
   | --- | --- | --- | --- |
+
+### 4.4 Diagrams
+
+- Use **Mermaid** for all diagrams (sequence, flow, state).
+- **Do not include `;` (semicolon) inside Mermaid `note` text** — it causes a parse error.
+  Use `·` or line breaks as separators within notes.
+
+### 4.5 Gate rule
+
+- **Do not proceed to the next step or phase without explicit user approval.**
+- After each deliverable, report per §6 (3-point set: DoD / Gaps / Pending).
+- Strategic decisions (ADR-level, scope-level) **must** be confirmed with the user before being
+  recorded as decided.
 ## 5. Status
 
 **Current phase:** **Phase 1b ✅ CLOSED (2026-09-13)**; Phase 2 ready to start. Phase 0 / 1a CLOSED (2026-09-11).
@@ -318,8 +342,9 @@ Each phase produces a deliverable; a phase with no deliverable is not done.
 - **Deliverable:** unified into `usecases/UC_*.md` (`usecase_analysis/` absorbed or explicitly
   re-positioned — decided in the log).
 - **Depends on:** Phase 1a / 1b (the reverse-check counterpart).
-- **Method:** use `.agents/skills/usecase-analysis/SKILL.md` +
-  `.agents/templates/use-case-analysis-template.md`.
+- **Method:** use `process/phase2/skill.md` (tailored analysis method) +
+  `process/phase2/template.md` (output structure).
+- **Work tracker:** `process/phase2/plan.md` (step status + decision log).
 - **Procedure:**
   1. **Decide the relationship between the two folders** (one choice, recorded in the log — leaving
      them mixed double-counts traceability): Option A = `usecases/` canonical, absorb the good parts
