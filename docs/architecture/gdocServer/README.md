@@ -356,7 +356,11 @@ Each phase produces a deliverable; a phase with no deliverable is not done.
      as a public API.
   4. **Allocate the NFRs** (NFR-1.1..3.1): LSP = asyncio / lightweight message handling / minimal
      runtime (NFR-1.1); ODB = separate thread / internal event loop / dynamic scheduling / share &
-     cancel (NFR-2.1/2.2/2.3); Datastore = in-memory / thread-safe / single writer (NFR-1.3/2.2).
+     cancel (NFR-2.1/2.2/2.3); Datastore = in-memory / **single-writer, no internal locking,
+     single-context & sequential (synchronous, non-async)** (NFR-1.3). *Note:* the **thread-safe**
+     obligation is on the **ODB facade** (NFR-2.2 / F6.6), **not** the Datastore — the Datastore is
+     "dumb" by design (ADR-004); its safety comes from the sole consumer giving it single-context
+     sequential access (see glossary §6, `Object Datastore`; allocate to `DS-001` in this phase).
   5. Confirm **every FR/NFR is covered by ≥1 component requirement** (zero misses).
 - **Self-check:** apply the **5** checks from `.agents/checklists/Traceability Check Strategy.md`
   (adequacy, semantic containment, consistency, granularity, verifiability) per component, in a table;

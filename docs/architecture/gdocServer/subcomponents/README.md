@@ -162,6 +162,17 @@ The Datastore has **no public API** and **no internal locking**; it is reached *
 the ODB, which is the single writer/coordinator. This is what keeps the Datastore "dumb" and safe.
 (ADR-004, R-004-1)
 
+> **Single-context / sequential invariant (the safety guarantee).** The Datastore is a **plain,
+> synchronous, in-memory** component — **not thread-safe and not async by design**. Its correctness
+> therefore depends on a **single consumer** giving it **single-context, sequential access** (one
+> operation at a time, no re-entrancy). In the server that sole consumer is the **ODB** (its worker
+> thread); in CLI / command use the sole consumer is the **calling command itself**. *Any* access
+> path that breaks this — a second thread, a concurrent callback, an `async`/coroutine re-entrancy —
+> silently corrupts the Datastore (R-004-1). The library therefore **requires** the consumer to
+> guarantee single-context sequential access; it provides **no** locking, and **no** async API.
+> (Generalizes ADR-004 "single coordinator" to the library's consumers; allocate as `DS-001` in
+> Phase 3. See glossary §6, `Object Datastore`.)
+
 ### 5.3 Builder is **downstream** of the ODB
 
 The ODB hosts Builders as plugins and dispatches atomic Jobs to them; a Builder may run as a
@@ -193,6 +204,7 @@ redefine them. "Single Source" names the authoritative text; "Derived From" is t
 | **Project** | The **root** organizational unit of gdoc; maps **1:1 to a VSCode Workspace**; the top-level container for configuration and resources; contains Packages. | architecture.md | FR-2.2 |
 | **dedup key** | The identity of a Job used for deduplication: it captures the **target document + its version + the relevant inputs** (content type, dependency state, build options) so that identical work shares one Job and differing inputs do **not** collapse. The exact rule is fixed in **Phase 1a** (`../contracts/task-job-management.md`, `TJ-`); this file fixes only the **term**. | ADR-006; R-006-2; D-004 | FR-3.2 |
 | **priority** | A **two-domain** scheduling rank. (a) **Frontend:** which of *its* Requests matter and in what order (client-type-specific). (b) **ODB:** which shared work runs first — per-document states 1/2/3 + reference-depth from open text, recomputed on each interaction. In addition, a Job **inherits the highest priority** of the Tasks awaiting it. Exact thresholds/policies (starvation / unbounded / inversion) are **deferred** to detailed design. | ADR-007; ADR-008; ADR-006; D-007 | NFR-2.3 |
+| **Object Datastore** | The **internal, dumb, in-memory** storage for a Project's gdoc objects + relationships. A **plain, synchronous** set of data structures: **no public API, no internal locking, not thread-safe, and not async by design**. Its safety is a **consumer-provided invariant**, not an internal one: a **single consumer** must give it **single-context, sequential access** (server → the ODB worker thread; CLI → the calling command). The library provides **no** locking / **no** async API; breaking single-context sequential access is silent corruption (R-004-1). | ADR-004; R-004-1; NFR-1.3 | NFR-1.3 |
 
 ### 6.1 Subtask vs Job — the load-bearing distinction (define once, reference forever)
 
