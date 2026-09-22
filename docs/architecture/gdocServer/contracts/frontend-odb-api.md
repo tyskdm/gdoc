@@ -154,7 +154,7 @@ Each maps to a FR-1.2 feature (or a synchronization/config action). v1 vs v2 is 
 | `DIAGNOSTICS` | FR-1.2 Diagnostics (server→client) | **v1** | `DiagnosticsPayload` |
 | `DOCUMENT_SYNC` | FR-1.1 didOpen/didChange/didClose | **v1** | `SyncPayload` (ack) |
 | `WATCHED_FILES` | FR-1.1 didChangeWatchedFiles | **v1** | `SyncPayload` (ack) |
-| `CONFIG_SAVE` | FR-1.1 save (config rebuild) | **v1** | `SyncPayload` (ack) |
+| `CONFIG_SAVE` | FR-1.1 save (config rebuild) | **v1** | `SyncPayload` (ack); **payload = workspace root + config location** — the ODB reads/parses the config (D-019) |
 | `COMPLETION` | FR-1.2 Completion | v2 (provisional) | `CompletionPayload` |
 | `RENAME` | FR-1.2 Rename | v2 (provisional) | `RenamePayload` |
 | `DOCUMENT_SYMBOLS` | FR-1.2 Document Symbols | v2 (provisional) | `SymbolsPayload` |
@@ -162,6 +162,8 @@ Each maps to a FR-1.2 feature (or a synchronization/config action). v1 vs v2 is 
 | `SEMANTIC_TOKENS` | FR-1.2 Semantic Tokens | v2 (provisional) | `SemanticTokensPayload` |
 
 > The v2 rows exist so the model is a **superset** (ADR-001) and so "every FR-1.2 feature is expressible" holds (Phase 1b DoD); their **activation** is a v2 scope decision (D-005).
+
+> **`CONFIG_SAVE` payload convention (D-019 — configuration ownership = ODB).** For `CONFIG_SAVE`, the Frontend sends the **workspace root** (and the configuration-file location, if it knows it) in `payload`; it does **not** read or parse the configuration and does **not** pre-derive **Packages / Documents / content-types**. The **ODB** is the single reader, parser, and owner of the workspace configuration (INV-06; ADR-009): it reads `gdoc.project.json` (or equivalent), resolves the **Project** scope, **Packages**, their document files and content types, and applies the re-scope. A change to the configuration format therefore never requires a Frontend change (ADR-001). This is the **only** v1 operation for which the ODB reads workspace content on its own; all others carry their context in `documents`/`payload` as before. This **refines D-017's `CONFIG_SAVE` payload entry** (the **workspace root** is a required field for `CONFIG_SAVE`).
 
 - **Owner:** ODB (canonical interpretation); Frontend (populates). **Risk(s):** R-008-2 (missing context), R-008-1 (per-operation cancellation).
 - **Derived From:** FR-1.2 (feature set) + FR-1.1 (sync/config) → ADR-001 (superset) → ADR-008 (protocol-agnostic context) → R-008-2 → D-005 (v1/v2 split).

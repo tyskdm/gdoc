@@ -17,9 +17,9 @@ Open Workspace
 
 ### Purpose
 
-Initialize the gdoc Server workspace upon the LSP `initialize`/`initialized` handshake: identify the
-Project scope from configuration, register file-system watchers, and trigger the initial build of all
-Package documents so that the Datastore is populated and ready to serve subsequent language-service
+Initialize the gdoc Server workspace upon the LSP `initialize`/`initialized` handshake: the ODB identifies the
+Project scope from configuration (D-019), the Frontend registers file-system watchers, and the initial build of all
+Package documents is triggered so that the Datastore is populated and ready to serve subsequent language-service
 requests (Hover, Go to Definition, Find References, Diagnostics).
 
 ### Actors
@@ -43,6 +43,7 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
 - D-014 (System Task for State 2/3 background builds)
 - D-015 (Diagnostics delivery = event push)
 - D-017 (Operation payload schema formalized alongside Phase 2)
+- D-019 (ODB configuration ownership: the ODB reads/parses `gdoc.project.json`, not the Frontend)
 - OM-04 (ODB library initialization is outside the 4-API surface)
 
 ### Preconditions
@@ -66,7 +67,8 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
 ## Analysis Focus
 
 - LSP `initialize`/`initialized` handshake and capability registration (FR-1.1).
-- Project/Package discovery and State 3 System Task creation (D-014, ADR-009).
+- Project/Package discovery by the ODB from the workspace configuration (D-019, ADR-009) and State 3
+  System Task creation (D-014).
 - Initial build: Job dispatch, execution, atomic commit, diagnostics push (TJ-001…TJ-021, D-015).
 - Asynchronous frontend: asyncio-based handler registration and event reception (NFR-1.1, ADR-003, API-004).
 - OM-04 resolution: ODB library initialization is outside the 4-API surface; the initial build is
@@ -77,22 +79,27 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
 ## Main Scenario
 
 1. **IDE Client** sends LSP `initialize` request with `workspaceFolders` and client capabilities.
-2. **C1** reads `gdoc.project.json` in the workspace root, identifies the **Project** scope, internal
-   **Packages**, their document files, and content types.
+2. **C1** matches the client's capabilities against what it will offer (hover, definition, references,
+   publishDiagnostics). (Protocol-side only — D-019: C1 does **not** read or parse the workspace
+   configuration; that is the ODB's.)
 3. **C1** responds to the `initialize` request with server capabilities (hover, definition,
    references, publishDiagnostics).
 4. **IDE Client** sends `initialized` notification, signaling readiness to receive server requests.
 5. **C1** creates the **ODB API object** (library initialization, outside the 4-API surface per
-   OM-04), providing the Project structure (packages, document list, content types). The ODB sets up
-   its internal Datastore and scheduler.
+   OM-04), passing the **workspace root** (and the configuration-file location, if known) (D-019).
+   The ODB sets up its internal Datastore and scheduler.
 6. **C1** registers its **completion handler** via `register_completion(handler)` (API-004). The
    handler posts events to C1's `asyncio` event loop via `loop.call_soon_threadsafe` (F6.3/F6.4).
 7. **C1** sends `client/registerCapability` to the **IDE Client**, requesting
-   `workspace/didChangeWatchedFiles` registration for all document file patterns in the Project.
+   `workspace/didChangeWatchedFiles` registration for the workspace's broad file patterns
+   (protocol-level; the ODB owns the config-driven project/package structure, D-019).
 8. **IDE Client** confirms the registration (response).
-9. **C1** submits `CONFIG_SAVE` (operation, documents, payload) to **C2** via `submit(request)`
-   (API-001), conveying the initial workspace state.
-10. **C2** maps the Request 1:1 to a **Task** (TJ-001). Because the Request touches State 3 documents
+9. **C1** submits `CONFIG_SAVE` (operation, payload = workspace root + config location) to **C2** via
+   `submit(request)` (API-001, D-019), conveying the initial workspace state and triggering the
+   initial build. The ODB (re-)scopes from the configuration (no-op if unchanged) and dispatches.
+10. **C2** reads `gdoc.project.json` in the workspace root (D-019; ADR-009) and identifies the
+    **Project** scope, internal **Packages**, their document files, and content types. **C2** then
+    maps the Request 1:1 to a **Task** (TJ-001). Because the Request touches State 3 documents
     (Package members), C2 creates **System Tasks** (D-014, TJ-021, `s-*` namespace) for each document
     that requires a build. System Tasks participate in the Job waiter set like any Task but are not
     cancellable by the Frontend.
@@ -118,11 +125,13 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
 
 **Condition:** `gdoc.project.json` does not exist in the workspace root.
 
-1. (Replaces steps 2, 9–17.) **C1** logs a warning and operates in a **degraded mode**: no Packages
-   are identified, no System Tasks are created.
-2. **C1** still registers file watchers and the completion handler (steps 5–8 still execute), so that
-   a later `CONFIG_SAVE` (when the user creates the config) can trigger the build.
-3. **C1** notifies the IDE Client (e.g., `window/logMessage`) that no gdoc project was detected.
+1. (Replaces steps 10–17.) **C2** detects the missing configuration while processing `CONFIG_SAVE`
+   (step 10; D-019: config reading is the ODB's) and enters **degraded mode**: no **Packages** are
+   identified, no **System Tasks** are created.
+2. **C1** still registers the completion handler and the broad file watchers (steps 6–8 still
+   execute), so that a later `CONFIG_SAVE` (when the user creates the config) can trigger the build.
+3. **C1** relays the degraded-mode result to the IDE Client (e.g., `window/logMessage`) that no gdoc
+   project was detected.
 
 ### File Watcher Registration Rejected
 
@@ -152,11 +161,12 @@ missing references, Builder crash).
 **Condition:** The user adds or removes a workspace folder after initialization.
 
 1. **IDE Client** sends `workspace/didChangeWorkspaceFolders` notification.
-2. **C1** re-reads the project configuration for the changed folders and identifies new/removed
-   Packages.
-3. **C1** submits `CONFIG_SAVE` (API-001) with the updated workspace state to **C2**.
-4. **C2** cancels System Tasks for removed documents (D-014: cancel on config change) and creates new
-   System Tasks for added documents.
+2. **C1** forwards the changed workspace roots (and config location, if known) to **C2** via
+   `CONFIG_SAVE` (API-001, D-019).
+3. **C2** re-reads the project configuration for the changed folders (D-019) and identifies
+   new/removed Packages.
+4. **C2** cancels System Tasks for removed documents (D-014: cancel on config change) and creates
+   new System Tasks for added documents.
 5. The remaining steps follow the main scenario from step 11.
 
 ---
@@ -173,15 +183,14 @@ sequenceDiagram
     participant C4 as Object Builder
 
     IDE->>C1: initialize (workspaceFolders)
-    Note over C1: Read gdoc.project.json<br/>Identify Project · Packages · Documents
     C1-->>IDE: initialize response (capabilities)
     IDE->>C1: initialized
-    Note over C1: Create ODB API object (library init)<br/>OM-04: outside 4-API surface
+    Note over C1: Create ODB API object (library init)<br/>pass workspace root · OM-04: outside 4-API surface · D-019
     C1->>C2: register_completion(handler) (API-004)
-    C1->>IDE: client/registerCapability (didChangeWatchedFiles)
+    C1->>IDE: client/registerCapability (didChangeWatchedFiles — broad patterns)
     IDE-->>C1: registration response
-    C1->>C2: submit(CONFIG_SAVE) (API-001)
-    Note over C2: Map Request to Task (TJ-001)<br/>Create System Tasks for State 3 docs<br/>(D-014 · TJ-021)
+    C1->>C2: submit(CONFIG_SAVE, payload=workspace root) (API-001)
+    Note over C2: C2 reads & parses gdoc.project.json<br/>Define Project · Packages · Documents (D-019)<br/>Map Request to Task (TJ-001)<br/>Create System Tasks for State 3 docs (D-014 · TJ-021)
     C2->>C3: Initialize Document entries
     C3-->>C2: OK
     loop for each Document
@@ -213,11 +222,12 @@ C1 shall process the LSP `initialize` request per LSP 3.17 and respond with serv
 #### IF-001-002
 
 C1 shall register `workspace/didChangeWatchedFiles` capability with the IDE Client (via
-`client/registerCapability`) before submitting the initial build request, so that file changes during
-the build are captured.
+`client/registerCapability`) for the workspace's broad file patterns, before submitting the initial
+build request, so that file changes during the build are captured. The config-driven project/package
+structure is the ODB's (D-019); C1 registers protocol-level watchers only.
 
 **Owner:** C1
-**Derived From:** UC-001 Main #7–8, FR-1.3
+**Derived From:** UC-001 Main #7–8, FR-1.3, D-019
 
 #### IF-001-003
 
@@ -462,12 +472,12 @@ departs.
 | DR-001-001 | ADR-004 (Datastore internal) | ✅ | Package/Document storage |
 | DR-001-002 | NFR-2.1 (dependency tracking) | ✅ | Relationship storage |
 | DR-001-003 | NFR-2.1, TJ-011 | ✅ | Dependency graph for priority |
-| EH-001-001 | — | ⚠️ | C1-internal; allocated to LSP-* in Phase 3 |
+| EH-001-001 | D-019, ADR-009 | ⚠️ | C2 detects missing config (D-019); C1 notifies the client (LSP-*/ODB-* in Phase 3) |
 | EH-001-002 | TJ-008 (atomic commit) | ✅ | Per-document isolation |
 | EH-001-003 | — | ⚠️ | C1-internal; allocated to LSP-* in Phase 3 |
 | EH-001-004 | TJ-019, TJ-004, TJ-008, D-018 | ✅ | Run bound + cancel + no-commit + reason |
 | SCR-C1-001-001 | FR-1.1 | ✅ | LSP compliance |
-| SCR-C1-001-002 | FR-2.2 | ✅ | Project/Package scoping |
+| SCR-C1-001-002 | D-019, API-001 | ✅ | Forwards workspace root + config location to ODB (no config parsing) |
 | SCR-C1-001-003 | FR-1.3 | ✅ | File watcher registration |
 | SCR-C1-001-004 | D-015, FR-1.2 | ✅ | DiagnosticsEvent → publishDiagnostics |
 | SCR-C1-001-005 | NFR-1.1, ADR-003, F6.3/F6.4 | ✅ | asyncio + thread-safe handler |
@@ -475,6 +485,7 @@ departs.
 | SCR-C2-001-002 | TJ-011, TJ-012 | ✅ | Priority-ordered dispatch |
 | SCR-C2-001-003 | TJ-008 | ✅ | Atomic commit |
 | SCR-C2-001-004 | D-015, API-004 | ✅ | DiagnosticsEvent + TerminalEvent push |
+| SCR-C2-001-005 | D-019, ADR-009, INV-06 | ✅ | ODB reads/parses config; defines Project scope, Packages, content types |
 | SCR-C3-001-001 | ADR-004, NFR-1.3 | ✅ | In-memory storage, single-writer |
 | SCR-C3-001-002 | NFR-2.1, TJ-011 | ✅ | Dependency graph |
 | SCR-C3-001-003 | ADR-004, R-004-1 | ✅ | Single-context sequential access |
@@ -484,10 +495,7 @@ departs.
 
 > **Status:** ✅ = satisfied · ⚠️ = partial / needs contract extension · ❌ = contract gap
 >
-> **Gap analysis:** EH-001-001 and EH-001-003 are C1-internal error-handling concerns (missing config file,
-> watcher registration failure). These are not covered by Phase 1 contracts because they are C1-internal
-> behavior, not ODB-facing obligations. They will be allocated to `LSP-*` in Phase 3. No contract
-> extension needed.
+> **Gap analysis:** EH-001-001 (missing config) is now **detected by C2** (D-019: the ODB reads the config and detects its absence); the LSP-side notification is C1's. EH-001-003 (watcher registration failure) is C1-internal. Neither requires a Phase-1 contract extension; both will be allocated to `LSP-*` / `ODB-*` in Phase 3.
 ---
 
 ## Traceability Matrix
@@ -495,7 +503,7 @@ departs.
 | ID | Type | Description | Scenario Step | Owner |
 | -- | ---- | ----------- | ------------- | ----- |
 | IF-001-001 | Interface | LSP initialize/initialized handshake | Main #1–3 | C1 |
-| IF-001-002 | Interface | didChangeWatchedFiles capability registration | Main #7–8 | C1 |
+| IF-001-002 | Interface | Broad file-watcher registration (protocol-level; D-019) | Main #7–8 | C1 |
 | IF-001-003 | Interface | Completion handler registration (API-004) | Main #6 | C1 |
 | IF-001-004 | Interface | Initial workspace state submit (API-001, CONFIG_SAVE) | Main #9 | C1 |
 | ST-001-001 | State | System Task creation for State 3 docs (D-014) | Main #10 | C2 |
@@ -504,12 +512,12 @@ departs.
 | DR-001-001 | Data | Package/Document entry storage | Main #13 | C3 |
 | DR-001-002 | Data | gdoc Objects + relationship storage | Main #13 | C3 |
 | DR-001-003 | Data | Dependency graph maintenance | Main #13 | C3 |
-| EH-001-001 | Error | Missing project config handling | Alt "No Project Config" | C1 |
+| EH-001-001 | Error | Missing project config handling (detected by C2, D-019) | Alt "No Project Config" | C2 (detection) · C1 (notification) |
 | EH-001-002 | Error | Per-document build failure isolation | Alt "Partial Build" | C2 |
 | EH-001-003 | Error | File watcher registration failure | Alt "Watcher Rejected" | C1 |
 | EH-001-004 | Error | Non-cooperative Builder timeout (TJ-019, D-018) | Alt "Partial Build" | C2 |
 | SCR-C1-001-001 | Component | LSP initialize/initialized implementation | Main #1–4 | C1 |
-| SCR-C1-001-002 | Component | Project/Package discovery from config | Main #2 | C1 |
+| SCR-C1-001-002 | Component | Forwards workspace root + config location to ODB at API creation and CONFIG_SAVE (D-019) | Main #5, #9 | C1 |
 | SCR-C1-001-003 | Component | File watcher registration + response handling | Main #7–8 | C1 |
 | SCR-C1-001-004 | Component | DiagnosticsEvent → publishDiagnostics mapping | Main #14, #16 | C1 |
 | SCR-C1-001-005 | Component | asyncio handler + thread-safe event posting | Main #6 | C1 |
@@ -517,6 +525,7 @@ departs.
 | SCR-C2-001-002 | Component | Priority-ordered Job dispatch | Main #11 | C2 |
 | SCR-C2-001-003 | Component | Atomic commit (TJ-008) | Main #13 | C2 |
 | SCR-C2-001-004 | Component | DiagnosticsEvent + TerminalEvent push (D-015) | Main #14–15 | C2 |
+| SCR-C2-001-005 | Component | Read/parse config; define Project scope, Packages, content types (D-019, ADR-009) | Main #10 | C2 |
 | SCR-C3-001-001 | Component | In-memory storage, single-writer (ADR-004) | Main #13 | C3 |
 | SCR-C3-001-002 | Component | Dependency graph for priority (TJ-011) | Main #13 | C3 |
 | SCR-C3-001-003 | Component | Single-context sequential access (R-004-1) | Main #13 | C3 |
