@@ -88,13 +88,12 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
 
 - Characteristics:
   - **High Responsiveness**: Leverages Python's `asyncio` to handle concurrent client I/O without blocking internal processing.
-  - **Stateful Protocol Handler**: Maintains the mapping between client-side URIs and internal document/package identifiers.
-  - **Event-Driven**: Reacts to file system changes and workspace configuration updates to maintain **Project** integrity.
+  - **Stateful Protocol Handler**: Maintains the mapping between client-side URIs and internal document identifiers.
+  - **Event-Driven**: Reacts to file system changes and workspace configuration updates (save / watched-file events) and forwards them to the ODB as `CONFIG_SAVE` / `WATCHED_FILES` — it does **not** maintain the **Project** structure itself (that is the ODB's, D-019).
 
 - Responsibilities:
-  - **Project & Package Scoping**:
-    - Monitors the workspace root to define the **Project** scope using configuration files (e.g., `gdoc.project.json`).
-    - Identifies and tracks internal **Packages** and their dependencies within the Project.
+  - **Workspace Root & Config Triggering (protocol-side only)**:
+    - Forwards the **workspace root** (and the configuration-file location, if it knows it) to the ODB and issues `CONFIG_SAVE` on save / watched-config changes. It does **not** read or parse `gdoc.project.json` and does **not** pre-derive **Packages** / **Documents** / content-types — that scoping is the ODB's (see §2, D-019).
   - **Request Translation**:
     - Converts LSP-specific calls (e.g., `textDocument/hover`) into unified internal **Requests**.
     - Initiates corresponding **Tasks** in the Object Database to trigger necessary analysis or data retrieval.
@@ -119,6 +118,7 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
   - **Completion is pushed, not polled**: Task/Job completion is **pushed** to the frontend via a callback it registered in advance (invoked on the Object Database's own worker thread). The frontend does not poll ticket status; it only hands the event onto its own event loop (see ADR-003).
 
 - Responsibilities:
+  - **Project & Package Scoping (configuration owner)**: Reads and parses the workspace configuration (e.g., `gdoc.project.json`) to define the **Project** scope, internal **Packages**, their document files and content types, and keeps that structure current on `CONFIG_SAVE` (D-019; ADR-009). This is the **Workspace/Project Manager** sub-concern, kept **inside the single ODB component** alongside the Task/Job Manager (option (a), D-019).
   - **Task Scheduling & Prioritization**: Dynamically manages the execution order of **Tasks** based on user focus (e.g., open documents) and dependency requirements.
   - **Shared-Job Management**: Registers shared **Jobs** under a single **dedup key**, applies **priority inheritance** (a Job takes the highest priority of the Tasks awaiting it), and enforces **reference-counted cancellation** (a Job stays active while at least one Task awaits it, and is canceled on the last departure). Builders *perform* the work; the ODB *decides* the sharing (ADR-006, ADR-008; R-006-3).
   - **Cancellation**: Aborts obsolete **Tasks** and their associated **Jobs** when newer document versions or conflicting **Requests** arrive.

@@ -25,6 +25,11 @@ documents** and are **only reflected upon saving**."
   text documents.
 - The resulting re-scoping (added/removed packages, changed dependencies)
   triggers the appropriate rebuild/invalidation in the Object Database.
+- **Ownership (D-019):** the ODB is the **single reader, parser, and owner** of the
+  configuration — the Frontend only forwards the **workspace root** (and the config location, if
+  known) and triggers the configuration-save event; it does **not** read or parse `gdoc.project.json`. This keeps
+  the configuration a first-class ODB-owned event and aligns with ADR-004 (single coordinator/writer);
+  a change to the configuration format therefore never forces a Frontend change (ADR-001).
 
 ## Alternatives Considered
 
