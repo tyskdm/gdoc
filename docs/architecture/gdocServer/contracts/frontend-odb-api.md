@@ -134,7 +134,7 @@ Request {
 }
 ```
 
-- **Frontend (C1) obligation:** construct a `Request` that fully expresses the intent, including `documents`/`version_id` and any open-buffer content the ODB/Builder must read.
+- **Frontend (C1) obligation:** construct a `Request` that fully expresses the intent, including `documents` with their **raw sync facts** (`open_revision`; last-save mtime when available) and any open-buffer content the ODB/Builder must read. C1 does **not** compute or own the `version_id` key (C2 does; §4.3).
 - **ODB (C2) obligation:** interpret the `Request` without inspecting which protocol produced it; use `operation`, `documents`, `payload` to scope, build and order Tasks (TJ-011/012; reference-depth ordering is ODB-derived from the operation — §4.1); use `source` **only** for ownership/cancellation attribution; treat `priority_hint` as Frontend-domain (TJ-010). (`source` is **set by the ODB from the calling API object** — implicit, the Frontend does not fill it; §4.2.)
 - **Superset.** The model is a superset of every frontend's needs (ADR-001); fields a given frontend does not use are optional/empty, never a client-type branch.
 
@@ -185,11 +185,11 @@ DocumentRef { uri : Uri, version_id : (last_save_mtime, open_revision) }
 
 - `version_id` is the **document identity/freshness key** (TJ-018 / D-004, Q-002): `(last_save_timestamp, open_revision)`.
 - `open_revision > 0` ⇒ **open** (buffer is the source of truth); `open_revision == 0` ⇒ **non-open** (disk is the source of truth).
-- **Frontend (C1) obligation:** include the **current** `version_id` for every involved document, and — when the document is **open** — the **buffer content** in `payload` (or via the sync operation), since the Builder must build from the *latest open buffer* (TJ-018).
-- **ODB (C2) obligation:** use `version_id` as the **dedup key version component** (TJ-005) and the freshness trigger (open edit ⇒ `open_revision↑`; non-open disk change ⇒ `last_save_mtime↑`); invalidate/rebuild accordingly.
+- **Frontend (C1) obligation:** include the **raw sync facts** for every involved document — the **`open_revision`** (LSP `didChange` `version`, ≥1 when open; 0 for non-open) and the last-save mtime **when C1 has observed it** — and, when the document is **open**, the **buffer content** in `payload` (or via the sync operation), since the Builder must build from the *latest open buffer* (TJ-018). C1 does **not** compute or own the `version_id` key.
+- **ODB (C2) obligation:** **own & compose the `version_id` key** from the forwarded raw facts (completing the non-open `last_save_mtime` from disk / `didChangeWatchedFiles`), then use it as the **dedup key version component** (TJ-005) and the freshness trigger (open edit ⇒ `open_revision↑`; non-open disk change ⇒ `last_save_mtime↑`); invalidate/rebuild accordingly.
 - **Builder (C4) obligation:** build from the content the ODB supplies (buffer when open, disk when non-open) — never from a stale copy.
 
-- **Owner:** shared (C1 supplies, C2 uses, C4 consumes). **Risk(s):** R-006-2 (dedup key), R-006-4 (stale buffer → wrong result).
+- Owner: shared (C1 supplies raw sync facts; C2 owns, composes & uses the key; C4 consumes content). Risk(s): R-006-2 (dedup key), R-006-4 (stale buffer → wrong result).
 - **Derived From:** NFR-2.1 (always latest) → ADR-006 (dedup) → TJ-018 / D-004 → R-006-2.
 - **Test:** an open-buffer edit (revision↑) and a non-open disk change (mtime↑) each invalidate/rebuild the affected (file, version, inputs); a Builder never builds from a buffer older than the Request's `version_id`.
 

@@ -111,10 +111,10 @@ push) → §5.2 · D-016 (`action:"change"`) + D-017 (payload `action` + `conten
 1. **IDE Client** sends `textDocument/didChange` (uri, `version` = previous revision + 1, full or
    incremental `TextDocumentContentChangeEvent[]`) for an open document.
 2. **C1** applies the change to its local buffer (LSP 3.17 full/incremental semantics — C1's own
-   responsibility), sets `open_revision` = the new `version`, computes
-   `version_id` = (last-save mtime, new `open_revision`), and submits a `Request{ operation:
+   responsibility), sets `open_revision` = the new `version`, and submits a `Request{ operation:
    DOCUMENT_SYNC, documents: [doc], payload: {action:"change", content:<full updated buffer>},
-   priority_hint }` to the ODB (API-001, D-016/D-017, §4.3).
+   priority_hint }` to the ODB (API-001, D-016/D-017, §4.3), forwarding the raw `open_revision`
+   fact — the `version_id` key is owned & composed by C2.
 3. **C2** maps the Request 1:1 to a Task (TJ-001). The document **stays** in State 2; the edit is an
    **interaction**, so C2 recomputes scheduling priorities (TJ-012) — no System Task creation or
    cancellation (D-014, TJ-021).
@@ -196,7 +196,7 @@ sequenceDiagram
     participant C4 as Object Builder
 
     IDE-)C1: textDocument/didChange (uri, version=R+1, contentChanges)
-    Note over C1: apply to local buffer (LSP 3.17)<br>open_revision = R+1, version_id = (mtime, R+1)
+    Note over C1: apply to local buffer (LSP 3.17)<br>open_revision = R+1 (raw fact forwarded to C2)
     C1->>C2: submit(DOCUMENT_SYNC{action:change, content:<full buffer>})
     Note over C2: Request→Task 1:1 (TJ-001)<br>doc stays State 2<br>System Task unchanged (D-014, TJ-021)<br>priority recomputed (TJ-012)<br>new dedup key (TJ-005) ⇒ fresh Job (TJ-006)
     C2-->>C1: Submission{ticket, request_id}
@@ -242,9 +242,9 @@ published set for that document (latest revision wins, Alt A).
 #### IF-003-003
 
 C1 **shall** advance `open_revision` to the `didChange` `version` on every accepted edit and
-pass `version_id` = (last-save mtime, new `open_revision`) for the document; content is sourced
-from the **buffer**; the ODB uses it (opaque) as the dedup-key version (TJ-005) and the Datastore
-freshness key (TJ-018). C1 **shall not** submit a `change` for a document it does not track as
+forward the raw `open_revision` fact for the document; content is sourced from the **buffer**;
+C2 (ODB) owns & composes the `version_id` key and uses it as the dedup-key version (TJ-005) and
+the Datastore freshness key (TJ-018). C1 **shall not** submit a `change` for a document it does not track as
 open (Alt C).
 
 **Owner:** C1
@@ -427,7 +427,7 @@ cancellation so a superseded (stale) Job's dispatch-skip or late cancel is honou
 | -- | ---- | ----------- | ------------- | ----- |
 | IF-003-001 | Interface | didChange → DOCUMENT_SYNC{change, content} translation | Main #1–2 | C1 |
 | IF-003-002 | Interface | Handler event consumption + publishDiagnostics (latest-wins) | Main #8–10, Alt A | C1 |
-| IF-003-003 | Interface | open_revision advance + version_id computation; no-submit for untracked | Main #2, Alt C | C1 |
+| IF-003-003 | Interface | open_revision advance + raw fact forwarding; version_id owned & composed by C2; no-submit for untracked | Main #2, Alt C | C1 |
 | ST-003-001 | State | No state transition; System Task persists; priority recomputed | Main #3 | C2 |
 | ST-003-002 | State | Fresh Job per new dedup key; stale queued Job dispatch-skip | Main #4, Alt A | C2 |
 | DR-003-001 | Data | Current-pointer moves on atomic commit; stale never overwrites | Main #7, Alt A/B | C3 |

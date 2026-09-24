@@ -82,7 +82,8 @@ defect.
 | INV-02 | Translate LSP messages ↔ Requests; results ↔ LSP notifications | **C1 Frontend** | ADR-001, ADR-008 |
 | INV-03 | Apply **client-type-specific** request priority, ordering, cancellation | **C1 Frontend** | ADR-008 |
 | INV-04 | Track its own open documents & focus | **C1 Frontend** | ADR-008 |
-| INV-05 | Document sync (`didOpen/didChange/didClose`) → background work | **C1 Frontend** | FR-1.3 |
+| INV-05 | Document sync (`didOpen/didChange/didClose`) → forward raw sync facts (`open_revision`; last-save mtime when known) & buffer content to the ODB, triggering background work | **C1 Frontend** | FR-1.3 |
+| INV-30 | **Own & compose the document `version_id` key** (from forwarded raw facts + non-open mtime) — identity/freshness key (TJ-018), dedup-key version (TJ-005) | **C2 ODB** | D-004; ADR-001/008; TJ-005/018 |
 | INV-06 | Project & package scoping: **read + parse** the workspace config, define **Project** scope / **Packages** / their documents & content types; keep it current on `CONFIG_SAVE` | **C2 ODB** | architecture.md; ADR-009 (D-019) |
 | INV-07 | Dispatch diagnostics/tokens/errors to the client as notifications | **C1 Frontend** | FR-1.2; architecture.md |
 | INV-08 | Register completion callback; hand events onto its own loop | **C1 Frontend** | ADR-003 (R-003-1/2) |

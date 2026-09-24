@@ -87,8 +87,8 @@ TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator
 ## Main Scenario
 
 1. **IDE Client** sends `textDocument/didOpen` with the document uri and full buffer text.
-2. **C1** stores the buffer, maps the uri to an internal `DocumentRef`, and computes the initial
-   `version_id` = (last-save mtime, `open_revision` ≥ 1) for the **open** file (D-004).
+2. **C1** stores the buffer, maps the uri to an internal `DocumentRef`, and forwards the raw sync
+   fact `open_revision` ≥ 1 for the **open** file (D-004) — the `version_id` key is owned & composed by C2.
 3. **C1** submits a `Request{ operation: DOCUMENT_SYNC, documents: [doc], payload:
    {action:"open", content:<buffer>}, priority_hint }` to the ODB (API-001, D-016/D-017).
 4. **C2** maps the Request 1:1 to a Task (TJ-001), moves the document into **State 2** (open file
@@ -191,7 +191,7 @@ sequenceDiagram
     participant C4 as Object Builder
 
     IDE-)C1: textDocument/didOpen (uri, text)
-    Note over C1: store buffer<br>version_id = (mtime, open_revision>=1)
+    Note over C1: store buffer<br>open_revision ≥ 1 (raw fact forwarded to C2)
     C1->>C2: submit(DOCUMENT_SYNC{action:open, content})
     Note over C2: Request->Task 1:1 (TJ-001)<br>State 2 entry: doc + references (ADR-007)<br>System Task s-* created (D-014, TJ-021)<br>dedup / single-in-flight (TJ-005/006)
     C2-->>C1: Submission{ticket, request_id}
@@ -234,9 +234,9 @@ the IDE via `textDocument/publishDiagnostics`.
 
 #### IF-002-003
 
-C1 **shall** compute and pass a `version_id` = (last-save mtime, `open_revision` ≥ 1) for the open
-document, with content sourced from the **buffer**; the ODB uses it (opaque) as the dedup-key
-version and the Datastore freshness key.
+C1 **shall** forward the raw sync fact `open_revision` ≥ 1 for the open
+document, with content sourced from the **buffer**; C2 (ODB) owns & composes the
+`version_id` key and uses it as the dedup-key version and the Datastore freshness key.
 
 **Owner:** C1
 **Derived From:** UC-002 Main #2 · D-004 · TJ-005/018 · §4.3 (DocumentRef)
@@ -307,8 +307,8 @@ terminal the Task with `Error` (`E_BUILD_FAILED` / `E_TIMEOUT`), and push
 
 #### SCR-C1-002-001 (Language Server)
 
-C1 **shall** implement `textDocument/didOpen` handling: buffer storage, `DocumentRef`/`version_id`
-initialization (open_revision ≥ 1), and translation to `DOCUMENT_SYNC{action:"open", content}` per
+C1 **shall** implement `textDocument/didOpen` handling: buffer storage, `DocumentRef`/`open_revision`
+raw-fact forwarding (open_revision ≥ 1), and translation to `DOCUMENT_SYNC{action:"open", content}` per
 D-016/D-017, submitted through the ODB API (asyncio-based, non-blocking).
 
 **Derived From:** UC-002 Main #1–3 · FR-1.3 · NFR-1.1 · API-001 · D-016/D-017
@@ -390,7 +390,7 @@ for the content type (TJ-019/020).
 | -- | ---- | ----------- | ------------- | ----- |
 | IF-002-001 | Interface | didOpen → DOCUMENT_SYNC{open} translation | Main #1–3 | C1 |
 | IF-002-002 | Interface | Handler event consumption + publishDiagnostics | Main #9–11 | C1 |
-| IF-002-003 | Interface | version_id computation (open file) | Main #2 | C1 |
+| IF-002-003 | Interface | raw sync fact forwarding (open_revision ≥ 1, open file); version_id owned & composed by C2 | Main #2 | C1 |
 | ST-002-001 | State | State 2 entry + System Task creation (D-014) | Main #4 | C2 |
 | ST-002-002 | State | Task lifecycle → terminal before push | Main #3–8 | C2 |
 | DR-002-001 | Data | Document entry at new version_id, open flag | Main #8 | C3 |
