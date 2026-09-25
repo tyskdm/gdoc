@@ -94,7 +94,7 @@ Owners: **ODB** = C2 · **Frontend** = C1 · **Builder** = C4 · **Datastore** =
 
 ### 3.2 Sharing & deduplication
 
-**[TJ-005] Dedup key.** A Job's identity for deduplication is its **dedup key = (file, version, inputs)**, where **inputs = {content type, dependency state, build options}**. Two requests are deduplicated into one Job **iff** their dedup keys are identical. The key-derivation logic is per content type and supplied by the Builder SDK (TJ-020). The **version** component is the **`version_id`** tuple `(last_save_timestamp, open_revision)` (TJ-018).
+**[TJ-005] Dedup key.** A Job's identity for deduplication is its **dedup key = (file, version, inputs)**, where **inputs = {content type, dependency state, build options}**. Two requests are deduplicated into one Job **iff** their dedup keys are identical. The key-derivation logic is per content type and supplied by the Builder SDK (TJ-020). The **version** component is the document's current **`version_id`** for its **state** (TJ-018): the LSP `didChange` `open_revision` while the document is **open** (buffer), or its **disk signal** (last-change mtime) while **non-open**.
 
 - **Owner:** ODB (key) + Builder (derivation). **Risk(s):** R-006-2.
 - Derived From: FR-3.2 → ADR-006 → R-006-2 → D-004.
@@ -186,14 +186,22 @@ Within/below these, references are built in **reference-depth order from open te
 
 ### 3.5 Document identity & freshness
 
-**[TJ-018] Document identity / freshness key = `version_id`.** A document's identity/freshness key is the **`version_id` = tuple `(last_save_timestamp, open_revision)`** (D-004): `last_save_timestamp` = the file's **last on-disk save time (mtime)**; `open_revision` = the LSP `didChange` `version` for **open** files, **0** for **non-open** files; compare `last_save_timestamp` first, then `open_revision`. This key is used **consistently** as (a) the **version component of the dedup key** (TJ-005) and (b) the **Datastore freshness invariant**: a stored result for a document is **fresh iff its `version_id` equals the document's current `version_id`**. This resolves the "cannot compare new/old" problem (Q-002 → D-004) **for both open and non-open files**. A document's result is **stale** (and must be rebuilt) when its current `version_id` ≠ the stored result's `version_id`.
+**[TJ-018] State-based identity & freshness (`version_id`) + generation-scoped staleness (D-020).** Identity/freshness is decided **by the document's `state` (open vs non-open), not by one key compared across both**. There is **no single `version_id` tuple ranking open and non-open versions against each other** — the file and its buffer are distinct data that only share a path, and no use case ranks a buffer revision against a disk version:
+
+- **Selection is by state.** While a document is **open**, registration/commit always come from the **buffer**, identified by its **`open_revision`** (LSP `didChange` `version`); while **non-open**, they always come from **disk**, identified by its **disk signal** (last-change **mtime**, observed via `didChangeWatchedFiles` — the server does **not** poll). **`version_id`** is therefore **state-relative**: `open_revision` when open, the disk mtime when non-open.
+- **Monotonicity is within a state.** Within an **open** span the `open_revision` **increases monotonically** and the newer one wins (D-004's open-buffer ordering is unchanged); within **non-open** the **mtime** is monotonic. The two are **never compared against each other**.
+- **Generations (episodes).** An open span is a **generation**: it opens at `didOpen`, closes at `didClose`, and the buffer is discarded on close. A **re-open starts the `open_revision` over from 1**; this is safe because the generations are separated (D-020) — a fresh generation's revision 1 is not comparable to, and does not collide with, any earlier generation's or the disk's version.
+- **Staleness is scoped to the generation.** A stored result is **fresh iff the state it was built under is still current in the same generation**: for an **open** document, its `open_revision` still equals the document's current `open_revision` **and the document is still open in that generation**; for a **non-open** document, its disk mtime still equals the current mtime. When a result's generation has ended, it is **stale regardless of its version number**:
+  - a **buffer (open-generation) result is discarded outright** if the document is **no longer open in that generation** (closed, or re-opened as a new generation) — this is the stale-overwrite prevention the former `version_id` comparison provided (Q-002 → D-004 → **D-020**);
+  - a **disk (non-open) result** is stale when a newer disk change is observed (`WATCHED_FILES{changed}` ⇒ newer mtime).
+- This key is used as (a) the **version component of the dedup key** (TJ-005) and (b) the **Datastore freshness invariant** (the "current" pointer advances only on an atomic commit of the **then-current generation's** version; a stale-generation result can never become "current").
 
 > **Note (dependency freshness):** This rule covers a document's **own** content freshness. Staleness caused by **dependency** changes (a referenced document was rebuilt) is handled by the **dedup key inputs** (TJ-005: `dependency state`) — a changed dependency alters the key, so the stored result is not reused.
 
-- **Scope & composition (D-004 · ADR-001 · FR-1.3):** the `version_id` covers **both open and non-open** files. **Content source:** **open** files → the **client buffer** (C1 supplies it; reflects unsaved edits); **non-open** files → the **builder reads the file from disk by path**. **Change detection:** open → `didChange` (LSP `version`); non-open → **`didChangeWatchedFiles`** (the IDE's watcher — the server does **not** poll the disk). **The `version_id` is owned & composed by C2 (ODB)**: C1 forwards the raw sync facts it observes (open: `didChange` version; last-save mtime when it has one), and C2 assembles the key (non-open: mtime from disk / `didChangeWatchedFiles`, `open_revision` = 0). C1 is further obligated to **register `workspace/didChangeWatchedFiles`** for non-open project files. *(This C1 obligation is the boundary's other side (ADR-008), allocated to `LSP-*` in Phase 3.)*
-- **Owner:** C2 (ODB — owns & composes `version_id` from C1's forwarded raw facts + non-open mtime) + Datastore (freshness invariant). **Risk(s):** R-006-2, (NFR-2.1 consistency).
-- Derived From: NFR-2.1 → ADR-006 → R-006-2 → D-004 (Q-002).
-- **Test:** an **open** file edited (version bump) or a **non-open** file changed on disk (didChangeWatchedFiles ⇒ mtime bump) ⇒ the stale result is invalidated and rebuilt; a concurrent reader never observes a torn new/old mix; two Tasks with different `version_id`s for the same file are **not** deduplicated; the `version_id` is well-defined whether the file is currently open (buffer) or not (disk).
+- **Scope & composition (D-020 · D-004 · ADR-001 · FR-1.3):** **Content source:** **open** → the **client buffer** (C1 supplies it; reflects unsaved edits); **non-open** → the **builder reads the file from disk by path**. **Change detection:** open → `didChange` (LSP `version`); non-open → **`didChangeWatchedFiles`** (the IDE's watcher — the server does **not** poll the disk). **C2 (ODB) owns the state → selection and the generation bookkeeping**: C1 forwards the raw sync fact it observes (`open_revision` for an open document; open/close events via `DOCUMENT_SYNC`), and C2 tracks each document's **state and generation** so it can apply the staleness rule (D-020). C1 is further obligated to **register `workspace/didChangeWatchedFiles`** for non-open project files. *(This C1 obligation is the boundary's other side (ADR-008), allocated to `LSP-*` in Phase 3.)*
+- **Owner:** C2 (ODB — owns state/generation selection + staleness rule) + Datastore (freshness invariant). **Risk(s):** R-006-2, (NFR-2.1 consistency).
+- Derived From: NFR-2.1 → ADR-006 → R-006-2 → **D-020** (refines D-004; Q-002).
+- **Test:** (open) an edited buffer (revision↑) ⇒ stale result invalidated, newer revision wins, late-arriving result for an older revision never overwrites; (non-open) a `didChangeWatchedFiles` change (newer mtime) ⇒ stale result invalidated; a **buffer result arriving after `didClose`** is **discarded**, never becoming "current"; a **re-open** starts revision 1 and its result is fresh in its own generation without colliding with the prior generation's or the disk's version; two Tasks with different in-state versions for the same document are **not** deduplicated.
 
 ### 3.6 Builder obligations (mechanism side of sharing)
 
@@ -242,7 +250,7 @@ One row per rule. This table is the grep/aggregation target for the Phase 1a and
 | TJ-015 | Priority-inversion bound — **deferred (D-010)**; v1 liveness via TJ-009/012/019 | ODB | NFR-2.3 → ADR-006/007 → R-006-4 → **D-010** | R-006-4 (preempt. deferred) | bounded via dispatch order + run bound (no preemption in v1) |
 | TJ-016 | Config save = rebuild/invalidation event | ODB | ADR-009 → R-009-1 → ADR-004 | R-009-1 | re-scope matches saved config |
 | TJ-017 | Config override rules (saved wins) | ODB | ADR-009 → R-009-2 → ADR-007 | R-009-2 | unsaved=no effect; save wins race |
-| TJ-018 | Document identity/freshness = `version_id` (mtime, open_revision) | C2 (ODB) + Datastore | NFR-2.1 → ADR-006 → R-006-2 → D-004 | R-006-2, NFR-2.1 | open edit (rev↑) or non-open disk change (mtime↑) ⇒ invalidate/rebuild |
+| TJ-018 | State-based identity/freshness (`version_id`) + generation-scoped staleness | C2 (ODB) + Datastore | NFR-2.1 → ADR-006 → R-006-2 → D-020 (refines D-004) | R-006-2, NFR-2.1 | open rev↑ / non-open mtime↑ ⇒ invalidate; closed ⇒ buffer result discarded; re-open starts rev 1 |
 | TJ-019 | Builder cooperative cancel + run bound | Builder | FR-4.1 → ADR-005 → R-005-1 → R-003-3 | R-005-1, R-003-3 | non-coop Builder timed out; no stall |
 | TJ-020 | Builder SDK dedup-key derivation | Builder | FR-4.1 → ADR-005 → R-005-2 → R-006-2 | R-005-2, R-006-2 | SDK conformance: keys/cancel/parsing |
 | TJ-021 | System Task lifecycle (D-014) | ODB | FR-3.1/3.2 → ADR-002/007 → **D-014** | R-006-3, R-008-1 | close/deletion cancels System Task; Frontend cannot target s-* |
@@ -254,7 +262,7 @@ One row per rule. This table is the grep/aggregation target for the Phase 1a and
 | # | Check | Result | Evidence |
 | --- | --- | --- | --- |
 | M1 | Every rule has a `TJ-nnn` ID; IDs are unique | ✅ | TJ-001…TJ-021 each appear exactly once as a heading and once in §4 index (no duplicates). |
-| M2 | No orphan: every rule's Derived-From chain ends at an FR/NFR (or D-decision grounded on one) | ✅ | §4 index: every chain terminates in FR-3.x / FR-4.1 / NFR-2.x / (D-004/D-007 which resolve Q-002/Q-004 and are themselves FR/ADR-grounded). |
+| M2 | No orphan: every rule's Derived-From chain ends at an FR/NFR (or D-decision grounded on one) | ✅ | §4 index: every chain terminates in FR-3.x / FR-4.1 / NFR-2.x / (D-020/D-007 which resolve Q-002/Q-004 and are themselves FR/ADR-grounded; D-020 refines D-004). |
 | M3 | Every Phase-1a-required risk is ruled by ≥ 1 rule | ✅ | R-002-1/2, R-006-1..4, R-007-1..3 (all required) + R-005-1/2, R-008-1/2, R-009-1/2 — see §5.3 closure table; none missing. |
 | M4 | Tables are machine-readable (stable IDs in leading cells) | ✅ | §3 state tables, §4 index, §5/§6 traceability tables all lead with the ID column. |
 | M5 | Terms not redefined (single-source kept in Phase 0) | ✅ | §1 states terms are referenced, not redefined; no new definitions of Request/Task/Subtask/Job/Document/Package/Project/dedup key/priority. |
@@ -323,7 +331,7 @@ Every `R-00x` relevant to Task/Job management is "ruled" here; the **test** colu
 | ADR-008 (boundary / no client branch) | TJ-007, TJ-010 |
 | ADR-009 (config lifecycle) | TJ-016, TJ-017 |
 | ADR-005 / ADR-003 (builder mechanism / runtime) | TJ-008, TJ-015, TJ-019, TJ-020 |
-| D-004 (version_id = identity) | TJ-005, TJ-018 |
+| D-020 (state-based `version_id` + generation staleness; refines D-004) | TJ-005, TJ-018 |
 | D-007 (thresholds deferred) | TJ-013, TJ-014, TJ-019 |
 | D-010 (R-006-4 cancel-and-re-run deferred) | TJ-015 |
 | D-008 (mgmt=ODB / mech=Builder) | TJ-007, TJ-008, TJ-009, TJ-019, TJ-020 |
@@ -349,7 +357,7 @@ Every `R-00x` relevant to Task/Job management is "ruled" here; the **test** colu
 | TJ-015 | NFR-2.3 | ADR-006/007 | R-006-4 (preempt. deferred) | **D-010** (refines D-007) |
 | TJ-016 | NFR-2.1 | ADR-009, 004 | R-009-1 | — |
 | TJ-017 | NFR-2.1 | ADR-009, 007 | R-009-2 | — |
-| TJ-018 | NFR-2.1 | ADR-006 | R-006-2 | D-004 (Q-002) |
+| TJ-018 | NFR-2.1 | ADR-006 | R-006-2 | D-020 (refines D-004; Q-002) |
 | TJ-019 | FR-4.1 | ADR-005, 003, 006 | R-005-1, R-003-3 | — |
 | TJ-020 | FR-4.1 | ADR-005, 006 | R-005-2, R-006-2 | — |
 
@@ -363,7 +371,7 @@ Per `../README.md` §8 (Phase 1a *User review*), please confirm before Phase 1b:
 - [x] **Dedup key** (TJ-005): `inputs = {content type, dependency state, build options}` is the sufficient, agreed set — and any 4th input is added via the Builder SDK (TJ-020), not a new key shape? (R-006-2)
 - [x] **Starvation / unbounded** (TJ-013/014) and **Builder run bound** (TJ-019): mechanism classes fixed, thresholds **deferred (D-007)** — accepted? (R-007-1/2, R-005-1, R-003-3)
 - [x] **Priority-inversion (TJ-015) deferred (D-010):** v1 is **single-executor / non-preemptive**; priority affects dispatch order only; **cancel-and-re-run is not a v1 mechanism** (wasted-work cost, no liveness benefit); liveness closed by TJ-012/019/013/014. Revisit only if concurrency / runtime resource priority is introduced — accepted? (R-006-4)
-- [x] **Q-002 resolved** via **D-004** (TJ-018): identity/freshness = **`version_id` = (last-save mtime, open_revision)** — open files use the **buffer** (`didChange` version), non-open files use the **disk** (`didChangeWatchedFiles` + mtime); the tuple is owned & composed by C2 (ODB) (C1 forwards the raw sync facts), used as the dedup-key version + Datastore freshness invariant. **Both open and non-open files are covered** — no separate labeled-version layer needed in v1?
+- [x] **Q-002 resolved** via **D-020** (refines **D-004**, TJ-018): identity/freshness is decided **by the document's state** — **open** files use the **buffer** (`didChange` `open_revision`, monotonic within the open span); **non-open** files use the **disk** (`didChangeWatchedFiles` + mtime). There is **no cross-state `version_id` ranking** and **no single tuple** (D-004's tuple retired). **Staleness is scoped to the generation**: a buffer result is discarded once the document is no longer open in that generation (closed, or re-opened as a fresh generation starting revision 1); a disk result is stale on a newer `WATCHED_FILES{changed}`. The rule is owned by C2 (ODB) (C1 forwards the raw sync facts), and it is used as the dedup-key version + Datastore freshness invariant. **Both open and non-open files are covered** — no separate labeled-version layer needed in v1?
 - [x] **Builder obligations** (TJ-019/020) included in *this* contract (vs. Phase 3 only) so Phase 3 can allocate them to `BLD-*` — agree?
 - [x] **Rule count/scope:** 20 rules, TJ-001…TJ-020, all Owner-tagged to a single component — nothing double-owned / unowned?
 
@@ -372,5 +380,5 @@ Per `../README.md` §8 (Phase 1a *User review*), please confirm before Phase 1b:
 - All ADR-002/006/007/009 *Verify* items + risks turned into rules — **met** (§5.2 / §5.3; all `OK`).
 - State-transition table present (Task + Job) — **met** (§3.1).
 - Dedup key + priority rules explicit — **met** (TJ-005…TJ-009, TJ-010…TJ-015).
-- Q-002 resolved — **met** (TJ-018, via D-004).
-- **Verdict: ✅ APPROVED — Phase 1a closed (2026-09-11).** All §7 confirmations accepted (incl. D-004 `version_id`, D-007 starvation thresholds deferred, D-010 priority-inversion deferred).
+- Q-002 resolved — **met** (TJ-018, via **D-020**, refines D-004).
+- **Verdict: ✅ APPROVED — Phase 1a closed (2026-09-11).** All §7 confirmations accepted (incl. D-020 state-based `version_id` + generation staleness — refines D-004; D-007 starvation thresholds deferred, D-010 priority-inversion deferred).

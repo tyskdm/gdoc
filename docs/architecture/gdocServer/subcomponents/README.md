@@ -82,8 +82,8 @@ defect.
 | INV-02 | Translate LSP messages ↔ Requests; results ↔ LSP notifications | **C1 Frontend** | ADR-001, ADR-008 |
 | INV-03 | Apply **client-type-specific** request priority, ordering, cancellation | **C1 Frontend** | ADR-008 |
 | INV-04 | Track its own open documents & focus | **C1 Frontend** | ADR-008 |
-| INV-05 | Document sync (`didOpen/didChange/didClose`) → forward raw sync facts (`open_revision`; last-save mtime when known) & buffer content to the ODB, triggering background work | **C1 Frontend** | FR-1.3 |
-| INV-30 | **Own & compose the document `version_id` key** (from forwarded raw facts + non-open mtime) — identity/freshness key (TJ-018), dedup-key version (TJ-005) | **C2 ODB** | D-004; ADR-001/008; TJ-005/018 |
+| INV-05 | Document sync (`didOpen/didChange/didClose`) → forward the raw sync fact (`open_revision`) & open-buffer content to the ODB, triggering background work | **C1 Frontend** | FR-1.3 |
+| INV-30 | **Own the state → `version_id` selection** (open ⇒ `open_revision`; non-open ⇒ disk mtime) **and the generation bookkeeping** (open span; re-open restarts revision) — identity/freshness + staleness rule (TJ-018), dedup-key version (TJ-005) | **C2 ODB** | **D-020** (refines D-004); ADR-001/008; TJ-005/018 |
 | INV-06 | Project & package scoping: **read + parse** the workspace config, define **Project** scope / **Packages** / their documents & content types; keep it current on `CONFIG_SAVE` | **C2 ODB** | architecture.md; ADR-009 (D-019) |
 | INV-07 | Dispatch diagnostics/tokens/errors to the client as notifications | **C1 Frontend** | FR-1.2; architecture.md |
 | INV-08 | Register completion callback; hand events onto its own loop | **C1 Frontend** | ADR-003 (R-003-1/2) |
@@ -200,10 +200,10 @@ redefine them. "Single Source" names the authoritative text; "Derived From" is t
 | **Task** | A **protocol-agnostic** unit of internal orchestration, owned and managed by the ODB. Carries the priority, lifecycle, and cancellation the ODB assigns; decomposes into Subtasks and/or requests Jobs. A Task is created by a client Request (1:1) **or**, on a document State 2/3 transition, by an ODB-generated **System Task** (D-014, TJ-021). | ADR-002, ADR-008; D-014 | FR-3.1, NFR-2.3 |
 | **Subtask** | The **task-local** management unit inside a Task (a step the Task owns, e.g. "link document X for this Task"). **Not shared** across Tasks and **not deduplicated**; a Task may contain several. | ADR-002 (note) | FR-3.1 |
 | **Job** | The **atomic, (potentially shared)** unit of execution (Parse/Link/Compile) dispatched to a Builder. Identified by a **dedup key**; multiple Tasks may await the same Job; dedup, priority inheritance, and reference-counted cancellation happen **at this level** (below the Task). One Builder launch = one Job. | ADR-002, ADR-005, ADR-006, ADR-008 | FR-3.1/3.2, NFR-3.1 |
-| **Document** | A single source file within a Project (e.g. a `.gdoc` or `.doxml` file); the unit of parsing/analysis. Carries the ADR-007 priority **states** (1: referenced by an active request; 2: open in the editor **and the documents it references**; 3: part of a package) and a monotonic **`version`** revision. | architecture.md; ADR-007; D-004 | FR-2.2 |
+| **Document** | A single source file within a Project (e.g. a `.gdoc` or `.doxml` file); the unit of parsing/analysis. Carries the ADR-007 priority **states** (1: referenced by an active request; 2: open in the editor **and the documents it references**; 3: part of a package). Its identity/freshness `version_id` is **state-relative** (TJ-018 / **D-020**): the LSP `open_revision` (buffer) while open, the disk mtime (non-open); staleness is scoped to the open **generation**. | architecture.md; ADR-007; **D-020** (refines D-004) | FR-2.2 |
 | **Package** | The fundamental unit of **content and distribution**. A Project holds one or more internal packages and may reference external ones. **Package membership (state 3)** is set by configuration and **applied on save**. | architecture.md; ADR-009 | FR-2.2 |
 | **Project** | The **root** organizational unit of gdoc; maps **1:1 to a VSCode Workspace**; the top-level container for configuration and resources; contains Packages. | architecture.md | FR-2.2 |
-| **dedup key** | The identity of a Job used for deduplication: it captures the **target document + its version + the relevant inputs** (content type, dependency state, build options) so that identical work shares one Job and differing inputs do **not** collapse. The exact rule is fixed in **Phase 1a** (`../contracts/task-job-management.md`, `TJ-`); this file fixes only the **term**. | ADR-006; R-006-2; D-004 | FR-3.2 |
+| **dedup key** | The identity of a Job used for deduplication: it captures the **target document + its version + the relevant inputs** (content type, dependency state, build options) so that identical work shares one Job and differing inputs do **not** collapse. The **version** component is the document's state-relative `version_id` (TJ-018 / **D-020**). The exact rule is fixed in **Phase 1a** (`../contracts/task-job-management.md`, `TJ-`); this file fixes only the **term**. | ADR-006; R-006-2; **D-020** (refines D-004) | FR-3.2 |
 | **priority** | A **two-domain** scheduling rank. (a) **Frontend:** which of *its* Requests matter and in what order (client-type-specific). (b) **ODB:** which shared work runs first — per-document states 1/2/3 + reference-depth from open text, recomputed on each interaction. In addition, a Job **inherits the highest priority** of the Tasks awaiting it. Exact thresholds/policies (starvation / unbounded / inversion) are **deferred** to detailed design. | ADR-007; ADR-008; ADR-006; D-007 | NFR-2.3 |
 | **Object Datastore** | The **internal, dumb, in-memory** storage for a Project's gdoc objects + relationships. A **plain, synchronous** set of data structures: **no public API, no internal locking, not thread-safe, and not async by design**. Its safety is a **consumer-provided invariant**, not an internal one: a **single consumer** must give it **single-context, sequential access** (server → the ODB worker thread; CLI → the calling command). The library provides **no** locking / **no** async API; breaking single-context sequential access is silent corruption (R-004-1). | ADR-004; R-004-1; NFR-1.3 | NFR-1.3 |
 
@@ -246,7 +246,8 @@ responsibility per file, link integrity; "role & boundary clarity").
   (INV-12/13/14) and the *mechanism* by the Builder (INV-22…INV-25). Confirmed the ODB (not the
   Builder) is the intended owner of the *management*.
 - **G3 — CONFIRMED (2026-09-11, user):** The **dedup key** is *defined* — `(file, version, inputs)`
-  (version = the LSP `version`, **D-004**; identity per R-006-2) — to be formalized as a `TJ-` rule in
+  (version = the LSP `version` while open / the disk mtime while non-open, per state — **D-020** refines
+  D-004; identity per R-006-2) — to be formalized as a `TJ-` rule in
   **Phase 1a**. The **priority-policy thresholds** (starvation / unbounded / priority-inversion) are
   *deferred* to detailed design (**D-007**), with the mechanism classes fixed (R-007-1 / R-007-2 / R-006-4).
   "Key + classes now, exact rule/thresholds later" split **accepted**.
@@ -287,5 +288,5 @@ Per the Resume Protocol, I stop here for your review before Phase 1a.
 **DoD status:** **Phase 0 CLOSED (2026-09-11).** Deliverable produced (`subcomponents/README.md`);
 single-owner matrix + glossary + boundaries complete; all §9 items approved by user; G1/G2 resolved
 (architecture.md §2/§4 reconciled per ADR-002 / ADR-008 / R-006-3) and recorded as **D-008** in
-`../README.md` §7; G3 confirmed (dedup key defined per D-004; priority-policy thresholds deferred per D-007).
+`../README.md` §7; G3 confirmed (dedup key defined per **D-020**, refines D-004; priority-policy thresholds deferred per D-007).
 **Proceeding to Phase 1a** — `../contracts/task-job-management.md`.
