@@ -36,7 +36,7 @@ latest editor buffer rather than a stale disk version.
 
 ### Derived From
 
-FR-1.3 → ADR-002 → ADR-006 → D-014 → TJ-021 · NFR-2.3 → ADR-007 → TJ-011/012 · D-004 (version_id) →
+FR-1.3 → ADR-002 → ADR-006 → D-014 → TJ-021 · NFR-2.3 → ADR-007 → TJ-011/012 · **D-020** (version_id, refines D-004) →
 TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator) · NFR-1.3 → ADR-004
 
 ### Scope Decisions Applied
@@ -45,7 +45,7 @@ TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator
 - D-014 (System Task on State 2 entry — trigger: open file **and** the documents it references, per ADR-007 / FU-07)
 - D-015 (Diagnostics delivery = `DiagnosticsEvent` push)
 - D-016 (`DOCUMENT_SYNC` payload discriminator `action:"open"`)
-- D-004 (`version_id` = (last_save_timestamp, open_revision); open file → buffer content)
+- **D-020** (`version_id` is **state-relative** — open ⇒ `open_revision`; refines D-004); open file → buffer content
 - D-017 (payload schema formalization: `DOCUMENT_SYNC` requires `action`, `content?`)
 - NFR-1.4 (progress only applies if C2 tickets the sync; inline ack is permitted for light sync)
 
@@ -77,7 +77,7 @@ TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator
 
 - `didOpen` → `DOCUMENT_SYNC{action:"open", content}` translation (D-016, D-017; API-001).
 - State 2 entry (open file **and** its references, ADR-007) → System Task creation (D-014, TJ-021).
-- `version_id` for an **open** file (D-004): `open_revision` ≥ 1, content = **buffer**, not disk.
+- `version_id` for an **open** file (**D-020**, refines D-004): `open_revision` ≥ 1, content = **buffer**, not disk.
 - Dedup & single-in-flight for the reference closure (TJ-005/006), priority from State 2 (TJ-011/012).
 - Diagnostics delivery as server→client push (`DiagnosticsEvent`, D-015) — not a client pull.
 - Buffer-vs-disk freshness: late-arriving results must not overwrite a newer revision (TJ-018).
@@ -87,8 +87,9 @@ TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator
 ## Main Scenario
 
 1. **IDE Client** sends `textDocument/didOpen` with the document uri and full buffer text.
-2. **C1** stores the buffer, maps the uri to an internal `DocumentRef`, and computes the initial
-   `version_id` = (last-save mtime, `open_revision` ≥ 1) for the **open** file (D-004).
+2. **C1** stores the buffer, maps the uri to an internal `DocumentRef`, and forwards the raw sync
+   fact `open_revision` ≥ 1 for the **open** file (D-020) — C2 owns the **state → selection** and
+   **generation bookkeeping** of the `version_id`.
 3. **C1** submits a `Request{ operation: DOCUMENT_SYNC, documents: [doc], payload:
    {action:"open", content:<buffer>}, priority_hint }` to the ODB (API-001, D-016/D-017).
 4. **C2** maps the Request 1:1 to a Task (TJ-001), moves the document into **State 2** (open file
@@ -98,7 +99,7 @@ TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator
    flight for the same key is **not** duplicated — the Task joins its waiter set.
 6. **C2** dispatches the Parse/Link Jobs to the appropriate **C4** Builder(s) (per content type,
    ADR-005/TJ-020); the Builder reads the open document's content from the **buffer** supplied in
-   the payload and non-open referenced documents from **disk** (D-004).
+   the payload and non-open referenced documents from **disk** (D-020).
 7. **C4** returns the candidate gdoc Objects plus diagnostics for the closure.
 8. **C2** atomically commits the candidate results into **C3** (TJ-008) — Datastore entries for the
    document + closure at their new `version_id`s, relationships and dependency graph updated — and
@@ -169,7 +170,7 @@ document.
 
 **Condition:** Between steps 4 and 8, a referenced (non-open) document is changed on disk.
 
-1. C4 reads non-open references from **disk** at build time (D-004), so the closure is built from
+1. C4 reads non-open references from **disk** at build time (D-020), so the closure is built from
    the on-disk content that existed when the Job ran.
 2. The subsequent `WATCHED_FILES{changed}` (UC-005) submits a newer `version_id` for that document;
    its dedup key (TJ-005) differs, so a fresh Job is scheduled — the stale Job's committed state is
@@ -191,7 +192,7 @@ sequenceDiagram
     participant C4 as Object Builder
 
     IDE-)C1: textDocument/didOpen (uri, text)
-    Note over C1: store buffer<br>version_id = (mtime, open_revision>=1)
+    Note over C1: store buffer<br>open_revision ≥ 1 (raw fact forwarded to C2)
     C1->>C2: submit(DOCUMENT_SYNC{action:open, content})
     Note over C2: Request->Task 1:1 (TJ-001)<br>State 2 entry: doc + references (ADR-007)<br>System Task s-* created (D-014, TJ-021)<br>dedup / single-in-flight (TJ-005/006)
     C2-->>C1: Submission{ticket, request_id}
@@ -234,12 +235,12 @@ the IDE via `textDocument/publishDiagnostics`.
 
 #### IF-002-003
 
-C1 **shall** compute and pass a `version_id` = (last-save mtime, `open_revision` ≥ 1) for the open
-document, with content sourced from the **buffer**; the ODB uses it (opaque) as the dedup-key
-version and the Datastore freshness key.
+C1 **shall** forward the raw sync fact `open_revision` ≥ 1 for the open
+document, with content sourced from the **buffer**; C2 (ODB) owns the **state → selection** and
+**generation bookkeeping** (D-020) and uses the state-relative `version_id` as the dedup-key version and the Datastore freshness key.
 
 **Owner:** C1
-**Derived From:** UC-002 Main #2 · D-004 · TJ-005/018 · §4.3 (DocumentRef)
+**Derived From:** UC-002 Main #2 · **D-020** (refines D-004) · TJ-005/018 · §4.3 (DocumentRef)
 
 ### State (ST-)
 
@@ -272,7 +273,7 @@ canceled or fails (no partial results exposed); the document's "open" flag (buff
 source) **shall** be tracked so reads for that document use buffer content.
 
 **Owner:** C3 (internal invariant)
-**Derived From:** UC-002 Main #8, Alt C · TJ-008 · ADR-004 · D-004
+**Derived From:** UC-002 Main #8, Alt C · TJ-008 · ADR-004 · **D-020** (refines D-004)
 
 #### DR-002-002
 
@@ -307,8 +308,8 @@ terminal the Task with `Error` (`E_BUILD_FAILED` / `E_TIMEOUT`), and push
 
 #### SCR-C1-002-001 (Language Server)
 
-C1 **shall** implement `textDocument/didOpen` handling: buffer storage, `DocumentRef`/`version_id`
-initialization (open_revision ≥ 1), and translation to `DOCUMENT_SYNC{action:"open", content}` per
+C1 **shall** implement `textDocument/didOpen` handling: buffer storage, `DocumentRef`/`open_revision`
+raw-fact forwarding (open_revision ≥ 1), and translation to `DOCUMENT_SYNC{action:"open", content}` per
 D-016/D-017, submitted through the ODB API (asyncio-based, non-blocking).
 
 **Derived From:** UC-002 Main #1–3 · FR-1.3 · NFR-1.1 · API-001 · D-016/D-017
@@ -350,11 +351,11 @@ locking, ADR-004).
 #### SCR-C4-002-001 (Object Builder)
 
 C4 **shall** parse and link the open document (content from the buffer supplied in the payload)
-and its referenced documents (content from disk, per D-004), producing the candidate gdoc Objects
+and its referenced documents (content from disk, per D-020), producing the candidate gdoc Objects
 plus diagnostics; it **shall** support cooperative cancellation and expose its dedup-key derivation
 for the content type (TJ-019/020).
 
-**Derived From:** UC-002 Main #6–7 · FR-2.1 · FR-4.1 · ADR-005 · D-004 · TJ-019/020
+**Derived From:** UC-002 Main #6–7 · FR-2.1 · FR-4.1 · ADR-005 · **D-020** · TJ-019/020
 
 ---
 
@@ -364,10 +365,10 @@ for the content type (TJ-019/020).
 | -------------- | ------------- | ------ | ---- |
 | IF-002-001 | API-001, §4 (Request model), D-016/D-017 | ✅ | `DOCUMENT_SYNC{action:"open", content}` is a named v1 operation with a defined payload |
 | IF-002-002 | API-004, §5.2, F6.3/F6.4, D-015 | ✅ | `request_id` optional for `DiagnosticsEvent` — NC-06 / P2-003 resolved 2026-09-15 (user-approved), applied to §5.2 |
-| IF-002-003 | TJ-005/018, D-004, §4.3 | ✅ | `version_id` tuple + buffer-vs-disk source is fixed by D-004 |
+| IF-002-003 | TJ-005/018, D-020, §4.3 | ✅ | `version_id` state-relative + buffer-vs-disk source fixed by D-020 (refines D-004) |
 | ST-002-001 | TJ-021, TJ-001 (extended trigger), ADR-007 | ✅ | System Task trigger + s-* namespace + not Frontend-cancellable |
 | ST-002-002 | TJ-001/003/008, API-001, §5 | ✅ | 1:1 mapping, terminal-before-push, committed-only Success |
-| DR-002-001 | TJ-008, ADR-004, D-004 | ✅ | Atomic commit; pre-Job state on cancel; open flag = buffer source |
+| DR-002-001 | TJ-008, ADR-004, D-020 | ✅ | Atomic commit; pre-Job state on cancel; open flag = buffer source |
 | DR-002-002 | NFR-2.1, TJ-011/018, ADR-004 | ✅ | Graph + freshness invariant, C2-only access |
 | EH-002-001 | D-015, TJ-008, §5.1 | ✅ | Diagnostics push on build with errors |
 | EH-002-002 | TJ-008/019, §5.1 (E_BUILD_FAILED/E_TIMEOUT) | ✅ | No commit on failure; terminal Error |
@@ -376,7 +377,7 @@ for the content type (TJ-019/020).
 | SCR-C2-002-001 | TJ-001…012/021, D-014, D-015, API-001/002/004 | ✅ | ODB processing pipeline fully ruled |
 | SCR-C2-002-002 | TJ-008/018, R-006-1 | ✅ | Pre-Job state on failure; no stale overwrite |
 | SCR-C3-002-001 | ADR-004, NFR-1.3, TJ-018 | ✅ | Single-writer, synchronous, in-memory |
-| SCR-C4-002-001 | FR-2.1/4.1, ADR-005, D-004, TJ-019/020 | ✅ | Parse/link/diagnostics + cancel + dedup-key derivation |
+| SCR-C4-002-001 | FR-2.1/4.1, ADR-005, D-020, TJ-019/020 | ✅ | Parse/link/diagnostics + cancel + dedup-key derivation |
 
 > **Status:** ✅ = satisfied · ⚠️ = partial / needs contract extension · ❌ = contract gap
 >
@@ -390,7 +391,7 @@ for the content type (TJ-019/020).
 | -- | ---- | ----------- | ------------- | ----- |
 | IF-002-001 | Interface | didOpen → DOCUMENT_SYNC{open} translation | Main #1–3 | C1 |
 | IF-002-002 | Interface | Handler event consumption + publishDiagnostics | Main #9–11 | C1 |
-| IF-002-003 | Interface | version_id computation (open file) | Main #2 | C1 |
+| IF-002-003 | Interface | raw sync fact forwarding (open_revision ≥ 1, open file); version_id state selection + generation owned by C2 | Main #2 | C1 |
 | ST-002-001 | State | State 2 entry + System Task creation (D-014) | Main #4 | C2 |
 | ST-002-002 | State | Task lifecycle → terminal before push | Main #3–8 | C2 |
 | DR-002-001 | Data | Document entry at new version_id, open flag | Main #8 | C3 |

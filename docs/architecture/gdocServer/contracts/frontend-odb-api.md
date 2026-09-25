@@ -134,7 +134,7 @@ Request {
 }
 ```
 
-- **Frontend (C1) obligation:** construct a `Request` that fully expresses the intent, including `documents`/`version_id` and any open-buffer content the ODB/Builder must read.
+- **Frontend (C1) obligation:** construct a `Request` that fully expresses the intent, including `documents` with their **raw sync fact** — the **`open_revision`** for an **open** document (LSP `didChange` `version`) — and any open-buffer content the ODB/Builder must read. C1 does **not** compute or own the `version_id` (C2 does; §4.3). C1 does **not** forward a non-open mtime — that is C2's disk signal, observed server-side (D-020).
 - **ODB (C2) obligation:** interpret the `Request` without inspecting which protocol produced it; use `operation`, `documents`, `payload` to scope, build and order Tasks (TJ-011/012; reference-depth ordering is ODB-derived from the operation — §4.1); use `source` **only** for ownership/cancellation attribution; treat `priority_hint` as Frontend-domain (TJ-010). (`source` is **set by the ODB from the calling API object** — implicit, the Frontend does not fill it; §4.2.)
 - **Superset.** The model is a superset of every frontend's needs (ADR-001); fields a given frontend does not use are optional/empty, never a client-type branch.
 
@@ -180,18 +180,18 @@ Each maps to a FR-1.2 feature (or a synchronization/config action). v1 vs v2 is 
 ### 4.3 `DocumentRef` & `version_id`
 
 ```
-DocumentRef { uri : Uri, version_id : (last_save_mtime, open_revision) }
+DocumentRef { uri : Uri, open_revision : int }   // open_revision = LSP didChange version; 0 for a non-open document
 ```
 
-- `version_id` is the **document identity/freshness key** (TJ-018 / D-004, Q-002): `(last_save_timestamp, open_revision)`.
-- `open_revision > 0` ⇒ **open** (buffer is the source of truth); `open_revision == 0` ⇒ **non-open** (disk is the source of truth).
-- **Frontend (C1) obligation:** include the **current** `version_id` for every involved document, and — when the document is **open** — the **buffer content** in `payload` (or via the sync operation), since the Builder must build from the *latest open buffer* (TJ-018).
-- **ODB (C2) obligation:** use `version_id` as the **dedup key version component** (TJ-005) and the freshness trigger (open edit ⇒ `open_revision↑`; non-open disk change ⇒ `last_save_mtime↑`); invalidate/rebuild accordingly.
+- `version_id` is the **document identity/freshness key**, decided **by the document's state** (TJ-018 / **D-020**, refines D-004): while **open** it is the **`open_revision`** (buffer), while **non-open** it is the document's **disk signal** (last-change mtime, observed server-side via `didChangeWatchedFiles`). There is **no single tuple ranking open and non-open versions** — the file and its buffer are distinct data that only share a path.
+- **`open_revision` on the wire:** the Frontend supplies the **`open_revision`** it observes (LSP `didChange` `version`; `0` for a non-open document). The Frontend does **not** send a non-open mtime — that is the ODB's disk signal (D-020).
+- **Frontend (C1) obligation:** include the **`open_revision`** for every involved open document and, when the document is **open**, the **buffer content** in `payload` (or via the sync operation), since the Builder must build from the *latest open buffer* (TJ-018). C1 does **not** compute or own the `version_id`.
+- **ODB (C2) obligation:** **own the state → selection** (open ⇒ `open_revision`; non-open ⇒ disk mtime) and the **generation bookkeeping** (open span opens at `didOpen`, closes at `didClose`; a re-open starts the revision over from 1), then apply the **generation-scoped staleness** (TJ-018 / D-020): a buffer result is discarded once the document is no longer open in that generation; a disk result is stale on a newer `WATCHED_FILES{changed}`. It is used as the **dedup key version component** (TJ-005) and the freshness trigger (open edit ⇒ `open_revision↑`; non-open disk change ⇒ mtime↑); invalidate/rebuild accordingly.
 - **Builder (C4) obligation:** build from the content the ODB supplies (buffer when open, disk when non-open) — never from a stale copy.
 
-- **Owner:** shared (C1 supplies, C2 uses, C4 consumes). **Risk(s):** R-006-2 (dedup key), R-006-4 (stale buffer → wrong result).
-- **Derived From:** NFR-2.1 (always latest) → ADR-006 (dedup) → TJ-018 / D-004 → R-006-2.
-- **Test:** an open-buffer edit (revision↑) and a non-open disk change (mtime↑) each invalidate/rebuild the affected (file, version, inputs); a Builder never builds from a buffer older than the Request's `version_id`.
+- Owner: shared (C1 supplies the `open_revision` raw fact + open-buffer content; C2 owns state/generation selection + staleness + uses the key; C4 consumes content). Risk(s): R-006-2 (dedup key), R-006-4 (stale buffer → wrong result).
+- **Derived From:** NFR-2.1 (always latest) → ADR-006 (dedup) → TJ-018 / **D-020** (refines D-004) → R-006-2.
+- **Test:** an open-buffer edit (revision↑) and a non-open disk change (mtime↑) each invalidate/rebuild the affected (file, version, inputs); a buffer result arriving **after `didClose`** is discarded and never becomes current; a re-open starts revision 1 without colliding with the prior generation's version; a Builder never builds from a buffer older than the document's current `open_revision`.
 
 ### 4.4 The three cancel forms (API-003)
 
