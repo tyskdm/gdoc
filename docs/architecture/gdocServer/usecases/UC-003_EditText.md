@@ -98,7 +98,7 @@ push) → §5.2 · D-016 (`action:"change"`) + D-017 (payload `action` + `conten
 - Rapid successive edits (debounce-free, server-side coalescing via dedup/single-in-flight): the
   latest revision must always win (TJ-006, TJ-018), without preemption (D-010, TJ-015).
 - **Stale queued Job** for a superseded revision: dispatching it would waste Builder work (TJ-019) —
-  the ODB **should** skip it at dispatch time (analysis finding, see ST-003-002).
+  the ODB **should** skip it at dispatch time (TJ-012 note, user-approved 2026-09-25, D-021; ST-003-002).
 - Diagnostics for the new revision delivered as `DiagnosticsEvent` push (D-015), replacing the
   previously published set for the document.
 - Buffer-vs-disk freshness: a late-arriving result for an older revision must never overwrite the
@@ -271,7 +271,7 @@ a **queued** Job whose document `version_id` is no longer the document's current
 are never preempted (D-010, TJ-015).
 
 **Owner:** C2
-**Derived From:** UC-003 Main #4, Alt A · TJ-005/006 · TJ-015/019 · D-010 · **analysis finding — see Reverse-check (proposed contract addition)**
+**Derived From:** UC-003 Main #4, Alt A · TJ-005/006 · TJ-015/019 · D-010 · **TJ-012 note (dispatch-skip; user-approved 2026-09-25, D-021)**
 
 ### Data (DR-)
 
@@ -352,10 +352,10 @@ Job under the new dedup key (TJ-005/006), atomic commit (TJ-008), and pushing `T
 
 C2 **shall** keep the Datastore in the pre-Job state on any cancelled/failed Job for the new
 revision (TJ-008), **should** skip dispatch of a queued Job for a superseded (stale) revision
-(ST-003-002), and **shall** guarantee that a stale-revision result never overwrites the committed
-state of a newer revision (TJ-018; R-006-1/2).
+(TJ-012 note; ST-003-002), and **shall** guarantee that a stale-revision result never overwrites
+the committed state of a newer revision (TJ-018; R-006-1/2).
 
-**Derived From:** UC-003 Main #4, Alt A/B · TJ-008/018 · D-010 · R-006-1/2
+**Derived From:** UC-003 Main #4, Alt A/B · TJ-008/018 · **TJ-012 note** · D-010 · R-006-1/2
 
 #### SCR-C3-003-001 (Object Datastore)
 
@@ -386,7 +386,7 @@ cancellation so a superseded (stale) Job's dispatch-skip or late cancel is honou
 | IF-003-002 | API-004, §5.2, D-015, F6.3/F6.4 | ✅ | `request_id` optional for `DiagnosticsEvent` — NC-06 / P2-003 (UC-002); latest-wins replacement is C1's protocol-side duty |
 | IF-003-003 | TJ-005/018, D-020, §4.3 | ✅ | `version_id` state-relative + buffer-vs-disk source fixed by D-020 (refines D-004); `didChange`-for-closed rejection is C1's own protocol conformance |
 | ST-003-001 | TJ-021, D-014, TJ-012 | ✅ | System Task lifetime ends only at close/deletion/config-change — a change leaves it untouched; TJ-012 covers "recomputed on every client interaction" |
-| ST-003-002 | TJ-005/006/015/019, D-010 | ⚠️ | Fresh-key scheduling is ruled (TJ-005/006); **stale queued-Job dispatch-skip is a UC-derived obligation not yet stated in the Phase 1a contract** — proposed addition to `task-job-management.md` (see note below); liveness itself remains closed by TJ-012/015/019 |
+| ST-003-002 | TJ-005/006/015/019, D-010, **TJ-012 note** | ✅ | Fresh-key scheduling is ruled (TJ-005/006); **stale queued-Job dispatch-skip now ruled** — note on TJ-012 applied to `task-job-management.md` (user-approved 2026-09-25, D-021); liveness itself remains closed by TJ-012/015/019 |
 | DR-003-001 | TJ-008, TJ-018, ADR-004, D-020 | ✅ | Atomic commit + freshness invariant fully ruled |
 | DR-003-002 | D-015, §5.2, NFR-2.1 | ✅ | Diagnostics push on `DOCUMENT_SYNC` processing is the stated trigger (D-015) |
 | EH-003-001 | D-015, TJ-008, §5.1 | ✅ | Mirrors UC-002 EH-002-001 |
@@ -394,30 +394,32 @@ cancellation so a superseded (stale) Job's dispatch-skip or late cancel is honou
 | SCR-C1-003-001 | API-001, D-016/D-017, §4.3 | ✅ | Frontend translation is C1's (R-008-1) |
 | SCR-C1-003-002 | D-015, §5.2 | ✅ | NC-06 / P2-003 resolved 2026-09-15 |
 | SCR-C2-003-001 | TJ-001…012/021, D-014, D-015, API-001/002/004 | ✅ | ODB processing pipeline fully ruled |
-| SCR-C2-003-002 | TJ-008/018, D-010, R-006-1/2 | ✅ (⚠️ on dispatch-skip clause — see ST-003-002) | No-commit on failure ruled; stale-overwrite ruled by TJ-018 |
+| SCR-C2-003-002 | TJ-008/018, D-010, R-006-1/2, TJ-012 note | ✅ | No-commit on failure ruled; stale-overwrite ruled by TJ-018; dispatch-skip ruled by TJ-012 note (user-approved 2026-09-25, D-021) |
 | SCR-C3-003-001 | ADR-004, NFR-1.3, TJ-008/018 | ✅ | Single-writer, synchronous, in-memory |
 | SCR-C4-003-001 | §4.3, D-020, TJ-019/020 | ✅ | Buffer-sourced build + cooperative cancel + SDK key derivation |
 
 > **Status:** ✅ = satisfied · ⚠️ = partial / needs contract extension · ❌ = contract gap
 >
-> **Finding (ST-003-002 / SCR-C2-003-002 — dispatch-skip of stale queued Jobs):** the Phase 1a
+> **Finding (ST-003-002 / SCR-C2-003-002 — dispatch-skip of stale queued Jobs) — RESOLVED (user-approved 2026-09-25, D-021):** the Phase 1a
 > contract rules the *scheduling consequences* of a stale revision (its key is no longer requested,
-> so no Task awaits it — TJ-007/018 keep it from harming correctness) but is silent on whether the
+> so no Task awaits it — TJ-007/018 keep it from harming correctness) but was silent on whether the
 > ODB **may skip dispatching** a still-queued Job for a superseded revision. This UC establishes the
-> obligation as **should** (efficiency, not liveness). **Proposed contract addition** (for the
-> Step 3 gap analysis / a `task-job-management.md` revision, e.g. a note on TJ-012 or a new rule):
+> obligation as **should** (efficiency, not liveness). **Contract addition applied** (note on TJ-012,
+> `task-job-management.md` §3 + §4 index):
 >
 > *"A queued Job for a `(file, version, inputs)` whose document `version_id` is no longer current
 > **should** not be dispatched; dispatching it is permitted but its result must not become the
 > Datastore's 'current' entry (TJ-018)."*
 >
-> — **not applied unilaterally; awaiting user approval** (gate, §4.5).
+> — **applied 2026-09-25 (user-approved; gate, §4.5)** as an efficiency note on TJ-012.
 >
-> **Minor observation (no action taken):** the D-017 minimum-fields entry for `DOCUMENT_SYNC`
+> **Minor observation — RESOLVED (user-approved 2026-09-25, D-021):** the D-017 minimum-fields entry for `DOCUMENT_SYNC`
 > (`action` + `content?`) is consistent with §4.3, but a reader may miss that `content` is in fact
 > **mandatory for `action:"change"`** (and for `action:"open"`) whenever an open document is
-> involved. Suggested wording clarification for `frontend-odb-api.md` §4 when the normative D-017
-> table is written: "content: required for `open`/`change` (open document), optional for `close`".
+> involved. Wording clarification **applied** to `frontend-odb-api.md` §4.1 (2026-09-25): "content:
+> required for `open`/`change` (open document), optional for `close`". The full normative D-017
+> minimum-fields table is still to be written during Phase 2 (deferred-by-design) and will
+> incorporate this clarification.
 
 ---
 

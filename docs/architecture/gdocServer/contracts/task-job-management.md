@@ -149,6 +149,7 @@ Within/below these, references are built in **reference-depth order from open te
 - **Owner:** ODB. **Risk(s):** R-007-1.
 - Derived From: NFR-2.3 → ADR-007 → R-007-1.
 - **Test:** a definition-lookup Task drops priority when the user interacts with another file; a document stays state 1 while any non-canceled request references it, and reschedules on the last departure.
+- **Stale queued-Job dispatch-skip (efficiency note; UC-003 ST-003-002 / SCR-C2-003-002, user-approved 2026-09-25 — D-021):** a **queued** Job for a `(file, version, inputs)` whose document `version_id` is **no longer the document's current one** (superseded by a newer revision, or discarded per the generation-scoped staleness — TJ-018 / D-020) **should not be dispatched**; dispatching it is permitted, but its result **must not** become the Datastore's "current" entry (TJ-018). This is an **efficiency obligation, not a liveness/correctness obligation**: correctness already holds via TJ-007/TJ-018; the note avoids wasted Builder work under the single-executor / run-bound regime (TJ-015/TJ-019).
 
 **[TJ-013] State-1 pin bound (mechanism).** A document stays in state 1 only while a **non-canceled** request references it, and the ODB **shall apply an age-based demotion** (or maximum state-1 duration) so a long-lived/forgotten state-1 request **cannot starve** lower-priority work beyond a bound. **The bound value is deferred to detailed design (D-007);** this rule fixes the **mechanism** only.
 
@@ -244,7 +245,7 @@ One row per rule. This table is the grep/aggregation target for the Phase 1a and
 | TJ-009 | Priority inheritance (max of waiters) | ODB | FR-3.2 → ADR-006 → R-006-4 | R-006-4, R-002-1 | inherit/relax with no double-count |
 | TJ-010 | Two-domain priority boundary (no client-type branch) | ODB (Frontend orders own) | NFR-2.3 → ADR-008 → R-007-3 → R-008-2 | R-007-3, R-008-2 | ODB paths never read client-type |
 | TJ-011 | Document states 1/2/3 + reference-depth | ODB | NFR-2.3 → ADR-007 | (basis R-007-1/2) | state + depth ordering holds |
-| TJ-012 | Priority recomputed each interaction | ODB | NFR-2.3 → ADR-007 → R-007-1 | R-007-1 | drop on state-1 departure |
+| TJ-012 | Priority recomputed each interaction; **stale queued-Job dispatch-skip (should, efficiency)** | ODB | NFR-2.3 → ADR-007 → R-007-1 | R-007-1 | drop on state-1 departure; queued Job for a non-current `version_id` not dispatched (its result can never be current — TJ-018) |
 | TJ-013 | State-1 pin bound (mechanism; threshold D-007) | ODB | NFR-2.3 → ADR-007 → R-007-1 → D-007 | R-007-1 | bounded starvation |
 | TJ-014 | Unbounded-work defer/cancel (mechanism; D-007) | ODB | NFR-2.3 → ADR-007 → R-007-2 → D-007 | R-007-2 | defer/cancel keeps state consistent |
 | TJ-015 | Priority-inversion bound — **deferred (D-010)**; v1 liveness via TJ-009/012/019 | ODB | NFR-2.3 → ADR-006/007 → R-006-4 → **D-010** | R-006-4 (preempt. deferred) | bounded via dispatch order + run bound (no preemption in v1) |
