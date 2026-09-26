@@ -24,21 +24,23 @@
 - **One file per round** in `docs/architecture/gdocServer/process/reviews/`: `review-YYYY-MM-DD.md` (suffix `-followup` for a same-day second pass; `record-YYYY-MM-DD-*.md` for decision/traceability notes).
 - **Format:** header (date · scope · method · exclusions) → findings table (`ID | Sev | Finding | Location | Recommendation | Status | Resolution`) → verdict → (if any) decisions needed with A/B options (see `review-2026-09-14.md` §5 for the pattern).
 - **Status legend (shared):** [O] Open · [F] Fixed · [C] Confirmed · [D] Deferred · [R] Resolved · [P] Pending fix · [?] Needs user decision. Defined in `process/reviews/README.md`.
-- **Register** the new file in `process/reviews/README.md` (rounds table + change history).
+- **Register** the new file in `process/reviews/README.md` (rounds table + change history) **at commit time** (see §5).
 - **Decisions are not recorded here.** A finding that escalates into a design decision is logged as `D-NNN` in the set `README.md` §7; the review file references it.
 
-## 4. Fix & verify
+## 4. Approval gate, fix & verify
 
-- Fix in priority order (high → low); keep the fix minimal and limited to already-confirmed decisions.
+- **Approval gate (mandatory):** present the findings to the user and **wait for explicit approval before making any change** to reviewed documents. No fix is applied before the user confirms.
+- If the user determines the findings are trivial, or the review produced no actionable findings, **the record file is not committed** (it may be deleted). End here.
+- Once approved: fix in priority order (high → low); keep the fix minimal and limited to already-confirmed decisions.
 - For each fixed finding update its row: **Status [F] + Resolution** (what changed + verification evidence, e.g. the grep command and its result).
 - Re-run the mechanical checks of step 2.3 after the fixes; record the evidence in the Resolution cells.
 
-## 5. Commits (two, in order)
+## 5. Commit (single, after approval)
 
-1. `docs: record design review YYYY-MM-DD (<PREFIX>-01…NN)` — the review file (+ index / procedure changes); all findings [O].
-2. `docs: apply design review YYYY-MM-DD (<PREFIX>-01…NN)` — the document fixes + status/Resolution updates in the review file.
-
-Rationale: the pre-fix state is committed as a fact first; `git log --grep '<PREFIX>-'` then traces each finding from record → fix. Findings IDs in commit messages keep the history greppable.
+- **One commit**, made only after the user has approved both the findings and the applied fixes:
+  `docs: design review YYYY-MM-DD (<PREFIX>-01…NN)` — the review file + document fixes + status/Resolution updates + `process/reviews/README.md` registration.
+- **No commit is made** if the review produced no commit-worthy findings (see §4 gate).
+- Findings IDs in the commit message keep the history greppable: `git log --grep '<PREFIX>-'`.
 
 ## 6. Escalation
 
