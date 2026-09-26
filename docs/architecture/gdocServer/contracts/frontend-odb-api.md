@@ -81,7 +81,7 @@ Each operation is a **shall** (a testable obligation) and carries:
 - **Unknown id vs. window-closed.** A `request_id` the ODB has **never** recognized returns `Error{ E_NOT_FOUND }`; a recognized id whose **window has closed** (fetched or TTL-expired) returns `Error{ E_EXPIRED }` (§5). Neither crashes nor blocks.
 
 - **Owner:** ODB. **Risk(s):** R-003-1 (lightweight, no stall), R-004-2 (non-blocking), R-003-2 (thread-safe hand-off), unbounded-resource use (availability) — bounded by the window.
-- **Derived From:** FR-3.1 → ADR-003 (push-back / fetch; not polling) → ADR-004 (in-memory ⇒ bounded retention; non-blocking read) → **D-011** (retention window; *provisional — to be logged in `../README.md` §7 at approval*; TTL threshold deferred under D-007 / R-007-2) → TJ-003 (Task terminal states).
+- **Derived From:** FR-3.1 → ADR-003 (push-back / fetch; not polling) → ADR-004 (in-memory ⇒ bounded retention; non-blocking read) → **D-011** (retention window; logged in `../README.md` §7, 2026-09-13; TTL threshold deferred under D-007 / R-007-2) → TJ-003 (Task terminal states).
 - **Test:** `get_result` on a non-terminal Task returns `Pending` (repeatable, non-consuming) without blocking; after the completion push the **first** successful fetch returns the payload and a **second** returns `E_EXPIRED`; a never-submitted id returns `E_NOT_FOUND`; a TTL-expired id returns `E_EXPIRED`; the terminal push is never preceded by eviction; a detached handler still allows eviction to proceed.
 
 ### API-003 — `cancel(request_id: RequestId | request_ids: RequestId[] | all: true) → CancelResult`
@@ -419,7 +419,7 @@ Every `API-` operation, model, facade clause, and error/cancel rule traces to a 
 | §3 | API-004 `register_completion` | FR-3.1, NFR-1.1, NFR-2.2, NFR-1.4 | ADR-003 | — (facade) | R-003-1/2/3 |
 | §3/§4.2/§4.4/§5 | Frontend identity (implicit via API object) · one live handler (replace) · cross-Frontend isolation | FR-3.1, FR-3.2 | ADR-001 (isolation), ADR-003 (library facade), ADR-008 (neutral token) | — (P-8) | R-008-2, R-006-2 (no orphan handler) |
 | §4 | `Request` model + `Operation` | FR-1.2, FR-1.1 | ADR-001, ADR-008 | — | R-008-2 |
-| §4.3 | `DocumentRef` / `version_id` | NFR-2.1 | ADR-006 | TJ-018 (D-004) | R-006-2, R-006-4 |
+| §4.3 | `DocumentRef` / `version_id` | NFR-2.1 | ADR-006 | TJ-018 (D-020, refines D-004) | R-006-2, R-006-4 |
 | §4.4 | The three cancel forms (one / set / all) | FR-3.2 | ADR-008, ADR-006 | TJ-007 | R-008-1, R-006-3 |
 | §5 | `Result` envelope + payloads | FR-1.2, FR-1.1 | ADR-002, ADR-006, ADR-009 | TJ-008, TJ-016/017 | R-006-1, R-006-4 |
 | §5 | `ErrorCode` | FR-4.1 | ADR-008 | TJ-019 | R-008-1, R-005-1 |
@@ -448,7 +448,7 @@ Every `API-` operation, model, facade clause, and error/cancel rule traces to a 
 | # | Check | Result | Evidence |
 | --- | ----- | ------ | -------- |
 | M1 | Every operation has an `API-nnn` ID; IDs unique | ✅ | API-001…API-004 each defined once in §3 and once in the §2/§9 tables; no duplicates. |
-| M2 | No orphan: every rule's Derived-From ends at an FR/NFR (or a D-decision grounded on one) | ✅ | §9 table: every row terminates in FR-1.x/3.x/4.x or NFR-1.1/2.1/2.2. **Exception:** the WDP rows (API-004, §5.2, F6.7) now reference **NFR-1.4** (formalized in `requirements.md`); the retention-window row (API-002, §5, §5.2, §7) is grounded in **D-011** (*provisional — to be logged in `../README.md` §7 at approval*), itself grounded on ADR-004 (in-memory ⇒ bounded) + ADR-003 (atomic). |
+| M2 | No orphan: every rule's Derived-From ends at an FR/NFR (or a D-decision grounded on one) | ✅ | §9 table: every row terminates in FR-1.x/3.x/4.x or NFR-1.1/2.1/2.2. **Exception:** the WDP rows (API-004, §5.2, F6.7) now reference **NFR-1.4** (formalized in `requirements.md`); the retention-window row (API-002, §5, §5.2, §7) is grounded in **D-011** (logged in `../README.md` §7, 2026-09-13), itself grounded on ADR-004 (in-memory ⇒ bounded) + ADR-003 (atomic). |
 | M3 | Every Phase-1b-relevant risk is reached by ≥ 1 rule | ✅ | R-003-1/2/3, R-004-2, R-005-1, R-006-1/2/3/4, R-008-1/2 all appear in §3–§9; see §9 coverage. |
 | M4 | Tables machine-readable (stable IDs in leading cells) | ✅ | §2 op table, §4.1/§5.1 tables, §9/§10 tables all lead with an ID/stable-name column. |
 | M5 | Terms not redefined (single-source kept in Phase 0) | ✅ | §1 states terms are referenced, not redefined; no re-definition of Request/Task/Subtask/Job/Document/`version_id`/dedup key/priority. |

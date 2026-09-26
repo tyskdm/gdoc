@@ -2,7 +2,7 @@
 
 > One file per review round: `review-YYYY-MM-DD[-suffix].md`; `record-*.md` for decision / traceability notes.
 > **The single source of record for design decisions is `../README.md` §7 (D-*)** — review files record *findings and resolutions*, not decisions.
-> **Review procedure (when / how to review, recording & commit conventions):** `.agents/checklists/Design Review Procedure.md`.
+> **Review procedure (when / how to review, recording & commit conventions):** `Design Review Procedure.md` (this folder — kept in the repo because the `.agents/` setup is not yet stable).
 
 ## Status legend (shared by all review files)
 
@@ -28,10 +28,10 @@ Locations are cited by **file + §/requirement ID** (line numbers are auxiliary 
 | `review-2026-09-14.md` | 2026-09-14 | Round 1 — Phase 0 → 1b cross-document | NC-01…06, OM-01…07, ED-01…03, minor×3 | ✅ closed (D-014…D-018 confirmed) |
 | `review-2026-09-14-followup.md` | 2026-09-14 | Round 2 — D-014…018 propagation | FU-01…08 | ✅ closed (all [F]) |
 | `record-2026-09-15-post-phase2.md` | 2026-09-15 | Post-Phase-2 decisions (traceability) | P2-003, P2-004 (summary) | ✅ |
-| `review-2026-09-26.md` | 2026-09-26 | Phase 0 → UC-003 (Phase 2 in progress) | RV-01…07 | 🟡 in progress |
+| `review-2026-09-26.md` | 2026-09-26 | Phase 0 → UC-003 (Phase 2 in progress) | RV-01…07 | ✅ closed (all [F], 2026-09-26) |
 
 ## Change history
 
-- 2026-09-26: review records moved from `process/design_review_record.md` into this folder (per-round files, content migrated verbatim); review procedure documented in `.agents/checklists/Design Review Procedure.md`. (D-022)
+- 2026-09-26: review records moved from `process/design_review_record.md` into this folder (per-round files, content migrated verbatim); review procedure documented in `Design Review Procedure.md` (this folder — repo-resident, since the `.agents/` setup is not yet stable). (D-022)
 
 *Record maintained alongside the design document set. Update status as decisions are confirmed and fixes applied.*

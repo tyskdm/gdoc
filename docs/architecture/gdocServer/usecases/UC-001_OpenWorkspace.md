@@ -51,7 +51,7 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
 - The LSP server process is started and listening on the transport (stdio/TCP).
 - The ODB library is loaded in the server process (in-memory, no persistent state).
 - The workspace root directory is accessible on the file system.
-- `gdoc.project.json` (or equivalent configuration) exists in the workspace root.
+- `gdoc.project.json` (or equivalent configuration) **may or may not** exist in the workspace root — its absence is a handled condition (Alt "No Project Configuration Found", EH-001-001).
 
 ### Postconditions
 
@@ -305,12 +305,14 @@ dependency changes (NFR-2.1), supporting the State 2/3 priority model (TJ-011/01
 
 #### EH-001-001
 
-C1 shall handle the absence of `gdoc.project.json` gracefully: log a warning, operate in degraded mode
-(no Packages, no initial build), and notify the IDE Client. A later `CONFIG_SAVE` (when the user
-creates the config) shall trigger the build.
+C2 shall **detect** the absence of the workspace configuration while processing `CONFIG_SAVE` (D-019:
+reading the config is ODB-owned) and enter **degraded mode**: no Packages identified, no System Tasks,
+no initial build. C1 shall **relay** the degraded-mode outcome to the IDE Client (e.g. via
+`window/logMessage`). A later `CONFIG_SAVE` (when the user creates the config) shall then trigger the
+normal build.
 
-**Owner:** C1
-**Derived From:** UC-001 Alt "No Project Configuration Found"
+**Owner:** C2 (detection + degraded mode) · C1 (notification)
+**Derived From:** UC-001 Alt "No Project Configuration Found" · D-019
 
 #### EH-001-002
 
@@ -351,11 +353,12 @@ notification before initiating any server-to-client requests.
 
 #### SCR-C1-001-002 (Language Server)
 
-C1 shall read `gdoc.project.json` (or equivalent) in the workspace root, identify the **Project**
-scope, internal **Packages**, their document files, and content types, and provide this structure to
-the ODB at initialization.
+C1 shall **forward the workspace root** (and the configuration-file location, if known) to the ODB when
+creating the ODB API object (Main #5) and in the initial `CONFIG_SAVE` submission (Main #9); C1
+**shall not** read or parse the workspace configuration and shall not pre-derive Packages / documents /
+content types — scoping is ODB-owned (D-019; see SCR-C2-001-005).
 
-**Derived From:** UC-001 Main #2, FR-2.2
+**Derived From:** UC-001 Main #5, #9 · D-019 · ADR-009 · API-001
 
 #### SCR-C1-001-003 (Language Server)
 
@@ -412,6 +415,15 @@ initial build produces diagnostics for each document, and shall push a `Terminal
 `Completed`) for the initial-build Task.
 
 **Derived From:** UC-001 Main #14–15, D-015, API-004
+
+#### SCR-C2-001-005 (Object Database)
+
+C2 shall read and parse the workspace configuration (e.g. `gdoc.project.json`) in the workspace root,
+define the **Project** scope, internal **Packages**, their document files, and content types (INV-06),
+and keep the scope current on `CONFIG_SAVE` (ADR-009); on a missing or unparseable configuration it
+shall enter degraded mode (EH-001-001) rather than fail the session.
+
+**Derived From:** UC-001 Main #10 · D-019 · ADR-009 · INV-06
 
 #### SCR-C3-001-001 (Object Datastore)
 

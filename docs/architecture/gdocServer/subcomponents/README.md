@@ -33,7 +33,7 @@ or double-owned.
 
 > **ID note:** Component *requirement* IDs (`LSP-nnn / ODB-nnn / DS-nnn / BLD-nnn`) are **not**
 > assigned here — they are assigned in Phase 3. This file fixes the *component set* and the *terms*
-> those requirements will reference. The matrix rows carry Phase-0 inventory anchors `INV-01…INV-29`
+> those requirements will reference. The matrix rows carry Phase-0 inventory anchors `INV-01…INV-30`
 > (deliberately distinct from the risk IDs `R-NNN-M`).
 
 ## 2. Scope (v1)
@@ -230,11 +230,11 @@ responsibility per file, link integrity; "role & boundary clarity").
 
 | # | Check | Result | Note |
 | --- | ------- | -------- | ------ |
-| S1 | Every responsibility is owned by **exactly one** component (no 0-owner, no 2-owner) | ✅ | INV-01…INV-29 each have one owner; §4.2 resolves the only near-duplication (dedup mgmt = ODB, mechanism = Builder). |
+| S1 | Every responsibility is owned by **exactly one** component (no 0-owner, no 2-owner) | ✅ | INV-01…INV-30 each have one owner; §4.2 resolves the only near-duplication (dedup mgmt = ODB, mechanism = Builder). |
 | S2 | Term definitions do not contradict any ADR | ✅ | Each term's Single Source is an ADR/architecture passage; subtask vs Job matches the ADR-002 note; priority matches ADR-007/008; dedup key matches ADR-006 / R-006-2. |
 | S3 | "Only the Frontend↔ODB boundary is a public API" is explicit | ✅ | §3 table + §5.1 + §4.3 (C3/C4 have no public API). |
 | S4 | Object Server is marked "future / read-only or via the same mutation API" | ✅ | §3 (C5) + §5.4 (D-006, ADR-001, R-001-1). |
-| S5 | Single responsibility per file; unique IDs; links resolvable | ✅ | One topic (inventory + glossary); `C1…C5` component IDs + `INV-01…INV-29` anchors; relative links to ADR/FR/architecture. |
+| S5 | Single responsibility per file; unique IDs; links resolvable | ✅ | One topic (inventory + glossary); `C1…C5` component IDs + `INV-01…INV-30` anchors; relative links to ADR/FR/architecture. |
 
 **Gaps / caveats found (for user review):**
 

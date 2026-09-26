@@ -336,6 +336,7 @@ Every `R-00x` relevant to Task/Job management is "ruled" here; the **test** colu
 | D-007 (thresholds deferred) | TJ-013, TJ-014, TJ-019 |
 | D-010 (R-006-4 cancel-and-re-run deferred) | TJ-015 |
 | D-008 (mgmt=ODB / mech=Builder) | TJ-007, TJ-008, TJ-009, TJ-019, TJ-020 |
+| D-014 (System Task for State 2/3) | TJ-021 |
 
 **TJ → upstream (does every rule trace out? — no orphans)**
 
@@ -361,6 +362,7 @@ Every `R-00x` relevant to Task/Job management is "ruled" here; the **test** colu
 | TJ-018 | NFR-2.1 | ADR-006 | R-006-2 | D-020 (refines D-004; Q-002) |
 | TJ-019 | FR-4.1 | ADR-005, 003, 006 | R-005-1, R-003-3 | — |
 | TJ-020 | FR-4.1 | ADR-005, 006 | R-005-2, R-006-2 | — |
+| TJ-021 | FR-3.1/3.2 | ADR-002, 007 | R-006-3, R-008-1 | **D-014** |
 
 ---
 
@@ -374,7 +376,7 @@ Per `../README.md` §8 (Phase 1a *User review*), please confirm before Phase 1b:
 - [x] **Priority-inversion (TJ-015) deferred (D-010):** v1 is **single-executor / non-preemptive**; priority affects dispatch order only; **cancel-and-re-run is not a v1 mechanism** (wasted-work cost, no liveness benefit); liveness closed by TJ-012/019/013/014. Revisit only if concurrency / runtime resource priority is introduced — accepted? (R-006-4)
 - [x] **Q-002 resolved** via **D-020** (refines **D-004**, TJ-018): identity/freshness is decided **by the document's state** — **open** files use the **buffer** (`didChange` `open_revision`, monotonic within the open span); **non-open** files use the **disk** (`didChangeWatchedFiles` + mtime). There is **no cross-state `version_id` ranking** and **no single tuple** (D-004's tuple retired). **Staleness is scoped to the generation**: a buffer result is discarded once the document is no longer open in that generation (closed, or re-opened as a fresh generation starting revision 1); a disk result is stale on a newer `WATCHED_FILES{changed}`. The rule is owned by C2 (ODB) (C1 forwards the raw sync facts), and it is used as the dedup-key version + Datastore freshness invariant. **Both open and non-open files are covered** — no separate labeled-version layer needed in v1?
 - [x] **Builder obligations** (TJ-019/020) included in *this* contract (vs. Phase 3 only) so Phase 3 can allocate them to `BLD-*` — agree?
-- [x] **Rule count/scope:** 20 rules, TJ-001…TJ-020, all Owner-tagged to a single component — nothing double-owned / unowned?
+- [x] **Rule count/scope:** 21 rules, TJ-001…TJ-021, all Owner-tagged to a single component — nothing double-owned / unowned?
 
 **DoD status (per `../README.md` §8 Phase 1a):**
 
