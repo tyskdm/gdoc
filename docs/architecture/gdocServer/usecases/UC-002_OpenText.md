@@ -93,8 +93,9 @@ TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator
 3. **C1** submits a `Request{ operation: DOCUMENT_SYNC, documents: [doc], payload:
    {action:"open", content:<buffer>}, priority_hint }` to the ODB (API-001, D-016/D-017).
 4. **C2** maps the Request 1:1 to a Task (TJ-001), moves the document into **State 2** (open file
-   **and** its reference closure, ADR-007), and creates (or reuses) the **System Task** (D-014,
-   TJ-021) whose Job set builds the reference closure depth-ordered (TJ-011).
+   **and** its reference closure, ADR-007), and creates (or reuses) **System Tasks** — one per
+   State 2 document in the reference closure (D-014, TJ-021) — whose Job sets build each document in
+   reference-depth order (TJ-011).
 5. **C2** registers the closure's Jobs under their dedup keys (TJ-005/006); any Job already in
    flight for the same key is **not** duplicated — the Task joins its waiter set.
 6. **C2** dispatches the Parse/Link Jobs to the appropriate **C4** Builder(s) (per content type,
@@ -103,7 +104,7 @@ TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator
 7. **C4** returns the candidate gdoc Objects plus diagnostics for the closure.
 8. **C2** atomically commits the candidate results into **C3** (TJ-008) — Datastore entries for the
    document + closure at their new `version_id`s, relationships and dependency graph updated — and
-   marks the Task/System Task `Completed` (TJ-003).
+   marks the Task / System Tasks `Completed` (TJ-003).
 9. **C2** pushes a `TerminalEvent{status:Success}` for the sync Task (API-004) and, because
    diagnostics changed, a `DiagnosticsEvent{document:doc, diagnostics}` (D-015, §5.2).
 10. **C1** receives the events on its handler thread; it hands them onto its asyncio loop
@@ -160,8 +161,8 @@ document.
 
 **Condition:** Step 4 — the opened document is not a member of any Package (workspace-only).
 
-1. C2 still creates the State-2 System Task for the open document and its reference closure
-   (D-014 — State 2 does not require package membership).
+1. C2 still creates the State-2 System Tasks for the open document and each document in its
+   reference closure (one per document, D-014, TJ-021 — State 2 does not require package membership).
 2. Priority of the closure's Jobs follows ADR-007: referenced-by-open still outranks workspace-only
    non-referenced documents (TJ-011); the document itself carries no State-3 package bonus.
 3. The flow is otherwise identical to the main scenario.
@@ -194,7 +195,7 @@ sequenceDiagram
     IDE-)C1: textDocument/didOpen (uri, text)
     Note over C1: store buffer<br>open_revision ≥ 1 (raw fact forwarded to C2)
     C1->>C2: submit(DOCUMENT_SYNC{action:open, content})
-    Note over C2: Request->Task 1:1 (TJ-001)<br>State 2 entry: doc + references (ADR-007)<br>System Task s-* created (D-014, TJ-021)<br>dedup / single-in-flight (TJ-005/006)
+    Note over C2: Request->Task 1:1 (TJ-001)<br>State 2 entry: doc + references (ADR-007)<br>System Tasks s-* created/reused per doc (D-014, TJ-021)<br>dedup / single-in-flight (TJ-005/006)
     C2-->>C1: Submission{ticket, request_id}
     Note over C2: priority from State 2 (TJ-011/012)
     C2->>C4: dispatch Parse/Link Jobs (open doc = buffer, refs = disk)
@@ -248,8 +249,9 @@ document, with content sourced from the **buffer**; C2 (ODB) owns the **state �
 
 C2 **shall** move the document — **and the documents it references** (reference closure, per
 ADR-007) — into **State 2** upon processing `DOCUMENT_SYNC{action:"open"}`, and **shall** create
-(or reuse) a **System Task** (`s-*` namespace) for the closure build (D-014, TJ-021); the System
-Task participates in the Job waiter set like any Task but is **not** cancellable by the Frontend.
+(or reuse) a **System Task** (`s-*` namespace) for **each document** entering State 2 in the
+closure (D-014, TJ-021); each System Task participates in the Job waiter set like any Task but is
+**not** cancellable by the Frontend.
 
 **Owner:** C2
 **Derived From:** UC-002 Main #4 · D-014 · TJ-021 · ADR-007

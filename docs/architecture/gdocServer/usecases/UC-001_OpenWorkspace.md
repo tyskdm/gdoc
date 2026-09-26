@@ -114,7 +114,8 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
     diagnostics. C4 returns the results to **C2**.
 13. **C2** atomically commits each successful Job's results to **C3** (TJ-008): gdoc Objects,
     cross-document relationships, and the dependency graph.
-14. **C2** pushes a `DiagnosticsEvent` (D-015) for each document to **C1** via the registered handler,
+14. **C2** pushes a `DiagnosticsEvent` (D-015) for each document whose diagnostics changed (for
+    the initial build, each document newly diagnosed) to **C1** via the registered handler,
     carrying the document URI and the diagnostic list.
 15. **C2** pushes a `TerminalEvent` (status: `Success`) to **C1** for the initial-build Task.
 16. **C1** fetches the initial-build Task's Result via `get_result(request_id)` (API-002 —
@@ -424,8 +425,8 @@ to the Datastore (TJ-008); a failed or cancelled Job shall commit nothing.
 #### SCR-C2-001-004 (Object Database)
 
 C2 shall push a `DiagnosticsEvent` (D-015) to the Frontend via the registered handler after the
-initial build produces diagnostics for each document, and shall push a `TerminalEvent` (status:
-`Success`) for the initial-build Task.
+initial build produces updated diagnostics for each document (when diagnostics changed, D-015), and
+shall push a `TerminalEvent` (status: `Success`) for the initial-build Task.
 
 **Derived From:** UC-001 Main #14–15, D-015, API-004
 

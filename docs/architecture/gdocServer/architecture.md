@@ -53,7 +53,7 @@ When the language‑server client sends a text‑edit notification, the gdoc ser
 5. gdoc Object Builder parses the text and return to gdoc Object Database.
 6. gdoc Object Database updates gdoc Objects in gdoc Object Datastore.
 7. gdoc Language Server receives notifications from the gdoc Object Database about changes in gdoc Objects
-8. gdoc Language Server gets semantic tokens, diagnostics, and error messages from gdoc Object Database and sends them to the client.
+8. gdoc Language Server gets diagnostics and error messages (and semantic tokens, v2 provisional per D-005) from gdoc Object Database and sends them to the client.
 
 ## Key Abstractions
 
@@ -98,7 +98,7 @@ To ensure high responsiveness and efficient resource utilization, gdoc utilizes 
     - Converts LSP-specific calls (e.g., `textDocument/hover`) into unified internal **Requests**.
     - Initiates corresponding **Tasks** in the Object Database to trigger necessary analysis or data retrieval.
   - **Asynchronous Feedback**:
-    - Dispatches diagnostics (pushed to the client as a server-to-client event, `DiagnosticsEvent`, per D-015), semantic tokens, and error messages generated during **Job** execution back to the client as LSP notifications.
+    - Dispatches diagnostics (pushed to the client as a server-to-client event, `DiagnosticsEvent`, per D-015), error messages, and semantic tokens (v2 provisional, per D-005) generated during **Job** execution back to the client as LSP notifications.
   - **Document Synchronization**:
     - Synchronizes IDE editor buffers via `didOpen`, `didChange`, and `didClose`, triggering background **Tasks** to ensure the Project state remains consistent with user edits.
 
