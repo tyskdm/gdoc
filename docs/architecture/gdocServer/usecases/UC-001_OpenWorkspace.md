@@ -55,6 +55,10 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
 
 ### Postconditions
 
+> Main-flow postconditions; on an Alternative Scenario's path, that scenario's terminal states hold
+> instead (e.g., a cancelled Task with `reason: "system_cancelled"` per D-018; per-document commit
+> state per TJ-008).
+
 - C1: LSP session is initialized; file watchers registered; initial diagnostics published to the IDE.
 - C2: All State 3 (Package member) documents have completed their initial build; System Tasks are in
   `Completed` state; no pending Jobs remain.
@@ -112,10 +116,13 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
     cross-document relationships, and the dependency graph.
 14. **C2** pushes a `DiagnosticsEvent` (D-015) for each document to **C1** via the registered handler,
     carrying the document URI and the diagnostic list.
-15. **C2** pushes a `TerminalEvent` (status: `Completed`) to **C1** for the initial-build Task.
-16. **C1** receives the `DiagnosticsEvent`, maps it to LSP `textDocument/publishDiagnostics`, and
-    sends it to the **IDE Client**.
-17. **IDE Client** displays diagnostics for each document.
+15. **C2** pushes a `TerminalEvent` (status: `Success`) to **C1** for the initial-build Task.
+16. **C1** fetches the initial-build Task's Result via `get_result(request_id)` (API-002 —
+    `SyncPayload` ack: new `version_id`, affected documents; the terminal push signals readiness,
+    the fetch retrieves the payload).
+17. **C1** maps the received `DiagnosticsEvent` to LSP `textDocument/publishDiagnostics` and sends
+    it to the **IDE Client**.
+18. **IDE Client** displays diagnostics for each document.
 
 ---
 
@@ -125,7 +132,7 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
 
 **Condition:** `gdoc.project.json` does not exist in the workspace root.
 
-1. (Replaces steps 10–17.) **C2** detects the missing configuration while processing `CONFIG_SAVE`
+1. (Replaces steps 10–18.) **C2** detects the missing configuration while processing `CONFIG_SAVE`
    (step 10; D-019: config reading is the ODB's) and enters **degraded mode**: no **Packages** are
    identified, no **System Tasks** are created.
 2. **C1** still registers the completion handler and the broad file watchers (steps 6–8 still
@@ -154,7 +161,8 @@ missing references, Builder crash).
    diagnostics.
 4. If the failure is a Builder crash (non-cooperative), **C2** applies the run-bound timeout (TJ-019)
    and marks the Job as `Cancelled` (TJ-004); the Datastore is left in its pre-Job state (TJ-008).
-   The `TerminalEvent` for the cancelled Job carries `reason: "system_cancelled"` (D-018).
+   The `TerminalEvent` of the Task awaiting that Job carries `status: Cancelled` and
+   `reason: "system_cancelled"` (D-018).
 
 ### Workspace Folder Change (didChangeWorkspaceFolders)
 
@@ -200,7 +208,9 @@ sequenceDiagram
         C3-->>C2: OK
     end
     C2-->>C1: DiagnosticsEvent (D-015)
-    C2-->>C1: TerminalEvent (Completed)
+    C2-->>C1: TerminalEvent (Success)
+    C1->>C2: get_result(request_id) (API-002)
+    C2-->>C1: Result (SyncPayload)
     Note over C1: loop.call_soon_threadsafe(handler)<br/>Map to LSP publishDiagnostics
     C1->>IDE: textDocument/publishDiagnostics
 ```
@@ -240,10 +250,12 @@ submitting any request to C2, so that all ODB events (progress, terminal, diagno
 #### IF-001-004
 
 C1 shall submit the initial workspace state to C2 via `submit(request)` (API-001) using the
-`CONFIG_SAVE` operation, conveying the Project structure (packages, documents, content types).
+`CONFIG_SAVE` operation, conveying the workspace root and the configuration-file location (if
+known); C1 shall not read or parse the configuration or pre-derive Packages/Documents/content
+types — that is the ODB's (D-019, ADR-009).
 
 **Owner:** C1
-**Derived From:** UC-001 Main #9, API-001, ADR-009
+**Derived From:** UC-001 Main #9, API-001, D-019, ADR-009
 
 ### State (ST-)
 
@@ -335,8 +347,8 @@ without live file-watcher updates while notifying the IDE Client.
 
 C2 shall apply the run-bound timeout (TJ-019) to any non-cooperative Builder during the initial build
 and mark the Job as `Cancelled` (TJ-004) without stalling other Jobs; the Datastore remains in its
-pre-Job state (TJ-008). The `TerminalEvent` for a system-cancelled Job carries
-`reason: "system_cancelled"` (D-018).
+pre-Job state (TJ-008). The `TerminalEvent` of the Task awaiting the cancelled Job carries
+`status: Cancelled` and `reason: "system_cancelled"` (D-018).
 
 **Owner:** C2
 **Derived From:** UC-001 Alt "Partial Build Failure", TJ-019, TJ-004, TJ-008, D-018
@@ -370,11 +382,12 @@ build.
 
 #### SCR-C1-001-004 (Language Server)
 
-C1 shall publish initial diagnostics to the IDE Client via `textDocument/publishDiagnostics` upon
-receiving a `DiagnosticsEvent` (D-015) from the ODB, mapping each document's diagnostic list to the
-LSP `Diagnostic` type.
+C1 shall, upon the `TerminalEvent` for the initial-build Task, fetch the Task's Result via
+`get_result(request_id)` (API-002), and shall publish the initial diagnostics to the IDE Client via
+`textDocument/publishDiagnostics` upon receiving the `DiagnosticsEvent` (D-015) from the ODB,
+mapping each document's diagnostic list to the LSP `Diagnostic` type.
 
-**Derived From:** UC-001 Main #14, #16, D-015, FR-1.2
+**Derived From:** UC-001 Main #14–17, D-015, API-002, FR-1.2
 
 #### SCR-C1-001-005 (Language Server)
 
@@ -412,7 +425,7 @@ to the Datastore (TJ-008); a failed or cancelled Job shall commit nothing.
 
 C2 shall push a `DiagnosticsEvent` (D-015) to the Frontend via the registered handler after the
 initial build produces diagnostics for each document, and shall push a `TerminalEvent` (status:
-`Completed`) for the initial-build Task.
+`Success`) for the initial-build Task.
 
 **Derived From:** UC-001 Main #14–15, D-015, API-004
 
@@ -477,7 +490,7 @@ departs.
 | IF-001-001 | FR-1.1 (LSP 3.17) | ✅ | C1-internal; no TJ/API rule needed |
 | IF-001-002 | FR-1.3 (sync) | ✅ | C1-internal; LSP capability registration |
 | IF-001-003 | API-004 (register_completion) | ✅ | Handler registration before submit |
-| IF-001-004 | API-001 (submit), ADR-009 (config) | ✅ | CONFIG_SAVE as initial-state trigger |
+| IF-001-004 | API-001 (submit), D-019, ADR-009 (config) | ✅ | CONFIG_SAVE as initial-state trigger (workspace root + config location; no config parsing) |
 | ST-001-001 | D-014, TJ-021 (System Task) | ✅ | State 3 → System Task |
 | ST-001-002 | TJ-003 (Task states), TJ-004 (Job states) | ✅ | Lifecycle transitions |
 | ST-001-003 | TJ-004, TJ-019 (run bound) | ✅ | Terminal state guarantee |
@@ -531,7 +544,7 @@ departs.
 | SCR-C1-001-001 | Component | LSP initialize/initialized implementation | Main #1–4 | C1 |
 | SCR-C1-001-002 | Component | Forwards workspace root + config location to ODB at API creation and CONFIG_SAVE (D-019) | Main #5, #9 | C1 |
 | SCR-C1-001-003 | Component | File watcher registration + response handling | Main #7–8 | C1 |
-| SCR-C1-001-004 | Component | DiagnosticsEvent → publishDiagnostics mapping | Main #14, #16 | C1 |
+| SCR-C1-001-004 | Component | Result fetch (API-002) + DiagnosticsEvent → publishDiagnostics mapping | Main #14–17 | C1 |
 | SCR-C1-001-005 | Component | asyncio handler + thread-safe event posting | Main #6 | C1 |
 | SCR-C2-001-001 | Component | System Task creation (D-014, TJ-021) | Main #10 | C2 |
 | SCR-C2-001-002 | Component | Priority-ordered Job dispatch | Main #11 | C2 |

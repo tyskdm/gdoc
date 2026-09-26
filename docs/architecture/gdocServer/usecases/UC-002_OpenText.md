@@ -124,8 +124,8 @@ UC-001, and no newer `version_id` exists).
 1. C2 finds all required Jobs `Completed` for the closure's dedup keys; no new Job is scheduled.
 2. C2 completes the Task inline and returns `Submission{kind:"inline", result:Success{SyncPayload}}`
    (API-001) — no ticket, no progress stream.
-3. If the document's diagnostics changed (e.g., a referenced document changed on disk), C2 still
-   pushes a `DiagnosticsEvent` (D-015).
+3. If the document's diagnostics changed (e.g., the client has not yet received this document's
+   diagnostic set, or the last published set is stale), C2 still pushes a `DiagnosticsEvent` (D-015).
 4. C1 publishes diagnostics (if pushed) and continues; the state effect of "open" (State 2 entry,
    System Task lifecycle) still applies even though no build ran.
 

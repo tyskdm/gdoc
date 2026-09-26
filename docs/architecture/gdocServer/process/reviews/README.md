@@ -18,7 +18,7 @@
 
 ## Findings ID scheme
 
-Per-round prefixes, unique across the set: `NC-*` (inconsistencies) · `OM-*` (omissions) · `ED-*` (edge cases) · `FU-*` (decision-propagation follow-up) · `RV-*` (general review rounds, from 2026-09-26).
+Per-round prefixes, unique across the set: `NC-*` (inconsistencies) · `OM-*` (omissions) · `ED-*` (edge cases) · `FU-*` (decision-propagation follow-up) · `RV-*` (general review rounds, from 2026-09-26) · `CA-*` (cross-model consistency audit, 2026-09-26).
 Locations are cited by **file + §/requirement ID** (line numbers are auxiliary only).
 
 ## Review rounds
@@ -29,9 +29,11 @@ Locations are cited by **file + §/requirement ID** (line numbers are auxiliary 
 | `review-2026-09-14-followup.md` | 2026-09-14 | Round 2 — D-014…018 propagation | FU-01…08 | ✅ closed (all [F]) |
 | `record-2026-09-15-post-phase2.md` | 2026-09-15 | Post-Phase-2 decisions (traceability) | P2-003, P2-004 (summary) | ✅ |
 | `review-2026-09-26.md` | 2026-09-26 | Phase 0 → UC-003 (Phase 2 in progress) | RV-01…07 | ✅ closed (all [F], 2026-09-26) |
+| `review-2026-09-26-Qwen3.8:27b.md` | 2026-09-26 | Phase 0 → UC-003 (independent cross-model audit) | CA-01…07 | ✅ closed (all [F], 2026-09-26) |
 
 ## Change history
 
 - 2026-09-26: review records moved from `process/design_review_record.md` into this folder (per-round files, content migrated verbatim); review procedure documented in `Design Review Procedure.md` (this folder — repo-resident, since the `.agents/` setup is not yet stable). (D-022)
+- 2026-09-26: independent cross-model consistency audit recorded as `review-2026-09-26-Qwen3.8:27b.md`; CA-01…CA-07 found and fixed the same day (D-019 propagation into IF-001-004, event status `Success` per contract §5.2, `get_result` fetch step, TerminalEvent Task attribution, §5.2 `request_id` optional phrasing, postconditions main-flow qualifier, UC-002 Alt A example).
 
 *Record maintained alongside the design document set. Update status as decisions are confirmed and fixes applied.*
