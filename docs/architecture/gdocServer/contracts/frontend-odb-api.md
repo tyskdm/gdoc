@@ -453,7 +453,7 @@ Every `API-` operation, model, facade clause, and error/cancel rule traces to a 
 | M4 | Tables machine-readable (stable IDs in leading cells) | ✅ | §2 op table, §4.1/§5.1 tables, §9/§10 tables all lead with an ID/stable-name column. |
 | M5 | Terms not redefined (single-source kept in Phase 0) | ✅ | §1 states terms are referenced, not redefined; no re-definition of Request/Task/Subtask/Job/Document/`version_id`/dedup key/priority. |
 
-### 10.2 Semantic (LLM review, per `.agents/checklists/Traceability Check Strategy.md`)
+### 10.2 Semantic (LLM review, per `../process/checklists/Traceability Check Strategy.md`)
 
 Adequacy · semantic containment · consistency · granularity · verifiability, against the ADR *Verify* items and the Phase 1b self-check:
 

@@ -11,7 +11,7 @@
 ## 2. Method (in order)
 
 1. **Decision propagation:** for every D-* confirmed *after* a document was written, verify the decision is reflected in *all* documents that state the affected behavior — body text, scenarios, tables, self-checks, and checklist rows.
-2. **`.agents/checklists/Traceability Check Strategy.md`** — the 5 checks (adequacy, semantic coverage, consistency, granularity, verifiability) per document.
+2. **`../checklists/Traceability Check Strategy.md`** (`process/checklists/`, repo-resident) — the 5 checks (adequacy, semantic coverage, consistency, granularity, verifiability) per document.
 3. **Mechanical checks (grep),** at minimum:
    - ID counts in self-checks/charts match reality (e.g. "TJ-001…TJ-021" vs. actual rows; "INV-01…INV-30" vs. the matrix);
    - superseded decisions no longer cited as current (search each superseded D-* in tables);

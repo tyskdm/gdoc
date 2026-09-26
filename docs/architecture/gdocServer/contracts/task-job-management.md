@@ -268,7 +268,7 @@ One row per rule. This table is the grep/aggregation target for the Phase 1a and
 | M4 | Tables are machine-readable (stable IDs in leading cells) | ✅ | §3 state tables, §4 index, §5/§6 traceability tables all lead with the ID column. |
 | M5 | Terms not redefined (single-source kept in Phase 0) | ✅ | §1 states terms are referenced, not redefined; no new definitions of Request/Task/Subtask/Job/Document/Package/Project/dedup key/priority. |
 
-### 5.2 Semantic (LLM review, per `.agents/checklists/Traceability Check Strategy.md`)
+### 5.2 Semantic (LLM review, per `../process/checklists/Traceability Check Strategy.md`)
 
 Adequacy · semantic containment · consistency · granularity · verifiability, per the ADR *Verify* items the rules must close:
 

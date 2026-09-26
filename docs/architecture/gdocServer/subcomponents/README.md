@@ -12,7 +12,7 @@
 > `../adr/001-protocol-agnostic-core.md` … `../adr/009-configuration-lifecycle.md` ·
 > `../adr/README.md` (risk register, R-00x-y) ·
 > `../architecture.md` (Structure / Key Abstractions / Behaviour) ·
-> `.agents/checklists/Architecture Design Checklist.md` (role & boundary clarity; Golden Rules)
+> `../process/checklists/Architecture Design Checklist.md` (role & boundary clarity; Golden Rules)
 
 ---
 
@@ -225,7 +225,7 @@ redefine them. "Single Source" names the authoritative text; "Derived From" is t
 ## 7. Phase 0 Self-Check
 
 Executed against `../README.md` §8 (Phase 0 検証観点) and
-`.agents/checklists/Architecture Design Checklist.md` (Golden Rules: unique ID, single
+`../process/checklists/Architecture Design Checklist.md` (Golden Rules: unique ID, single
 responsibility per file, link integrity; "role & boundary clarity").
 
 | # | Check | Result | Note |

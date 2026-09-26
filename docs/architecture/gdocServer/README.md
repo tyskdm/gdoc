@@ -133,13 +133,13 @@ FR/NFR. The Phase 4 matrix (§8) is the machine check for this.
 
 - **Phase 2 skill (tailored):** `process/phase2/skill.md` — analysis method for UCs.
 - **Phase 2 template (tailored):** `process/phase2/template.md` — UC output structure.
-- **Generic skill (base):** `.agents/skills/usecase-analysis/SKILL.md` — the upstream of the tailored skill.
-- **Generic template (base):** `.agents/templates/use-case-analysis-template.md` — the upstream of the tailored template.
-- **Checklists:** `.agents/checklists/Traceability Check Strategy.md` (Phase 3/4 semantic checks),
-  `.agents/checklists/Architecture Design Checklist.md`.
+- **Generic skill (base):** `/workspaces/agents/skills/usecase-analysis/SKILL.md` (outside the repo — the `.agents` workspace) — the upstream of the tailored skill.
+- **Generic template (base):** `/workspaces/agents/templates/use-case-analysis-template.md` (outside the repo) — the upstream of the tailored template.
+- **Checklists** (repo-resident under `process/checklists/`): `Traceability Check Strategy.md` (Phase 3/4 semantic checks),
+  `Architecture Design Checklist.md`.
 
 > **Rule:** When a phase has a tailored skill/template under `process/`, **use the tailored version**,
-> not the `.agents/` originals. The `.agents/` files are the generic base for tailoring.
+> not the generic originals outside the repo (`/workspaces/agents`). Those originals are the base for tailoring.
 
 ## 4. Conventions (apply to every document in this set)
 
@@ -171,7 +171,7 @@ Every lower-level requirement states its upstream chain on **one line**. Example
 - **Mechanical (structural):** every requirement has an ID; no duplicate IDs; no orphans in the
   trace matrix. Keep tables machine-readable so these are checked by grep/aggregation.
 - **Semantic (LLM review):** adequacy, semantic containment, consistency, granularity,
-  verifiability. Apply `.agents/checklists/Traceability Check Strategy.md` and report in this table:
+  verifiability. Apply `process/checklists/Traceability Check Strategy.md` and report in this table:
 
   | Requirement ID | Status (OK / Partial / NG) | Missing element / reason | Suggested action |
   | --- | --- | --- | --- |
@@ -263,6 +263,7 @@ Use this **both during** the remaining phases and **after** the design is comple
 | D-020 | 2026-09-25 | **`version_id` = state-based identity + generation-scoped staleness (supersedes D-004's single tuple).** A document's identity/freshness `version_id` is **state-relative**: while **open** it is the LSP `didChange` **`open_revision`** (buffer); while **non-open** it is the **disk signal** (last-change mtime, observed via `didChangeWatchedFiles` — the server does **not** poll). There is **no cross-state ranking** and **no single tuple** — the file and its buffer are distinct data that only share a path. **Staleness is scoped to the generation (open episode):** a buffer result is **discarded** once the document is no longer open in that generation (closed at `didClose`, or re-opened as a fresh generation starting `open_revision` at 1 — generations are separated, so revision 1 of a re-open never collides with the prior generation's or the disk's version); a disk result is stale when a newer disk change is observed (`WATCHED_FILES{changed}` ⇒ newer mtime). Monotonicity is **within** a state only (open: `open_revision`↑; non-open: mtime↑) — the two are never compared. C2 (ODB) owns the state → selection + generation bookkeeping; C1 forwards the raw `open_revision` fact + open-buffer content and registers `didChangeWatchedFiles`. Reflected in: `task-job-management.md` TJ-005/TJ-018 (rule), `frontend-odb-api.md` §4/§4.3 (wire model), `subcomponents/README.md` (INV-05/INV-30, glossary Document/dedup key), UC-002/UC-003 (open/change semantics). | User: open and non-open versions cannot be ranked against each other (a file and its buffer are different data). A re-open starts revisions over — that is fine because the close discards the buffer, so generations are separated and no cross-generation comparison is needed. Retires D-004's `(last_save_timestamp, open_revision)` tuple (which implied cross-state ranking) in favor of state-relative identity + generation-scoped staleness. | ✅ (supersedes D-004's tuple) |
 | D-021 | 2026-09-25 | **Stale queued-Job dispatch-skip (efficiency) + `DOCUMENT_SYNC` `content` requirement clarified** — from the UC-003 (Edit Text) analysis. (1) `contracts/task-job-management.md`: **note on TJ-012** — a queued Job for a `(file, version, inputs)` whose document `version_id` is no longer current **should not** be dispatched (dispatch permitted; its result can never become the Datastore's "current" entry — TJ-018). **should-level (efficiency), not shall** — correctness already holds via TJ-007/TJ-018; the note avoids wasted Builder work under the single-executor / run-bound regime (TJ-015/TJ-019). (2) `contracts/frontend-odb-api.md` §4.1: `content` **required** for `action:"open"`/`"change"` (open document), **optional** for `action:"close"` — clarifies D-017's `DOCUMENT_SYNC` entry (`action` + `content?`); the full normative D-017 minimum-fields table remains to be written during Phase 2 (deferred-by-design). | UC-003 reverse-check: the Phase 1a contract was silent on dispatch-skip (ST-003-002/SCR-C2-003-002), and a reader could misread D-017's `content?` as optional for `open`/`change`. Both findings recorded as "awaiting user approval" per gate §4.5; applied on user approval (2026-09-25), option **A** (note on TJ-012, no new rule ID). Reflected in: `task-job-management.md` (TJ-012 + §4 index), `frontend-odb-api.md` §4.1, UC-003 (Reverse-check ✅), `process/phase2/plan.md` (P2-005). | ✅ (user-approved 2026-09-25) |
 | D-022 | 2026-09-26 | **Design review records: one file per review round under `process/reviews/`** (moved from `process/design_review_record.md`; the original content migrated verbatim to `review-2026-09-14.md` / `review-2026-09-14-followup.md` / `record-2026-09-15-post-phase2.md`). Recording format, shared status legend, findings-ID scheme, exclusion rules, fix/verification and commit conventions are documented in `process/reviews/Design Review Procedure.md` (repo-resident — moved out of `.agents/checklists/` on 2026-09-26 because the `.agents/` setup is not yet stable). Findings that become design decisions remain logged here in §7 — the review files are not the decision log. | A single growing `design_review_record.md` mixed rounds, decisions and traceability notes; per-round files give date-stamped filenames, isolated diffs/commits, and one index (`reviews/README.md`) — preserving the set's "single index" rule. Governance precedent: D-009 (process documents in the README). | ✅ (user-approved 2026-09-26) |
+| D-023 | 2026-09-26 | **Checklists brought into the repo; origin notes repointed** — the two operational checklists are copied verbatim into `process/checklists/` (`Traceability Check Strategy.md`, `Architecture Design Checklist.md`) and every functional reference repointed there; skill/template "tailored-from" notes now cite the originals **outside the repo** (`/workspaces/agents`). The repo's `.agents` symlink and the `AGENTS.md` Agent-Resources entry were **removed the same day** — the gdocServer docs no longer depend on `.agents/`. | The gdocServer docs depended on files outside the repo via the `.agents` symlink; the repo is now self-contained for reviews/self-checks. Precedent: D-022 (procedure moved into the repo). | ✅ (user-directed 2026-09-26) |
 
 ## 8. Derivation Procedure (Roadmap)
 
@@ -398,7 +399,7 @@ Each phase produces a deliverable; a phase with no deliverable is not done.
      "dumb" by design (ADR-004); its safety comes from the sole consumer giving it single-context
      sequential access (see glossary §6, `Object Datastore`; allocate to `DS-001` in this phase).
   5. Confirm **every FR/NFR is covered by ≥1 component requirement** (zero misses).
-- **Self-check:** apply the **5** checks from `.agents/checklists/Traceability Check Strategy.md`
+- **Self-check:** apply the **5** checks from `process/checklists/Traceability Check Strategy.md`
   (adequacy, semantic containment, consistency, granularity, verifiability) per component, in a table;
   all FR/NFR covered; all requirements traceable (Derived From not broken); no 0-owner / 2-owner;
   terminology matches Phase 0; each requirement verifiable.

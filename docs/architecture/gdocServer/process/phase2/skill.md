@@ -1,6 +1,6 @@
 # Usecase Analysis Skill (gdocServer Tailored)
 
-> **Tailored from:** `.agents/skills/usecase-analysis/SKILL.md`
+> **Tailored from:** the generic original outside the repo — `/workspaces/agents/skills/usecase-analysis/SKILL.md`
 > **Project:** gdocServer design-documentation set
 > **Applies to:** Phase 2 use-case analysis (`usecases/UC-*.md`)
 

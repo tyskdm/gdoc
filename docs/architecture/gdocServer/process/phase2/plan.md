@@ -10,8 +10,8 @@
 > · `../../contracts/frontend-odb-api.md` (API-*) · `../../subcomponents/README.md` (glossary + ownership)
 >
 > **Skill & Template (local):** `./skill.md` (analysis procedure) · `./template.md` (UC output structure)
-> These are **project-specific** tailoring of `.agents/skills/usecase-analysis/` and `.agents/templates/`.
-> **Use these local files, not the `.agents/` originals.**
+> These are **project-specific** tailoring of the generic originals kept **outside the repo** (the `.agents` workspace: `/workspaces/agents/skills/usecase-analysis/`, `/workspaces/agents/templates/`).
+> **Use these local files, not the originals outside the repo.**
 >
 > **This file is a work tracker.** The authoritative procedure lives in `../../README.md` §8.
 > Do not duplicate procedure text here.
@@ -109,8 +109,8 @@
 
 | Source | Use |
 | ------ | --- |
-| `./skill.md` | **Local tailored skill** — procedure for each UC (use this, not `.agents/`) |
-| `./template.md` | **Local tailored template** — UC output structure (use this, not `.agents/`) |
+| `./skill.md` | **Local tailored skill** — procedure for each UC (use this, not the generic original outside the repo) |
+| `./template.md` | **Local tailored template** — UC output structure (use this, not the generic original outside the repo) |
 | `../../contracts/task-job-management.md` | TJ-001…TJ-021 — rules to cross-reference |
 | `../../contracts/frontend-odb-api.md` | API-001…004, Request/Result/Event models |
 | `../../subcomponents/README.md` §4/§6 | Ownership matrix + glossary |
