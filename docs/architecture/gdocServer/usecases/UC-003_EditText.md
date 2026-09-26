@@ -23,7 +23,8 @@ its reference closure whose inputs changed) through the ODB/Builder pipeline, an
 document's diagnostics — so that the IDE's feedback loop (diagnostics, and subsequent Hover/Go to
 Definition/Find References requests) answers from the **latest buffer** at the correct `version_id`
 rather than from a stale revision or a stale disk version. Unlike `Open Text` (UC-002), this is **not**
-a state transition: the document is already in **State 2** with a live **System Task** (D-014); the
+a state transition: the document is already in **State 2** with a **completed** System Task (D-014,
+   TJ-003/004); the
 edit only advances the `open_revision` (D-020), which changes the dedup key (TJ-005) and triggers
 priority recomputation (TJ-012).
 
@@ -40,14 +41,14 @@ priority recomputation (TJ-012).
 ### Derived From
 
 FR-1.3 → ADR-002 → TJ-001 · **D-020** (`version_id` / buffer source, refines D-004) → TJ-005/018 · NFR-2.3 →
-ADR-007 → TJ-011/012 · D-014 (System Task persists; no re-creation) → TJ-021 · D-015 (diagnostics
+ADR-007 → TJ-011/012 · D-014 (System Task terminal after build; no re-creation) → TJ-021 · D-015 (diagnostics
 push) → §5.2 · D-016 (`action:"change"`) + D-017 (payload `action` + `content`) · NFR-1.3 → ADR-004
 
 ### Scope Decisions Applied
 
 - D-005 (v1 scope: sync + config + Hover + GoToDefinition + FindReferences + Diagnostics)
-- D-014 (System Task from UC-002 **stays alive** — a `change` is an interaction, not a state
-  transition; the System Task is never recreated, cancelled, or Frontend-cancellable)
+- D-014 (System Task from UC-002 is **terminal** (`Completed`, TJ-003) — a `change` is an
+  interaction, not a state transition; no new System Task is created or cancelled)
 - D-015 (diagnostics delivery = `DiagnosticsEvent` push; `request_id` optional for
   `DiagnosticsEvent` per NC-06 / P2-003)
 - D-016 (`DOCUMENT_SYNC` payload discriminator `action:"change"`)
@@ -62,7 +63,7 @@ push) → §5.2 · D-016 (`action:"change"`) + D-017 (payload `action` + `conten
 - Workspace initialized (UC-001 complete): ODB API object obtained, completion handler registered
   (API-004).
 - Document **open** (UC-002 complete): C1 tracks the buffer; `open_revision` ≥ 1; the document is in
-  **State 2** with a live System Task (`s-*` per State 2 document, D-014, TJ-021); the Datastore holds the document at some
+  **State 2** and the prior System Tasks are terminal (`Completed`, TJ-003/004); the Datastore holds the document at some
   `version_id` (or the last build failed, leaving the pre-Job state).
 - The `didChange` notification carries a monotonically increasing `version` (LSP 3.17) that is
   strictly greater than the revision last submitted for this document.
@@ -76,8 +77,8 @@ push) → §5.2 · D-016 (`action:"change"`) + D-017 (payload `action` + `conten
   `DiagnosticsEvent` for the document has been published via `textDocument/publishDiagnostics`
   (replacing the previously published set).
 - C2: the sync Task for this revision is terminal (`Completed` or `Error`); no Job for the
-  **new** dedup key is in flight; the document **remains** in State 2; the pre-existing System Tasks
-  for the document and its closure are **not** recreated or cancelled (TJ-021).
+  **new** dedup key is in flight; the document **remains** in State 2; the pre-existing System Tasks are
+  terminal (`Completed`, TJ-003) — no new System Task is created.
 - C3: Datastore holds the document's "current" entry at the new `version_id` **iff** the build
   succeeded (atomic, TJ-008); otherwise the pre-Job state is preserved (TJ-008); a stale-revision
   result can never become the "current" entry once a newer revision has committed (TJ-018).
@@ -127,9 +128,9 @@ push) → §5.2 · D-016 (`action:"change"`) + D-017 (payload `action` + `conten
 6. **C4** returns the candidate gdoc Objects plus diagnostics for the new revision.
 7. **C2** atomically commits the candidate into **C3** (TJ-008) — the document entry's "current"
    pointer moves to the new `version_id` — and marks the Task `Completed` (TJ-003).
-8. **C2** pushes `TerminalEvent{status:Success}` for the sync Task (API-004) and, because
-   diagnostics changed (including clearing to an empty array `[]` when errors are resolved; D-015,
-   §5.2), a `DiagnosticsEvent{document:doc, diagnostics}` for the new revision.
+8. **C2** pushes `DiagnosticsEvent{document:doc, diagnostics}` for the new revision (because
+   diagnostics changed, including clearing to an empty array `[]` when errors are resolved; D-015,
+   §5.2) and `TerminalEvent{status:Success}` for the sync Task (API-004).
 9. **C1** receives the events on its handler thread, hands them onto its asyncio loop
    (`call_soon_threadsafe`, F6.3/F6.4), fetches the `SyncPayload` via `get_result` (API-002), and
    publishes the diagnostics.
@@ -214,8 +215,8 @@ sequenceDiagram
     C4-->>C2: candidate gdoc Objects + diagnostics (rev R+1)
     C2->>C3: atomic commit (TJ-008)
     Note over C3: current entry → version_id(R+1)<br>freshness invariant holds (TJ-018)
-    C2-)C1: handler: TerminalEvent{Success}
     C2-)C1: handler: DiagnosticsEvent{document, diagnostics} (when changed, D-015)
+    C2-)C1: handler: TerminalEvent{Success}
     C1->>C2: get_result(request_id)
     C2-->>C1: SyncPayload
     C1-)IDE: textDocument/publishDiagnostics (replaces previous set)
@@ -265,8 +266,8 @@ open (Alt C).
 #### ST-003-001
 
 C2 **shall** process `DOCUMENT_SYNC{action:"change"}` **without** a state transition or System
-Task churn: the document stays in **State 2**, the existing `s-*` System Tasks (D-014, TJ-021) keep
-their waiter-set memberships unchanged, and the edit **shall** be treated as a client interaction for
+Task churn: the document stays in **State 2**, the existing System Tasks are terminal (`Completed`,
+TJ-003/004) and require no action (D-014), and the edit **shall** be treated as a client interaction for
 **priority recomputation** (TJ-012) — no new Task of System origin is created or cancelled.
 
 **Owner:** C2
@@ -299,12 +300,10 @@ never become the "current" entry (TJ-018); older revisions remain queryable by e
 #### DR-003-002
 
 C3 **shall** retain the committed diagnostics for each revision so that the ODB can push a
-`DiagnosticsEvent` (D-015) reflecting the **latest committed** revision — and, for the in-flight
-latest revision only, may push diagnostics produced during its build even before commit (Alt B:
-parse-error visibility precedes commit).
+`DiagnosticsEvent` (D-015) reflecting the **latest committed** revision.
 
 **Owner:** C3 (internal invariant)
-**Derived From:** UC-003 Main #8, Alt B · D-015 · §5.2 · NFR-2.1
+**Derived From:** UC-003 Main #8 · D-015 · §5.2 · NFR-2.1
 
 ### Error Handling (EH-)
 
@@ -440,10 +439,10 @@ cancellation so a superseded (stale) Job's dispatch-skip or late cancel is honou
 | IF-003-001 | Interface | didChange → DOCUMENT_SYNC{change, content} translation | Main #1–2 | C1 |
 | IF-003-002 | Interface | Handler event consumption + publishDiagnostics (latest-wins) | Main #8–10, Alt A | C1 |
 | IF-003-003 | Interface | open_revision advance + raw fact forwarding; version_id state selection + generation owned by C2; no-submit for untracked | Main #2, Alt C | C1 |
-| ST-003-001 | State | No state transition; System Task persists; priority recomputed | Main #3 | C2 |
+| ST-003-001 | State | No state transition; System Tasks terminal (Completed); priority recomputed | Main #3 | C2 |
 | ST-003-002 | State | Fresh Job per new dedup key; stale queued Job dispatch-skip | Main #4, Alt A | C2 |
 | DR-003-001 | Data | Current-pointer moves on atomic commit; stale never overwrites | Main #7, Alt A/B | C3 |
-| DR-003-002 | Data | Per-revision diagnostics retained for D-015 push | Main #8, Alt B | C3/C2 |
+| DR-003-002 | Data | Per-revision diagnostics retained for D-015 push | Main #8 | C3 |
 | EH-003-001 | Error | Parse error → diagnostics push, doc still functional | Alt B | C2 |
 | EH-003-002 | Error | Builder failure → no commit, terminal Error | Alt B | C2 |
 | SCR-C1-003-001 | Component | didChange handler + buffer application + translation (asyncio) | Main #1–2, Alt C | C1 |

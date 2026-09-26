@@ -138,7 +138,9 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
    identified, no **System Tasks** are created.
 2. **C1** still registers the completion handler and the broad file watchers (steps 6–8 still
    execute), so that a later `CONFIG_SAVE` (when the user creates the config) can trigger the build.
-3. **C1** relays the degraded-mode result to the IDE Client (e.g., `window/logMessage`) that no gdoc
+3. **C2** emits `TerminalEvent{status:Success}` for the `CONFIG_SAVE` ticket (no build triggered);
+   **C1** fetches the result via `get_result` (API-002) — the `SyncPayload` carries an empty packages list.
+4. **C1** relays the degraded-mode result to the IDE Client (e.g., `window/logMessage`) that no gdoc
    project was detected.
 
 ### File Watcher Registration Rejected
@@ -320,9 +322,10 @@ dependency changes (NFR-2.1), supporting the State 2/3 priority model (TJ-011/01
 
 C2 shall **detect** the absence of the workspace configuration while processing `CONFIG_SAVE` (D-019:
 reading the config is ODB-owned) and enter **degraded mode**: no Packages identified, no System Tasks,
-no initial build. C1 shall **relay** the degraded-mode outcome to the IDE Client (e.g. via
-`window/logMessage`). A later `CONFIG_SAVE` (when the user creates the config) shall then trigger the
-normal build.
+no initial build. C2 shall emit `TerminalEvent{status:Success}` for the `CONFIG_SAVE` ticket (no build
+triggered); C1 shall fetch the result via `get_result` (API-002) and **relay** the degraded-mode outcome
+to the IDE Client (e.g. via `window/logMessage`). A later `CONFIG_SAVE` (when the user creates the config)
+shall then trigger the normal build.
 
 **Owner:** C2 (detection + degraded mode) · C1 (notification)
 **Derived From:** UC-001 Alt "No Project Configuration Found" · D-019

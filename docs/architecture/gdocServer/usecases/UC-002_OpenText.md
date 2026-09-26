@@ -105,8 +105,8 @@ TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator
 8. **C2** atomically commits the candidate results into **C3** (TJ-008) — Datastore entries for the
    document + closure at their new `version_id`s, relationships and dependency graph updated — and
    marks the Task / System Tasks `Completed` (TJ-003).
-9. **C2** pushes a `TerminalEvent{status:Success}` for the sync Task (API-004) and, because
-   diagnostics changed, a `DiagnosticsEvent{document:doc, diagnostics}` (D-015, §5.2).
+9. **C2** pushes a `DiagnosticsEvent{document:doc, diagnostics}` (D-015, §5.2) because
+   diagnostics changed, and a `TerminalEvent{status:Success}` for the sync Task (API-004).
 10. **C1** receives the events on its handler thread; it hands them onto its asyncio loop
     (`call_soon_threadsafe`, F6.3/F6.4), fetches the `SyncPayload` via `get_result` (API-002), and
     publishes the diagnostics to the IDE.
@@ -202,8 +202,8 @@ sequenceDiagram
     C4-->>C2: candidate gdoc Objects + diagnostics
     C2->>C3: atomic commit (TJ-008)
     Note over C3: doc + closure at new version_id<br>graph updated
-    C2-)C1: handler: TerminalEvent{Success}
     C2-)C1: handler: DiagnosticsEvent{document, diagnostics} (D-015)
+    C2-)C1: handler: TerminalEvent{Success}
     C1->>C2: get_result(request_id)
     C2-->>C1: SyncPayload
     C1-)IDE: textDocument/publishDiagnostics
