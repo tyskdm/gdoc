@@ -40,7 +40,7 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
 
 - D-005 (v1 scope: sync + config + Hover + GoToDefinition + FindReferences + Diagnostics)
 - D-006 (Object Server excluded from v1)
-- D-014 (System Task for State 2/3 background builds)
+- D-014 (State 2/3 background builds; the mechanism is re-scoped to ODB-internal by **D-024**)
 - D-015 (Diagnostics delivery = event push)
 - D-017 (Operation payload schema formalized alongside Phase 2)
 - D-019 (ODB configuration ownership: the ODB reads/parses `gdoc.project.json`, not the Frontend)
@@ -60,8 +60,8 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
 > state per TJ-008).
 
 - C1: LSP session is initialized; file watchers registered; initial diagnostics published to the IDE.
-- C2: All State 3 (Package member) documents have completed their initial build; System Tasks are in
-  `Completed` state; no pending Jobs remain.
+- C2: All State 3 (Package member) documents have completed their initial build; the ODB
+  background build work for them is terminal (`Completed`); no pending Jobs remain.
 - C3: Document entries, gdoc Objects, and cross-document relationships are stored; dependency graph
   is populated.
 - C4: All initial Parse/Link Jobs completed; diagnostics generated for each document.
@@ -72,7 +72,7 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
 
 - LSP `initialize`/`initialized` handshake and capability registration (FR-1.1).
 - Project/Package discovery by the ODB from the workspace configuration (D-019, ADR-009) and State 3
-  System Task creation (D-014).
+  background build work (D-014, re-scoped by D-024).
 - Initial build: Job dispatch, execution, atomic commit, diagnostics push (TJ-001…TJ-021, D-015).
 - Asynchronous frontend: asyncio-based handler registration and event reception (NFR-1.1, ADR-003, API-004).
 - OM-04 resolution: ODB library initialization is outside the 4-API surface; the initial build is
@@ -104,9 +104,9 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
 10. **C2** reads `gdoc.project.json` in the workspace root (D-019; ADR-009) and identifies the
     **Project** scope, internal **Packages**, their document files, and content types. **C2** then
     maps the Request 1:1 to a **Task** (TJ-001). Because the Request touches State 3 documents
-    (Package members), C2 creates **System Tasks** (D-014, TJ-021, `s-*` namespace) for each document
-    that requires a build. System Tasks participate in the Job waiter set like any Task but are not
-    cancellable by the Frontend.
+    (Package members), C2 starts the **ODB background build work** (D-014, re-scoped by D-024, TJ-021 — the concrete mechanism is ODB-internal) for each document
+    that requires a build. That background work participates in the Job waiter set like any Task but
+    is not cancellable by the Frontend (TJ-007).
 11. **C2** schedules the initial-build **Jobs** in priority order (TJ-011/012) and dispatches each to
     the appropriate **C4 Object Builder** (Parse/Link), respecting dependency constraints (a document's
     references are built before the document itself if the references are not yet in the Datastore).
@@ -135,7 +135,7 @@ FR-1.1 → ADR-001 → ADR-003 · NFR-1.1 → ADR-003 · FR-2.2 → ADR-009 → 
 
 1. (Replaces steps 10–18.) **C2** detects the missing configuration while processing `CONFIG_SAVE`
    (step 10; D-019: config reading is the ODB's) and enters **degraded mode**: no **Packages** are
-   identified, no **System Tasks** are created.
+   identified, no background build work is started.
 2. **C1** still registers the completion handler and the broad file watchers (steps 6–8 still
    execute), so that a later `CONFIG_SAVE` (when the user creates the config) can trigger the build.
 3. **C2** emits `TerminalEvent{status:Success}` for the `CONFIG_SAVE` ticket (no build triggered);
@@ -176,8 +176,8 @@ missing references, Builder crash).
    `CONFIG_SAVE` (API-001, D-019).
 3. **C2** re-reads the project configuration for the changed folders (D-019) and identifies
    new/removed Packages.
-4. **C2** cancels System Tasks for removed documents (D-014: cancel on config change) and creates
-   new System Tasks for added documents.
+4. **C2** cancels the background build work for removed documents (their State 3 membership is gone —
+   D-014, re-scoped by D-024) and starts new background build work for added documents.
 5. The remaining steps follow the main scenario from step 11.
 
 ---
@@ -201,7 +201,7 @@ sequenceDiagram
     C1->>IDE: client/registerCapability (didChangeWatchedFiles — broad patterns)
     IDE-->>C1: registration response
     C1->>C2: submit(CONFIG_SAVE, payload=workspace root) (API-001)
-    Note over C2: C2 reads & parses gdoc.project.json<br/>Define Project · Packages · Documents (D-019)<br/>Map Request to Task (TJ-001)<br/>Create System Tasks for State 3 docs (D-014 · TJ-021)
+    Note over C2: C2 reads & parses gdoc.project.json<br/>Define Project · Packages · Documents (D-019)<br/>Map Request to Task (TJ-001)<br/>Start background builds for State 3 docs (D-014 · TJ-021)
     C2->>C3: Initialize Document entries
     C3-->>C2: OK
     loop for each Document
@@ -264,10 +264,12 @@ types — that is the ODB's (D-019, ADR-009).
 
 #### ST-001-001
 
-C2 shall create a System Task (D-014, `s-*` ID namespace) for each document that is a State 3
-(Package member) upon receiving the initial workspace state, so that the initial build proceeds
-without a client Request. System Tasks participate in the Job waiter set like any Task but are not
-cancellable by the Frontend.
+C2 shall start the **ODB background build work** (D-014, re-scoped by D-024, TJ-021) for each
+document that is a State 3 (Package member) upon receiving the initial workspace state, so that
+the initial build proceeds without a client Request (the needed build is not dropped — NC-05).
+That background work participates in the Job waiter set like any Task but is not cancellable by
+the Frontend (TJ-007); the concrete mechanism (task shape, granularity, worker identity) is
+ODB-internal.
 
 **Owner:** C2
 **Derived From:** UC-001 Main #10, D-014, TJ-021
@@ -321,8 +323,8 @@ dependency changes (NFR-2.1), supporting the State 2/3 priority model (TJ-011/01
 #### EH-001-001
 
 C2 shall **detect** the absence of the workspace configuration while processing `CONFIG_SAVE` (D-019:
-reading the config is ODB-owned) and enter **degraded mode**: no Packages identified, no System Tasks,
-no initial build. C2 shall emit `TerminalEvent{status:Success}` for the `CONFIG_SAVE` ticket (no build
+reading the config is ODB-owned) and enter **degraded mode**: no Packages identified, no background
+build work, no initial build. C2 shall emit `TerminalEvent{status:Success}` for the `CONFIG_SAVE` ticket (no build
 triggered); C1 shall fetch the result via `get_result` (API-002) and **relay** the degraded-mode outcome
 to the IDE Client (e.g. via `window/logMessage`). A later `CONFIG_SAVE` (when the user creates the config)
 shall then trigger the normal build.
@@ -403,10 +405,11 @@ performing no CPU work inside the handler (F6.3, F6.4).
 
 #### SCR-C2-001-001 (Object Database)
 
-C2 shall create System Tasks (D-014, `s-*` namespace) for each State 3 (Package member) document
-upon receiving the initial workspace state, so that the initial build proceeds without a client
-Request. System Tasks participate in the Job waiter set like any Task but are not cancellable by the
-Frontend.
+C2 shall start the **ODB background build work** (D-014, re-scoped by D-024, TJ-021) for each State 3
+(Package member) document upon receiving the initial workspace state, so that the initial build
+proceeds without a client Request (the needed build is not dropped — NC-05). That background work
+participates in the Job waiter set like any Task but is not cancellable by the Frontend (TJ-007);
+the concrete mechanism is ODB-internal.
 
 **Derived From:** UC-001 Main #10, D-014, TJ-021
 
@@ -495,7 +498,7 @@ departs.
 | IF-001-002 | FR-1.3 (sync) | ✅ | C1-internal; LSP capability registration |
 | IF-001-003 | API-004 (register_completion) | ✅ | Handler registration before submit |
 | IF-001-004 | API-001 (submit), D-019, ADR-009 (config) | ✅ | CONFIG_SAVE as initial-state trigger (workspace root + config location; no config parsing) |
-| ST-001-001 | D-014, TJ-021 (System Task) | ✅ | State 3 → System Task |
+| ST-001-001 | D-014, TJ-021 (re-scoped by D-024) | ✅ | State 3 → background build work |
 | ST-001-002 | TJ-003 (Task states), TJ-004 (Job states) | ✅ | Lifecycle transitions |
 | ST-001-003 | TJ-004, TJ-019 (run bound) | ✅ | Terminal state guarantee |
 | DR-001-001 | ADR-004 (Datastore internal) | ✅ | Package/Document storage |
@@ -510,7 +513,7 @@ departs.
 | SCR-C1-001-003 | FR-1.3 | ✅ | File watcher registration |
 | SCR-C1-001-004 | D-015, FR-1.2 | ✅ | DiagnosticsEvent → publishDiagnostics |
 | SCR-C1-001-005 | NFR-1.1, ADR-003, F6.3/F6.4 | ✅ | asyncio + thread-safe handler |
-| SCR-C2-001-001 | D-014, TJ-021 | ✅ | System Task creation |
+| SCR-C2-001-001 | D-014, TJ-021 | ✅ | Background build work creation |
 | SCR-C2-001-002 | TJ-011, TJ-012 | ✅ | Priority-ordered dispatch |
 | SCR-C2-001-003 | TJ-008 | ✅ | Atomic commit |
 | SCR-C2-001-004 | D-015, API-004 | ✅ | DiagnosticsEvent + TerminalEvent push |
@@ -535,7 +538,7 @@ departs.
 | IF-001-002 | Interface | Broad file-watcher registration (protocol-level; D-019) | Main #7–8 | C1 |
 | IF-001-003 | Interface | Completion handler registration (API-004) | Main #6 | C1 |
 | IF-001-004 | Interface | Initial workspace state submit (API-001, CONFIG_SAVE) | Main #9 | C1 |
-| ST-001-001 | State | System Task creation for State 3 docs (D-014) | Main #10 | C2 |
+| ST-001-001 | State | Background build work creation for State 3 docs (D-014) | Main #10 | C2 |
 | ST-001-002 | State | Task/Job lifecycle transitions (TJ-003/004) | Main #10–13 | C2 |
 | ST-001-003 | State | All Jobs reach terminal state (TJ-019) | Main #11–13 | C2 |
 | DR-001-001 | Data | Package/Document entry storage | Main #13 | C3 |
@@ -550,7 +553,7 @@ departs.
 | SCR-C1-001-003 | Component | File watcher registration + response handling | Main #7–8 | C1 |
 | SCR-C1-001-004 | Component | Result fetch (API-002) + DiagnosticsEvent → publishDiagnostics mapping | Main #14–17 | C1 |
 | SCR-C1-001-005 | Component | asyncio handler + thread-safe event posting | Main #6 | C1 |
-| SCR-C2-001-001 | Component | System Task creation (D-014, TJ-021) | Main #10 | C2 |
+| SCR-C2-001-001 | Component | Background build work creation (D-014, TJ-021) | Main #10 | C2 |
 | SCR-C2-001-002 | Component | Priority-ordered Job dispatch | Main #11 | C2 |
 | SCR-C2-001-003 | Component | Atomic commit (TJ-008) | Main #13 | C2 |
 | SCR-C2-001-004 | Component | DiagnosticsEvent + TerminalEvent push (D-015) | Main #14–15 | C2 |

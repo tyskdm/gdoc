@@ -19,8 +19,8 @@ Open Text
 
 When the user opens a text document in the IDE, the gdoc Server synchronizes the document (buffer
 content from `textDocument/didOpen`), brings the document and the documents it references into
-**State 2**, triggers the background build of that reference closure through a **System Task**
-(D-014), and delivers fresh diagnostics to the IDE — so that subsequent language-service requests
+**State 2**, triggers the background build of that reference closure (D-014, re-scoped by D-024 —
+the needed build is not dropped and the mechanism is ODB-internal), and delivers fresh diagnostics to the IDE — so that subsequent language-service requests
 (Hover, Go to Definition, Find References) are immediately answerable and the Datastore reflects the
 latest editor buffer rather than a stale disk version.
 
@@ -42,7 +42,7 @@ TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator
 ### Scope Decisions Applied
 
 - D-005 (v1 scope: sync + config + Hover + GoToDefinition + FindReferences + Diagnostics)
-- D-014 (System Task on State 2 entry — trigger: open file **and** the documents it references, per ADR-007 / FU-07)
+- D-014 (background build work on State 2 entry — trigger: open file **and** the documents it references, per ADR-007 / FU-07; the mechanism is re-scoped by **D-024**)
 - D-015 (Diagnostics delivery = `DiagnosticsEvent` push)
 - D-016 (`DOCUMENT_SYNC` payload discriminator `action:"open"`)
 - **D-020** (`version_id` is **state-relative** — open ⇒ `open_revision`; refines D-004); open file → buffer content
@@ -63,9 +63,9 @@ TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator
 - C1: document tracked as **open** (buffer = source of truth for its content); `open_revision`
   initialized (≥1) and ready to advance on `didChange`; the latest `DiagnosticsEvent` for the
   document has been published via `textDocument/publishDiagnostics`.
-- C2: the State-2 **System Task** for the document (and its reference closure) is terminal
-  (`Completed`); no Job for the document's dedup key is in flight; the System Task is **not**
-  cancellable by the Frontend (D-014).
+- C2: the State-2 **background build work** for the document (and its reference closure) is terminal
+  (`Completed`); no Job for the document's dedup key is in flight; that background work is **not**
+  cancellable by the Frontend (D-014, re-scoped by D-024).
 - C3: Datastore holds the document entry at the new `version_id` with the latest committed gdoc
   Objects, diagnostics, and reference-closure relationships; freshness invariant holds (TJ-018).
 - C4: the Parse/Link Jobs for the reference closure completed (or committed nothing, if failed);
@@ -76,7 +76,7 @@ TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator
 ## Analysis Focus
 
 - `didOpen` → `DOCUMENT_SYNC{action:"open", content}` translation (D-016, D-017; API-001).
-- State 2 entry (open file **and** its references, ADR-007) → System Task creation (D-014, TJ-021).
+- State 2 entry (open file **and** its references, ADR-007) → background build work (D-014, TJ-021; re-scoped by D-024).
 - `version_id` for an **open** file (**D-020**, refines D-004): `open_revision` ≥ 1, content = **buffer**, not disk.
 - Dedup & single-in-flight for the reference closure (TJ-005/006), priority from State 2 (TJ-011/012).
 - Diagnostics delivery as server→client push (`DiagnosticsEvent`, D-015) — not a client pull.
@@ -93,9 +93,9 @@ TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator
 3. **C1** submits a `Request{ operation: DOCUMENT_SYNC, documents: [doc], payload:
    {action:"open", content:<buffer>}, priority_hint }` to the ODB (API-001, D-016/D-017).
 4. **C2** maps the Request 1:1 to a Task (TJ-001), moves the document into **State 2** (open file
-   **and** its reference closure, ADR-007), and creates (or reuses) **System Tasks** — one per
-   State 2 document in the reference closure (D-014, TJ-021) — whose Job sets build each document in
-   reference-depth order (TJ-011).
+   **and** its reference closure, ADR-007), and starts (or reuses) the **ODB background build work** —
+   one unit per State 2 document in the reference closure (D-014, TJ-021; re-scoped by D-024) — whose
+   Job sets build each document in reference-depth order (TJ-011).
 5. **C2** registers the closure's Jobs under their dedup keys (TJ-005/006); any Job already in
    flight for the same key is **not** duplicated — the Task joins its waiter set.
 6. **C2** dispatches the Parse/Link Jobs to the appropriate **C4** Builder(s) (per content type,
@@ -104,7 +104,7 @@ TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator
 7. **C4** returns the candidate gdoc Objects plus diagnostics for the closure.
 8. **C2** atomically commits the candidate results into **C3** (TJ-008) — Datastore entries for the
    document + closure at their new `version_id`s, relationships and dependency graph updated — and
-   marks the Task / System Tasks `Completed` (TJ-003).
+   marks the Task / background build work `Completed` (TJ-003).
 9. **C2** pushes a `DiagnosticsEvent{document:doc, diagnostics}` (D-015, §5.2) because
    diagnostics changed, and a `TerminalEvent{status:Success}` for the sync Task (API-004).
 10. **C1** receives the events on its handler thread; it hands them onto its asyncio loop
@@ -128,7 +128,7 @@ UC-001, and no newer `version_id` exists).
 3. If the document's diagnostics changed (e.g., the client has not yet received this document's
    diagnostic set, or the last published set is stale), C2 still pushes a `DiagnosticsEvent` (D-015).
 4. C1 publishes diagnostics (if pushed) and continues; the state effect of "open" (State 2 entry,
-   System Task lifecycle) still applies even though no build ran.
+   background build work lifecycle) still applies even though no build ran.
 
 ### B — Shared Job already awaited by another Task
 
@@ -161,8 +161,8 @@ document.
 
 **Condition:** Step 4 — the opened document is not a member of any Package (workspace-only).
 
-1. C2 still creates the State-2 System Tasks for the open document and each document in its
-   reference closure (one per document, D-014, TJ-021 — State 2 does not require package membership).
+1. C2 still starts the State-2 background build work for the open document and each document in its
+   reference closure (one unit per document, D-014, TJ-021 — State 2 does not require package membership).
 2. Priority of the closure's Jobs follows ADR-007: referenced-by-open still outranks workspace-only
    non-referenced documents (TJ-011); the document itself carries no State-3 package bonus.
 3. The flow is otherwise identical to the main scenario.
@@ -195,7 +195,7 @@ sequenceDiagram
     IDE-)C1: textDocument/didOpen (uri, text)
     Note over C1: store buffer<br>open_revision ≥ 1 (raw fact forwarded to C2)
     C1->>C2: submit(DOCUMENT_SYNC{action:open, content})
-    Note over C2: Request->Task 1:1 (TJ-001)<br>State 2 entry: doc + references (ADR-007)<br>System Tasks s-* created/reused per doc (D-014, TJ-021)<br>dedup / single-in-flight (TJ-005/006)
+    Note over C2: Request->Task 1:1 (TJ-001)<br>State 2 entry: doc + references (ADR-007)<br>background builds created/reused per doc (D-014, TJ-021)<br>dedup / single-in-flight (TJ-005/006)
     C2-->>C1: Submission{ticket, request_id}
     Note over C2: priority from State 2 (TJ-011/012)
     C2->>C4: dispatch Parse/Link Jobs (open doc = buffer, refs = disk)
@@ -248,10 +248,11 @@ document, with content sourced from the **buffer**; C2 (ODB) owns the **state �
 #### ST-002-001
 
 C2 **shall** move the document — **and the documents it references** (reference closure, per
-ADR-007) — into **State 2** upon processing `DOCUMENT_SYNC{action:"open"}`, and **shall** create
-(or reuse) a **System Task** (`s-*` namespace) for **each document** entering State 2 in the
-closure (D-014, TJ-021); each System Task participates in the Job waiter set like any Task but is
-**not** cancellable by the Frontend.
+ADR-007) — into **State 2** upon processing `DOCUMENT_SYNC{action:"open"}`, and **shall** start
+(or reuse) the **ODB background build work** for **each document** entering State 2 in the
+closure (D-014, TJ-021; re-scoped by D-024); that background work participates in the Job waiter set
+like any Task but is **not** cancellable by the Frontend (TJ-007); the concrete mechanism
+(task shape, granularity, worker identity) is ODB-internal.
 
 **Owner:** C2
 **Derived From:** UC-002 Main #4 · D-014 · TJ-021 · ADR-007
@@ -327,7 +328,7 @@ events are ignored (cross-Frontend isolation, API-004).
 #### SCR-C2-002-001 (Object Database)
 
 C2 **shall** process `DOCUMENT_SYNC{action:"open"}` by: State-2 transition (doc + references),
-System Task creation (D-014/TJ-021), dedup-aware Job scheduling of the closure (TJ-005/006/011/012),
+background build work (D-014/TJ-021; re-scoped by D-024), dedup-aware Job scheduling of the closure (TJ-005/006/011/012),
 atomic commit (TJ-008), and pushing `TerminalEvent` + `DiagnosticsEvent` (D-015) — all without
 branching on the originating protocol (TJ-010 / R-008-2).
 
@@ -368,7 +369,7 @@ for the content type (TJ-019/020).
 | IF-002-001 | API-001, §4 (Request model), D-016/D-017 | ✅ | `DOCUMENT_SYNC{action:"open", content}` is a named v1 operation with a defined payload |
 | IF-002-002 | API-004, §5.2, F6.3/F6.4, D-015 | ✅ | `request_id` optional for `DiagnosticsEvent` — NC-06 / P2-003 resolved 2026-09-15 (user-approved), applied to §5.2 |
 | IF-002-003 | TJ-005/018, D-020, §4.3 | ✅ | `version_id` state-relative + buffer-vs-disk source fixed by D-020 (refines D-004) |
-| ST-002-001 | TJ-021, TJ-001 (extended trigger), ADR-007 | ✅ | System Task trigger + s-* namespace + not Frontend-cancellable |
+| ST-002-001 | TJ-021, TJ-001 (extended trigger), ADR-007 | ✅ | Background build work trigger + not Frontend-cancellable (the `s-*` namespace is retracted to ODB-internal by D-024) |
 | ST-002-002 | TJ-001/003/008, API-001, §5 | ✅ | 1:1 mapping, terminal-before-push, committed-only Success |
 | DR-002-001 | TJ-008, ADR-004, D-020 | ✅ | Atomic commit; pre-Job state on cancel; open flag = buffer source |
 | DR-002-002 | NFR-2.1, TJ-011/018, ADR-004 | ✅ | Graph + freshness invariant, C2-only access |
@@ -394,7 +395,7 @@ for the content type (TJ-019/020).
 | IF-002-001 | Interface | didOpen → DOCUMENT_SYNC{open} translation | Main #1–3 | C1 |
 | IF-002-002 | Interface | Handler event consumption + publishDiagnostics | Main #9–11 | C1 |
 | IF-002-003 | Interface | raw sync fact forwarding (open_revision ≥ 1, open file); version_id state selection + generation owned by C2 | Main #2 | C1 |
-| ST-002-001 | State | State 2 entry + System Task creation (D-014) | Main #4 | C2 |
+| ST-002-001 | State | State 2 entry + background build work (D-014) | Main #4 | C2 |
 | ST-002-002 | State | Task lifecycle → terminal before push | Main #3–8 | C2 |
 | DR-002-001 | Data | Document entry at new version_id, open flag | Main #8 | C3 |
 | DR-002-002 | Data | Dependency graph + freshness invariant | Main #8 | C3 |

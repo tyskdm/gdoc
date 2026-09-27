@@ -46,7 +46,7 @@ Owners: **ODB** = C2 · **Frontend** = C1 · **Builder** = C4 · **Datastore** =
 
 **[TJ-001] Three-tier execution model.** Execution is three tiers — **Request → Task → Job** — with **Subtasks** as the task-local step unit. A **Request** corresponds to **exactly one Task** (the 1:1 invariant is held at the Request↔Task boundary). A **Task** decomposes into zero or more **Subtasks** and/or requests one or more **Jobs**. **Jobs are the only tier that is deduplicated / shared**, and that sharing happens *below* the Task tier, so it does not break the 1:1 invariant.
 
-> **Extended trigger (D-014):** A Task is created either by a **client Request** (via `submit`) **or** by an **ODB state-transition** (document entering State 2 or State 3 — the **System Task**, TJ-021). In both cases the Task participates in the Job waiter set (TJ-007) identically; the only difference is origin and cancel-permissibility.
+> **Extended trigger (D-014, re-scoped by D-024):** A Task is created either by a **client Request** (via `submit`) **or** by an **ODB state-transition** (document entering State 2 or State 3 — **ODB-internal background work**, TJ-021; the concrete mechanism is **ODB-internal (③)** and not fixed here). In both cases the Task participates in the Job waiter set (TJ-007) identically; the only difference is origin and cancel-permissibility.
 
 - **Owner:** ODB. **Risk(s):** (foundation for R-002-1).
 - Derived From: FR-3.1 → ADR-002 → ADR-008.
@@ -220,11 +220,11 @@ These two are the **Builder-side** halves of the sharing/cancellation mechanics 
 - Derived From: FR-4.1 → ADR-005 → R-005-2 → ADR-006 (R-006-2).
 - **Test:** an SDK conformance suite per Builder: key derivation (differing inputs ⇒ different keys), cancellation, incremental parsing, error injection.
 
-**[TJ-021] System Task lifecycle (D-014).** When a document enters **State 2** (open in the editor and the documents it references, per ADR-007) or **State 3** (package member), the ODB **shall** generate a **System Task** to participate in the Job waiter set. A System Task: (a) has a distinct ID namespace `s-*` (vs. client `t-*`); (b) participates in the Job waiter set (TJ-007) and priority inheritance (TJ-009) identically to a client Task; (c) is **cancelled** when the document leaves its state — triggered by `DOCUMENT_SYNC{action:close}`, `WATCHED_FILES{type:deleted}`, or a config change (TJ-016); (d) is **not** cancellable by the Frontend via `cancel()` (returns `E_NOT_FOUND` — the Frontend does not own System Tasks); (e) on cancellation decrements the Job waiter set exactly like a client Task departure (TJ-007 reference-count semantics apply uniformly).
+**[TJ-021] Background-build guarantee & invariant rails (D-014, re-scoped by **D-024**).** When a document enters **State 2** (open in the editor and the documents it references, per ADR-007) or **State 3** (package member), the ODB **shall** maintain the background work that state requires so the needed build is **not dropped** (**NC-05**: a needed State 2/3 background build has **no client Request / Task**, and must **not** be immediately cancelled for an empty waiter set — the ODB supplies the waiters itself): (a) a required **in-flight Job (Queued/Running) is kept alive by its waiter set** and **cancelled when its waiter set reaches 0** (TJ-007 reference-count semantics, centralized in the ODB); (b) the work is **deduplicated** (TJ-005); (c) its result is committed **atomically on success only** — nothing is committed on cancellation (TJ-008); (d) it is **ordered by state priority** (ADR-007; TJ-011/012) with **priority inheritance** (TJ-009) identical to a client Task's; (e) the **ODB-owned background work is not Frontend-targetable** — the Frontend cancels **only its own Tasks** (TJ-007; D-012), so a `cancel()` aimed at it is **not recognized** (`E_NOT_FOUND`). The ODB **may** realize this via internal background tasks or other scheduling mechanisms; its concrete form — task shape, count, granularity (per-file vs per-package), standing-waiter, attach/detach, **priority numerics**, **worker identity** (ID shape/namespace), and **lifecycle triggers** — is **ODB-internal (mechanism ③)** and **not fixed by this specification**.
 
-- **Owner:** ODB. **Risk(s):** R-006-3 (waiter-set integrity), R-008-1 (Frontend cannot target System Tasks).
-- Derived From: FR-3.1/3.2 → ADR-002 → ADR-007 (State 2/3) → **D-014**.
-- **Test:** (1) A document entering State 2 generates a System Task with `s-*` ID that appears in the Job waiter set; (2) `DOCUMENT_SYNC{action:close}` cancels the System Task, decrements the waiter set, and triggers Job cancellation if it was the last waiter; (3) `cancel(s-123)` from the Frontend returns `E_NOT_FOUND`; (4) priority inheritance from a System Task to a shared Job is identical to a client Task's.
+- **Owner:** ODB. **Risk(s):** R-006-3 (waiter-set integrity), R-008-1 (Frontend cannot target ODB-internal background work).
+- Derived From: FR-3.1/3.2 → ADR-002 → ADR-007 (State 2/3) → **D-014 → D-024**.
+- **Test:** (1) a document entering State 2/3 yields background work whose in-flight Job is kept alive by its waiter set, completes, and commits atomically (TJ-008); (2) when the document leaves its state and the Job's waiter set becomes empty, the Job is cancelled with nothing committed (TJ-007); (3) `cancel()` from the Frontend aimed at ODB-internal background work is **not recognized** (`E_NOT_FOUND`) — the Frontend cancels only its own Tasks; (4) priority inheritance from this background work to a shared Job is identical to a client Task's (TJ-009).
 
 ---
 
@@ -254,7 +254,7 @@ One row per rule. This table is the grep/aggregation target for the Phase 1a and
 | TJ-018 | State-based identity/freshness (`version_id`) + generation-scoped staleness | C2 (ODB) + Datastore | NFR-2.1 → ADR-006 → R-006-2 → D-020 (refines D-004) | R-006-2, NFR-2.1 | open rev↑ / non-open mtime↑ ⇒ invalidate; closed ⇒ buffer result discarded; re-open starts rev 1 |
 | TJ-019 | Builder cooperative cancel + run bound | Builder | FR-4.1 → ADR-005 → R-005-1 → R-003-3 | R-005-1, R-003-3 | non-coop Builder timed out; no stall |
 | TJ-020 | Builder SDK dedup-key derivation | Builder | FR-4.1 → ADR-005 → R-005-2 → R-006-2 | R-005-2, R-006-2 | SDK conformance: keys/cancel/parsing |
-| TJ-021 | System Task lifecycle (D-014) | ODB | FR-3.1/3.2 → ADR-002/007 → **D-014** | R-006-3, R-008-1 | close/deletion cancels System Task; Frontend cannot target s-* |
+| TJ-021 | Background-build guarantee & invariant rails (D-014, re-scoped by **D-024**) | ODB | FR-3.1/3.2 → ADR-002/007 → **D-014 → D-024** | R-006-3, R-008-1 | needed build not dropped (waiter-set alive; 0 waiters ⇒ cancel); Frontend cannot target ODB-internal background work; mechanism (③) not fixed |
 
 ## 5. Self-check (per `../README.md` §4.3)
 
@@ -263,7 +263,7 @@ One row per rule. This table is the grep/aggregation target for the Phase 1a and
 | # | Check | Result | Evidence |
 | --- | --- | --- | --- |
 | M1 | Every rule has a `TJ-nnn` ID; IDs are unique | ✅ | TJ-001…TJ-021 each appear exactly once as a heading and once in §4 index (no duplicates). |
-| M2 | No orphan: every rule's Derived-From chain ends at an FR/NFR (or D-decision grounded on one) | ✅ | §4 index: every chain terminates in FR-3.x / FR-4.1 / NFR-2.x / (D-020/D-007 which resolve Q-002/Q-004 and are themselves FR/ADR-grounded; D-020 refines D-004). |
+| M2 | No orphan: every rule's Derived-From chain ends at an FR/NFR (or D-decision grounded on one) | ✅ | §4 index: every chain terminates in FR-3.x / FR-4.1 / NFR-2.x / (D-020/D-007 which resolve Q-002/Q-004 and are themselves FR/ADR-grounded; D-020 refines D-004; TJ-021's D-014 → **D-024** (de-specification) chain is decision-grounded). |
 | M3 | Every Phase-1a-required risk is ruled by ≥ 1 rule | ✅ | R-002-1/2, R-006-1..4, R-007-1..3 (all required) + R-005-1/2, R-008-1/2, R-009-1/2 — see §5.3 closure table; none missing. |
 | M4 | Tables are machine-readable (stable IDs in leading cells) | ✅ | §3 state tables, §4 index, §5/§6 traceability tables all lead with the ID column. |
 | M5 | Terms not redefined (single-source kept in Phase 0) | ✅ | §1 states terms are referenced, not redefined; no new definitions of Request/Task/Subtask/Job/Document/Package/Project/dedup key/priority. |
@@ -336,7 +336,8 @@ Every `R-00x` relevant to Task/Job management is "ruled" here; the **test** colu
 | D-007 (thresholds deferred) | TJ-013, TJ-014, TJ-019 |
 | D-010 (R-006-4 cancel-and-re-run deferred) | TJ-015 |
 | D-008 (mgmt=ODB / mech=Builder) | TJ-007, TJ-008, TJ-009, TJ-019, TJ-020 |
-| D-014 (System Task for State 2/3) | TJ-021 |
+| D-014 (background build for State 2/3; mechanism re-scoped by **D-024**) | TJ-021, TJ-001 (extended-trigger note) |
+| D-024 (de-specification: NC-05 guarantee + ② invariant rails; ③ mechanism delegated to ODB-internal) | TJ-021 |
 
 **TJ → upstream (does every rule trace out? — no orphans)**
 
@@ -362,7 +363,7 @@ Every `R-00x` relevant to Task/Job management is "ruled" here; the **test** colu
 | TJ-018 | NFR-2.1 | ADR-006 | R-006-2 | D-020 (refines D-004; Q-002) |
 | TJ-019 | FR-4.1 | ADR-005, 003, 006 | R-005-1, R-003-3 | — |
 | TJ-020 | FR-4.1 | ADR-005, 006 | R-005-2, R-006-2 | — |
-| TJ-021 | FR-3.1/3.2 | ADR-002, 007 | R-006-3, R-008-1 | **D-014** |
+| TJ-021 | FR-3.1/3.2 | ADR-002, 007 | R-006-3, R-008-1 | **D-014 → D-024** |
 
 ---
 

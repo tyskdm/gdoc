@@ -23,8 +23,8 @@ its reference closure whose inputs changed) through the ODB/Builder pipeline, an
 document's diagnostics — so that the IDE's feedback loop (diagnostics, and subsequent Hover/Go to
 Definition/Find References requests) answers from the **latest buffer** at the correct `version_id`
 rather than from a stale revision or a stale disk version. Unlike `Open Text` (UC-002), this is **not**
-a state transition: the document is already in **State 2** with a **completed** System Task (D-014,
-   TJ-003/004); the
+a state transition: the document is already in **State 2** with a **completed** background build
+   (D-014, re-scoped by D-024; TJ-003/004); the
 edit only advances the `open_revision` (D-020), which changes the dedup key (TJ-005) and triggers
 priority recomputation (TJ-012).
 
@@ -41,14 +41,14 @@ priority recomputation (TJ-012).
 ### Derived From
 
 FR-1.3 → ADR-002 → TJ-001 · **D-020** (`version_id` / buffer source, refines D-004) → TJ-005/018 · NFR-2.3 →
-ADR-007 → TJ-011/012 · D-014 (System Task terminal after build; no re-creation) → TJ-021 · D-015 (diagnostics
+ADR-007 → TJ-011/012 · D-014 (background build terminal after build; no re-creation; re-scoped by D-024) → TJ-021 · D-015 (diagnostics
 push) → §5.2 · D-016 (`action:"change"`) + D-017 (payload `action` + `content`) · NFR-1.3 → ADR-004
 
 ### Scope Decisions Applied
 
 - D-005 (v1 scope: sync + config + Hover + GoToDefinition + FindReferences + Diagnostics)
-- D-014 (System Task from UC-002 is **terminal** (`Completed`, TJ-003) — a `change` is an
-  interaction, not a state transition; no new System Task is created or cancelled)
+- D-014 (the UC-002 background build work is **terminal** (`Completed`, TJ-003) — a `change` is an
+  interaction, not a state transition; no new background build work is created or cancelled)
 - D-015 (diagnostics delivery = `DiagnosticsEvent` push; `request_id` optional for
   `DiagnosticsEvent` per NC-06 / P2-003)
 - D-016 (`DOCUMENT_SYNC` payload discriminator `action:"change"`)
@@ -63,7 +63,7 @@ push) → §5.2 · D-016 (`action:"change"`) + D-017 (payload `action` + `conten
 - Workspace initialized (UC-001 complete): ODB API object obtained, completion handler registered
   (API-004).
 - Document **open** (UC-002 complete): C1 tracks the buffer; `open_revision` ≥ 1; the document is in
-  **State 2** and the prior System Tasks are terminal (`Completed`, TJ-003/004); the Datastore holds the document at some
+  **State 2** and the prior background build work is terminal (`Completed`, TJ-003/004); the Datastore holds the document at some
   `version_id` (or the last build failed, leaving the pre-Job state).
 - The `didChange` notification carries a monotonically increasing `version` (LSP 3.17) that is
   strictly greater than the revision last submitted for this document.
@@ -77,8 +77,8 @@ push) → §5.2 · D-016 (`action:"change"`) + D-017 (payload `action` + `conten
   `DiagnosticsEvent` for the document has been published via `textDocument/publishDiagnostics`
   (replacing the previously published set).
 - C2: the sync Task for this revision is terminal (`Completed` or `Error`); no Job for the
-  **new** dedup key is in flight; the document **remains** in State 2; the pre-existing System Tasks are
-  terminal (`Completed`, TJ-003) — no new System Task is created.
+  **new** dedup key is in flight; the document **remains** in State 2; the pre-existing background build work is
+  terminal (`Completed`, TJ-003) — no new background build work is created.
 - C3: Datastore holds the document's "current" entry at the new `version_id` **iff** the build
   succeeded (atomic, TJ-008); otherwise the pre-Job state is preserved (TJ-008); a stale-revision
   result can never become the "current" entry once a newer revision has committed (TJ-018).
@@ -93,8 +93,8 @@ push) → §5.2 · D-016 (`action:"change"`) + D-017 (payload `action` + `conten
   (D-016, D-017, §4.3 C1 obligation; API-001) — including LSP incremental vs full sync handling in C1.
 - `open_revision` advance ⇒ new `version_id` ⇒ **new dedup key** ⇒ a **fresh Job** is scheduled even
   if the previous revision's Job is still in flight (TJ-005/006, D-020, TJ-018).
-- **No state transition** and **no System Task churn**: the document stays State 2 and the existing
-  `s-*` System Tasks keep their waiter-set memberships (D-014, TJ-021); the edit only triggers
+- **No state transition** and **no background build churn**: the document stays State 2 and the existing
+  ODB background build work keeps its waiter-set memberships (D-014, TJ-021; re-scoped by D-024); the edit only triggers
   **priority recomputation** (TJ-012) — distinct from State-1 pinning.
 - Rapid successive edits (debounce-free, server-side coalescing via dedup/single-in-flight): the
   latest revision must always win (TJ-006, TJ-018), without preemption (D-010, TJ-015).
@@ -117,7 +117,7 @@ push) → §5.2 · D-016 (`action:"change"`) + D-017 (payload `action` + `conten
    priority_hint }` to the ODB (API-001, D-016/D-017, §4.3), forwarding the raw `open_revision`
    fact — C2 owns the **state → selection** and **generation bookkeeping** of the `version_id` (D-020).
 3. **C2** maps the Request 1:1 to a Task (TJ-001). The document **stays** in State 2; the edit is an
-   **interaction**, so C2 recomputes scheduling priorities (TJ-012) — no System Task creation or
+   **interaction**, so C2 recomputes scheduling priorities (TJ-012) — no background build work creation or
    cancellation (D-014, TJ-021).
 4. **C2** computes the Job dedup key `(file, version=new revision, inputs)` (TJ-005) — it differs
    from the previous revision's key, so no existing in-flight Job satisfies it: C2 schedules a
@@ -209,7 +209,7 @@ sequenceDiagram
     IDE-)C1: textDocument/didChange (uri, version=R+1, contentChanges)
     Note over C1: apply to local buffer (LSP 3.17)<br>open_revision = R+1 (raw fact forwarded to C2)
     C1->>C2: submit(DOCUMENT_SYNC{action:change, content:<full buffer>})
-    Note over C2: Request→Task 1:1 (TJ-001)<br>doc stays State 2<br>System Tasks unchanged (D-014, TJ-021)<br>priority recomputed (TJ-012)<br>new dedup key (TJ-005) ⇒ fresh Job (TJ-006)
+    Note over C2: Request→Task 1:1 (TJ-001)<br>doc stays State 2<br>background builds unchanged (D-014, TJ-021)<br>priority recomputed (TJ-012)<br>new dedup key (TJ-005) ⇒ fresh Job (TJ-006)
     C2-->>C1: Submission{ticket, request_id}
     C2->>C4: dispatch Parse/Link (open doc = buffer from payload, refs = disk)
     C4-->>C2: candidate gdoc Objects + diagnostics (rev R+1)
@@ -265,10 +265,10 @@ open (Alt C).
 
 #### ST-003-001
 
-C2 **shall** process `DOCUMENT_SYNC{action:"change"}` **without** a state transition or System
-Task churn: the document stays in **State 2**, the existing System Tasks are terminal (`Completed`,
-TJ-003/004) and require no action (D-014), and the edit **shall** be treated as a client interaction for
-**priority recomputation** (TJ-012) — no new Task of System origin is created or cancelled.
+C2 **shall** process `DOCUMENT_SYNC{action:"change"}` **without** a state transition or background
+build churn: the document stays in **State 2**, the existing background build work is terminal (`Completed`,
+TJ-003/004) and requires no action (D-014), and the edit **shall** be treated as a client interaction for
+**priority recomputation** (TJ-012) — no new ODB-originated background work is created or cancelled.
 
 **Owner:** C2
 **Derived From:** UC-003 Main #3 · D-014 · TJ-021 · TJ-012 · ADR-007
@@ -351,7 +351,7 @@ revision's set as current; unknown/foreign events are ignored (cross-Frontend is
 #### SCR-C2-003-001 (Object Database)
 
 C2 **shall** process `DOCUMENT_SYNC{action:"change"}` by: keeping the document in State 2 with the
-existing System Tasks unchanged (D-014/TJ-021), recomputing priority (TJ-012), scheduling a fresh
+existing background build work unchanged (D-014/TJ-021; re-scoped by D-024), recomputing priority (TJ-012), scheduling a fresh
 Job under the new dedup key (TJ-005/006), atomic commit (TJ-008), and pushing `TerminalEvent` +
 `DiagnosticsEvent` (when diagnostics changed, D-015) — all without branching on the originating protocol (TJ-010 / R-008-2).
 
@@ -394,7 +394,7 @@ cancellation so a superseded (stale) Job's dispatch-skip or late cancel is honou
 | IF-003-001 | API-001, D-016/D-017, §4.1/§4 | ✅ | `action:"change"` is in the D-016 discriminator; full-buffer `content` is the §4.3 C1 obligation |
 | IF-003-002 | API-004, §5.2, D-015, F6.3/F6.4 | ✅ | `request_id` optional for `DiagnosticsEvent` — NC-06 / P2-003 (UC-002); latest-wins replacement is C1's protocol-side duty |
 | IF-003-003 | TJ-005/018, D-020, §4.3 | ✅ | `version_id` state-relative + buffer-vs-disk source fixed by D-020 (refines D-004); `didChange`-for-closed rejection is C1's own protocol conformance |
-| ST-003-001 | TJ-021, D-014, TJ-012 | ✅ | System Task lifetime ends only at close/deletion/config-change — a change leaves it untouched; TJ-012 covers "recomputed on every client interaction" |
+| ST-003-001 | TJ-021, D-014, TJ-012 | ✅ | Background build work is tied to the document's state (ends when the state requiring it is left) — a change, being no state transition, leaves it untouched; TJ-012 covers "recomputed on every client interaction" |
 | ST-003-002 | TJ-005/006/015/019, D-010, **TJ-012 note** | ✅ | Fresh-key scheduling is ruled (TJ-005/006); **stale queued-Job dispatch-skip now ruled** — note on TJ-012 applied to `task-job-management.md` (user-approved 2026-09-25, D-021); liveness itself remains closed by TJ-012/015/019 |
 | DR-003-001 | TJ-008, TJ-018, ADR-004, D-020 | ✅ | Atomic commit + freshness invariant fully ruled |
 | DR-003-002 | D-015, §5.2, NFR-2.1 | ✅ | Diagnostics push on `DOCUMENT_SYNC` processing is the stated trigger (D-015) |
@@ -439,7 +439,7 @@ cancellation so a superseded (stale) Job's dispatch-skip or late cancel is honou
 | IF-003-001 | Interface | didChange → DOCUMENT_SYNC{change, content} translation | Main #1–2 | C1 |
 | IF-003-002 | Interface | Handler event consumption + publishDiagnostics (latest-wins) | Main #8–10, Alt A | C1 |
 | IF-003-003 | Interface | open_revision advance + raw fact forwarding; version_id state selection + generation owned by C2; no-submit for untracked | Main #2, Alt C | C1 |
-| ST-003-001 | State | No state transition; System Tasks terminal (Completed); priority recomputed | Main #3 | C2 |
+| ST-003-001 | State | No state transition; background build work terminal (Completed); priority recomputed | Main #3 | C2 |
 | ST-003-002 | State | Fresh Job per new dedup key; stale queued Job dispatch-skip | Main #4, Alt A | C2 |
 | DR-003-001 | Data | Current-pointer moves on atomic commit; stale never overwrites | Main #7, Alt A/B | C3 |
 | DR-003-002 | Data | Per-revision diagnostics retained for D-015 push | Main #8 | C3 |

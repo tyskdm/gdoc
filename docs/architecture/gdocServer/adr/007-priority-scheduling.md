@@ -35,6 +35,12 @@ reference-depth ordering from the open files.
 - Package membership (state 3) is set by configuration and is applied on
   **save**, independent of open-text changes (see ADR-009).
 
+> **Scope note (D-024, 2026-09-27):** ADR-007 fixes the priority **ordering**
+> (highest state = highest priority) and the **definitions** of State 1/2/3;
+> the **numeric encoding** (weights/tiers, queue values) is **ODB-internal
+> (mechanism ③)** and **not fixed** by this ADR. ADR-008's "two priority
+> domains" boundary is unchanged.
+
 ## Alternatives Considered
 
 - A **flat priority queue** keyed only on recency of access (no explicit
