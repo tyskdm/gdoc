@@ -18,7 +18,7 @@
 
 ## Findings ID scheme
 
-Per-round prefixes, unique across the set: `NC-*` (inconsistencies) · `OM-*` (omissions) · `ED-*` (edge cases) · `FU-*` (decision-propagation follow-up) · `RV-*` (general review rounds, from 2026-09-26) · `CA-*` (cross-model consistency audit, 2026-09-26) · `GL-*` (GPT-5.6 Luna review round, 2026-09-26) · `GE-*` (Gemini 3.8 Flash review round, 2026-09-26).
+Per-round prefixes, unique across the set: `NC-*` (inconsistencies) · `OM-*` (omissions) · `ED-*` (edge cases) · `FU-*` (decision-propagation follow-up) · `RV-*` (general review rounds, from 2026-09-26) · `CA-*` (cross-model consistency audit, 2026-09-26) · `GL-*` (GPT-5.6 Luna review round, 2026-09-26) · `GE-*` (Gemini 3.8 Flash review round, 2026-09-26) · `DV-*` (D-024 de-specification verification round, 2026-09-27).
 Locations are cited by **file + §/requirement ID** (line numbers are auxiliary only).
 
 ## Review rounds
@@ -32,6 +32,7 @@ Locations are cited by **file + §/requirement ID** (line numbers are auxiliary 
 | `review-2026-09-26-Qwen3.8:27b.md` | 2026-09-26 | Phase 0 → UC-003 (independent cross-model audit) | CA-01…07 | ✅ closed (all [F], 2026-09-26) |
 | `review-2026-09-26-GPT-5.6 Luna.md` | 2026-09-26 | Phase 0 → UC-003 (evaluation of Findings 1–3) | GL-01…03 | ✅ closed (all [F], 2026-09-26) |
 | `review-2026-09-26-gemini-3.8-flash.md` | 2026-09-26 | Phase 0 → UC-003 (contract-anchored consistency check) | GE-01…04 | ✅ closed (all [F], 2026-09-26) |
+| `review-2026-09-27-D-024-despec.md` | 2026-09-27 | D-024 de-specification — verification round (V1–V11 independent re-execution) | DV-01…06 | ✅ closed (all [F], 2026-09-27) |
 
 ## Change history
 
@@ -39,5 +40,6 @@ Locations are cited by **file + §/requirement ID** (line numbers are auxiliary 
 - 2026-09-26: independent cross-model consistency audit recorded as `review-2026-09-26-Qwen3.8:27b.md`; CA-01…CA-07 found and fixed the same day (D-019 propagation into IF-001-004, event status `Success` per contract §5.2, `get_result` fetch step, TerminalEvent Task attribution, §5.2 `request_id` optional phrasing, postconditions main-flow qualifier, UC-002 Alt A example).
 - 2026-09-26: review round recorded as `review-2026-09-26-GPT-5.6 Luna.md`; GL-01…GL-03 found and fixed the same day (GL-01 DiagnosticsEvent push suppression on unchanged diagnostics in UC-001/003; GL-02 System Tasks one per State 2 document in reference closure in UC-002/003; GL-03 semantic tokens qualified as v2 provisional per D-005 in architecture.md).
 - 2026-09-26: review round recorded as `review-2026-09-26-gemini-3.8-flash.md`; GE-01…GE-04 found and fixed the same day (GE-01 System Task lifecycle alignment in UC-003; GE-02 DR-003-002 scoping/ownership; GE-03 event push order standardization in UC-002/003; GE-04 CONFIG_SAVE degraded-mode TerminalEvent + get_result step in UC-001).
+- 2026-09-27: D-024 de-specification verification round recorded as `review-2026-09-27-D-024-despec.md`; DV-01…DV-06 found and fixed the same day after user approval (DV-01 UC-002 unit-count phrasing → NC-05 coverage form; DV-02 change-record status → [R] Resolved with executed commit `e8605db`; DV-03 D-016 row "System Task" → "background build work"; DV-04 D-014 row supersession pointer + status; DV-05 V5 label decomposition 21+21=42; DV-06 record-body NC-05 scope aligned to Q-A(a) + derivation note).
 
 *Record maintained alongside the design document set. Update status as decisions are confirmed and fixes applied.*

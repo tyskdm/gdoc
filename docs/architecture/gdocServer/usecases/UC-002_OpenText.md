@@ -93,8 +93,9 @@ TJ-005/018 · D-015 (diagnostics push) → §5.2 · D-016 (payload discriminator
 3. **C1** submits a `Request{ operation: DOCUMENT_SYNC, documents: [doc], payload:
    {action:"open", content:<buffer>}, priority_hint }` to the ODB (API-001, D-016/D-017).
 4. **C2** maps the Request 1:1 to a Task (TJ-001), moves the document into **State 2** (open file
-   **and** its reference closure, ADR-007), and starts (or reuses) the **ODB background build work** —
-   one unit per State 2 document in the reference closure (D-014, TJ-021; re-scoped by D-024) — whose
+   **and** its reference closure, ADR-007), and starts (or reuses) the **ODB background build work**
+   for each document in the State-2 reference closure — needed builds not dropped (NC-05; D-014, TJ-021,
+   re-scoped by D-024 — the concrete mechanism is ODB-internal) — whose
    Job sets build each document in reference-depth order (TJ-011).
 5. **C2** registers the closure's Jobs under their dedup keys (TJ-005/006); any Job already in
    flight for the same key is **not** duplicated — the Task joins its waiter set.
@@ -162,7 +163,7 @@ document.
 **Condition:** Step 4 — the opened document is not a member of any Package (workspace-only).
 
 1. C2 still starts the State-2 background build work for the open document and each document in its
-   reference closure (one unit per document, D-014, TJ-021 — State 2 does not require package membership).
+   reference closure (D-014, TJ-021 — needed builds not dropped, NC-05; the concrete mechanism is ODB-internal; State 2 does not require package membership).
 2. Priority of the closure's Jobs follows ADR-007: referenced-by-open still outranks workspace-only
    non-referenced documents (TJ-011); the document itself carries no State-3 package bonus.
 3. The flow is otherwise identical to the main scenario.
@@ -195,7 +196,7 @@ sequenceDiagram
     IDE-)C1: textDocument/didOpen (uri, text)
     Note over C1: store buffer<br>open_revision ≥ 1 (raw fact forwarded to C2)
     C1->>C2: submit(DOCUMENT_SYNC{action:open, content})
-    Note over C2: Request->Task 1:1 (TJ-001)<br>State 2 entry: doc + references (ADR-007)<br>background builds created/reused per doc (D-014, TJ-021)<br>dedup / single-in-flight (TJ-005/006)
+    Note over C2: Request->Task 1:1 (TJ-001)<br>State 2 entry: doc + references (ADR-007)<br>background builds for the State-2 closure (D-014, TJ-021)<br>dedup / single-in-flight (TJ-005/006)
     C2-->>C1: Submission{ticket, request_id}
     Note over C2: priority from State 2 (TJ-011/012)
     C2->>C4: dispatch Parse/Link Jobs (open doc = buffer, refs = disk)
