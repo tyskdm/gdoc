@@ -29,22 +29,22 @@ d. **Contrast with the siblings:** open documents are versioned by `open_revisio
 ### Actors
 
 | Actor | Description |
-|---|---|
+| --- | --- |
 | **IDE Client** (user) | Detects the on-disk change with its own file watcher and sends `workspace/didChangeWatchedFiles { changes:[{uri, type}] }` (`type = changed`, or `created`). Receives updated diagnostics via `textDocument/publishDiagnostics` (through C1). |
-| **C1 — Language Server (Frontend)** | Translates `didChangeWatchedFiles` to `submit(WATCHED_FILES{events:[{uri, type}]})`, forwarding the **raw sync fact** (it owns only the translation + disk-version tracking + diagnostics routing — **NFR-1.1** lightweight); registers the watch for non-open project files (TJ-018/D-020 C1 obligation); maps the ODB's `DiagnosticsEvent` to `publishDiagnostics` (D-015). |
-| **C2 — Object Database (ODB)** | Maps the accepted `WATCHED_FILES` Request to a Task (TJ-001); marks the file's stored non-open result **stale** (TJ-018/TJ-018b); derives the **new dedup key** (TJ-005); reconciles background build work under the new key (TJ-021/TJ-006/007/009/011/012); commits **atomically on success** (TJ-008/ADR-004); pushes `DiagnosticsEvent` iff diagnostics changed (D-015). |
+| **C1 — Language Server (Frontend)** | Translates `didChangeWatchedFiles` to `submit(WATCHED_FILES{events:[{uri, type}]})`, forwarding the **raw sync fact** only (it owns only the translation + diagnostics routing — **NFR-1.1** lightweight; it does **not** compute/own the `version_id` (C2's disk signal, D-020)); registers the watch for non-open project files (TJ-018/D-020 C1 obligation); maps the ODB's `DiagnosticsEvent` to `publishDiagnostics` (D-015). |
+| **C2 — Object Database (ODB)** | Maps the accepted `WATCHED_FILES` Request to a Task (TJ-001); **records the disk mtime (its disk signal, observed server-side — D-020) as the new non-open version** (TJ-018); marks the file's stored non-open result **stale** (TJ-018/TJ-018b); derives the **new dedup key** (TJ-005); reconciles background build work under the new key (TJ-021/TJ-006/007/009/011/012); commits **atomically on success** (TJ-008/ADR-004); pushes `DiagnosticsEvent` iff diagnostics changed (D-015). |
 | **C3 — Object Datastore** | Holds the (now-stale) old-mtime entry; the "current" pointer advances **only** on the atomic commit of the new-mtime result (TJ-018b freshness invariant; single writer ADR-004); **does not delete** entries on `changed` (that is `deleted`/UC-006, D-016). Passive store, zero orchestration (NFR-1.3). |
 | **C4 — Object Builder** | Executes the (re)build Job for the new mtime under the execution bound (TJ-019), producing a candidate result; cooperatively cancels if superseded; is safe to abandon mid-flight without partial state (TJ-008); SDK key derivation so the new mtime ≠ the old key (TJ-020). |
 
 ### Derived From
 
-`plan.md` (line 29 UC-005) → `README.md` (FR-1.1/1.2/1.3, FR-3.3, NFR-1.1/1.3/2.1, D-014/015/016/020/024/025, ADR-004/007/008/009) → `contracts/task-job-management.md` (TJ-001, TJ-005/006/007/008/009, TJ-011/012, TJ-018, TJ-019/020, TJ-021, INV-16/24) → `contracts/frontend-odb-api.md` (API-001/004, §4.1 `WATCHED_FILES`, §5.2 `DiagnosticsEvent` (D-015) + D-025, §7 mapping, §8.1 `SyncPayload`) → `usecases/UC-003_UpdateText.md`, `UC-004_CloseText.md`, `UC-006_DeleteText.md` (boundary contrast).
+`plan.md` (line 29 UC-005) → `README.md` (FR-1.1/1.2/1.3, FR-3.3, NFR-1.1/1.3/2.1, D-014/015/016/020/024/025, ADR-004/007/008/009) → `contracts/task-job-management.md` (TJ-001, TJ-005/006/007/008/009, TJ-011/012, TJ-018, TJ-019/020, TJ-021, INV-16/24) → `contracts/frontend-odb-api.md` (API-001/004, §4.1 `WATCHED_FILES`, §5.2 `DiagnosticsEvent` (D-015) + D-025, §7 mapping, §5.1 `SyncPayload`) → `usecases/UC-003_EditText.md`, `UC-004_CloseText.md` (boundary contrast; `UC-006_DeleteText.md` / `UC-007` are planned siblings for `deleted` / config).
 
 ### Scope Decisions Applied
 
 - **TJ-018 (non-open half)** — non-open documents are identified by their **disk mtime** (last-change), observed **only** via `workspace/didChangeWatchedFiles` (the server does **not** poll the disk); a stored (non-open) result is **fresh iff** its mtime still equals the current mtime; a newer mtime ⇒ the old stored result is **stale** and can never again become "current" (TJ-018b).
 - **D-020 / C2-owns** — the Frontend sends the **raw sync fact** (the changed file's path/uri + type); **C2 applies** the staleness rule and decides what to rebuild. C1 does not decide rebuild scope.
-- **D-016** — `WATCHED_FILES` payload is `events:[{uri, type: "created" | "changed" | "deleted"}]`; UC-005 covers `created`/`changed` (the non-open version appeared/changed), UC-006 covers `deleted` (Datastore removal + dependency-graph invalidation + Job cancel). *Note: `created` is folded into UC-005 because the code handler treats it identically to `changed` (reload + bump version); drop it if a separate UC is preferred.*
+- **D-016** — `WATCHED_FILES` payload is `events:[{uri, type: "created" | "changed" | "deleted"}]`; UC-005 covers `created`/`changed` (the non-open version appeared/changed), UC-006 covers `deleted` (Datastore removal + dependency-graph invalidation + Job cancel). *Note: `created` is folded into UC-005 because the code handler treats it identically to `changed` (reload + bump version); drop it if a separate UC is preferred.* **`created` with no prior stored result:** when the file has **no** prior stored result (first time C2 sees it), there is nothing to stale — the stale-mark step (TJ-018b) is a **no-op**, and the first successful build **establishes** the current version (insert) rather than replacing one. If a prior result exists (e.g. *deleted* then re-created), the normal stale/rebuild path applies.
 - **TJ-005** — the file's mtime is the **version component of the dedup key**; a new mtime ⇒ a new dedup key ⇒ old in-flight/queued Jobs (old mtime) are stale and their results must not commit (TJ-018b/TJ-008).
 - **TJ-011/012 + ADR-007** — the file's priority derives from its state in the closure; a change to a State-2 (referenced) or State-3 (package) file keeps/reconciles the background build (TJ-021); an isolated non-open file is built **last** (TJ-011(d)) and, if truly unreferenced, no proactive build is required (demand-driven, FR-3.3).
 - **D-015 / D-025** — the ODB **pushes a `DiagnosticsEvent`** after processing `WATCHED_FILES` **when** diagnostics changed; it is document-scoped (routed by `document`, `request_id` optional) and may arrive outside any request's progress stream; C1 maps it to `publishDiagnostics`.
@@ -64,7 +64,7 @@ d. **Contrast with the siblings:** open documents are versioned by `open_revisio
 ### Postconditions
 
 - **C1:** the file's disk version advanced to the new mtime (recorded); IDE diagnostics for the file updated if the ODB pushed a `DiagnosticsEvent` (D-015).
-- **C2:** the file's stored non-open result (old mtime) is **stale** and can never again become "current" (TJ-018/TJ-018b); a new dedup key derived (TJ-005); background work reconciled under the new key if the file is in a needed closure (TJ-021/TJ-005/006/007/009/011/012); priority recomputed (TJ-011/012); a `DiagnosticsEvent` pushed iff diagnostics changed (D-015); the `WATCHED_FILES` Request acknowledged with `Result{Success, SyncPayload{new version_id, affected documents}}` (API-001, §8.1).
+- **C2:** the file's stored non-open result (old mtime) is **stale** and can never again become "current" (TJ-018/TJ-018b); a new dedup key derived (TJ-005); background work reconciled under the new key if the file is in a needed closure (TJ-021/TJ-005/006/007/009/011/012); priority recomputed (TJ-011/012); a `DiagnosticsEvent` pushed iff diagnostics changed (D-015); the `WATCHED_FILES` Request is acknowledged via `Submission` and completed with the terminal `Result{Success, SyncPayload{new version_id, affected documents}}` (API-001, §5.1).
 - **C3:** the old-mtime entry is no longer reachable as "current"; the new-mtime entry (if a build succeeded) is committed **atomically** by the single writer (TJ-008/ADR-004); **no entry is deleted** (that is `deleted`/UC-006, D-016).
 - **C4:** any (re)build for the new mtime completed, or was cooperatively cancelled within its bound (TJ-019); a discarded/superseded result produced no commit (TJ-008); no partial state (TJ-008/TJ-019).
 - **Global:** the **open (buffer) generations** of any open documents are **unaffected** — a non-open disk change never supersedes an open generation (TJ-018 scope: open → `open_revision`, non-open → mtime, never cross-compared); the config state and all other non-open documents are unaffected (INV-14/INV-25).
@@ -84,16 +84,16 @@ d. **Contrast with the siblings:** open documents are versioned by `open_revisio
 *Assumes the changed non-open file is in a needed closure (a State-2 reference of an open document, or a State-3 package member), so a (re)build is required; the **isolated** file path is Alternative B.*
 
 1. The IDE's file watcher detects the on-disk change and sends `workspace/didChangeWatchedFiles { changes: [{uri, type: "changed"}] }` to C1.
-2. C1 validates the `uri` is a **non-open** project file (if it were open, this would be `didChange`/UC-003), resolves it to its workspace folder path, and records the new disk mtime (the state-relative `version_id`; TJ-018/D-020).
+2. C1 validates the `uri` is a **non-open** project file (if it were open, this would be `didChange`/UC-003) and resolves it to its workspace folder path. C1 forwards the **raw sync fact only** — uri + type — and does **not** compute/own the `version_id` or forward a disk mtime (D-020: that is C2's disk signal, observed server-side).
 3. C1 translates to `submit(WATCHED_FILES{events:[{uri, type:"changed"}]})` (C1→ODB API, §7 mapping), forwarding the **raw sync fact** — the changed file's path/uri + type; C1 does **not** decide rebuild scope (D-020/C2-owns).
-4. C2 accepts the Request and maps it to exactly one Task (TJ-001), returning `Submission{inline / ticket}` — a build may be needed, so the ODB **may** ticket + progress it (D-005: "any other operation may also be ticketed … if a build is needed").
-5. C2 marks the file's stored non-open result (old mtime) **stale** — it can no longer become "current" (TJ-018/TJ-018b) — and derives the **new dedup key** `(file, new mtime, inputs)` (TJ-005); a queued/running Job under the old key is now stale (TJ-012 note; its result must not commit — TJ-008/TJ-018b).
+4. C2 accepts the Request and maps it to exactly one Task (TJ-001), returning an immediate `Submission` — **`{inline, Result{Success, SyncPayload}}`** if it can answer without a build, or **`{ticket, request_id}`** if a build is needed — the `ticket` is only the **job-acceptance acknowledgment** — the terminal `Result`/`SyncPayload` is delivered **inline** (no build) or via the **push channel + `get_result`** (build ran; API-002/004), not a second return of `submit` — so the ODB **may** ticket + progress it (D-005: "any other operation may also be ticketed … if a build is needed").
+5. C2 **records the disk mtime (its disk signal, server-side — D-020) as the file's new non-open version** (TJ-018), marks the stored old-mtime result **stale** (a **no-op** if no prior result exists — i.e. first-time `created`; see Scope Decisions) — it can no longer become "current" (TJ-018/TJ-018b) — and derives the **new dedup key** `(file, new mtime, inputs)` (TJ-005); a queued/running Job under the old key is now stale (TJ-012 note; its result must not commit — TJ-008/TJ-018b).
 6. C2 determines the file's state in the closure (TJ-011; ADR-007) and, since it is in a needed closure, **keeps/reconciles the background build** under the new key — dedup (TJ-005), single in-flight (TJ-006), refcount (TJ-007), priority + inheritance (TJ-011/012/009); the needed build is **not** dropped (TJ-021 / D-014→D-024).
 7. C2 schedules the (re)build Job (if not already in flight) and hands it to a Builder (C4).
 8. C4 executes the build for the new mtime under the execution bound (TJ-019), producing a candidate result; if superseded it cooperatively cancels (TJ-019), leaving no partial state (TJ-008).
 9. C2 commits the candidate result to C3 **atomically, on success only** (TJ-008, ADR-004 single writer); the Datastore "current" pointer advances to the new-mtime result (TJ-018b).
 10. If the build changed the file's diagnostics, C2 **pushes a `DiagnosticsEvent{document, diagnostics}`** to C1's registered handler (D-015, document-scoped per D-025); C1 maps it to `textDocument/publishDiagnostics` for the IDE.
-11. C2 returns `Result{Success, SyncPayload{new version_id, affected documents}}` to C1 (API-001, §8.1) — the use case is complete.
+11. C2 delivers the **terminal** `Result{Success, SyncPayload{new version_id, affected documents}}` for the `WATCHED_FILES` operation (API-001, §5.1) — **inline** in the `Submission` when no build was needed, or via the **push channel** (`DiagnosticsEvent`/`TerminalEvent`) + `get_result` (API-002/004) when a build ran — the use case is complete.
 
 ## Alternative Scenarios
 
@@ -109,7 +109,7 @@ d. **Contrast with the siblings:** open documents are versioned by `open_revisio
 
 **Condition:** The changed file is neither open nor referenced and not a State-3 package member (no open document's closure, no package).
 
-1. C2 still records the new mtime as the file's current non-open version (TJ-018) and returns `SyncPayload{new version_id, affected documents}` (API-001, §8.1).
+1. C2 still records the new mtime (its disk signal, D-020) as the file's current non-open version (TJ-018) and returns `SyncPayload{new version_id, affected documents}` (API-001, §5.1).
 2. No (re)build is proactively scheduled — an isolated file is built **last** (TJ-011(d)) and, with no client request and no State 2/3, no background work is required (demand-driven; FR-3.3/TJ-021). It becomes State 4 (built-on-demand, discarded) only when/only if a future operation actually needs it.
 3. Because no build ran, no `DiagnosticsEvent` is pushed (D-015 fires only after a build that changed diagnostics) — the file's prior diagnostics (if any) stand until it is next built.
 
@@ -147,10 +147,10 @@ sequenceDiagram
     participant C4 as Object Builder
 
     IDE-)C1: workspace/didChangeWatchedFiles (uri, type=changed)
-    Note over C1: verify non-open project file (not an open buffer, UC-003)<br>record new disk mtime = version_id (TJ-018 / D-020)
+    Note over C1: verify non-open project file (not an open buffer, UC-003)<br>forward raw sync fact (uri + type) — C1 does not own version_id (D-020)
     C1->>C2: submit(WATCHED_FILES events: uri+type changed) — raw sync fact
     C2-->>C1: Submission inline / ticket (D-005: ticket+progress if a build is needed)
-    Note over C2: Request→Task 1:1 (TJ-001)<br>old-mtime result STALE, never again current (TJ-018/018b)<br>new dedup key (file, new mtime) (TJ-005)
+    Note over C2: Request→Task 1:1 (TJ-001)<br>record disk mtime = version_id (C2's disk signal, D-020)<br>old-mtime result STALE, never again current (TJ-018/018b)<br>new dedup key (file, new mtime) (TJ-005)
     alt file in a needed closure (State-2 ref / State-3)
         Note over C2,C4: keep/reconcile background build (TJ-021 / D-014→D-024)<br>dedup·single-in-flight·refcount (TJ-005/006/007)<br>priority + inheritance (TJ-011/012/009, ADR-007)
         C2->>C4: build Job for new mtime (bounded, TJ-019)
@@ -162,7 +162,7 @@ sequenceDiagram
     else isolated file (not open / not referenced / not package)
         Note over C2: built last (TJ-011 d) — no proactive build (FR-3.3)<br>no DiagnosticsEvent (D-015 fires only after a build)
     end
-    C2-->>C1: Result Success, SyncPayload new version_id + affected docs (API-001, §8.1)
+    Note over C2,C1: terminal Result{Success, SyncPayload{new version_id, affected docs}} (API-001, §5.1) — inline above, or push + get_result (API-002/004) if ticketed
     opt a superseded old-mtime build result arrives late
         C4-->>C2: candidate (old-mtime key)
         Note over C2: discarded — never committed (TJ-008/TJ-018)<br>no DiagnosticsEvent
@@ -177,13 +177,13 @@ sequenceDiagram
 
 #### IF-005-001
 
-On `workspace/didChangeWatchedFiles` with `type ∈ {changed, created}` for a **non-open** project file, C1 **shall** translate this into `submit(WATCHED_FILES{events:[{uri, type}]})`, forwarding the **raw sync fact** (the changed file's path/uri + type) and **not** deciding how much to rebuild — the ODB applies the staleness rule and scopes the work (D-020/C2-owns; ADR-008).
+On `workspace/didChangeWatchedFiles` with `type ∈ {changed, created}` for a **non-open** project file, C1 **shall** translate this into `submit(WATCHED_FILES{events:[{uri, type}]})`, forwarding the **raw sync fact** (the changed file's path/uri + type) and **not** deciding how much to rebuild and **not** computing/owning the `version_id` (C1 does not forward a disk mtime; the ODB applies the staleness rule and scopes the work — D-020/C2-owns; ADR-008).
 **Owner:** C1
 **Derived From:** UC-005 Main #1–3 · D-016 (payload discriminator) · §7 mapping (didChangeWatchedFiles row) · API-001/004 · ADR-008
 
 #### IF-005-002
 
-For each changed non-open file, C2 **shall** record the new disk mtime as the file's current non-open version (TJ-018), mark its stored (old-mtime) result **stale** so it can never again become "current" (TJ-018b), and derive the **new dedup key** `(file, new mtime, inputs)` (TJ-005).
+For each changed/created non-open file, C2 **shall** record the new disk mtime (its disk signal, server-side — D-020) as the file's current non-open version (TJ-018), mark its stored (old-mtime) result **stale** (a **no-op** if no prior result exists — i.e. first-time `created`) so it can never again become "current" (TJ-018b), and derive the **new dedup key** `(file, new mtime, inputs)` (TJ-005).
 **Owner:** C2
 **Derived From:** UC-005 Main #5 · TJ-018/018b · TJ-005 · D-020
 
@@ -201,9 +201,9 @@ C1 **shall** register `workspace/didChangeWatchedFiles` for **non-open** project
 
 #### IF-005-005
 
-On success, C2 **shall** return `Result{Success, SyncPayload{new version_id, affected documents}}` for the `WATCHED_FILES` operation (API-001, §8.1); the ODB **may** ticket + progress the operation if a build is needed (D-005).
+On success, the **terminal** Result for the `WATCHED_FILES` operation is `Result{Success, SyncPayload{new version_id, affected documents}}` (API-001, §5.1). It is delivered **inline** within the `Submission` when no build is needed, or via the **push channel** + `get_result` (API-002/004) when the ODB ticketed a build (D-005). The `Submission` itself is only the immediate acknowledgment (inline result **or** `request_id` ticket) — it is **not** the terminal `Result`.
 **Owner:** C2
-**Derived From:** UC-005 Main #11 · API-001 · §8.1 (SyncPayload) · D-005
+**Derived From:** UC-005 Main #11 · API-001 · §5.1 (SyncPayload) · D-005
 
 ### State (ST-)
 
@@ -279,7 +279,8 @@ Implement the `workspace/didChangeWatchedFiles` handler for **non-open** project
 **Traces to:** IF-005-001/004 · UC-005 Main #2–3 · Alt A/E · TJ-018 · D-016/D-020 · §7
 **Source:** Phase 2 · C1
 **Acceptance criteria:**
-1. On a `changed` event for a non-open file, C1 forwards `WATCHED_FILES{events:[{uri, type:"changed"}]}` and bumps the disk version (verified by the ODB's `SyncPayload.new version_id`).
+
+1. On a `changed` event for a non-open file, C1 forwards `WATCHED_FILES{events:[{uri, type:"changed"}]}` (raw sync fact: uri + type); the **ODB** records the new disk mtime as the advanced `version_id` (C2's disk signal, D-020 — C1 does not compute/own it), confirmed by the ODB's `SyncPayload.new version_id`.
 2. A `created` event is handled identically to `changed` (reload + version bump).
 3. A `didChangeWatchedFiles` for an **open** document does **not** override the buffer (`didChange`/UC-003 remains authoritative — TJ-018).
 4. A duplicate `changed` event for an already-current mtime is a no-op (no spurious rebuild).
@@ -291,16 +292,18 @@ Register `workspace/didChangeWatchedFiles` for non-open project files (the TJ-01
 **Traces to:** IF-005-003/004 · UC-005 Main #10 · D-015/D-025 · NFR-1.1 · R-008-2
 **Source:** Phase 2 · C1
 **Acceptance criteria:**
+
 1. C1 registers the watch for non-open project files (a disk change is visible to the ODB — TJ-018/D-020).
 2. On a `DiagnosticsEvent`, C1 issues `publishDiagnostics` for that document (D-015).
 3. C1 does not run builds or orchestration itself (lightweight, NFR-1.1) — it only forwards + tracks the disk version + routes diagnostics.
 
 #### SCR-C2-005-001
 
-Process `WATCHED_FILES{changed/created}` end-to-end: mark the old-mtime result stale (TJ-018/018b); derive the new dedup key (TJ-005); reconcile background work under the new key if the file is in a needed closure (TJ-021/005/006/007/009/011/012, ADR-007); commit atomically on success (TJ-008/ADR-004); push `DiagnosticsEvent` iff diagnostics changed (D-015/D-025); return `SyncPayload` (API-001/§8.1).
+Process `WATCHED_FILES{changed/created}` end-to-end: record the new disk mtime as the current non-open version (TJ-018); mark the old-mtime result stale (TJ-018/018b); derive the new dedup key (TJ-005); reconcile background work under the new key if the file is in a needed closure (TJ-021/005/006/007/009/011/012, ADR-007); commit atomically on success (TJ-008/ADR-004); push `DiagnosticsEvent` iff diagnostics changed (D-015/D-025); return `SyncPayload` (API-001/§5.1).
 **Traces to:** IF-005-002/003/005 · ST-005-001..004 · EH-005-001/002 · UC-005 Main + Alt A–E · TJ-001/005/006/007/008/009/011/012/018/021 · D-014/015/016/020/024 · ADR-004/007/008/009
 **Source:** Phase 2 · C2
 **Acceptance criteria:**
+
 1. After a `changed` event, the file's old-mtime stored result is marked stale and can never become "current" again (TJ-018b); the new mtime is the dedup key (TJ-005).
 2. If the file is in a needed closure, the background build is reconciled (not dropped) and a candidate result is committed atomically (TJ-021/TJ-008); the Datastore "current" pointer advances (TJ-018b).
 3. If the file is isolated, no proactive build is scheduled (TJ-011(d)) and no `DiagnosticsEvent` is pushed (D-015).
@@ -314,6 +317,7 @@ Maintain the non-open **freshness invariant**: the "current" pointer for a file 
 **Traces to:** DR-005-001/002 · UC-005 Main #9 · TJ-018b · ADR-004 · NFR-1.3 · D-016
 **Source:** Phase 2 · C3
 **Acceptance criteria:**
+
 1. A committed new-mtime result becomes "current"; the old-mtime entry is retained but no longer reachable as current (TJ-018b).
 2. No entry is deleted in response to a `changed` event (that is `deleted`/UC-006 — D-016).
 3. Writes occur only from the single writer (C2, ADR-004); the Datastore performs no build/queue/scheduling (NFR-1.3).
@@ -324,6 +328,7 @@ Execute the (re)build Job for the new mtime under the execution bound (TJ-019), 
 **Traces to:** DR-005-003 · EH-005-003 · UC-005 Main #8 · Alt C · TJ-019/020/008 · INV-24
 **Source:** Phase 2 · C4
 **Acceptance criteria:**
+
 1. A build for the new mtime produces a result keyed to the new mtime (TJ-020) that can be committed independently of the old-mtime key.
 2. A superseded build is cancelled cooperatively or completes within its bound (TJ-019) and leaves no partial state (TJ-008).
 3. Abandoning a mid-flight build (process restart) produces no partial commit in C3 (TJ-008; NFR-1.2 recovery).
@@ -333,12 +338,12 @@ Execute the (re)build Job for the new mtime under the execution bound (TJ-019), 
 > Rule set: Phase 1a `contracts/task-job-management.md` (`TJ-`) + Phase 1b `contracts/frontend-odb-api.md` (`API-`, `§7`) + `README.md` Decisions (`D-`) / ADRs. Status legend: **✅** contract rule fully covers the obligation · **⚠️** partial (needs an assumption) · **❌** no coverage (a gap → escalate).
 
 | UC Requirement | Contract Rule | Status | Note |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | IF-005-001 (didChangeWatchedFiles → `WATCHED_FILES{changed}`) | §7 mapping · D-016 · API-001/004 | ✅ | §7 L330 (deleted row; `changed` shares the payload) |
 | IF-005-002 (record mtime; stale old; new dedup key) | TJ-018/018b · TJ-005 | ✅ | mtime = version component of the key |
 | IF-005-003 (push `DiagnosticsEvent`) | D-015 · D-025 · §5.2 | ✅ | document-scoped; `request_id` optional |
 | IF-005-004 (C1 registers the watch) | TJ-018 · D-020 | ✅ | explicit C1 obligation |
-| IF-005-005 (`SyncPayload` ack) | API-001 · §8.1 | ✅ | `{new version_id, affected documents}` |
+| IF-005-005 (`SyncPayload` ack) | API-001 · §5.1 | ✅ | `{new version_id, affected documents}` |
 | ST-005-001 (advance version; recompute priority) | TJ-011/012 · ADR-007 | ✅ | |
 | ST-005-002 (reconcile background build) | TJ-021 · TJ-005/006/007/008/009 · D-014/024 | ✅ | FR-3.3 needed-closure build not dropped |
 | ST-005-003 (isolated → no proactive build) | TJ-011(d) · FR-3.3 | ⚠️→✅ | by inference (demand-driven State-2/3 builds) — noted, not a gap |
@@ -359,7 +364,7 @@ Execute the (re)build Job for the new mtime under the execution bound (TJ-019), 
 ## Traceability Matrix
 
 | ID | Type | Description | Scenario Step | Owner |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | IF-005-001 | Interface | C1 translates `didChangeWatchedFiles` → `WATCHED_FILES{changed}` (raw sync fact) | Main #1–3 | C1 |
 | IF-005-002 | Interface | C2 records new mtime; stales old result; derives new dedup key | Main #5 | C2 |
 | IF-005-003 | Interface | C2 pushes `DiagnosticsEvent` iff changed; C1 maps to `publishDiagnostics` | Main #10 | C2 (+C1) |
