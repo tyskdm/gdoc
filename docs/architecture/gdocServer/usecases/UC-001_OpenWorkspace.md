@@ -266,7 +266,7 @@ types — that is the ODB's (D-019, ADR-009).
 
 C2 shall start the **ODB background build work** (D-014, re-scoped by D-024, TJ-021) for each
 document that is a State 3 (Package member) upon receiving the initial workspace state, so that
-the initial build proceeds without a client Request (the needed build is not dropped — NC-05).
+the initial build proceeds without a client Request (the needed build is not dropped — FR-3.3).
 That background work participates in the Job waiter set like any Task but is not cancellable by
 the Frontend (TJ-007); the concrete mechanism (task shape, granularity, worker identity) is
 ODB-internal.
@@ -407,7 +407,7 @@ performing no CPU work inside the handler (F6.3, F6.4).
 
 C2 shall start the **ODB background build work** (D-014, re-scoped by D-024, TJ-021) for each State 3
 (Package member) document upon receiving the initial workspace state, so that the initial build
-proceeds without a client Request (the needed build is not dropped — NC-05). That background work
+proceeds without a client Request (the needed build is not dropped — FR-3.3). That background work
 participates in the Job waiter set like any Task but is not cancellable by the Frontend (TJ-007);
 the concrete mechanism is ODB-internal.
 

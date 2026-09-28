@@ -34,6 +34,7 @@
   - Support for **Job Deduplication**: Multiple tasks requesting the same file should result in a single shared job.
   - **Priority Inheritance**: Jobs must inherit the highest priority among all tasks currently requesting them.
   - **Reference-based Cancellation**: Jobs should remain active as long as at least one associated task is alive.
+- **[FR-3.3] Background-build continuity**: When a document enters a state that requires analysis work (open in the editor **and** the documents it references, or a member of a package), the needed background build **shall not be dropped** even though **no client Request issued it** — the Object Database supplies its own waiters so the build runs to completion (or is cancelled when the state requiring it ends), rather than being immediately cancelled for an empty waiter set.
 
 ### 4. Extensibility (Plugin Architecture)
 

@@ -50,7 +50,7 @@ push) → §5.2 · D-016 (`action:"change"`) + D-017 (payload `action` + `conten
 - D-014 (the UC-002 background build work is **terminal** (`Completed`, TJ-003) — a `change` is an
   interaction, not a state transition; no new background build work is created or cancelled)
 - D-015 (diagnostics delivery = `DiagnosticsEvent` push; `request_id` optional for
-  `DiagnosticsEvent` per NC-06 / P2-003)
+  `DiagnosticsEvent` per D-025)
 - D-016 (`DOCUMENT_SYNC` payload discriminator `action:"change"`)
 - D-017 (payload schema: `DOCUMENT_SYNC` requires `action`, `content?`)
 - **D-020** (`version_id` is **state-relative** — open ⇒ `open_revision`; refines D-004); open file → content from **buffer**
@@ -392,7 +392,7 @@ cancellation so a superseded (stale) Job's dispatch-skip or late cancel is honou
 | UC Requirement | Contract Rule | Status | Note |
 | -------------- | ------------- | ------ | ---- |
 | IF-003-001 | API-001, D-016/D-017, §4.1/§4 | ✅ | `action:"change"` is in the D-016 discriminator; full-buffer `content` is the §4.3 C1 obligation |
-| IF-003-002 | API-004, §5.2, D-015, F6.3/F6.4 | ✅ | `request_id` optional for `DiagnosticsEvent` — NC-06 / P2-003 (UC-002); latest-wins replacement is C1's protocol-side duty |
+| IF-003-002 | API-004, §5.2, D-015/D-025, F6.3/F6.4 | ✅ | `request_id` optional for `DiagnosticsEvent` — D-025 (UC-002); latest-wins replacement is C1's protocol-side duty |
 | IF-003-003 | TJ-005/018, D-020, §4.3 | ✅ | `version_id` state-relative + buffer-vs-disk source fixed by D-020 (refines D-004); `didChange`-for-closed rejection is C1's own protocol conformance |
 | ST-003-001 | TJ-021, D-014, TJ-012 | ✅ | Background build work is tied to the document's state (ends when the state requiring it is left) — a change, being no state transition, leaves it untouched; TJ-012 covers "recomputed on every client interaction" |
 | ST-003-002 | TJ-005/006/015/019, D-010, **TJ-012 note** | ✅ | Fresh-key scheduling is ruled (TJ-005/006); **stale queued-Job dispatch-skip now ruled** — note on TJ-012 applied to `task-job-management.md` (user-approved 2026-09-25, D-021); liveness itself remains closed by TJ-012/015/019 |
@@ -401,7 +401,7 @@ cancellation so a superseded (stale) Job's dispatch-skip or late cancel is honou
 | EH-003-001 | D-015, TJ-008, §5.1 | ✅ | Mirrors UC-002 EH-002-001 |
 | EH-003-002 | TJ-008/019, §5.1 (E_BUILD_FAILED/E_TIMEOUT) | ✅ | No commit on failure; terminal Error |
 | SCR-C1-003-001 | API-001, D-016/D-017, §4.3 | ✅ | Frontend translation is C1's (R-008-1) |
-| SCR-C1-003-002 | D-015, §5.2 | ✅ | NC-06 / P2-003 resolved 2026-09-15 |
+| SCR-C1-003-002 | D-015/D-025, §5.2 | ✅ | D-025 resolved 2026-09-15 |
 | SCR-C2-003-001 | TJ-001…012/021, D-014, D-015, API-001/002/004 | ✅ | ODB processing pipeline fully ruled |
 | SCR-C2-003-002 | TJ-008/018, D-010, R-006-1/2, TJ-012 note | ✅ | No-commit on failure ruled; stale-overwrite ruled by TJ-018; dispatch-skip ruled by TJ-012 note (user-approved 2026-09-25, D-021) |
 | SCR-C3-003-001 | ADR-004, NFR-1.3, TJ-008/018 | ✅ | Single-writer, synchronous, in-memory |
