@@ -194,14 +194,14 @@ Every lower-level requirement states its upstream chain on **one line**. Example
 
 ## 5. Status
 
-**Current phase:** **Phase 2 🟡 IN PROGRESS** (UC-001/002 ✅ 2026-09-15; UC-003 ✅ 2026-09-25; UC-004 ✅ 2026-09-28; UC-005…011 ⬜). Phase 0 / 1a CLOSED (2026-09-11); Phase 1b CLOSED (2026-09-13).
+**Current phase:** **Phase 2 🟡 IN PROGRESS** (UC-001/002 ✅ 2026-09-15; UC-003 ✅ 2026-09-25; UC-004 ✅ 2026-09-28; UC-005 ✅ 2026-09-28; UC-006…011 ⬜). Phase 0 / 1a CLOSED (2026-09-11); Phase 1b CLOSED (2026-09-13).
 
 | Phase | Purpose | Deliverable | Status |
 | --- | --- | --- | --- |
 | 0 | Grounding: component/responsibility inventory + glossary | `subcomponents/README.md` | ✅ done (2026-09-11) |
 | 1a | Task/Job management rules (goal #3) | `contracts/task-job-management.md` | ✅ approved / closed (2026-09-11) |
 | 1b | Frontend↔ODB API (goal #2) | `contracts/frontend-odb-api.md` | ✅ approved / closed (2026-09-13) |
-| 2 | Unify use-case analysis (behavioral evidence) | `usecases/UC_*.md` | 🟡 in progress (UC-001/002 ✅ 2026-09-15; UC-003 ✅ 2026-09-25; UC-004 ✅ 2026-09-28; UC-005…011 ⬜) |
+| 2 | Unify use-case analysis (behavioral evidence) | `usecases/UC_*.md` | 🟡 in progress (UC-001/002 ✅ 2026-09-15; UC-003 ✅ 2026-09-25; UC-004 ✅ 2026-09-28; UC-005 ✅ 2026-09-28; UC-006…011 ⬜) |
 | 3 | Component requirement allocation (goal #1) | `subcomponents/*.md` | ⬜ not started |
 | 4 | Final verification: traceability + risk closure | `traceability.md` | ⬜ not started |
 
