@@ -3,7 +3,7 @@
 > **Purpose:** Unify behavioral evidence (use cases) for v1 scope, reverse-check Phase 1 contracts,
 > and establish the requirement decomposition per component that Phase 3 will verify.
 > **Position:** `docs/architecture/gdocServer/process/phase2/plan.md`
-> **Status:** 🟡 In Progress — Step 1 (UC-001/002/003 ✅, UC-004 🟢 draft, UC-005…007 ⬜)
+> **Status:** 🟡 In Progress — Step 1 (UC-001/002/003 ✅, UC-004 ✅ 2026-09-28, UC-005…007 ⬜)
 
 > **Related:** `../../README.md` §8 (Phase 2 definition · **authoritative procedure**)
 > · `../../contracts/task-job-management.md` (TJ-*)
@@ -25,7 +25,7 @@
 | UC-001 | Open Workspace | Lifecycle | `initialize` / `initialized` | FR-1.1, NFR-1.1 | ✅ |
 | UC-002 | Open Text | Sync | `textDocument/didOpen` | FR-1.3, NFR-2.3 | ✅ (2026-09-15; NC-06 resolved → P2-003 applied 2026-09-15) |
 | UC-003 | Edit Text | Sync | `textDocument/didChange` | FR-1.3, NFR-2.3 | ✅ (2026-09-25; D-020 applied; findings → TJ-012 note + `frontend-odb-api.md` §4.1, user-approved) |
-| UC-004 | Close Text | Sync | `textDocument/didClose` | FR-1.3, D-016 | 🟢 draft (2026-09-28) — pending user review |
+| UC-004 | Close Text | Sync | `textDocument/didClose` | FR-1.3, D-016 | ✅ (2026-09-28) — approved |
 | UC-005 | Watched File Change | Sync | `workspace/didChangeWatchedFiles` (changed) | FR-1.3, ADR-007 | ⬜ |
 | UC-006 | File Deletion | Sync | `workspace/didChangeWatchedFiles` (deleted) | D-016, FR-2.1 | ⬜ |
 | UC-007 | Config Save | Config | `textDocument/didSave` (config) / watched | ADR-009, FR-2.2 | ⬜ |
@@ -46,7 +46,7 @@
 
 | Step | Description | Status |
 | ---- | ----------- | ------ |
-| 1 | Sync + Lifecycle UCs (UC-001…007) | 🟡 4/7 (UC-001…003 ✅; UC-004 🟢 draft) |
+| 1 | Sync + Lifecycle UCs (UC-001…007) | 🟡 5/7 (UC-001…004 ✅) |
 | 2 | Query UCs (UC-008…011) | ⬜ |
 | 3 | Reverse-check + Gap Analysis | ⬜ |
 | 4 | Archive + Final Status Update | ⬜ |
