@@ -34,7 +34,7 @@ Unlike UC-006 (file deletion), a close **does not** remove Datastore entries: no
 | Language Server (C1) | Receives `textDocument/didClose`; translates into ODB API calls per ADR-008; owns client-side diagnostic hygiene. |
 | Object Database (C2) | Closes the open generation, releases State 2, demotes priority, drops its background waiter, applies reference-counted cancellation; sole committer (TJ-008). |
 | Object Datastore (C3) | Holds generation-scoped results; enforces the never-again-current invariant passively (TJ-018(b)). |
-| Object Builder (C4) | Runs the affected Jobs; cooperatively cancels if its Job is cancelled, else finishes (TJ-024, TJ-019). |
+| Object Builder (C4) | Runs the affected Jobs; cooperatively cancels if its Job is cancelled, else finishes (INV-24/TJ-019). |
 
 ### Derived From
 
@@ -73,7 +73,7 @@ FR-1.3 (didClose) → **D-016** (`action:"close"`; ODB releases State 2, cancels
 - **Two independent close channels:** explicit cancellation (C1's own ids — intent is Frontend-owned, ADR-008/D-012/§4.4) vs the state transition (`DOCUMENT_SYNC{close}` — ODB-owned bookkeeping). The ODB never infers which ids are "unneeded" from the close (R-008-2; §4.4 test: "the close of the document does **not** by itself cancel anything").
 - **Generation close vs deletion:** D-020/TJ-018 — the buffer generation is discarded (results can never again be current), but Datastore entries are **not** deleted by close (that is UC-006's `WATCHED_FILES{deleted}`, D-016); non-open (disk) version results remain valid.
 - **Reference-counted survival:** close drops D's *own* waiter; whether work actually stops is decided by the Job's waiter set (TJ-007) — work still needed by another open document's closure (references) or by State-3 (package) work survives (TJ-021 rail, INV-16).
-- **No preemption, late results:** a Job running at close time completes or is cooperatively cancelled (D-010/TJ-015, TJ-024, TJ-019); a result arriving for the closed generation is discarded, never committed, and never pushed (TJ-008, TJ-018 test, D-015).
+- **No preemption, late results:** a Job running at close time completes or is cooperatively cancelled (D-010/TJ-015, INV-24/TJ-019); a result arriving for the closed generation is discarded, never committed, and never pushed (TJ-008, TJ-018 test, D-015).
 - **Idempotency:** double `didClose`, duplicate close syncs, cancelling already-terminal Tasks — all safe no-ops (API-003, §7).
 - **Diagnostics hygiene:** close is not a build trigger — the ODB pushes no `DiagnosticsEvent` for a close (D-015); clearing the IDE's diagnostics for the closed document is C1's own protocol hygiene (R-008-2).
 
@@ -86,7 +86,7 @@ FR-1.3 (didClose) → **D-016** (`action:"close"`; ODB releases State 2, cancels
 5. C2 **closes D's open generation** (TJ-018/D-020): its buffer `open_revision`s become stale — their stored results are "discarded wholesale", can never again become D's "current" (TJ-018(b)) — and no further Jobs are dispatched for those versions (TJ-012 note: dispatch is permitted but the result can never be committed as current).
 6. C2 releases D from **State 2** and recomputes priority (TJ-011/012, ADR-007): D retains **State 3** if it is a package member (config-derived — a close never re-scopes packages; that is the config-save path, TJ-016/TJ-017), otherwise D becomes a not-open workspace file.
 7. C2 drops the ODB-internal background waiter for D's **own** State-2 build work (D-016 "cancels background build work"; guarantee D-014 → rail D-024/TJ-021). For each affected Job, reference-counted cancellation (TJ-007) decides: a Job whose last waiter left is cancelled; a Job still awaited by another open document's closure (which references D — ADR-007 State 2 "and the documents it references", INV-16) or by State-3 (package) work **survives**.
-8. For a cancelled Job still **running**, C2 requests cooperative cancellation (INV-24/TJ-024): C4 finishes its current step, observes the cancellation flag, and stops without committing — the closed generation's result could not be committed anyway (TJ-008: commit on success only; TJ-018(b): the current pointer advances only for the then-current generation).
+8. For a cancelled Job still **running**, C2 requests cooperative cancellation (INV-24/TJ-019): C4 finishes its current step, observes the cancellation flag, and stops without committing — the closed generation's result could not be committed anyway (TJ-008: commit on success only; TJ-018(b): the current pointer advances only for the then-current generation).
 9. C2, as **sole writer** (ADR-004), drops D's closed-generation Datastore entries from reachability: they must never again be returned as "current" (TJ-018(b)); physical eviction is ODB-internal memory management (boundedness — R-007-2; threshold deferred per D-007). Non-open (disk) version entries for D are unaffected.
 10. C1 optionally clears the IDE's diagnostics for D (e.g. an empty `publishDiagnostics`) — its own protocol hygiene; the ODB neither pushes nor requires it (D-015 not triggered by close; R-008-2: the ODB does not interpret client-side UI intent).
 11. **(concurrency)** If a result for a revision of the closed generation reaches C2 **after** the close, it is discarded — never committed, and no `DiagnosticsEvent` is emitted for it (TJ-008/TJ-018; D-015).
@@ -107,7 +107,7 @@ FR-1.3 (didClose) → **D-016** (`action:"close"`; ODB releases State 2, cancels
 **Condition:** Step 8 — C4 is mid-Job when the close is processed.
 
 1. The Job is **not preempted** (D-010/TJ-015: v1 single-executor, non-preemptive).
-2. If the Job is cancelled (last waiter left), C4 cancels cooperatively at the next checkpoint (INV-24/TJ-024) and produces no commit.
+2. If the Job is cancelled (last waiter left), C4 cancels cooperatively at the next checkpoint (INV-24/TJ-019) and produces no commit.
 3. If the Job is not cancelled (other waiters), or C4 finishes its current step first, the Job completes within its run bound (TJ-019) and returns a candidate; C2 **discards** it because its generation is closed (TJ-018(b)) — no commit, no `DiagnosticsEvent` (EH-004-001).
 
 ### C — Duplicate or unknown close (idempotency)
@@ -144,11 +144,12 @@ sequenceDiagram
     Note over C2: own-only resolution (R-008-1)<br>Job cancelled only when last waiter drops off (TJ-007)
     C2-)C1: handler: TerminalEvent{Cancelled, reason user_canceled (D-018)}
     C1->>C2: submit(DOCUMENT_SYNC{action:close, document:D}) (no content, D-021)
+    C2-->>C1: Submission{inline, Result{Success, SyncPayload}} (or ticket — API-001)
     Note over C2: Request→Task 1:1 (TJ-001)<br>close D's open generation (TJ-018, D-020)<br>results discarded, never again current (TJ-018b)<br>release State 2, demote priority (TJ-011/012)<br>drop own background waiter (D-016, D-024)
     alt Job still awaited (referenced by an open doc, or State 3)
         Note over C2,C4: Job survives (waiters > 0, TJ-007/INV-16)<br>D's priority from highest state it is in (ADR-007)
     else Last waiter dropped off
-        C2->>C4: cancel Job (cooperative, TJ-024)
+        C2->>C4: cancel Job (cooperative, INV-24/TJ-019)
         C4-->>C2: stops (or completes within TJ-019 bound<br>result discarded)
     end
     Note over C2,C3: closed-generation entries unreachable as current (TJ-018b)<br>disk-version entries unaffected (TJ-018)<br>eviction ODB-internal (ADR-004, R-007-2)
@@ -175,9 +176,9 @@ On `textDocument/didClose` for D, C1 **shall** translate this into exactly two O
 
 #### IF-004-002
 
-For each Task cancelled as part of the close, C2 **shall** return `CancelResult` (canceled vs no-op) and push `TerminalEvent{status:Cancelled, reason:...}` — `reason:"user_canceled"` when the Frontend drove the cancellation, `reason:"system_cancelled"` when the ODB's close processing cancelled a Job the Task was awaiting. Cancelling an already-terminal Task **shall** be a safe no-op.
+For each Task cancelled as part of the close, C2 **shall** return `CancelResult` (canceled vs no-op) and push `TerminalEvent{status:Cancelled, reason:"user_canceled"}` — the cancellation in UC-004 is Frontend-driven via `cancel(request_ids)` (D-012, ADR-008). The ODB's close processing drops only its own background waiters and, under TJ-007, cannot cancel a Job a client Task still awaits; `reason:"system_cancelled"` belongs to the ODB-internal background-work lifecycle (D-018; TJ-021/D-014 mechanism ③) and does not apply to client Tasks in UC-004. Cancelling an already-terminal Task **shall** be a safe no-op.
 **Owner:** C2
-**Derived From:** UC-004 Main #3, Alt D · D-018 · API-003 · §7 (idempotency)
+**Derived From:** UC-004 Main #3, Alt D · D-018 · D-012 · ADR-008 · TJ-007 · API-003 · §7 (idempotency)
 
 #### IF-004-003
 
@@ -235,9 +236,9 @@ A duplicate `didClose` / `DOCUMENT_SYNC{close}` for D, or a close for a document
 
 #### EH-004-003
 
-A Job running at close time is **not** preempted (D-010/TJ-015): it either cancels cooperatively at a checkpoint if its Job was cancelled (INV-24/TJ-024), or completes within its run bound (TJ-019) with the result discarded (EH-004-001). C4 **shall not** commit directly — the commit decision is C2's (TJ-008, ADR-004 single writer).
+A Job running at close time is **not** preempted (D-010/TJ-015): it either cancels cooperatively at a checkpoint if its Job was cancelled (INV-24/TJ-019), or completes within its run bound (TJ-019) with the result discarded (EH-004-001). C4 **shall not** commit directly — the commit decision is C2's (TJ-008, ADR-004 single writer).
 **Owner:** C4 (C2 decides)
-**Derived From:** UC-004 Alt B · D-010/TJ-015 · INV-24/TJ-024 · TJ-019 · TJ-008
+**Derived From:** UC-004 Alt B · D-010/TJ-015 · INV-24/TJ-019 · TJ-008
 
 ### Component (SCR-)
 
@@ -263,8 +264,8 @@ The Datastore **shall** enforce the post-close freshness invariant passively: an
 
 #### SCR-C4-004-001 (Object Builder)
 
-On close-driven Job cancellation, C4 **shall** cancel cooperatively at a checkpoint (INV-24/TJ-024) and produce no commit for the closed generation; if not cancelled (other waiters), it completes within its run bound (TJ-019) and returns a candidate that C2 discards (TJ-008/TJ-018(b)). C4 builds only from the content C2 supplied for the Job at dispatch time — it never reads a buffer copy after the generation is closed (D-020; §4.3).
-**Derived From:** UC-004 Main #8, Alt B · INV-24/TJ-024 · TJ-019 · TJ-008 · D-020
+On close-driven Job cancellation, C4 **shall** cancel cooperatively at a checkpoint (INV-24/TJ-019) and produce no commit for the closed generation; if not cancelled (other waiters), it completes within its run bound (TJ-019) and returns a candidate that C2 discards (TJ-008/TJ-018(b)). C4 builds only from the content C2 supplied for the Job at dispatch time — it never reads a buffer copy after the generation is closed (D-020; §4.3).
+**Derived From:** UC-004 Main #8, Alt B · INV-24/TJ-019 · TJ-008 · D-020
 
 ---
 
@@ -282,18 +283,18 @@ On close-driven Job cancellation, C4 **shall** cancel cooperatively at a checkpo
 | DR-004-002 | ADR-004 (single writer) · D-007/R-007-2 (deferred) | ✅ | eviction policy deferred by design — mechanism (ODB-only) fixed |
 | EH-004-001 | TJ-018 (test: buffer result after didClose discarded) · TJ-008 · D-015 | ✅ | |
 | EH-004-002 | §7 (cancel idempotency) · TJ-018 (generation bookkeeping) · API-001 | ✅ | duplicate close as no-op is a natural consequence of C2's generation bookkeeping — no contract change required |
-| EH-004-003 | D-010/TJ-015 · INV-24/TJ-024 · TJ-019 · TJ-008 | ✅ | |
+| EH-004-003 | D-010/TJ-015 · INV-24/TJ-019 · TJ-008 | ✅ | |
 | SCR-C1-004-001 | §7 mapping · API-001/003 · D-016/D-021 | ✅ | |
 | SCR-C1-004-002 | D-015 · D-021 · R-008-2 · INV-07 | ✅ | |
 | SCR-C2-004-001 | D-016 · TJ-007/011/012/018/021 · D-018 · ADR-004 | ✅ | |
 | SCR-C3-004-001 | TJ-018(b) · ADR-004 · NFR-1.3 | ✅ | |
-| SCR-C4-004-001 | TJ-024 · TJ-019 · TJ-008 · D-020 | ✅ | |
+| SCR-C4-004-001 | INV-24/TJ-019 · TJ-008 · D-020 | ✅ | |
 
 > **Status:** ✅ = satisfied · ⚠️ = partially satisfied / requires contract extension · ❌ = contract gap
 >
 > **Finding (zero gaps):** every UC-004 requirement is satisfied by the Phase 1a/1b contracts (TJ-007/011/012/018/021, API-001/003, §7, D-012/015/016/018/020/021, ADR-004/007). No contract change is required.
 >
-> **Minor observation (recorded; no action required):** `process/phase2/plan.md` Step 1 checklist reads "UC-004 (Close) demonstrates cancellation (**TJ-016**) + Datastore cleanup" — but TJ-016 is the **config-save** rule (UC-007's domain). The close cancellation duties are D-016 + TJ-007 + TJ-021 (rail), and the Datastore effect is the TJ-018(b) discard/eviction. This UC covers the checklist's intent; the checklist reference is likely a typo (editorial fix, pending user approval).
+> **Minor observation (corrected on this branch):** `process/phase2/plan.md` Step 1 checklist read "UC-004 (Close) demonstrates cancellation (**TJ-016**) + Datastore cleanup" — but TJ-016 is the **config-save** rule (UC-007's domain). The close cancellation duties are D-016 + TJ-007 + TJ-021 (rail), and the Datastore effect is the TJ-018(b) discard/eviction. This UC covers the checklist's intent; the checklist reference was a typo and is now corrected to `TJ-007/D-016`.
 
 ## Traceability Matrix
 

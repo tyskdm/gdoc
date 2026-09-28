@@ -57,7 +57,7 @@
 
 - [ ] UC-001…007 exist in `usecases/`, follow `./template.md`
 - [ ] All 7 have complete SCR-C1/C2/C3/C4 requirements (none empty)
-- [ ] UC-004 (Close) shows cancellation (TJ-016) + Datastore cleanup
+- [ ] UC-004 (Close) shows cancellation (TJ-007/D-016) + Datastore cleanup
 - [ ] UC-005/006 (Watch/Deletion) show DOCUMENT_SYNC discriminator per D-016
 - [ ] UC-007 (Config Save) shows ADR-009 config reload behavior
 - [ ] All 7 have Reverse-check tables populated (zero ❌ at step end)
