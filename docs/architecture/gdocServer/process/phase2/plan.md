@@ -3,7 +3,7 @@
 > **Purpose:** Unify behavioral evidence (use cases) for v1 scope, reverse-check Phase 1 contracts,
 > and establish the requirement decomposition per component that Phase 3 will verify.
 > **Position:** `docs/architecture/gdocServer/process/phase2/plan.md`
-> **Status:** 🟡 In Progress — Step 1 (UC-001/002/003 ✅, UC-004 ✅ 2026-09-28, UC-005…007 ⬜)
+> **Status:** 🟡 In Progress — Step 1 (UC-001/002/003 ✅, UC-004 ✅ 2026-09-28, UC-005 ✅ 2026-09-28, UC-006/007 ⬜)
 
 > **Related:** `../../README.md` §8 (Phase 2 definition · **authoritative procedure**)
 > · `../../contracts/task-job-management.md` (TJ-*)
@@ -26,7 +26,7 @@
 | UC-002 | Open Text | Sync | `textDocument/didOpen` | FR-1.3, NFR-2.3 | ✅ (2026-09-15; NC-06 resolved → P2-003 applied 2026-09-15) |
 | UC-003 | Edit Text | Sync | `textDocument/didChange` | FR-1.3, NFR-2.3 | ✅ (2026-09-25; D-020 applied; findings → TJ-012 note + `frontend-odb-api.md` §4.1, user-approved) |
 | UC-004 | Close Text | Sync | `textDocument/didClose` | FR-1.3, D-016 | ✅ (2026-09-28) — approved |
-| UC-005 | Watched File Change | Sync | `workspace/didChangeWatchedFiles` (changed) | FR-1.3, ADR-007 | ⬜ |
+| UC-005 | Watched File Change | Sync | `workspace/didChangeWatchedFiles` (changed/created) | FR-1.3, ADR-007 | ✅ (2026-09-28) — approved |
 | UC-006 | File Deletion | Sync | `workspace/didChangeWatchedFiles` (deleted) | D-016, FR-2.1 | ⬜ |
 | UC-007 | Config Save | Config | `textDocument/didSave` (config) / watched | ADR-009, FR-2.2 | ⬜ |
 | UC-008 | Hover | Query | `textDocument/hover` | FR-1.2 | ⬜ |
@@ -46,7 +46,7 @@
 
 | Step | Description | Status |
 | ---- | ----------- | ------ |
-| 1 | Sync + Lifecycle UCs (UC-001…007) | 🟡 5/7 (UC-001…004 ✅) |
+| 1 | Sync + Lifecycle UCs (UC-001…007) | 🟡 5/7 (UC-001…005 ✅) |
 | 2 | Query UCs (UC-008…011) | ⬜ |
 | 3 | Reverse-check + Gap Analysis | ⬜ |
 | 4 | Archive + Final Status Update | ⬜ |
@@ -102,6 +102,8 @@
 | P2-003 | 2026-09-15 | **Finding (from UC-002 reverse-check):** NC-06 open item resolved to the **"YES" branch** — a request-less `DiagnosticsEvent` push **exists** (System-Task reference-closure builds, D-014, produce diagnostics with no triggering client request). Contract relaxation applied: `RequestEvent.request_id` **optional** for `DiagnosticsEvent`/`ExpiryEvent` (document-scoped pushes invoke the handler with no `request_id`); `ProgressEvent`/`TerminalEvent` keep it required; no API operation changes | **Applied 2026-09-15** to `frontend-odb-api.md` §5.2 (envelope + OPEN ITEM note → RESOLVED) and API-004 event-stream note; NC-06 closed in `process/reviews/review-2026-09-14.md` | ✅ (user approved 2026-09-15) |
 | P2-004 | 2026-09-15 | **ID scheme changed to per-UC namespace:** derived-requirement IDs are now `IF/ST/DR/EH-<UC>-<NNN>` and `SCR-<COMP>-<UC>-<NNN>` (3-digit UC number; e.g. `IF-002-001`, `SCR-C1-002-001`); numbering is **append-only within a UC** — adding a requirement to one UC never touches other files; UC-001/UC-002 IDs renamed (36 IDs); README §4.1, template, and both UC file headers updated | Avoids consulting other UC files for numbering; prevents ID collisions structurally; done before Phase 3 references any UC ID (last low-cost window) | ✅ (user approved 2026-09-15) |
 | P2-005 | 2026-09-25 | **UC-003 findings applied (user-approved):** (1) **dispatch-skip of stale queued Jobs** added to `contracts/task-job-management.md` as an **efficiency note on TJ-012** (should-level: "a queued Job for a `(file, version, inputs)` whose document `version_id` is no longer current should not be dispatched; dispatch permitted, but its result must not become the 'current' entry — TJ-018") — from UC-003 ST-003-002/SCR-C2-003-002; (2) **`DOCUMENT_SYNC` `content` requirement clarified** in `contracts/frontend-odb-api.md` §4.1 — required for `action:"open"`/`"change"` (open document), optional for `action:"close"` (clarifies D-017's `action` + `content?` entry; the full normative D-017 table is still to be written during Phase 2) | Both findings were recorded as "awaiting user approval" per gate §4.5; user chose option **A** (note on TJ-012, not a new rule ID) and approved the §4.1 wording clarification | ✅ (user approved 2026-09-25) |
+| P2-006 | 2026-09-28 | **UC-005 findings applied (user-approved):** design review round `process/reviews/review-2026-09-28-uc005.md` — **WC-01** C1→C2 `version_id` ownership (C2 records the new disk mtime as the advanced version per D-020; C1 forwards the raw sync fact only), **WC-02** created / first-sight (stale-mark is a no-op when no prior stored result exists; the first build inserts the version), **WC-03** `Submission` vs terminal `Result` (Submission is only the ack — inline result or `request_id` ticket — the terminal `Result`/`SyncPayload` is delivered inline or via push + `get_result`, API-002/004), **WC-04** `SyncPayload` §8.1→§5.1 (9 sites), **WC-05** `UC-003_UpdateText`→`UC-003_EditText` | All WC-01…WC-05 apply already-confirmed decisions (D-020, D-016, API-002/004, §5.1) — no new design decisions; fixes applied to `usecases/UC-005_WatchedFileChange.md` in commit `e9f7c20`, per-finding verification in the review file; user confirmed content OK | ✅ (user approved 2026-09-28) |
+| P2-007 | 2026-09-28 | **Withdraw ST-005-003 (isolated-file "no proactive build" prohibition):** ST-005-003 deleted; the isolated-file description is now **permissive** (no build required, none forbidden; lowest priority TJ-011(d)) | Verified **no normative basis** for the prohibition: TJ-011(d)/ADR-007 is a *priority-order* (isolated files built last — scheduling order, not a ban, compatible with building them as a lowest-priority task); FR-3.3 is a *guarantee* that needed State-2/3 builds are not dropped (does **not** prohibit State-1/isolated builds); D-015 is a general diagnostics rule. The former "shall not" (ST-005-003) cited FR-3.3 as its basis, so its traceability was `⚠️→✅ by inference`, not a single normative rule. Applied: UC-005 (ST-005-003 rule deleted; isolated-file prose neutralized in Scope / Preconditions / Analysis / Alt B / sequence diagram; Traces-to, DoD, DoD-table, reverse-check, and traceability-matrix rows updated); `process/reviews/review-2026-09-28-uc005.md` (Excluded L6 + change history) | ✅ (user approved 2026-09-28) |
 
 ---
 
