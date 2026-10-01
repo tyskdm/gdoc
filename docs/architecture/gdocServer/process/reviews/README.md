@@ -18,7 +18,7 @@
 
 ## Findings ID scheme
 
-Per-round prefixes, unique across the set: `NC-*` (inconsistencies) · `OM-*` (omissions) · `ED-*` (edge cases) · `FU-*` (decision-propagation follow-up) · `RV-*` (general review rounds, from 2026-09-26) · `CA-*` (cross-model consistency audit, 2026-09-26) · `GL-*` (GPT-5.6 Luna review round, 2026-09-26) · `GE-*` (Gemini 3.8 Flash review round, 2026-09-26) · `DV-*` (D-024 de-specification verification round, 2026-09-27) · `ID-*` (identifier-dependency audit round, 2026-09-27).
+Per-round prefixes, unique across the set: `NC-*` (inconsistencies) · `OM-*` (omissions) · `ED-*` (edge cases) · `FU-*` (decision-propagation follow-up) · `RV-*` (general review rounds, from 2026-09-26) · `CA-*` (cross-model consistency audit, 2026-09-26) · `GL-*` (GPT-5.6 Luna review round, 2026-09-26) · `GE-*` (Gemini 3.8 Flash review round, 2026-09-26) · `DV-*` (D-024 de-specification verification round, 2026-09-27) · `ID-*` (identifier-dependency audit round, 2026-09-27) · `WC-*` (UC-005 Watched File Change design review round, 2026-09-28).
 Locations are cited by **file + §/requirement ID** (line numbers are auxiliary only).
 
 ## Review rounds
@@ -34,6 +34,7 @@ Locations are cited by **file + §/requirement ID** (line numbers are auxiliary 
 | `review-2026-09-26-gemini-3.8-flash.md` | 2026-09-26 | Phase 0 → UC-003 (contract-anchored consistency check) | GE-01…04 | ✅ closed (all [F], 2026-09-26) |
 | `review-2026-09-27-D-024-despec.md` | 2026-09-27 | D-024 de-specification — verification round (V1–V11 independent re-execution) | DV-01…06 | ✅ closed (all [F], 2026-09-27) |
 | `review-2026-09-27-identifier-audit.md` | 2026-09-27 | Identifier & dependency-structure audit (process → design ID leakage, derivation chains, namespace hygiene) | ID-01…05 | ✅ closed (ID-01…04 [F], ID-05 [C] Option A; D-025 issued, FR-3.3 added) |
+| `review-2026-09-28-uc005.md` | 2026-09-28 | UC-005 Watched File Change — design review (C1→C2 `version_id` ownership, created first-sight, `Submission` vs terminal `Result`, traceability) | WC-01…05 | ✅ closed (all [F], user-approved 2026-09-28) |
 
 ## Change history
 
@@ -43,5 +44,6 @@ Locations are cited by **file + §/requirement ID** (line numbers are auxiliary 
 - 2026-09-26: review round recorded as `review-2026-09-26-gemini-3.8-flash.md`; GE-01…GE-04 found and fixed the same day (GE-01 System Task lifecycle alignment in UC-003; GE-02 DR-003-002 scoping/ownership; GE-03 event push order standardization in UC-002/003; GE-04 CONFIG_SAVE degraded-mode TerminalEvent + get_result step in UC-001).
 - 2026-09-27: D-024 de-specification verification round recorded as `review-2026-09-27-D-024-despec.md`; DV-01…DV-06 found and fixed the same day after user approval (DV-01 UC-002 unit-count phrasing → NC-05 coverage form; DV-02 change-record status → [R] Resolved with executed commit `e8605db`; DV-03 D-016 row "System Task" → "background build work"; DV-04 D-014 row supersession pointer + status; DV-05 V5 label decomposition 21+21=42; DV-06 record-body NC-05 scope aligned to Q-A(a) + derivation note).
 - 2026-09-27: identifier-dependency audit round recorded as `review-2026-09-27-identifier-audit.md` (supporting evidence: `process/identifier-dependency-audit.md`, read-only); ID-01…ID-05 found and fixed the same day after user approval (ID-01 NC-05 demoted from normative text → FR-3.3/D-024 anchors; ID-02 **D-025 issued** in README §7, 11 citations re-pointed — Option A; ID-03 ①/②/③ tier symbols defined in `task-job-management.md` §2; ID-04 `C<n>`/`INV-NN`/`D-nn` rows added to README §4.1; ID-05 **FR-3.3 added** to requirements.md + prepended to TJ-021 Derived-From — Option A).
+- 2026-09-28: UC-005 design review round recorded as `review-2026-09-28-uc005.md`; WC-01…WC-05 found and fixed (WC-01 C1→C2 `version_id` ownership — C2 records the new disk mtime per D-020, C1 forwards raw fact only; WC-02 created first-sight → stale-mark no-op when no prior stored result, first build inserts the version; WC-03 `Submission` is only the ack, terminal `Result`/`SyncPayload` inline or via push + `get_result` (API-002/004); WC-04 `SyncPayload` §8.1→§5.1 (9×); WC-05 `UC-003_UpdateText`→`UC-003_EditText`). Fixes applied in commit `e9f7c20`; user-approved 2026-09-28 (content OK).
 
 *Record maintained alongside the design document set. Update status as decisions are confirmed and fixes applied.*
