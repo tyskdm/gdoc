@@ -29,6 +29,16 @@ c. **C4** (Builder) cooperatively cancels any in-flight Job for the deleted file
 
 d. **Contrast with UC-004 (close):** a close discards only the open **generation** (buffer results); disk-version entries survive and are reusable on re-open (D-020, TJ-018). A deletion removes **everything** — there is no re-open possible for a deleted file (a new file at the same path would be a `created` event, UC-005, and would start from scratch).
 
+### Actors
+
+| Actor | Description |
+| ---------------- | ------------------------------------------------------ |
+| IDE Client (User) | Deletes the file from disk. The IDE's file watcher sends `workspace/didChangeWatchedFiles { changes:[{uri, type:"deleted"}] }`. If the file was open, the IDE may also send `textDocument/didClose` (UC-004) before the `deleted` event. |
+| C1 — Language Server (Frontend) | Translates `didChangeWatchedFiles{deleted}` to `cancel(request_ids)` (API-003) + `submit(WATCHED_FILES{events:[{uri, type:"deleted"}]})` (API-001). Drops local state. Optionally clears IDE diagnostics (R-008-2). |
+| C2 — Object Database (ODB) | Cancels all related work (TJ-007, D-016), removes Datastore entries (D-016, ADR-004), invalidates dependency graph (NFR-2.1), releases from all states (ADR-007), drops background waiters (D-014/D-024), pushes `DiagnosticsEvent` for dependent docs (D-015). |
+| C3 — Object Datastore | All entries removed (not stale). Graph edges invalidated. Removal by ODB only (ADR-004); Datastore is passive. |
+| C4 — Object Builder | Cancels in-flight Job cooperatively (INV-24/TJ-019). Result discarded by C2 (TJ-008; D-016). Never commits for a deleted file. |
+
 ### Derived From
 
 FR-1.3 (sync — `didChangeWatchedFiles`) · **D-016** (`WATCHED_FILES` `type:"deleted"`; "ODB removes Datastore entry, invalidates dependency graph, cancels all related Jobs"; Frontend sends **both** `WATCHED_FILES{deleted}` **and** `cancel(request_ids)`) · **D-014 → D-024** (background-build work cancelled on file deletion) · **TJ-007** (reference-counted cancellation) · **TJ-008** (atomic commit; no commit for a deleted file) · **TJ-011/012** (state/priority release) · **TJ-018** (freshness — all versions removed, not staled) · **NFR-2.1** (dependency tracking — graph invalidation) · **FR-2.2** (hierarchical organization — package-member removal) · **D-015** (diagnostics push for dependent documents) · **D-018** (`TerminalEvent.reason`) · **D-020** (version identity — all versions of a deleted file are removed) · **ADR-004** (single writer) · **ADR-007** (state release) · **R-008-1/2** (boundary) · **INV-24/TJ-019** (Builder cooperative cancel / run bound) · **§7** mapping (frontend-odb-api.md, didChangeWatchedFiles deleted row)
@@ -60,16 +70,6 @@ FR-1.3 (sync — `didChangeWatchedFiles`) · **D-016** (`WATCHED_FILES` `type:"d
 - **C3:** all entries gone (all versions — D-016: "removes Datastore entry"); graph edges removed/invalidated; removal by ODB only (ADR-004).
 - **C4:** cancelled Job cooperatively cancelled (INV-24/TJ-019) or completed with result **discarded** (TJ-008; D-016). No commit for a deleted file.
 - **Global:** file is no longer known to the ODB; re-creating it is a `created` event (UC-005) starting from scratch; other documents unaffected except for broken-reference updates (NFR-2.1, D-015).
-
-### Actors
-
-| Actor | Description |
-| ---------------- | ------------------------------------------------------ |
-| IDE Client (User) | Deletes the file from disk. The IDE's file watcher sends `workspace/didChangeWatchedFiles { changes:[{uri, type:"deleted"}] }`. If the file was open, the IDE may also send `textDocument/didClose` (UC-004) before the `deleted` event. |
-| C1 — Language Server (Frontend) | Translates `didChangeWatchedFiles{deleted}` to `cancel(request_ids)` (API-003) + `submit(WATCHED_FILES{events:[{uri, type:"deleted"}]})` (API-001). Drops local state. Optionally clears IDE diagnostics (R-008-2). |
-| C2 — Object Database (ODB) | Cancels all related work (TJ-007, D-016), removes Datastore entries (D-016, ADR-004), invalidates dependency graph (NFR-2.1), releases from all states (ADR-007), drops background waiters (D-014/D-024), pushes `DiagnosticsEvent` for dependent docs (D-015). |
-| C3 — Object Datastore | All entries removed (not stale). Graph edges invalidated. Removal by ODB only (ADR-004); Datastore is passive. |
-| C4 — Object Builder | Cancels in-flight Job cooperatively (INV-24/TJ-019). Result discarded by C2 (TJ-008; D-016). Never commits for a deleted file. |
 
 ## Analysis Focus
 
@@ -189,6 +189,7 @@ If dependent documents' diagnostics change (broken references to D), C2 **shall*
 
 C1 **may** clear IDE diagnostics for D (R-008-2). C1 **shall not** rely on ODB push for this (IF-006-003).
 **Owner:** C1
+**Derived From:** UC-006 Main #8 · R-008-2 · D-015
 
 ### State (ST-)
 
@@ -248,6 +249,7 @@ In-flight Job: C4 **shall** cancel cooperatively (INV-24/TJ-019) or complete wit
 
 Unknown URI **shall** be a no-op or inline `Result{Error}`; no half-created Task (API-001; §4.1).
 **Owner:** C2
+**Derived From:** UC-006 Alt E · API-001 · §4.1
 
 ### Component (SCR-)
 
@@ -274,6 +276,7 @@ The Datastore **shall** support **removal** of all entries for a document (all v
 #### SCR-C4-006-001 (Object Builder)
 
 On deletion-driven cancellation, C4 **shall** cancel cooperatively (INV-24/TJ-019); if it completes within bound, C2 **shall** discard the result (TJ-008; D-016). C4 **shall not** write to Datastore (ADR-004; TJ-008). C4 builds from content supplied at dispatch — never reads a deleted file.
+**Derived From:** UC-006 Alt D · INV-24/TJ-019 · TJ-008 · D-016 · ADR-004
 
 ---
 
