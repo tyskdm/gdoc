@@ -28,7 +28,7 @@
 | UC-004 | Close Text | Sync | `textDocument/didClose` | FR-1.3, D-016 | ✅ (2026-09-28) — approved |
 | UC-005 | Watched File Change | Sync | `workspace/didChangeWatchedFiles` (changed/created) | FR-1.3, ADR-007 | ✅ (2026-09-28) — approved |
 | UC-006 | File Deletion | Sync | `workspace/didChangeWatchedFiles` (deleted) | D-016, FR-2.1 | ✅ (2026-10-01) — approved |
-| UC-007 | Config Save | Config | `textDocument/didSave` (config) / watched | ADR-009, FR-2.2 | ✅ (2026-10-01) — drafted (pending review; 1 ⚠️ reverse-check note: didSave config-location discovery → Phase 3 LSP-*) |
+| UC-007 | Config Save | Config | `textDocument/didSave` (config) / watched | ADR-009, FR-2.2 | ✅ (2026-10-01) — reviewed 2026-10-02: 3 findings fixed (matrix → 5-col template schema; 4 undefined-ID refs removed; README status wording), pending approval. 1 ⚠️ reverse-check note: didSave config-location discovery → Phase 3 LSP-* |
 | UC-008 | Hover | Query | `textDocument/hover` | FR-1.2 | ⬜ |
 | UC-009 | Go to Definition | Query | `textDocument/definition` | FR-1.2 | ⬜ |
 | UC-010 | Find References | Query | `textDocument/references` | FR-1.2, NFR-1.4 | ⬜ |

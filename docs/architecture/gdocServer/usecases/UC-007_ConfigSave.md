@@ -275,24 +275,24 @@ sequenceDiagram
 
 ## Traceability Matrix
 
-| Requirement ID | Type | FR | NFR | ADR | TJ | INV | D-xxx | API |
-| -------------- | ---- | -- | --- | --- | -- | --- | ----- | --- |
-| IF-007-001 | IF | FR-1.1 | — | ADR-001, ADR-003, ADR-009 | — | — | D-005, D-017, D-019 | API-001, §4.1 |
-| IF-007-002 | IF | FR-1.1 | — | ADR-009 | — | — | D-016, D-019 | API-001 |
-| IF-007-003 | IF | FR-1.1 | NFR-1.4 | ADR-009 | TJ-016, TJ-017 | — | D-011, D-015 | API-001, API-002, §4.1, §5.1 |
-| IF-007-004 | IF | FR-4.2 | — | ADR-008 | — | — | D-015, D-025 | §5.2 |
-| ST-007-001 | ST | FR-2.2, FR-3.3 | — | ADR-007, ADR-009 | TJ-016, TJ-021 | — | D-014 → D-024 | — |
-| ST-007-002 | ST | — | NFR-2.3 | ADR-007, ADR-009 | TJ-007, TJ-016 | — | D-018 | §5.2 |
-| ST-007-003 | ST | — | NFR-2.1 | ADR-009 | TJ-017 | — | — | — |
-| DR-007-001 | DR | FR-2.2 | NFR-1.3, NFR-2.1 | ADR-004 | TJ-008, TJ-016 | — | D-002 | — |
-| DR-007-002 | DR | FR-2.2 | NFR-2.1 | ADR-004 | TJ-016 | — | — | — |
-| DR-007-003 | DR | — | NFR-1.3 | ADR-004 | TJ-008 | — | D-002 | — |
-| EH-007-001 | EH | — | — | ADR-009 | — | — | D-005 | API-001 |
-| EH-007-002 | EH | FR-4.1 | NFR-3.2 | — | TJ-008 | — | — | §5 (`ErrorCode`) |
-| EH-007-003 | EH | — | — | ADR-004, ADR-009 | TJ-016 | — | D-014 → D-024, D-016 | — |
-| EH-007-004 | EH | — | NFR-3.2 | ADR-004 | TJ-008, TJ-019 | INV-24 | — | §5.2 |
-| SCR-C1-007-001 | SCR | FR-1.1 | NFR-1.4, NFR-3.1 | ADR-008, ADR-009 | — | — | D-012, D-015, D-017, D-019 | API-001/002, §4.1, §6, §7 |
-| SCR-C1-007-002 | SCR | FR-1.1 | — | ADR-001 | — | — | D-012, D-018, D-019 | §5.2 |
-| SCR-C2-007-001 | SCR | FR-2.2, FR-3.3 | NFR-2.1, NFR-2.3, NFR-3.1 | ADR-004, ADR-007, ADR-009 | TJ-005, TJ-008, TJ-009, TJ-011, TJ-012, TJ-016, TJ-017 | — | D-014 → D-024, D-015, D-018, D-019, D-025 | §4.1, §5.1, §5.2 |
-| SCR-C3-007-001 | SCR | — | NFR-1.3 | ADR-004 | TJ-008 | — | D-002 | — |
-| SCR-C4-007-001 | SCR | — | NFR-2.3, NFR-3.2 | ADR-004, ADR-005 | TJ-005, TJ-019 | INV-24 | — | — |
+| ID | Type | Description | Scenario Step | Owner |
+| --- | ---- | ----------- | ------------- | ----- |
+| IF-007-001 | Interface | `CONFIG_SAVE{workspace root (required), config location?}` on `didSave` for the config; URI-level recognition only, no pre-derivation (D-019) | Main #2, Alt A | C1 |
+| IF-007-002 | Interface | raw `WATCHED_FILES{changed}` forwarding (no classification); C2 routes it into the `CONFIG_SAVE` pipeline | Main #2, Alt A | C1 → C2 |
+| IF-007-003 | Interface | `CONFIG_SAVE` ack: `SyncPayload`; expected ticketed (honest `begin…end`, NFR-1.4); C1 fetches via `get_result`, no polling (F6.2) | Main #3, #11 | C2 (→C1) |
+| IF-007-004 | Interface | `DiagnosticsEvent` push for re-scoped documents (FR-1.2; D-015; `request_id` optional, D-025) | Main #10 | C2 (→C1) |
+| ST-007-001 | State | State 3 redefined from saved config: released members drop ODB work; added members enter with background build (FR-3.3; D-014/D-024) | Main #5, #6 | C2 |
+| ST-007-002 | State | In-flight Tasks/Jobs invalidated/re-scheduled; cancelled Tasks carry `TerminalEvent{Cancelled, reason:"system_cancelled"}` (D-018); queued Job cancelled when last waiter leaves (TJ-007) | Main #6, #7 | C2 (→C4) |
+| ST-007-003 | State | Saved-configuration-only rule: unsaved buffer edits have no effect; on a race the saved configuration wins (TJ-017) | Main #4, Alt F | C2 |
+| DR-007-001 | Data | Out-of-scope Datastore entries invalidated/removed + re-scoped results committed — ODB as single writer, atomic (ADR-004; TJ-008) | Main #8 | C3 (by C2) |
+| DR-007-002 | Data | Dependency graph updated to match saved configuration (FR-2.2; NFR-2.1) | Main #8 | C2 (+C3) |
+| DR-007-003 | Data | Datastore passive; ODB sole writer (ADR-004; NFR-1.3; D-002) | Main #8 | C3 |
+| EH-007-001 | Error | Unchanged-config save = safe no-op (ADR-009) | Alt B | C2 |
+| EH-007-002 | Error | Unparseable config → `E_INVALID_REQUEST` (FR-4.1); no partial application — current scope stays (TJ-008) | Alt C | C2 (→C1) |
+| EH-007-003 | Error | Config absent → degraded mode (UC-001 boundary); the `deleted` event itself is UC-006 (D-016) | Alt D | C2 |
+| EH-007-004 | Error | In-flight Job cancelled cooperatively within the run bound (INV-24/TJ-019); out-of-scope results discarded (TJ-008) | Main #7, Alt E | C4 (+C2) |
+| SCR-C1-007-001 | Component | URI-level config recognition; full `CONFIG_SAVE` task lifecycle; `DiagnosticsEvent`/`Error` mapping (NFR-1.4) | Main #1–3, #11, Alt A | C1 |
+| SCR-C1-007-002 | Component | No config parsing/pre-derivation (D-019; ADR-001); ticketed-Task cancellation (D-012; D-018) | Main #1–2, Alt E | C1 |
+| SCR-C2-007-001 | Component | `CONFIG_SAVE` pipeline: read saved config → diff → re-scope → rebuild → atomic commit (TJ-008) | Main #3–10 | C2 |
+| SCR-C3-007-001 | Component | Datastore invalidation/removal + commits as ODB-only atomic ops (ADR-004; NFR-1.3) | Main #8 | C3 |
+| SCR-C4-007-001 | Component | Rebuild Jobs for re-scoped documents; cooperative cancel (INV-24/TJ-019); dedup on run-time context (NFR-3.1; NFR-2.3; TJ-005) | Main #6, #9 | C4 |
