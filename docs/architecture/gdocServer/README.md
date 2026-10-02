@@ -24,7 +24,7 @@ The set is organized by **role in the derivation chain** (see §3). Current stat
 | Architecture | `architecture.md` | Structure, behavior, abstractions (Workspace/Project/Package) | existing |
 | Contract: Task/Job rules | `contracts/task-job-management.md` | TJ-* — the shared-execution model | ✅ approved (Phase 1a, 2026-09-11) |
 | Contract: public API | `contracts/frontend-odb-api.md` | API-* operations + Request/Result model | ✅ approved (Phase 1b, 2026-09-13) |
-| Use-case analysis | `usecases/UC_*.md` | Behavioral evidence; IF/ST/DR/EH/SCR derived per component | 🟡 in progress (Phase 2; UC-001…006 ✅, UC-007 ✅ (drafted, pending approval), UC-008…011 ⬜) |
+| Use-case analysis | `usecases/UC_*.md` | Behavioral evidence; IF/ST/DR/EH/SCR derived per component | 🟡 in progress (Phase 2; UC-001…007 ✅, UC-008…011 ⬜) |
 | Use-case drafts | `usecase_analysis/*.md` | Raw analysis; **to be merged into `usecases/`** (D-003) | in-flight |
 | Responsibility inventory + glossary | `subcomponents/README.md` | Component/responsibility inventory, single-owner matrix, glossary | **done** (Phase 0) |
 | Component requirements | `subcomponents/{language-server,object-database,object-datastore,object-builders}.md` | LSP-*/ODB-*/DS-*/BLD-* — per-component requirement sets | **planned** (Phase 3) |
@@ -194,14 +194,14 @@ Every lower-level requirement states its upstream chain on **one line**. Example
 
 ## 5. Status
 
-**Current phase:** **Phase 2 🟡 IN PROGRESS** (UC-001/002 ✅ 2026-09-15; UC-003 ✅ 2026-09-25; UC-004 ✅ 2026-09-28; UC-005 ✅ 2026-09-28; UC-006 ✅ 2026-10-01; UC-007 ✅ 2026-10-01 (drafted — review fixes 2026-10-02, pending approval); UC-008…011 ⬜). Phase 0 / 1a CLOSED (2026-09-11); Phase 1b CLOSED (2026-09-13).
+**Current phase:** **Phase 2 🟡 IN PROGRESS** (UC-001/002 ✅ 2026-09-15; UC-003 ✅ 2026-09-25; UC-004 ✅ 2026-09-28; UC-005 ✅ 2026-09-28; UC-006 ✅ 2026-10-01; UC-007 ✅ 2026-10-02; UC-008…011 ⬜). Phase 0 / 1a CLOSED (2026-09-11); Phase 1b CLOSED (2026-09-13).
 
 | Phase | Purpose | Deliverable | Status |
 | --- | --- | --- | --- |
 | 0 | Grounding: component/responsibility inventory + glossary | `subcomponents/README.md` | ✅ done (2026-09-11) |
 | 1a | Task/Job management rules (goal #3) | `contracts/task-job-management.md` | ✅ approved / closed (2026-09-11) |
 | 1b | Frontend↔ODB API (goal #2) | `contracts/frontend-odb-api.md` | ✅ approved / closed (2026-09-13) |
-| 2 | Unify use-case analysis (behavioral evidence) | `usecases/UC_*.md` | 🟡 in progress (UC-001/002 ✅ 2026-09-15; UC-003 ✅ 2026-09-25; UC-004 ✅ 2026-09-28; UC-005 ✅ 2026-09-28; UC-006 ✅ 2026-10-01; UC-007 ✅ 2026-10-01 (drafted — pending approval); UC-008…011 ⬜) |
+| 2 | Unify use-case analysis (behavioral evidence) | `usecases/UC_*.md` | 🟡 in progress (UC-001/002 ✅ 2026-09-15; UC-003 ✅ 2026-09-25; UC-004 ✅ 2026-09-28; UC-005 ✅ 2026-09-28; UC-006 ✅ 2026-10-01; UC-007 ✅ 2026-10-02; UC-008…011 ⬜) |
 | 3 | Component requirement allocation (goal #1) | `subcomponents/*.md` | ⬜ not started |
 | 4 | Final verification: traceability + risk closure | `traceability.md` | ⬜ not started |
 
