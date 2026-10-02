@@ -3,7 +3,7 @@
 > **Purpose:** Unify behavioral evidence (use cases) for v1 scope, reverse-check Phase 1 contracts,
 > and establish the requirement decomposition per component that Phase 3 will verify.
 > **Position:** `docs/architecture/gdocServer/process/phase2/plan.md`
-> **Status:** 🟡 In Progress — Step 1 CLOSED (2026-10-02): UC-001/002/003 ✅, UC-004 ✅ 2026-09-28, UC-005 ✅ 2026-09-28, UC-006 ✅ 2026-10-01, UC-007 ✅ 2026-10-02; next: Step 2 (UC-008…011)
+> **Status:** 🟡 In Progress — Step 1 CLOSED (2026-10-02): UC-001/002/003 ✅, UC-004 ✅ 2026-09-28, UC-005 ✅ 2026-09-28, UC-006 ✅ 2026-10-01, UC-007 ✅ 2026-10-02; **Step 2 in progress (1/4):** UC-008 ✅ 2026-10-02; next: UC-009…011
 
 > **Related:** `../../README.md` §8 (Phase 2 definition · **authoritative procedure**)
 > · `../../contracts/task-job-management.md` (TJ-*)
@@ -47,7 +47,7 @@
 | Step | Description | Status |
 | ---- | ----------- | ------ |
 | 1 | Sync + Lifecycle UCs (UC-001…007) | 🟢 7/7 approved (UC-001…007 ✅) — CLOSED 2026-10-02 |
-| 2 | Query UCs (UC-008…011) | ⬜ |
+| 2 | Query UCs (UC-008…011) | 🟡 1/4 (UC-008 ✅ 2026-10-02; UC-009/010/011 ⬜) |
 | 3 | Reverse-check + Gap Analysis | ⬜ |
 | 4 | Archive + Final Status Update | ⬜ |
 
