@@ -261,8 +261,9 @@ like any Task but is **not** cancellable by the Frontend (TJ-007); the concrete 
 #### ST-002-002
 
 C2 **shall** map the sync Request 1:1 to a Task (TJ-001) and drive it to a terminal state
-(`Completed` on success, `Error` on Builder failure) before the corresponding `TerminalEvent` is
-pushed; a `Success` result reflects a **committed** state only.
+(`Completed` — TJ-003) before the corresponding `TerminalEvent` is pushed; a **failed** sync
+yields `Result{status:Error, error:ErrorInfo{code, retryable}}` (§5), and a `Success` result
+reflects a **committed** state only.
 
 **Owner:** C2
 **Derived From:** UC-002 Main #3–8 · TJ-001/003/008 · API-001 · §5
