@@ -171,7 +171,7 @@ sequenceDiagram
     IDE -) C1: textDocument/didSave (config) — or — didChangeWatchedFiles{changed}
     alt didSave (C1 classifies, URI-level only — D-019)
         C1->>C2: submit(CONFIG_SAVE{workspace root, config location?}) (API-001)
-    else watched (C1 forwards raw; C2 classifies — UC-005 Alt D)
+    else watched (C1 forwards raw, C2 classifies — UC-005 Alt D)
         C1->>C2: submit(WATCHED_FILES{events:[{uri, type:changed}]}) (API-001)
     end
     C2-->>C1: Submission{request_id} (ticket — expected v1, NFR-1.4)

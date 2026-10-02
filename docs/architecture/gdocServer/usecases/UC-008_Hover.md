@@ -188,7 +188,7 @@ sequenceDiagram
         C1->>C2: get_result(request_id) (API-002, no polling — F6.2)
         C2-->>C1: Result{Success, HoverPayload}
     end
-    C1 -) IDE: Hover {contents, range} | null (FR-1.2; empty payload → null)
+    C1 -) IDE: Hover {contents, range} | null (FR-1.2, empty payload → null)
     Note over C2: Task terminal → D leaves State 1 (TJ-012)
 ```
 
@@ -200,7 +200,7 @@ sequenceDiagram
 
 | ID | Component | Requirement |
 | -- | --------- | ----------- |
-| IF-008-001 | C1 | C1 shall, on `textDocument/hover` for document D at position P, submit `HOVER` with `documents = [D + its raw sync fact (`open_revision` if open, with open-buffer content — §4.3)]` and `payload = { position: P }` (API-001; §4.1/D-017: the minimum field for `HOVER` is `position`). C1 shall **not** read content, resolve symbols, or pre-derive declarations (ADR-001; INV-02). |
+| IF-008-001 | C1 | C1 shall, on `textDocument/hover` for document D at position P, submit `HOVER` with `documents = [D + its raw sync fact (`open_revision`if open, with open-buffer content — §4.3)]` and `payload = { position: P }` (API-001; §4.1/D-017: the minimum field for `HOVER` is `position`). C1 shall **not** read content, resolve symbols, or pre-derive declarations (ADR-001; INV-02). |
 | IF-008-002 | C2 (→C1) | C2 shall answer `HOVER` with `Result{status:Success, payload:HoverPayload}` — the declaration's **signature + documentation** for the symbol at P (§5.1; **data, not UI markup** — D-013/§4.1 note) — or an **empty `HoverPayload`** when no symbol resolves at P (C1 maps it to LSP `null` — FR-1.2; R-008-1). C2 shall **not** embed UI markup or popup actions in the payload (D-013). |
 | IF-008-003 | C2 · C1 | The hover answer shall be delivered as an inline `Submission{kind:"inline", result}` (§8 S1) **or** a ticket `Submission{kind:"ticket", request_id}` (API-001) — C1 shall handle **both** forms (API-001). When ticketed, C2 shall emit an honest `ProgressEvent{begin…end}` (NFR-1.4; §5.2) and a `TerminalEvent{status}`; C1 shall fetch the terminal Result via `get_result` (API-002) and shall **not** poll to wait (F6.2). A ticketed terminal Result is retained in the fetch-once window (D-011); an inline Result is **not** retained (D-011). |
 | IF-008-004 | C1 | On client cancellation (`$/cancelRequest` or equivalent), C1 shall call `cancel(request_id)` for **its own** hover Task (API-003; D-012 own-only) and shall treat the resulting `TerminalEvent{status:Cancelled, reason:"user_canceled"}` (D-018) as a **normal** outcome, not an error (§5). C2 shall apply reference-counted cancellation (TJ-007) and shall **not** cancel another Frontend's Task or an ODB-internal Job on C1's behalf (R-008-1; D-014/D-024). |
@@ -272,7 +272,7 @@ sequenceDiagram
 
 | ID | Type | Description | Scenario Step | Owner |
 | --- | ---- | ----------- | ------------- | ----- |
-| IF-008-001 | Interface | `HOVER{documents (D + raw `open_revision`/open-buffer content), payload:{position}}` (D-017; §4.3); C1 does not read content (ADR-001; INV-02) | Main #2 | C1 |
+| IF-008-001 | Interface | `HOVER{documents (D + raw`open_revision`/open-buffer content), payload:{position}}` (D-017; §4.3); C1 does not read content (ADR-001; INV-02) | Main #2 | C1 |
 | IF-008-002 | Interface | Answer = `Success` + `HoverPayload` (signature + doc, data not UI — §5.1/D-013) or **empty** payload → LSP `null` (R-008-1) | Main #9–10, Alt C | C2 (→C1) |
 | IF-008-003 | Interface | Inline (`S1`) or ticket (API-001) — C1 handles both; ticketed: honest progress (NFR-1.4) + terminal + `get_result` (API-002; F6.2); retention (D-011) | Main #7, #9, Alt A | C2 (→C1) |
 | IF-008-004 | Interface | Client cancellation → own-only `cancel(request_id)` (D-012); `Cancelled{reason:"user_canceled"}` is a normal outcome (D-018; §5) | Alt F | C1 (→C2) |
@@ -284,7 +284,7 @@ sequenceDiagram
 | DR-008-003 | Data | One Job per dedup key shared by hover and sync/background Tasks (TJ-005/006; NFR-3.1) | Alt B | C2 |
 | EH-008-001 | Error | No symbol at P → `Success` + empty `HoverPayload` → LSP `null` (normal outcome; FR-1.2) | Alt C | C2 (→C1) |
 | EH-008-002 | Error | Unknown document / malformed → `E_NOT_FOUND`/`E_INVALID_REQUEST`, no half-created Task (API-001; TJ-001) | Alt D | C2 (→C1) |
-| EH-008-003 | Error | Build failure → no commit (TJ-008); `Error{E_BUILD_FAILED|E_TIMEOUT, retryable}` (TJ-019/D-007; §5); stale prior result not returned (TJ-018) | Alt E | C2 (→C1) |
+| EH-008-003 | Error | Build failure → no commit (TJ-008); `Error{E_BUILD_FAILED | E_TIMEOUT, retryable}` (TJ-019/D-007; §5); stale prior result not returned (TJ-018) | Alt E | C2 (→C1) |
 | EH-008-004 | Error | Cancellation → cooperative stop (TJ-019); no commit (TJ-008); Job survives if other waiters (TJ-007; D-014/D-024); `reason:"user_canceled"` (D-018) | Alt F | C2 (+C4) |
 | SCR-C1-008-001 | Component | Hover translation + both Submission forms + progress/terminal consumption + LSP mapping + own-only cancel + no event-loop blocking (NFR-1.1) | Main #2, #9–10, Alt F | C1 |
 | SCR-C1-008-002 | Component | Protocol-only discipline: no content reading/symbol resolution/Datastore access; payload is data, the "popup" is the IDE's job (ADR-001; D-013; D-002) | Main #1–2 | C1 |
