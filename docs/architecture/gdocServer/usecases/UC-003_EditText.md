@@ -76,7 +76,8 @@ push) → §5.2 · D-016 (`action:"change"`) + D-017 (payload `action` + `conten
 - C1: local buffer reflects the edit; `open_revision` = latest `didChange` version; the latest
   `DiagnosticsEvent` for the document has been published via `textDocument/publishDiagnostics`
   (replacing the previously published set).
-- C2: the sync Task for this revision is terminal (`Completed` or `Error`); no Job for the
+- C2: the sync Task for this revision is terminal (`Completed` — TJ-003); a **failed** sync yields
+  `Result{status:Error, error:ErrorInfo{code, retryable}}` (§5); no Job for the
   **new** dedup key is in flight; the document **remains** in State 2; the pre-existing background build work is
   terminal (`Completed`, TJ-003) — no new background build work is created.
 - C3: Datastore holds the document's "current" entry at the new `version_id` **iff** the build
@@ -156,9 +157,10 @@ for revision R is still queued or running.
 4. Whichever commits, C3's freshness invariant (TJ-018) guarantees R's result can never become the
    "current" entry after R+1 has committed; the **latest** revision's committed state is what
    queries and diagnostics use.
-5. Each revision's Task terminates independently (`Completed`/`Error`) and pushes its own events
-   (TJ-001/003) — C1 may receive out-of-order `DiagnosticsEvent`s and **shall** publish only the
-   latest revision's set as current (SCR-C1-003-002).
+5. Each revision's Task terminates independently — terminal `Completed` (TJ-003), with
+   `Result{status:Error, error:ErrorInfo{code, retryable}}` on failure (§5) — and pushes its own
+   events (TJ-001/003) — C1 may receive out-of-order `DiagnosticsEvent`s and **shall** publish only
+   the latest revision's set as current (SCR-C1-003-002).
 
 ### B — Parse error in the new revision
 

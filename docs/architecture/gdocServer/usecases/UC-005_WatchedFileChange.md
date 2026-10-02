@@ -161,7 +161,7 @@ sequenceDiagram
         C2-)C1: handler: DiagnosticsEvent document+diagnostics (D-015, doc-scoped D-025)
         C1-)IDE: textDocument/publishDiagnostics (if diagnostics changed)
     else isolated file (not open / not referenced / not package)
-        Note over C2: built last (TJ-011 d); no build required (outside FR-3.3 scope) — may build on demand<br>DiagnosticsEvent per D-015 (only after a build that changed diagnostics)
+        Note over C2: built last (TJ-011 d), no build required (outside FR-3.3 scope) — may build on demand<br>DiagnosticsEvent per D-015 (only after a build that changed diagnostics)
     end
     Note over C2,C1: terminal Result{Success, SyncPayload{new version_id, affected docs}} (API-001, §5.1) — inline above, or push + get_result (API-002/004) if ticketed
     opt a superseded old-mtime build result arrives late

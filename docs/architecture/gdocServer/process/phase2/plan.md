@@ -3,7 +3,7 @@
 > **Purpose:** Unify behavioral evidence (use cases) for v1 scope, reverse-check Phase 1 contracts,
 > and establish the requirement decomposition per component that Phase 3 will verify.
 > **Position:** `docs/architecture/gdocServer/process/phase2/plan.md`
-> **Status:** 🟡 In Progress — Step 1 CLOSED (2026-10-02): UC-001/002/003 ✅, UC-004 ✅ 2026-09-28, UC-005 ✅ 2026-09-28, UC-006 ✅ 2026-10-01, UC-007 ✅ 2026-10-02; next: Step 2 (UC-008…011)
+> **Status:** 🟡 In Progress — Step 1 CLOSED (2026-10-02): UC-001/002/003 ✅, UC-004 ✅ 2026-09-28, UC-005 ✅ 2026-09-28, UC-006 ✅ 2026-10-01, UC-007 ✅ 2026-10-02; **Step 2 in progress (1/4):** UC-008 ✅ 2026-10-02; next: UC-009…011
 
 > **Related:** `../../README.md` §8 (Phase 2 definition · **authoritative procedure**)
 > · `../../contracts/task-job-management.md` (TJ-*)
@@ -29,7 +29,7 @@
 | UC-005 | Watched File Change | Sync | `workspace/didChangeWatchedFiles` (changed/created) | FR-1.3, ADR-007 | ✅ (2026-09-28) — approved |
 | UC-006 | File Deletion | Sync | `workspace/didChangeWatchedFiles` (deleted) | D-016, FR-2.1 | ✅ (2026-10-01) — approved |
 | UC-007 | Config Save | Config | `textDocument/didSave` (config) / watched | ADR-009, FR-2.2 | ✅ (2026-10-02) — approved (drafted 2026-10-01; review fixes 2026-10-02: matrix → 5-col template schema; 4 undefined-ID refs removed; README status wording). 1 ⚠️ reverse-check note: didSave config-location discovery → Phase 3 LSP-* |
-| UC-008 | Hover | Query | `textDocument/hover` | FR-1.2 | ⬜ |
+| UC-008 | Hover | Query | `textDocument/hover` | FR-1.2 | ✅ (2026-10-02) — approved (drafted 2026-10-02; review fixes 2026-10-02: D-014/D-021→D-014/D-024 (12 sites); Task states vs `Result{status:Error}` (3 sites; same fix in approved UC-002/UC-003 ×3)). 1 ⚠️ reverse-check note: soft-empty answer (no symbol at position) → empty `HoverPayload` under `Success` (C1 → LSP `null`) — candidate one-line §5.1 clarification → P2-008 |
 | UC-009 | Go to Definition | Query | `textDocument/definition` | FR-1.2 | ⬜ |
 | UC-010 | Find References | Query | `textDocument/references` | FR-1.2, NFR-1.4 | ⬜ |
 | UC-011 | Diagnostics | Push | (server→client push, D-015) | FR-1.2, D-015 | ⬜ |
@@ -47,7 +47,7 @@
 | Step | Description | Status |
 | ---- | ----------- | ------ |
 | 1 | Sync + Lifecycle UCs (UC-001…007) | 🟢 7/7 approved (UC-001…007 ✅) — CLOSED 2026-10-02 |
-| 2 | Query UCs (UC-008…011) | ⬜ |
+| 2 | Query UCs (UC-008…011) | 🟡 1/4 (UC-008 ✅ 2026-10-02; UC-009/010/011 ⬜) |
 | 3 | Reverse-check + Gap Analysis | ⬜ |
 | 4 | Archive + Final Status Update | ⬜ |
 
@@ -104,6 +104,7 @@
 | P2-005 | 2026-09-25 | **UC-003 findings applied (user-approved):** (1) **dispatch-skip of stale queued Jobs** added to `contracts/task-job-management.md` as an **efficiency note on TJ-012** (should-level: "a queued Job for a `(file, version, inputs)` whose document `version_id` is no longer current should not be dispatched; dispatch permitted, but its result must not become the 'current' entry — TJ-018") — from UC-003 ST-003-002/SCR-C2-003-002; (2) **`DOCUMENT_SYNC` `content` requirement clarified** in `contracts/frontend-odb-api.md` §4.1 — required for `action:"open"`/`"change"` (open document), optional for `action:"close"` (clarifies D-017's `action` + `content?` entry; the full normative D-017 table is still to be written during Phase 2) | Both findings were recorded as "awaiting user approval" per gate §4.5; user chose option **A** (note on TJ-012, not a new rule ID) and approved the §4.1 wording clarification | ✅ (user approved 2026-09-25) |
 | P2-006 | 2026-09-28 | **UC-005 findings applied (user-approved):** design review round `process/reviews/review-2026-09-28-uc005.md` — **WC-01** C1→C2 `version_id` ownership (C2 records the new disk mtime as the advanced version per D-020; C1 forwards the raw sync fact only), **WC-02** created / first-sight (stale-mark is a no-op when no prior stored result exists; the first build inserts the version), **WC-03** `Submission` vs terminal `Result` (Submission is only the ack — inline result or `request_id` ticket — the terminal `Result`/`SyncPayload` is delivered inline or via push + `get_result`, API-002/004), **WC-04** `SyncPayload` §8.1→§5.1 (9 sites), **WC-05** `UC-003_UpdateText`→`UC-003_EditText` | All WC-01…WC-05 apply already-confirmed decisions (D-020, D-016, API-002/004, §5.1) — no new design decisions; fixes applied to `usecases/UC-005_WatchedFileChange.md` in commit `e9f7c20`, per-finding verification in the review file; user confirmed content OK | ✅ (user approved 2026-09-28) |
 | P2-007 | 2026-09-28 | **Withdraw ST-005-003 (isolated-file "no proactive build" prohibition):** ST-005-003 deleted; the isolated-file description is now **permissive** (no build required, none forbidden; lowest priority TJ-011(d)) | Verified **no normative basis** for the prohibition: TJ-011(d)/ADR-007 is a *priority-order* (isolated files built last — scheduling order, not a ban, compatible with building them as a lowest-priority task); FR-3.3 is a *guarantee* that needed State-2/3 builds are not dropped (does **not** prohibit State-1/isolated builds); D-015 is a general diagnostics rule. The former "shall not" (ST-005-003) cited FR-3.3 as its basis, so its traceability was `⚠️→✅ by inference`, not a single normative rule. Applied: UC-005 (ST-005-003 rule deleted; isolated-file prose neutralized in Scope / Preconditions / Analysis / Alt B / sequence diagram; Traces-to, DoD, DoD-table, reverse-check, and traceability-matrix rows updated); `process/reviews/review-2026-09-28-uc005.md` (Excluded L6 + change history) | ✅ (user approved 2026-09-28) |
+| P2-008 | 2026-10-02 | **UC-008 (Hover) drafted:** `usecases/UC-008_Hover.md` — fast path (inline, §8 S1) + bounded in-Task build (TJ-001 extension; D-013 immediate depth; ticketed with honest progress NFR-1.4) + State 1 (TJ-011/012) + version anchoring (TJ-018/D-020) + sharing (TJ-005/006/007/009). **1 ⚠️ reverse-check finding:** the **soft-empty answer** (no symbol under the cursor) is not fixed in `frontend-odb-api.md` §5.1 (`HoverPayload`) — the UC stipulates an **empty `HoverPayload`** under `Result{Success}` (a normal outcome, not an error; C1 maps it to LSP `null` per R-008-1). **Candidate one-line clarification** for §5.1 — awaiting user approval per gate §4.5 before any contract edit | Precedent: UC-007's ⚠️ note was recorded the same way (no contract change until approved). §5.1 already mandates the payload be present only for `Success`; the LSP surface requires `Hover | null` (FR-1.2), so the empty-payload shape is the only self-consistent reading | UC-008 ✅ approved (2026-10-02); ⚠️ §5.1 one-line clarification still awaiting user approval per gate §4.5 |
 
 ---
 
